@@ -1,4 +1,3 @@
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { COLORS } from '../constants/theme';
@@ -20,30 +19,20 @@ import WorkForceScreen from '../screens/WorkForce/WorkForceScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
+import FloatingTabBar from '../components/FloatingTabBar';
+
+// ... (Imports remain same)
+
 // --- Tab Navigator ---
 function BottomTabNavigator() {
     return (
         <Tab.Navigator
-            screenOptions={({ route }) => ({
+            tabBar={props => <FloatingTabBar {...props} />}
+            screenOptions={{
                 headerShown: false,
-                tabBarStyle: {
-                    backgroundColor: COLORS.white,
-                    height: 60,
-                    paddingBottom: 8,
-                    borderTopColor: '#eee'
-                },
-                tabBarActiveTintColor: COLORS.primary,
-                tabBarInactiveTintColor: 'gray',
-                tabBarIcon: ({ focused, color, size }) => {
-                    let iconName;
-                    if (route.name === 'Ana Sayfa') return <Ionicons name={focused ? 'home' : 'home-outline'} size={size} color={color} />;
-                    if (route.name === 'Kiralama') return <MaterialCommunityIcons name="excavator" size={size} color={color} />;
-                    if (route.name === 'Market') return <MaterialCommunityIcons name="store" size={size} color={color} />;
-                    if (route.name === 'Profil') return <Ionicons name={focused ? 'person' : 'person-outline'} size={size} color={color} />;
-
-                    return <Ionicons name="apps" size={size} color={color} />;
-                },
-            })}
+                tabBarStyle: { position: 'absolute' }, // Required for transparency
+                tabBarHideOnKeyboard: true,
+            }}
         >
             <Tab.Screen name="Ana Sayfa" component={HomeScreen} />
             <Tab.Screen name="Kiralama" component={RentalScreen} />

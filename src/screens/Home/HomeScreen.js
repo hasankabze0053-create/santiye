@@ -1,172 +1,412 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Dimensions, FlatList, Image, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/theme';
+
+const { width, height } = Dimensions.get('window');
+
+// Extended Market Data Options
+const MARKET_OPTS = {
+    iron: {
+        title: 'DEMİR ÇEŞİTLERİ',
+        icon: 'cube',
+        items: [
+            { label: 'DEMİR Ø8', value: '₺25.40', trend: 'up' },
+            { label: 'DEMİR Ø10', value: '₺24.80', trend: 'neutral' },
+            { label: 'DEMİR Ø12', value: '₺24.50', trend: 'down' },
+            { label: 'DEMİR Ø14', value: '₺24.30', trend: 'down' },
+            { label: 'DEMİR Ø16', value: '₺24.30', trend: 'down' },
+        ]
+    },
+    concrete: {
+        title: 'HAZIR BETON',
+        icon: 'business',
+        items: [
+            { label: 'BETON C25', value: '₺2.000', trend: 'up' },
+            { label: 'BETON C30', value: '₺2.100', trend: 'up' },
+            { label: 'BETON C35', value: '₺2.250', trend: 'up' },
+            { label: 'BETON C40', value: '₺2.400', trend: 'up' },
+            { label: 'BETON C50', value: '₺2.650', trend: 'up' },
+        ]
+    },
+    currency: {
+        title: 'DÖVİZ & EMTİA',
+        icon: 'cash',
+        items: [
+            { label: 'USD/TL', value: '32.45', trend: 'up' },
+            { label: 'EUR/TL', value: '35.12', trend: 'up' },
+            { label: 'ALTIN (Gr)', value: '₺2.450', trend: 'down' },
+            { label: 'BRENT P.', value: '$82.40', trend: 'neutral' },
+        ]
+    }
+};
 
 // Real Photography for Categories
 const CATEGORIES = [
     {
         id: 1,
         title: 'KİRALA',
-        image: require('../../../assets/manitou_v2.jpg'),
+        subtitle: 'Ağır İş Makineleri',
+        image: require('../../assets/categories/cat_kiralama.png'),
         route: 'Kiralama'
     },
     {
         id: 2,
-        title: 'İNŞAAT MARKETİM',
-        image: require('../../../assets/insaat_market.jpg'),
+        title: 'MARKET',
+        subtitle: 'Toptan Malzeme',
+        image: require('../../assets/categories/cat_market.png'),
         route: 'Market'
     },
     {
         id: 3,
-        title: 'TADİLAT TAMİRAT',
-        image: require('../../../assets/tadilat_cover_v2.jpg'),
+        title: 'TADİLAT',
+        subtitle: 'Profesyonel Ekip',
+        image: require('../../assets/categories/cat_tadilat.png'),
         route: 'Tadilat'
     },
     {
         id: 4,
-        title: 'MÜHENDİSLİK MİMARLIK',
-        image: require('../../../assets/muhendislik_cover_v2.jpg'),
+        title: 'PROJE',
+        subtitle: 'Mimari Çizim',
+        image: require('../../assets/categories/cat_proje.png'),
         route: 'Mühendislik'
     },
     {
         id: 5,
-        title: 'HUKUKİ DESTEK',
-        image: require('../../../assets/hukuk_cover_v2.jpg'),
+        title: 'HUKUK',
+        subtitle: 'Yasal Danışmanlık',
+        image: require('../../assets/categories/cat_hukuk.png'),
         route: 'Hukuk'
     },
     {
         id: 6,
-        title: 'NAKLİYE LOJİSTİK',
-        image: require('../../../assets/nakliye_cover.jpg'),
+        title: 'NAKLİYE',
+        subtitle: 'Lojistik Çözüm',
+        image: require('../../assets/categories/cat_nakliye.png'),
         route: 'Nakliye'
     },
     {
         id: 7,
-        title: 'SİGORTA İŞLEMLERİ',
-        image: { uri: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=600&auto=format&fit=crop' },
+        title: 'SİGORTA',
+        subtitle: 'Risk Güvencesi',
+        image: require('../../assets/categories/cat_sigorta.png'),
         route: 'Sigorta'
     },
     {
         id: 8,
-        title: 'YAKLAŞIK MALİYET',
-        image: { uri: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=600&auto=format&fit=crop' },
+        title: 'MALİYET',
+        subtitle: 'Proje Hesabı',
+        image: require('../../assets/categories/cat_maliyet.png'),
         route: 'Maliyet'
+    },
+    {
+        id: 9,
+        title: 'USTA BUL',
+        subtitle: '7/24 Personel',
+        image: require('../../assets/categories/cat_usta.png'),
+        route: 'Personel'
     },
 ];
 
 export default function HomeScreen({ navigation }) {
+    const [greeting, setGreeting] = useState('İYİ GÜNLER');
+
+    // State for interactive ticker
+    const [selectedValues, setSelectedValues] = useState({
+        iron: MARKET_OPTS.iron.items[2], // Default: Ø12
+        concrete: MARKET_OPTS.concrete.items[1], // Default: C30
+        currency: MARKET_OPTS.currency.items[0], // Default: USD
+    });
+
+    // Modal State
+    const [modalVisible, setModalVisible] = useState(false);
+    const [activeCategory, setActiveCategory] = useState(null); // 'iron', 'concrete', 'currency'
+
+    useEffect(() => {
+        const hour = new Date().getHours();
+        if (hour < 12) setGreeting('GÜNAYDIN');
+        else if (hour < 18) setGreeting('TÜNAYDIN');
+        else setGreeting('İYİ AKŞAMLAR');
+    }, []);
+
+    const openSelectionModal = (categoryKey) => {
+        setActiveCategory(categoryKey);
+        setModalVisible(true);
+    };
+
+    const handleSelectOption = (item) => {
+        setSelectedValues(prev => ({ ...prev, [activeCategory]: item }));
+        setModalVisible(false);
+    };
+
+    const renderTickerItem = (item, categoryKey) => (
+        <TouchableOpacity
+            key={categoryKey}
+            style={styles.tickerItem}
+            activeOpacity={0.7}
+            onPress={() => openSelectionModal(categoryKey)}
+        >
+            <View style={styles.tickerIconBox}>
+                {item.trend === 'up' && <Ionicons name="caret-up" size={10} color={COLORS.primary} />}
+                {item.trend === 'down' && <Ionicons name="caret-down" size={10} color={COLORS.primary} />}
+                {item.trend === 'neutral' && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.primary }} />}
+            </View>
+            <View>
+                <Text style={styles.tickerLabel}>{item.label}  <Ionicons name="chevron-down" size={8} color="#666" /></Text>
+                <Text style={[styles.tickerValue, item.trend === 'up' ? { color: COLORS.success } : item.trend === 'down' ? { color: COLORS.danger } : { color: COLORS.text }]}>
+                    {item.value}
+                </Text>
+            </View>
+        </TouchableOpacity>
+    );
+
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
 
-            {/* Dark Background for App */}
+            {/* Background: Classic Platinum Grey Gradient */}
             <LinearGradient
-                colors={['#000000', '#111111', '#1a1a1a']}
+                colors={['#4b5052', '#212121', '#0f0f0f']}
+                locations={[0, 0.4, 1]}
                 style={StyleSheet.absoluteFillObject}
             />
 
             <SafeAreaView style={{ flex: 1 }}>
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
-                    {/* Header */}
-                    <View style={styles.header}>
-                        <View>
-                            <Text style={styles.greetingText}>Merhaba, <Text style={{ color: COLORS.accent }}>Kral</Text></Text>
-                            <View style={styles.locationContainer}>
-                                <Ionicons name="location" size={12} color="#888" />
-                                <Text style={styles.locationText}> Kadıköy, Şantiye Sahası</Text>
+                    {/* HERO HEADER */}
+                    <View style={styles.headerContainer}>
+                        <View style={styles.headerTop}>
+                            <View>
+                                <Text style={styles.subGreeting}>ŞANTİYE PRO v2.0</Text>
+                                <Text style={styles.mainGreeting}>{greeting},</Text>
+                                <Text style={styles.chiefName}>ŞEF 👷🏼</Text>
                             </View>
+                            <TouchableOpacity style={styles.profileBtn}>
+                                <Image
+                                    source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop' }}
+                                    style={styles.profileImg}
+                                />
+                                <View style={styles.onlineDot} />
+                            </TouchableOpacity>
                         </View>
-                        <TouchableOpacity style={styles.bellButton}>
-                            <Ionicons name="notifications" size={20} color="#fff" />
-                            <View style={styles.notificationBadge} />
-                        </TouchableOpacity>
+
+                        {/* INDUSTRIAL TICKER */}
+                        <View style={styles.tickerWrapper}>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 20 }}>
+                                {renderTickerItem(selectedValues.iron, 'iron')}
+                                {renderTickerItem(selectedValues.concrete, 'concrete')}
+                                {renderTickerItem(selectedValues.currency, 'currency')}
+                                {/* Static Weather Item (Non-interactive for now) */}
+                                <View style={styles.tickerItem}>
+                                    <View style={styles.tickerIconBox}>
+                                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.primary }} />
+                                    </View>
+                                    <View>
+                                        <Text style={styles.tickerLabel}>İSTANBUL</Text>
+                                        <Text style={[styles.tickerValue, { color: COLORS.text }]}>18°C ☀️</Text>
+                                    </View>
+                                </View>
+                            </ScrollView>
+                        </View>
                     </View>
 
-                    {/* Main Modules Grid */}
-                    <View style={styles.sectionContainer}>
-                        <View style={styles.categoryGrid}>
-                            {CATEGORIES.map((cat) => (
-                                <TouchableOpacity
-                                    key={cat.id}
-                                    style={styles.categoryCardWrapper}
-                                    onPress={() => navigation.navigate(cat.route)}
-                                    activeOpacity={0.9}
-                                >
-                                    <View style={styles.categoryCard}>
-                                        {/* Image Background */}
-                                        <Image
-                                            source={cat.image}
-                                            style={styles.cardBgImage}
-                                        />
+                    {/* STANDARD GRID OF CARDS */}
+                    <View style={styles.gridContainer}>
+                        {CATEGORIES.map((cat, index) => (
+                            <TouchableOpacity
+                                key={cat.id}
+                                style={styles.cardWrapper}
+                                onPress={() => navigation.navigate(cat.route)}
+                                activeOpacity={0.9}
+                            >
+                                <View style={styles.cardContainer}>
+                                    <View style={styles.imageContainer}>
+                                        {/* UNIFYING BACKGROUND COLOR */}
+                                        <View style={{ position: 'absolute', width: '100%', height: '100%', backgroundColor: '#1a1a1a', zIndex: -1 }} />
 
-                                        {/* Text Section - YELLOW Background */}
-                                        <View style={styles.cardTextContainer}>
-                                            <Text style={styles.categoryTitle}>{cat.title}</Text>
+                                        {/* IMAGE */}
+                                        <Image source={cat.image} style={styles.cardImage} />
+
+                                        {/* Gradient Overlay */}
+                                        <LinearGradient
+                                            colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.95)']}
+                                            style={StyleSheet.absoluteFillObject}
+                                        />
+                                    </View>
+
+                                    <View style={styles.cardContent}>
+                                        <View style={styles.cardIndicator} />
+                                        <View>
+                                            <Text style={styles.cardTitle}>{cat.title}</Text>
+                                            <Text style={styles.cardSubtitle}>{cat.subtitle}</Text>
                                         </View>
                                     </View>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
+                                </View>
+                            </TouchableOpacity>
+                        ))}
                     </View>
-
                 </ScrollView>
             </SafeAreaView>
+
+            {/* SELECTION MODAL */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>
+                                {activeCategory ? MARKET_OPTS[activeCategory].title : 'SEÇİM YAPIN'}
+                            </Text>
+                            <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                <Ionicons name="close-circle" size={28} color="#666" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <FlatList
+                            data={activeCategory ? MARKET_OPTS[activeCategory].items : []}
+                            keyExtractor={(item, index) => index.toString()}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={styles.modalItem}
+                                    onPress={() => handleSelectOption(item)}
+                                >
+                                    <Text style={styles.modalItemLabel}>{item.label}</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        <Text style={styles.modalItemValue}>{item.value}</Text>
+                                        {item.trend === 'up' && <Ionicons name="caret-up" size={14} color={COLORS.success} style={{ marginLeft: 8 }} />}
+                                        {item.trend === 'down' && <Ionicons name="caret-down" size={14} color={COLORS.danger} style={{ marginLeft: 8 }} />}
+                                    </View>
+                                </TouchableOpacity>
+                            )}
+                            ItemSeparatorComponent={() => <View style={styles.modalSeparator} />}
+                        />
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#000' },
-    header: { padding: 24, paddingBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    greetingText: { color: '#fff', fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
-    locationContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
-    locationText: { color: '#888', fontSize: 13, fontWeight: '500' },
-    bellButton: { backgroundColor: '#1F1F1F', padding: 12, borderRadius: 50, borderWidth: 1, borderColor: '#333' },
-    notificationBadge: { position: 'absolute', top: 12, right: 12, width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.accent, borderWidth: 1, borderColor: '#1F1F1F' },
+    container: { flex: 1, backgroundColor: '#0f0f0f' },
 
-    // RESTORED GRID LAYOUT
-    sectionContainer: { paddingHorizontal: 20, paddingTop: 20 },
+    // Header Styles
+    headerContainer: { padding: 24, paddingBottom: 10 },
+    headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
+    subGreeting: { color: COLORS.accent, fontSize: 10, letterSpacing: 2, fontWeight: '800', opacity: 0.8, marginBottom: 4 },
+    mainGreeting: { color: '#ffffff', fontSize: 24, letterSpacing: 1, fontWeight: '300' },
+    chiefName: { color: '#ffffff', fontSize: 36, letterSpacing: -1, fontWeight: '900', marginTop: -5 },
+    profileBtn: {
+        width: 56, height: 56, borderRadius: 16,
+        borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.3)',
+        padding: 4, backgroundColor: 'rgba(255,255,255,0.05)'
+    },
+    profileImg: { width: '100%', height: '100%', borderRadius: 12 },
+    onlineDot: {
+        position: 'absolute', top: -2, right: -2,
+        width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.success,
+        borderWidth: 2, borderColor: '#0f0f0f'
+    },
 
-    // Grid Layout (2 Columns)
-    categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-    categoryCardWrapper: { width: '48%', marginBottom: 20 },
+    // Ticker Styles
+    tickerWrapper: {
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        borderRadius: 16, borderLeftWidth: 4, borderLeftColor: COLORS.accent,
+        paddingVertical: 12, paddingHorizontal: 16
+    },
+    tickerItem: { flexDirection: 'row', alignItems: 'center', marginRight: 24 },
+    tickerIconBox: {
+        width: 20, height: 20, borderRadius: 10, backgroundColor: COLORS.accent,
+        alignItems: 'center', justifyContent: 'center', marginRight: 8
+    },
+    tickerLabel: { color: '#666', fontSize: 10, fontWeight: '700', letterSpacing: 0.5 },
+    tickerValue: { color: '#fff', fontSize: 14, fontWeight: 'bold' },
 
-    categoryCard: {
-        height: 250,
-        borderRadius: 24,
+    // Grid Styles
+    scrollContent: { paddingBottom: 120 },
+    gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 10 },
+
+    // Professional Card Styles
+    cardWrapper: { width: '48%', marginBottom: 16 },
+    cardContainer: {
+        height: 180,
+        backgroundColor: '#1E1E1E',
+        borderRadius: 12,
         overflow: 'hidden',
-        backgroundColor: '#FFD700', // YELLOW BACKGROUND
-        borderWidth: 0,
-        elevation: 10,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.35,
-        shadowRadius: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.08)',
     },
-    cardBgImage: {
-        width: '100%',
-        height: '82%',
-        resizeMode: 'cover',
-        backgroundColor: '#FFD700',
+    imageContainer: { height: '100%', width: '100%' },
+    cardImage: { width: '100%', height: '100%', resizeMode: 'cover', opacity: 1.0 },
+    cardContent: {
+        position: 'absolute',
+        bottom: 0, left: 0, right: 0,
+        padding: 12,
+        flexDirection: 'row',
+        alignItems: 'center'
     },
-    cardTextContainer: {
-        height: '18%',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#FFD700', // YELLOW BACKGROUND
-        paddingHorizontal: 5,
-        paddingBottom: 5
+    cardIndicator: {
+        width: 3,
+        height: 24,
+        backgroundColor: COLORS.accent,
+        marginRight: 8,
+        borderRadius: 2
     },
+    cardTitle: { color: '#fff', fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+    cardSubtitle: { color: 'rgba(255,255,255,0.7)', fontSize: 10, fontWeight: '500', marginTop: 2 },
 
-    categoryTitle: {
-        fontWeight: '900',
-        color: '#0047AB', // BLUE TEXT
-        fontSize: 16,
-        letterSpacing: 0,
-        textTransform: 'uppercase',
-        textAlign: 'center'
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.85)',
+        justifyContent: 'flex-end',
     },
+    modalContent: {
+        backgroundColor: '#1a1a1a',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        padding: 24,
+        borderTopWidth: 1,
+        borderTopColor: COLORS.accent,
+        maxHeight: height * 0.5,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    modalTitle: {
+        color: COLORS.white,
+        fontSize: 18,
+        fontWeight: 'bold',
+        letterSpacing: 1,
+    },
+    modalItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 16,
+    },
+    modalItemLabel: {
+        color: '#ccc',
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    modalItemValue: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    modalSeparator: {
+        height: 1,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+    }
 });

@@ -1,23 +1,33 @@
 export const COLORS = {
-    // Red/Black/White "Power" Theme
-    primary: '#000000',   // Pure Black background
-    secondary: '#1A1A1A', // Dark Gray for cards
-    accent: '#DC2626',    // Bold Red (Main Action)
-    accentGradientStart: '#DC2626', // Red
-    accentGradientEnd: '#991B1B',   // Darker Red
-
-    white: '#FFFFFF',
-    text: '#FFFFFF',      // Pure White text
-    textSecondary: '#A3A3A3', // Light Gray
-
-    success: '#10B981',
-    danger: '#EF4444',
-    warning: '#F59E0B',
-    info: '#3B82F6',
+    // "Cyber/Premium" Theme: Deep Black, Rich Gold, Carbon Fiber Gray
+    
+    // Backgrounds
+    primary: '#1A1A1A',      // Dark Concrete Base
+    secondary: '#252525',    // Lighter Concrete (Cards)
+    surface: '#303030',      // Elevated
+    
+    // Accents
+    accent: '#FFD700',           // Pure Gold (Main Action)
+    accentSecondary: '#FDB931',  // Warm Gold
+    warning: '#F59E0B',          // Amber
+    success: '#10B981',          // Emerald
+    danger: '#EF4444',           // Red
+    
+    // Text
+    text: '#E0E0E0',             // Off-White (Better on gray)
+    textSecondary: '#A0A0A0',    // Light Gray
+    textGold: '#FFD700',         // Gold Text
+    
+    // Gradients (Concrete / Stone)
+    gradientStart: '#232526', // Titanium
+    gradientEnd: '#414345',   // Gunmetal
+    goldGradientStart: '#FFD700',
+    goldGradientEnd: '#FDB931',
 
     // Glass effect colors
-    glassBorder: 'rgba(220, 38, 38, 0.3)', // Red tinted border
-    glassBackground: 'rgba(20, 20, 20, 0.8)',
+    glassBorder: 'rgba(255, 215, 0, 0.15)', 
+    glassBackground: 'rgba(30, 30, 30, 0.80)', 
+    glassHighlight: 'rgba(255, 255, 255, 0.05)',
 };
 
 export const SIZES = {
@@ -26,31 +36,37 @@ export const SIZES = {
     font: 14,
     medium: 16,
     large: 20,
-    extraLarge: 28,
-    xxl: 34,
-    radius: 16,
+    xl: 24,
+    xxl: 32,
+    radius: 20,
+    tabHeight: 80,
 };
 
 export const SHADOWS = {
     light: {
-        shadowColor: "#DC2626", // Red shadow hint
-        shadowOffset: { width: 0, height: 2 },
+        shadowColor: "#FFD700", 
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 2,
+        shadowRadius: 12,
+        elevation: 3,
     },
     medium: {
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.5,
-        shadowRadius: 10,
-        elevation: 5,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.4,
+        shadowRadius: 16,
+        elevation: 8,
     },
     glow: {
-        shadowColor: "#DC2626", // Red glow
+        shadowColor: "#FFD700", 
         shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.6,
+        shadowOpacity: 0.3,
         shadowRadius: 15,
-        elevation: 8,
+        elevation: 10,
     }
+};
+
+export const LAYOUT = {
+    padding: 20,
+    radius: 24,
 };
