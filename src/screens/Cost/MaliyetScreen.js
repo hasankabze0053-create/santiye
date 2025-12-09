@@ -183,6 +183,21 @@ export default function MaliyetScreen({ navigation }) {
     };
 
     const handleNavigation = (screen) => {
+        // Validation check for city
+        if (!city && (screen === 'DetailedCost' || screen === 'SmartSketch')) {
+            alert('Lütfen önce bir il seçiniz.');
+            openCityModal();
+            return;
+        }
+
+        // Redirect Detailed Analysis to Smart Sketch first
+        if (screen === 'DetailedCost') {
+            navigation.navigate('SmartSketch', {
+                location: { city, district: 'Tümü' }
+            });
+            return;
+        }
+
         navigation.navigate(screen, {
             location: { city, district: 'Tümü' }
         });

@@ -8,7 +8,7 @@ const { width, height } = Dimensions.get('window');
 
 // Import all assets to preload
 const ASSETS_TO_LOAD = [
-    require('../../assets/final_splash.jpg'), // The splash logo itself
+    require('../../assets/splash_8k_final.png'), // The splash logo itself
     // Preload Home Category Images to fix slow loading
     require('../../assets/categories/cat_kiralama.png'),
     require('../../assets/categories/cat_market.png'),
@@ -56,7 +56,7 @@ export default function CustomSplashScreen() {
             <StatusBar hidden />
             {/* Show Logo */}
             <Image
-                source={require('../../assets/final_splash.jpg')}
+                source={require('../../assets/splash_8k_final.png')}
                 style={styles.image}
                 resizeMode="contain"
             />
@@ -77,6 +77,7 @@ const styles = StyleSheet.create({
     image: {
         width: width,
         height: height,
+        transform: [{ scale: 1.5 }],
         // transform removed to show full image, badge covers the logo
     },
 

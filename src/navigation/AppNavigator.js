@@ -8,6 +8,7 @@ import DetailedCostScreen from '../screens/Cost/DetailedCostScreen';
 import MaliyetScreen from '../screens/Cost/MaliyetScreen';
 import PosCostScreen from '../screens/Cost/PosCostScreen';
 import SimpleCostScreen from '../screens/Cost/SimpleCostScreen';
+import SmartSketchScreen from '../screens/Cost/SmartSketchScreen';
 import EngineeringScreen from '../screens/Engineering/EngineeringScreen';
 import HomeScreen from '../screens/Home/HomeScreen';
 import SigortaScreen from '../screens/Insurance/SigortaScreen';
@@ -65,7 +66,8 @@ export default function AppNavigator() {
             <Stack.Screen name="Sigorta" component={SigortaScreen} options={{ headerShown: true, title: 'Sigorta İşlemleri' }} />
             <Stack.Screen name="Maliyet" component={MaliyetScreen} options={{ headerShown: true, title: 'Yaklaşık Maliyet' }} />
             <Stack.Screen name="SimpleCost" component={SimpleCostScreen} options={{ headerShown: true, title: 'Hızlı Hesaplama' }} />
-            <Stack.Screen name="DetailedCost" component={DetailedCostScreen} options={{ headerShown: true, title: 'Detaylı Maliyet' }} />
+            <Stack.Screen name="SmartSketch" component={SmartSketchScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="DetailedCost" component={DetailedCostScreen} options={{ headerShown: false }} />
             <Stack.Screen name="PosCost" component={PosCostScreen} options={{ headerShown: true, title: 'Poz No Hesap' }} />
         </Stack.Navigator>
     );
