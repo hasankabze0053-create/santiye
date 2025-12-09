@@ -49,64 +49,57 @@ const CATEGORIES = [
         id: 1,
         title: 'KİRALA',
         subtitle: 'Ağır İş Makineleri',
-        image: require('../../assets/categories/cat_kiralama.png'),
+        image: require('../../assets/categories/cat_kiralama_v2.png'),
         route: 'Kiralama'
     },
     {
         id: 2,
         title: 'MARKET',
         subtitle: 'Toptan Malzeme',
-        image: require('../../assets/categories/cat_market.png'),
+        image: require('../../assets/categories/cat_market_v2.png'),
         route: 'Market'
     },
     {
         id: 3,
         title: 'TADİLAT',
         subtitle: 'Profesyonel Ekip',
-        image: require('../../assets/categories/cat_tadilat.png'),
+        image: require('../../assets/categories/cat_tadilat_v2.png'),
         route: 'Tadilat'
     },
     {
         id: 4,
         title: 'PROJE',
         subtitle: 'Mimari Çizim',
-        image: require('../../assets/categories/cat_proje.png'),
+        image: require('../../assets/categories/cat_proje_v2.png'),
         route: 'Mühendislik'
     },
     {
         id: 5,
         title: 'HUKUK',
         subtitle: 'Yasal Danışmanlık',
-        image: require('../../assets/categories/cat_hukuk.png'),
+        image: require('../../assets/categories/cat_hukuk_v2.png'),
         route: 'Hukuk'
     },
     {
         id: 6,
         title: 'NAKLİYE',
         subtitle: 'Lojistik Çözüm',
-        image: require('../../assets/categories/cat_nakliye.png'),
+        image: require('../../assets/categories/cat_nakliye_v2.png'),
         route: 'Nakliye'
     },
     {
         id: 7,
         title: 'SİGORTA',
         subtitle: 'Risk Güvencesi',
-        image: require('../../assets/categories/cat_sigorta.png'),
+        image: require('../../assets/categories/cat_sigorta_v2.png'),
         route: 'Sigorta'
     },
     {
         id: 8,
         title: 'MALİYET',
         subtitle: 'Proje Hesabı',
-        image: require('../../assets/categories/cat_maliyet.png'),
+        image: require('../../assets/categories/cat_maliyet_v2.png'),
         route: 'Maliyet'
-    },
-    {
-        id: 9,
-        title: 'USTA BUL',
-        subtitle: '7/24 Personel',
-        image: require('../../assets/categories/cat_usta.png'),
-        route: 'Personel'
     },
 ];
 

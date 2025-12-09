@@ -4,7 +4,10 @@ import { COLORS } from '../constants/theme';
 
 // Screens
 import AiArchitectScreen from '../screens/AI/AiArchitectScreen';
+import DetailedCostScreen from '../screens/Cost/DetailedCostScreen';
 import MaliyetScreen from '../screens/Cost/MaliyetScreen';
+import PosCostScreen from '../screens/Cost/PosCostScreen';
+import SimpleCostScreen from '../screens/Cost/SimpleCostScreen';
 import EngineeringScreen from '../screens/Engineering/EngineeringScreen';
 import HomeScreen from '../screens/Home/HomeScreen';
 import SigortaScreen from '../screens/Insurance/SigortaScreen';
@@ -14,7 +17,6 @@ import MarketScreen from '../screens/Market/MarketScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import RenovationScreen from '../screens/Renovation/RenovationScreen';
 import RentalScreen from '../screens/Rental/RentalScreen';
-import WorkForceScreen from '../screens/WorkForce/WorkForceScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -42,10 +44,13 @@ function BottomTabNavigator() {
     );
 }
 
+import CustomSplashScreen from '../screens/Splash/CustomSplashScreen';
+
 // --- Main Stack (Root) ---
 export default function AppNavigator() {
     return (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Splash">
+            <Stack.Screen name="Splash" component={CustomSplashScreen} />
             {/* Main Tabs */}
             <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
 
@@ -56,10 +61,12 @@ export default function AppNavigator() {
 
             {/* New Modules */}
             <Stack.Screen name="Hukuk" component={LawScreen} options={{ headerShown: true, title: 'Hukuki Destek' }} />
-            <Stack.Screen name="Personel" component={WorkForceScreen} options={{ headerShown: true, title: 'Personel & Usta' }} />
             <Stack.Screen name="Nakliye" component={LogisticsScreen} options={{ headerShown: true, title: 'Nakliye & Lojistik' }} />
             <Stack.Screen name="Sigorta" component={SigortaScreen} options={{ headerShown: true, title: 'Sigorta İşlemleri' }} />
             <Stack.Screen name="Maliyet" component={MaliyetScreen} options={{ headerShown: true, title: 'Yaklaşık Maliyet' }} />
+            <Stack.Screen name="SimpleCost" component={SimpleCostScreen} options={{ headerShown: true, title: 'Hızlı Hesaplama' }} />
+            <Stack.Screen name="DetailedCost" component={DetailedCostScreen} options={{ headerShown: true, title: 'Detaylı Maliyet' }} />
+            <Stack.Screen name="PosCost" component={PosCostScreen} options={{ headerShown: true, title: 'Poz No Hesap' }} />
         </Stack.Navigator>
     );
 }
