@@ -1,8 +1,11 @@
+import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/theme';
 
 export default function ProfileScreen() {
+    const navigation = useNavigation();
+
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
@@ -40,6 +43,23 @@ const styles = StyleSheet.create({
     avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
     name: { fontSize: 20, fontWeight: 'bold', color: COLORS.primary },
     role: { color: 'gray' },
+
+    providerButton: {
+        marginTop: 20,
+        backgroundColor: '#0f172a', // Dark Navy
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 25,
+        flexDirection: 'row',
+        alignItems: 'center',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+    },
+    providerButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+
     section: { padding: 20 },
     sectionTitle: { fontSize: 18, fontWeight: 'bold', color: COLORS.primary, marginBottom: 20 },
     timelineItem: { flexDirection: 'row', marginBottom: 20, paddingLeft: 10 },

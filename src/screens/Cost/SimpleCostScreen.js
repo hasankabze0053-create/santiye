@@ -820,15 +820,18 @@ const styles = StyleSheet.create({
         letterSpacing: 1,
     },
     accessoryContainer: {
-        backgroundColor: '#1C1C1E',
         flexDirection: 'row',
         justifyContent: 'flex-end',
-        padding: 10,
-        borderTopWidth: 1,
-        borderTopColor: '#333'
+        backgroundColor: 'transparent',
+        padding: 8,
     },
     accessoryButton: {
-        paddingHorizontal: 16,
+        backgroundColor: '#1C1C1E',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#333'
     },
     accessoryText: {
         color: '#FFD700',

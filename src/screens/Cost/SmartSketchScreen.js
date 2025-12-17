@@ -1,7 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
-import { Button, Dimensions, InputAccessoryView, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Dimensions, InputAccessoryView, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, G, Line, Path, Pattern, Rect, Text as SvgText } from 'react-native-svg';
 import LuxuryCard from '../../components/LuxuryCard';
@@ -259,7 +259,8 @@ export default function SmartSketchScreen({ navigation, route }) {
             area: calculateArea(),
             perimeter: calculatePerimeter(),
             shape: selectedShape,
-            location: route.params?.location
+            location: route.params?.location,
+            projectData: route.params?.projectData // Forward project details
         });
     };
 
@@ -524,7 +525,7 @@ export default function SmartSketchScreen({ navigation, route }) {
                                             keyboardType="numeric"
                                             placeholder="3.00"
                                             placeholderTextColor="#666"
-                                            inputAccessoryViewID="DoneAccessory"
+                                            inputAccessoryViewID="toolbar_smart_sketch"
                                             selectTextOnFocus={true}
                                             autoFocus={true}
                                             onSubmitEditing={saveEdit}
@@ -541,9 +542,11 @@ export default function SmartSketchScreen({ navigation, route }) {
                     {/* KEYBOARD ACCESSORY FOR IOS */}
                     {
                         Platform.OS === 'ios' && (
-                            <InputAccessoryView nativeID="DoneAccessory">
-                                <View style={{ backgroundColor: '#1E1E1E', borderTopWidth: 1, borderTopColor: '#333', paddingRight: 15, alignItems: 'flex-end', height: 45, justifyContent: 'center' }}>
-                                    <Button title="Bitti" color="#D4AF37" onPress={saveEdit} />
+                            <InputAccessoryView nativeID="toolbar_smart_sketch">
+                                <View style={styles.accessoryContainer}>
+                                    <TouchableOpacity onPress={saveEdit} style={styles.accessoryButton}>
+                                        <Text style={styles.accessoryText}>Bitti</Text>
+                                    </TouchableOpacity>
                                 </View>
                             </InputAccessoryView>
                         )
@@ -617,4 +620,25 @@ const styles = StyleSheet.create({
     padBtn: { width: 56, height: 56, backgroundColor: '#D4AF37', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
     plusBadge: { position: 'absolute', top: 4, right: 4 },
     actionRow: { display: 'none' }, // Hide old row if persists
+
+    // Gold Accessory Style
+    accessoryContainer: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        backgroundColor: 'transparent',
+        padding: 8,
+    },
+    accessoryButton: {
+        backgroundColor: '#1C1C1E',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#333'
+    },
+    accessoryText: {
+        color: '#FFD700',
+        fontWeight: 'bold',
+        fontSize: 16,
+    }
 });

@@ -190,9 +190,9 @@ export default function MaliyetScreen({ navigation }) {
             return;
         }
 
-        // Redirect Detailed Analysis to Smart Sketch first
+        // Redirect Detailed Analysis to Project Identity first
         if (screen === 'DetailedCost') {
-            navigation.navigate('SmartSketch', {
+            navigation.navigate('ProjectIdentity', {
                 location: { city, district: 'Tümü' }
             });
             return;

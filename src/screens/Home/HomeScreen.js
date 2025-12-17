@@ -89,10 +89,10 @@ const CATEGORIES = [
     },
     {
         id: 7,
-        title: 'SİGORTA',
-        subtitle: 'Risk Güvencesi',
+        title: 'YERİNDE DÖNÜŞÜM',
+        subtitle: 'Devlet Destekli',
         image: require('../../assets/categories/cat_sigorta_v2.png'),
-        route: 'Sigorta'
+        route: 'KentselDonusum'
     },
     {
         id: 8,
@@ -116,6 +116,8 @@ export default function HomeScreen({ navigation }) {
     // Modal State
     const [modalVisible, setModalVisible] = useState(false);
     const [activeCategory, setActiveCategory] = useState(null); // 'iron', 'concrete', 'currency'
+    // New Rental Selection Modal State
+    const [rentalModalVisible, setRentalModalVisible] = useState(false);
 
     useEffect(() => {
         const hour = new Date().getHours();
@@ -212,7 +214,13 @@ export default function HomeScreen({ navigation }) {
                             <TouchableOpacity
                                 key={cat.id}
                                 style={styles.cardWrapper}
-                                onPress={() => navigation.navigate(cat.route)}
+                                onPress={() => {
+                                    if (cat.title === 'KİRALA') {
+                                        navigation.navigate('Kiralama');
+                                    } else {
+                                        navigation.navigate(cat.route);
+                                    }
+                                }}
                                 activeOpacity={0.9}
                             >
                                 <View style={styles.cardContainer}>
@@ -283,6 +291,7 @@ export default function HomeScreen({ navigation }) {
                     </View>
                 </View>
             </Modal>
+
         </View>
     );
 }
@@ -358,7 +367,7 @@ const styles = StyleSheet.create({
     // Modal Styles
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.85)',
+        backgroundColor: 'rgba(0,0,0,0.6)',
         justifyContent: 'flex-end',
     },
     modalContent: {
@@ -401,5 +410,24 @@ const styles = StyleSheet.create({
     modalSeparator: {
         height: 1,
         backgroundColor: 'rgba(255,255,255,0.1)',
-    }
+    },
+
+    // FULL SCREEN MODAL STYLES
+    fsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20 },
+    fsBackBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.1)' },
+    fsTitle: { color: '#fff', fontSize: 16, fontWeight: '900', letterSpacing: 1 },
+
+    fsContainer: { flex: 1, padding: 20, justifyContent: 'center', gap: 20 },
+
+    fsCardContainer: { height: 180, borderRadius: 24, overflow: 'hidden', position: 'relative', marginBottom: 20 },
+    fsCardGradient: { flex: 1, flexDirection: 'row', alignItems: 'center', padding: 24, gap: 15 },
+    fsGlowBorder: { ...StyleSheet.absoluteFillObject, borderWidth: 1, borderRadius: 24, opacity: 0.5 },
+
+    fsIconCircle: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(255, 193, 7, 0.1)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#FFD700' },
+
+    fsCardContent: { flex: 1 },
+    fsCardTitle: { color: '#FFD700', fontSize: 18, fontWeight: '900', marginBottom: 8, letterSpacing: 0.5 },
+    fsCardSub: { color: '#ccc', fontSize: 13, lineHeight: 18, fontWeight: '500' },
+
+    fsArrowBox: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255, 193, 7, 0.1)', alignItems: 'center', justifyContent: 'center' },
 });

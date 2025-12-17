@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, InputAccessoryView, Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/theme';
 
@@ -46,6 +46,7 @@ export default function PosCostScreen({ navigation }) {
                             placeholderTextColor="#555"
                             value={search}
                             onChangeText={handleSearch}
+                            inputAccessoryViewID="toolbar_pos_cost"
                         />
                         {search.length > 0 && (
                             <TouchableOpacity onPress={() => handleSearch('')}>
@@ -76,6 +77,18 @@ export default function PosCostScreen({ navigation }) {
                 />
 
             </SafeAreaView>
+
+            {/* GOLD DONE BUTTON ACCESSORY */}
+            {Platform.OS === 'ios' && (
+                <InputAccessoryView nativeID="toolbar_pos_cost">
+                    <View style={styles.accessoryContainer}>
+                        <TouchableOpacity onPress={Keyboard.dismiss} style={styles.accessoryButton}>
+                            <Text style={styles.accessoryText}>Bitti</Text>
+                        </TouchableOpacity>
+                    </View>
+                </InputAccessoryView>
+            )}
+
         </View>
     );
 }
@@ -111,5 +124,27 @@ const styles = StyleSheet.create({
     itemContent: { flex: 1, marginRight: 8 },
     itemId: { color: '#38ef7d', fontSize: 12, fontWeight: '700', marginBottom: 2 },
     itemDesc: { color: '#ccc', fontSize: 14, fontWeight: '500', marginBottom: 4 },
-    itemPrice: { color: '#fff', fontSize: 15, fontWeight: 'bold' }
+    itemDesc: { color: '#ccc', fontSize: 14, fontWeight: '500', marginBottom: 4 },
+    itemPrice: { color: '#fff', fontSize: 15, fontWeight: 'bold' },
+
+    // Gold Accessory Style
+    accessoryContainer: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        backgroundColor: 'transparent',
+        padding: 8,
+    },
+    accessoryButton: {
+        backgroundColor: '#1C1C1E',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#333'
+    },
+    accessoryText: {
+        color: '#FFD700',
+        fontWeight: 'bold',
+        fontSize: 16,
+    }
 });
