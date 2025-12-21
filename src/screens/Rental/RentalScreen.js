@@ -99,7 +99,7 @@ const RENTAL_CATEGORIES = [
         id: '7',
         title: 'BETON TEKNOLOJİLERİ',
         subtitle: 'Pompa & Mikser',
-        icon: 'truck-mixer',
+        icon: 'truck', // Changed from truck-mixer
         items: [
             { name: 'Mobil Beton Pompası', type: 'Bomlu' },
             { name: 'Sabit (Yer) Pompası', type: 'Yüksek Basınç' },
@@ -318,16 +318,18 @@ export default function RentalScreen() {
                     </Text>
 
                     <TouchableOpacity
-                        style={[
-                            styles.backButton,
-                            isCorporateMode && { backgroundColor: '#FFD700', borderColor: '#FFD700' }
-                        ]}
-                        onPress={() => setIsCorporateMode(!isCorporateMode)}
+                        style={{
+                            width: 50, height: 50, borderRadius: 14,
+                            backgroundColor: '#FFD700', // Gold background
+                            alignItems: 'center', justifyContent: 'center',
+                            borderWidth: 1, borderColor: '#ca8a04'
+                        }}
+                        onPress={() => navigation.navigate('CorporateDashboard')}
                     >
                         <MaterialCommunityIcons
-                            name={isCorporateMode ? "briefcase-check" : "briefcase-account"}
-                            size={24}
-                            color={isCorporateMode ? "#000" : "#FFD700"}
+                            name="briefcase-check"
+                            size={28}
+                            color="#000"
                         />
                     </TouchableOpacity>
                 </View>

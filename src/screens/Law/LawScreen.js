@@ -1,625 +1,306 @@
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
-import { Alert, Image, Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Animated, Dimensions, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// --- CONSTANTS & MOCK DATA ---
+const { width } = Dimensions.get('window');
 
-const LAW_CATEGORIES = [
-    { id: 'all', label: 'Tümü' },
-    { id: 'insaat', label: 'İnşaat Hukuku', icon: 'building' },
-    { id: 'sozlesme', label: 'Sözleşmeler', icon: 'file-contract' },
-    { id: 'imar', label: 'İmar Mevzuatı', icon: 'map-signs' },
-    { id: 'is', label: 'İş Hukuku', icon: 'briefcase' },
-    { id: 'kentsel', label: 'Kentsel Dönüşüm', icon: 'city' },
-    { id: 'tazminat', label: 'Tazminat', icon: 'balance-scale' },
-];
+// --- CONSTANTS ---
+const GOLD_DARK = '#FF9100';      // Deep Amber
+const GOLD_MAIN = '#FFD700';      // Safety Yellow / Standard Gold
+const GOLD_LIGHT = '#FFE57F';     // Light Amber
+const DANGER_RED = '#EF4444';     // Emergency Red
 
-const LAWYERS_DATA = [
-    {
-        id: '1',
-        name: 'Av. Mert Yılmaz',
-        title: 'İnşaat Hukuku Uzmanı',
-        rating: 4.9,
-        reviewCount: 42,
-        badges: ['ARABULUCU', 'HIZLI CEVAP'],
-        specialtyTitle: 'Kat Karşılığı & Taşeron Sözleşmeleri',
-        description: 'Müteahhit ve arsa sahibi uyuşmazlıkları, FIDIC sözleşmeleri ve şantiye hukuki süreç yönetiminde uzman.',
-        price: '₺3.000 / Saat',
-        image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=400&auto=format&fit=crop',
-        verified: true,
-        online: true,
-        onsite: true,
-        category: 'insaat'
-    },
-    {
-        id: '2',
-        name: 'Av. Selin Demir',
-        title: 'Kentsel Dönüşüm Danışmanı',
-        rating: 5.0,
-        reviewCount: 28,
-        badges: ['RİSKLİ YAPI', 'TECRÜBELİ'],
-        specialtyTitle: '6306 Sayılı Kanun Uygulamaları',
-        description: 'Riskli yapı tespiti, yıkım kararları, kira yardımı ve kentsel dönüşüm sürecindeki tüm hukuki itirazlar.',
-        price: '₺2.500 / Saat',
-        image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400&auto=format&fit=crop',
-        verified: true,
-        online: true,
-        onsite: false,
-        category: 'kentsel'
-    },
-    {
-        id: '3',
-        name: 'Av. Caner Erkin',
-        title: 'İş Hukuku & SGK',
-        rating: 4.7,
-        reviewCount: 15,
-        badges: ['İŞ KAZASI', 'SGK'],
-        specialtyTitle: 'Şantiye İş Kazaları & Tazminat',
-        description: 'İş kazası tespit tutanakları, rücu davaları ve işçi alacakları konusunda işveren vekilliği.',
-        price: '₺2.000 / Saat',
-        image: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=400&auto=format&fit=crop',
-        verified: true,
-        online: true,
-        onsite: true,
-        category: 'is'
-    },
-    {
-        id: '4',
-        name: 'Av. Zeynep Kaya',
-        title: 'İmar Hukuku Uzmanı',
-        rating: 4.8,
-        reviewCount: 34,
-        badges: ['İMAR PLANI', 'RUHSAT'],
-        specialtyTitle: 'İmar Barışı & Ruhsat İptali',
-        description: 'Plan tadilatı, imar uygulamaları (18. madde) ve belediye encümen kararlarına itiraz süreçleri.',
-        price: '₺2.750 / Saat',
-        image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=400&auto=format&fit=crop',
-        verified: true,
-        online: false,
-        onsite: true,
-        category: 'imar'
-    }
-];
+// Blinking Icon Component
+const BlinkingIcon = ({ name, size, color }) => {
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    useEffect(() => {
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(fadeAnim, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+                Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true })
+            ])
+        ).start();
+    }, []);
+    return (
+        <Animated.View style={{ opacity: fadeAnim }}>
+            <MaterialCommunityIcons name={name} size={size} color={color} />
+        </Animated.View>
+    );
+};
+
+// Standard Gold Card
+const GoldCard = ({ children, style, onPress }) => (
+    <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={[styles.goldCardContainer, style]}>
+        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+        <LinearGradient
+            colors={[GOLD_MAIN, 'rgba(197, 160, 89, 0.1)', GOLD_MAIN]}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            style={styles.goldBorderGradient}
+        />
+        <View style={styles.cardContent}>
+            {children}
+        </View>
+    </TouchableOpacity>
+);
+
+// Emergency Card (Red)
+const EmergencyCard = ({ children, style, onPress }) => (
+    <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={[styles.goldCardContainer, style, styles.emergencyShadow]}>
+        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+        <LinearGradient
+            colors={[DANGER_RED, 'rgba(239, 68, 68, 0.1)', DANGER_RED]}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            style={styles.goldBorderGradient}
+        />
+        <View style={[styles.cardContent, styles.redCardBg]}>
+            {children}
+        </View>
+    </TouchableOpacity>
+);
 
 export default function LawScreen() {
-    const [selectedCategory, setSelectedCategory] = useState('all');
-    const [searchQuery, setSearchQuery] = useState('');
+    const navigation = useNavigation();
+    const [expertMatchInput, setExpertMatchInput] = useState('');
+    const [activePage, setActivePage] = useState(0);
 
-    // --- LAWYER MODE STATE (NEW) ---
-    const [isLawyerMode, setIsLawyerMode] = useState(false);
-    const [addProfileModalVisible, setAddProfileModalVisible] = useState(false);
-    const [lawyers, setLawyers] = useState(LAWYERS_DATA);
-    const [newLawyer, setNewLawyer] = useState({ name: '', title: '', specialtyTitle: '', price: '', category: '' });
-
-    // Filter Lawyers
-    const filteredLawyers = lawyers.filter(lawyer => {
-        const matchesCategory = selectedCategory === 'all' || lawyer.category === selectedCategory;
-        const matchesSearch = lawyer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            lawyer.specialtyTitle.toLowerCase().includes(searchQuery.toLowerCase());
-
-        return matchesCategory && matchesSearch;
-    });
-
-    const handleAppointment = (name) => {
-        Alert.alert("Randevu Oluştur", name + " ile hukuki danışmanlık randevusu başlatılıyor.");
+    const handleQuickTool = (toolName) => {
+        Alert.alert("Hızlı İşlem", `${toolName} modülü başlatılıyor...`);
     };
 
-    const handleAskQuestion = (name) => {
-        Alert.alert("Soru Sor", name + " kişisine dava/dosya konusunu yazıp gönderebilirsiniz.");
-    };
-
-    // Lawyer Mode: Add Profile Logic
-    const handleAddLawyer = () => {
-        if (!newLawyer.name || !newLawyer.title || !newLawyer.category || !newLawyer.price) {
-            Alert.alert("Eksik Bilgi", "Lütfen tüm bilgileri eksiksiz doldurunuz.");
-            return;
-        }
-
-        const newLawyerProfile = {
-            id: Date.now().toString(),
-            name: newLawyer.name,
-            title: newLawyer.title,
-            rating: 5.0,
-            reviewCount: 0,
-            badges: ['YENİ', 'BARO ONAYLI'],
-            specialtyTitle: newLawyer.specialtyTitle || 'Genel Hukuk',
-            description: 'Yeni katılan hukuk uzmanı.',
-            price: `₺${newLawyer.price} / Saat`,
-            image: 'https://via.placeholder.com/150/FF4444/FFFFFF?text=Avukat',
-            verified: true,
-            online: true,
-            onsite: true,
-            category: newLawyer.category
-        };
-
-        setLawyers([newLawyerProfile, ...lawyers]);
-        setAddProfileModalVisible(false);
-        setNewLawyer({ name: '', title: '', specialtyTitle: '', price: '', category: '' });
-        Alert.alert("Başarılı", "Avukat profiliniz oluşturuldu ve listeye eklendi.");
+    const handleScroll = (event) => {
+        const slideSize = event.nativeEvent.layoutMeasurement.width;
+        const index = event.nativeEvent.contentOffset.x / slideSize;
+        const roundIndex = Math.round(index);
+        setActivePage(roundIndex);
     };
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" />
-            <LinearGradient colors={['#1a1110', '#000000']} style={StyleSheet.absoluteFillObject} />
+            <StatusBar barStyle="light-content" backgroundColor="#050505" />
+
+            {/* Background */}
+            <LinearGradient
+                colors={['#1c1c1c', '#000000']}
+                style={StyleSheet.absoluteFillObject}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            />
 
             <SafeAreaView style={{ flex: 1 }}>
-
-                {/* NEW HEADER: HUKUKİ ÇÖZÜM MERKEZİ */}
-                <View style={styles.header}>
-                    <Text style={styles.centerTitle}>HUKUKİ ÇÖZÜM MERKEZİ</Text>
-                    <TouchableOpacity
-                        style={[
-                            styles.headerBtn,
-                            isLawyerMode && { backgroundColor: '#ff4444', borderColor: '#ff4444' }
-                        ]}
-                        onPress={() => setIsLawyerMode(!isLawyerMode)}
-                    >
-                        <FontAwesome5
-                            name="balance-scale"
-                            size={18}
-                            color={isLawyerMode ? "#fff" : "#ff4444"}
-                        />
-                    </TouchableOpacity>
-                </View>
-
-                {/* Lawyer Banner */}
-                {isLawyerMode && (
-                    <View style={styles.lawyerBanner}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <FontAwesome5 name="gavel" size={16} color="#000" style={{ marginRight: 8 }} />
-                            <Text style={styles.lawyerBannerText}>AVUKAT / UZMAN MODU</Text>
-                        </View>
-                        <TouchableOpacity style={styles.addProfileBtnHeader} onPress={() => setAddProfileModalVisible(true)}>
-                            <Ionicons name="add-circle" size={18} color="#fff" />
-                            <Text style={styles.addProfileTextHeader}>PROFİL OLUŞTUR</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
-
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-                    {/* HIZLI ARAÇLAR */}
-                    <Text style={styles.sectionTitle}>HIZLI HUKUKİ ARAÇLAR</Text>
-                    <View style={styles.toolsGrid}>
-                        <TouchableOpacity style={styles.toolCard}>
-                            <View style={styles.toolIconCircle}>
-                                <FontAwesome5 name="file-contract" size={20} color="#3b82f6" />
-                            </View>
-                            <Text style={styles.toolTitle}>Sözleşme Kontrolü</Text>
-                            <Text style={styles.toolDesc}>Riskli maddeleri tespit et</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.toolCard}>
-                            <View style={styles.toolIconCircle}>
-                                <MaterialCommunityIcons name="alert-decagram" size={22} color="#ef4444" />
-                            </View>
-                            <Text style={styles.toolTitle}>Risk Analizi</Text>
-                            <Text style={styles.toolDesc}>İflas, fesih durumlarını sor</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.toolCard}>
-                            <View style={styles.toolIconCircle}>
-                                <MaterialCommunityIcons name="chat-question" size={22} color="#fbbf24" />
-                            </View>
-                            <Text style={styles.toolTitle}>Alo Avukat</Text>
-                            <Text style={styles.toolDesc}>Uzmanına sesli/yazılı danış</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.toolCard}>
-                            <View style={styles.toolIconCircle}>
-                                <FontAwesome5 name="pen-fancy" size={18} color="#22c55e" />
-                            </View>
-                            <Text style={styles.toolTitle}>Dilekçe Asistanı</Text>
-                            <Text style={styles.toolDesc}>Otomatik ihtarname hazırla</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* UZMAN EŞLEŞTİRME */}
-                    <Text style={styles.sectionTitle}>UZMAN EŞLEŞTİRME</Text>
-                    <View style={styles.aiMatchBox}>
-                        <Text style={styles.aiPrompt}>Hukuki sorununuzu anlatın, yapay zeka sizi en doğru uzmana yönlendirsin.</Text>
-                        <TextInput
-                            style={styles.aiInput}
-                            placeholder="Örn: Müteahhit ek süre istiyor ama sözleşmede cezai şart var..."
-                            placeholderTextColor="#666"
-                            multiline
-                        />
-                        <TouchableOpacity style={styles.findExpertBtn}>
-                            <Text style={styles.findExpertBtnText}>UZMANI BUL</Text>
-                            <Ionicons name="search" size={20} color="#000" />
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Categories Title */}
-                    <Text style={[styles.sectionTitle, { marginTop: 24 }]}>KATEGORİLER & AVUKATLAR</Text>
-
-                    {/* FILTER CHIPS (Moved inside ScrollView) */}
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        style={{ marginBottom: 20 }}
-                    >
-                        {LAW_CATEGORIES.map((cat) => (
-                            <TouchableOpacity
-                                key={cat.id}
-                                style={[styles.filterChip, selectedCategory === cat.id && styles.filterChipActive]}
-                                onPress={() => setSelectedCategory(cat.id)}
+                    {/* HEADER */}
+                    <View style={styles.header}>
+                        <View>
+                            <Text style={styles.headerTitle}>HUKUKİ ÇÖZÜM</Text>
+                            <Text style={styles.headerSubtitle}>MERKEZİ</Text>
+                        </View>
+                        <TouchableOpacity
+                            style={styles.headerIconBtn}
+                            onPress={() => navigation.navigate('LawyerDashboard')}
+                        >
+                            <LinearGradient
+                                colors={[GOLD_LIGHT, GOLD_MAIN]}
+                                style={styles.iconGradient}
                             >
-                                {selectedCategory === cat.id && <FontAwesome5 name={cat.icon} size={12} color="#fff" style={{ marginRight: 6 }} />}
-                                <Text style={[styles.filterText, selectedCategory === cat.id && styles.filterTextActive]}>
-                                    {cat.label}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
+                                <MaterialCommunityIcons name="scale-balance" size={22} color="#000" />
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
 
-                    {/* SEARCH INPUT */}
-                    <View style={styles.searchBarContainer}>
-                        <Ionicons name="search" size={20} color="#666" style={{ marginRight: 10 }} />
-                        <TextInput
-                            style={styles.searchInput}
-                            placeholder="Avukat veya konu ara (Örn: Sözleşme)..."
-                            placeholderTextColor="#666"
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
+                    {/* 1. SECTION: QUICK TOOLS PAGER */}
+                    <Text style={styles.sectionHeader}>HIZLI İŞLEMLER</Text>
+
+                    <View style={styles.pagerContainer}>
+                        <ScrollView
+                            horizontal
+                            pagingEnabled
+                            showsHorizontalScrollIndicator={false}
+                            onScroll={handleScroll}
+                            scrollEventThrottle={16}
+                            style={styles.pagerScroll}
+                        >
+                            {/* PAGE 1: SITE & EMERGENCY */}
+                            <View style={styles.page}>
+                                <View style={styles.gridContainer}>
+                                    {/* 1. ACİL (RED) */}
+                                    <EmergencyCard style={styles.gridItem} onPress={() => handleQuickTool('ACİL İŞ KAZASI')}>
+                                        <View style={styles.iconBox}>
+                                            <BlinkingIcon name="ambulance" size={32} color={DANGER_RED} />
+                                        </View>
+                                        <Text style={[styles.gridTitle, { color: '#FFF', fontWeight: 'bold' }]}>🚨 İŞ KAZASI{'\n'}& BASKIN</Text>
+                                    </EmergencyCard>
+
+                                    {/* 2. SÖZLEŞME (GOLD) */}
+                                    <GoldCard style={styles.gridItem} onPress={() => handleQuickTool('SÖZLEŞME')}>
+                                        <View style={styles.iconBox}>
+                                            <FontAwesome5 name="file-contract" size={24} color={GOLD_MAIN} />
+                                        </View>
+                                        <Text style={styles.gridTitle}>📄 SÖZLEŞME{'\n'}& HAKEDİŞ</Text>
+                                    </GoldCard>
+
+                                    {/* 3. TAŞERON (GOLD) */}
+                                    <GoldCard style={styles.gridItem} onPress={() => handleQuickTool('TAŞERON')}>
+                                        <View style={styles.iconBox}>
+                                            <MaterialCommunityIcons name="account-hard-hat" size={28} color={GOLD_MAIN} />
+                                        </View>
+                                        <Text style={styles.gridTitle}>👷‍♂️ TAŞERON{'\n'}& İŞÇİ</Text>
+                                    </GoldCard>
+
+                                    {/* 4. İMAR (GOLD) */}
+                                    <GoldCard style={styles.gridItem} onPress={() => handleQuickTool('İMAR')}>
+                                        <View style={styles.iconBox}>
+                                            <MaterialCommunityIcons name="bank-outline" size={28} color={GOLD_MAIN} />
+                                        </View>
+                                        <Text style={styles.gridTitle}>🏛️ İMAR &{'\n'}CEZA</Text>
+                                    </GoldCard>
+                                </View>
+                            </View>
+
+                            {/* PAGE 2: OFFICE & TRADE */}
+                            <View style={styles.page}>
+                                <View style={styles.gridContainer}>
+                                    {/* 5. KENTSEL DÖNÜŞÜM */}
+                                    <GoldCard style={styles.gridItem} onPress={() => handleQuickTool('KENTSEL DÖNÜŞÜM')}>
+                                        <View style={styles.iconBox}>
+                                            <MaterialCommunityIcons name="crane" size={28} color={GOLD_MAIN} />
+                                        </View>
+                                        <Text style={styles.gridTitle}>🏗️ KENTSEL{'\n'}DÖNÜŞÜM</Text>
+                                    </GoldCard>
+
+                                    {/* 6. MALZEME & TEDARİKÇİ */}
+                                    <GoldCard style={styles.gridItem} onPress={() => handleQuickTool('MALZEME')}>
+                                        <View style={styles.iconBox}>
+                                            <MaterialCommunityIcons name="wall" size={28} color={GOLD_MAIN} />
+                                        </View>
+                                        <Text style={styles.gridTitle}>🧱 MALZEME &{'\n'}TEDARİKÇİ</Text>
+                                    </GoldCard>
+
+                                    {/* 7. ŞİRKET & SGK */}
+                                    <GoldCard style={styles.gridItem} onPress={() => handleQuickTool('ŞİRKET')}>
+                                        <View style={styles.iconBox}>
+                                            <MaterialCommunityIcons name="briefcase-variant-outline" size={28} color={GOLD_MAIN} />
+                                        </View>
+                                        <Text style={styles.gridTitle}>💼 ŞİRKET{'\n'}& SGK</Text>
+                                    </GoldCard>
+
+                                    {/* 8. EMLAK HUKUKU */}
+                                    <GoldCard style={styles.gridItem} onPress={() => handleQuickTool('EMLAK')}>
+                                        <View style={styles.iconBox}>
+                                            <MaterialCommunityIcons name="home-city-outline" size={28} color={GOLD_MAIN} />
+                                        </View>
+                                        <Text style={styles.gridTitle}>🏠 EMLAK{'\n'}HUKUKU</Text>
+                                    </GoldCard>
+                                </View>
+                            </View>
+                        </ScrollView>
+
+                        {/* PAGINATION DOTS */}
+                        <View style={styles.pagination}>
+                            <View style={[styles.dot, activePage === 0 ? styles.activeDot : styles.inactiveDot]} />
+                            <View style={[styles.dot, activePage === 1 ? styles.activeDot : styles.inactiveDot]} />
+                        </View>
+                    </View>
+
+                    {/* 2. SECTION: AI SMART MATCH (BOTTOM) */}
+                    <View style={styles.aiSection}>
+                        {/* Glow Behind */}
+                        <LinearGradient
+                            colors={['rgba(255, 191, 0, 0.1)', 'transparent']}
+                            style={styles.heroGlow}
                         />
+
+                        <Text style={styles.aiTitle}>AVUKAT İÇİN VAKA BİLDİRİMİ</Text>
+                        <Text style={styles.aiSubtitle}>Sorununuzu detaylıca anlatın, uzman avukat kadromuza anında iletilsin.</Text>
+
+                        <View style={styles.aiInputContainer}>
+                            <TextInput
+                                style={styles.aiInput}
+                                placeholder="Konuyu buraya yazın veya mikrofonla anlatın..."
+                                placeholderTextColor="#666"
+                                value={expertMatchInput}
+                                onChangeText={setExpertMatchInput}
+                                multiline
+                            />
+                            <TouchableOpacity style={styles.micBtn}>
+                                <Ionicons name="mic" size={22} color={GOLD_MAIN} />
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* BIG GOLD ACTION BUTTON */}
+                        <TouchableOpacity style={styles.bigActionBtn} activeOpacity={0.9} onPress={() => Alert.alert('Yapay Zeka', 'Analiz başlatılıyor...')}>
+                            <LinearGradient
+                                colors={[GOLD_MAIN, GOLD_DARK]}
+                                style={styles.bigBtnGradient}
+                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                            >
+                                <Text style={styles.bigBtnText}>İNCELEME BAŞLAT</Text>
+                                <MaterialCommunityIcons name="arrow-right-circle" size={24} color="#000" />
+                            </LinearGradient>
+                        </TouchableOpacity>
                     </View>
 
-                    {/* LAWYERS LIST */}
-                    {filteredLawyers.map((lawyer) => (
-                        <View key={lawyer.id} style={styles.expertCard}>
-                            <View style={styles.cardHeader}>
-                                {/* Avatar */}
-                                <View>
-                                    <Image source={{ uri: lawyer.image }} style={styles.avatar} />
-                                    {lawyer.online && (
-                                        <View style={styles.statusDotOnline} />
-                                    )}
-                                </View>
-
-                                {/* Name & Title */}
-                                <View style={{ flex: 1, marginLeft: 15 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <Text style={styles.expertName}>{lawyer.name}</Text>
-                                        {lawyer.verified && <MaterialCommunityIcons name="gavel" size={16} color="#ff4444" style={{ marginLeft: 6 }} />}
-                                    </View>
-                                    <Text style={styles.expertTitle}>{lawyer.title}</Text>
-
-                                    {/* Rating */}
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                                        <Ionicons name="star" size={14} color="#FFD700" />
-                                        <Text style={{ color: '#FFD700', fontWeight: 'bold', marginLeft: 4, fontSize: 13 }}>{lawyer.rating}</Text>
-                                        <Text style={{ color: '#666', fontSize: 12, marginLeft: 4 }}>({lawyer.reviewCount} Değerlendirme)</Text>
-                                    </View>
-                                </View>
-                            </View>
-
-                            {/* Service Icons & Badges */}
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12, flexWrap: 'wrap', gap: 8 }}>
-                                {lawyer.badges.map((badge, idx) => (
-                                    <View key={idx} style={styles.badge}>
-                                        <Text style={styles.badgeText}>{badge}</Text>
-                                    </View>
-                                ))}
-                            </View>
-
-                            {/* Specialty Box */}
-                            <View style={styles.specialtyBox}>
-                                <Text style={styles.specialtyTitle}>UZMANLIK: <Text style={{ color: '#fff' }}>{lawyer.specialtyTitle}</Text></Text>
-                                <Text style={styles.specialtyDesc}>{lawyer.description}</Text>
-                            </View>
-
-                            {/* Service Types (Online/Site) */}
-                            <View style={{ flexDirection: 'row', gap: 15, marginBottom: 15, paddingHorizontal: 4 }}>
-                                {lawyer.online && (
-                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <Ionicons name="videocam" size={14} color="#aaa" />
-                                        <Text style={{ color: '#aaa', fontSize: 12, marginLeft: 4 }}>Online Görüşme</Text>
-                                    </View>
-                                )}
-                                {lawyer.onsite && (
-                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <FontAwesome5 name="building" size={12} color="#aaa" />
-                                        <Text style={{ color: '#aaa', fontSize: 12, marginLeft: 4 }}>Ofis/Şantiye</Text>
-                                    </View>
-                                )}
-                            </View>
-
-                            {/* Footer */}
-                            <View style={styles.cardFooter}>
-                                <View>
-                                    <Text style={{ color: '#888', fontSize: 10 }}>Danışmanlık Ücreti</Text>
-                                    <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>{lawyer.price}</Text>
-                                </View>
-                                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-                                    {/* Ask Question Button */}
-                                    <TouchableOpacity
-                                        style={styles.messageBtn}
-                                        onPress={() => handleAskQuestion(lawyer.name)}
-                                    >
-                                        <MaterialCommunityIcons name="message-text-outline" size={20} color="#fff" />
-                                    </TouchableOpacity>
-
-                                    {/* Appointment Button */}
-                                    <TouchableOpacity
-                                        style={styles.appointmentBtn}
-                                        onPress={() => handleAppointment(lawyer.name)}
-                                    >
-                                        <Text style={styles.appointmentBtnText}>Randevu Al</Text>
-                                        <FontAwesome5 name="balance-scale" size={12} color="#fff" style={{ marginLeft: 6 }} />
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </View>
-                    ))}
-
-                    <View style={{ height: 40 }} />
                 </ScrollView>
-
-                {/* CREATE PROFILE MODAL (LAWYER) */}
-                <Modal
-                    visible={addProfileModalVisible}
-                    animationType="slide"
-                    transparent={true}
-                    onRequestClose={() => setAddProfileModalVisible(false)}
-                >
-                    <View style={styles.modalOverlay}>
-                        <View style={styles.modalContent}>
-                            <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>AVUKAT PROFİLİ OLUŞTUR</Text>
-                                <TouchableOpacity onPress={() => setAddProfileModalVisible(false)}>
-                                    <Ionicons name="close" size={24} color="#fff" />
-                                </TouchableOpacity>
-                            </View>
-
-                            <ScrollView contentContainerStyle={{ padding: 10 }}>
-                                <View style={styles.formGroup}>
-                                    <Text style={styles.label}>Uzmanlık Alanı</Text>
-                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
-                                        {LAW_CATEGORIES.filter(c => c.id !== 'all').map(cat => (
-                                            <TouchableOpacity
-                                                key={cat.id}
-                                                style={[styles.categoryChip, newLawyer.category === cat.id && styles.categoryChipActive]}
-                                                onPress={() => setNewLawyer({ ...newLawyer, category: cat.id })}
-                                            >
-                                                <Text style={[styles.categoryChipText, newLawyer.category === cat.id && styles.categoryChipTextActive]}>{cat.label}</Text>
-                                            </TouchableOpacity>
-                                        ))}
-                                    </ScrollView>
-                                </View>
-
-                                <View style={styles.formGroup}>
-                                    <Text style={styles.label}>Ad Soyad</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Örn: Av. Ahmet Demir"
-                                        placeholderTextColor="#666"
-                                        value={newLawyer.name}
-                                        onChangeText={(t) => setNewLawyer({ ...newLawyer, name: t })}
-                                    />
-                                </View>
-
-                                <View style={styles.formGroup}>
-                                    <Text style={styles.label}>Unvan</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Örn: İnşaat Hukuku Uzmanı"
-                                        placeholderTextColor="#666"
-                                        value={newLawyer.title}
-                                        onChangeText={(t) => setNewLawyer({ ...newLawyer, title: t })}
-                                    />
-                                </View>
-
-                                <View style={styles.formGroup}>
-                                    <Text style={styles.label}>Özellik / Detay</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Örn: Sözleşmeler,FIDIC"
-                                        placeholderTextColor="#666"
-                                        value={newLawyer.specialtyTitle}
-                                        onChangeText={(t) => setNewLawyer({ ...newLawyer, specialtyTitle: t })}
-                                    />
-                                </View>
-
-                                <View style={styles.formGroup}>
-                                    <Text style={styles.label}>Saatlik Ücret (₺)</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="3000"
-                                        placeholderTextColor="#666"
-                                        keyboardType="numeric"
-                                        value={newLawyer.price}
-                                        onChangeText={(t) => setNewLawyer({ ...newLawyer, price: t })}
-                                    />
-                                </View>
-
-                                <TouchableOpacity style={styles.submitBtn} onPress={handleAddLawyer}>
-                                    <Text style={styles.submitBtnText}>PROFİLİMİ YAYINLA</Text>
-                                </TouchableOpacity>
-                            </ScrollView>
-                        </View>
-                    </View>
-                </Modal>
             </SafeAreaView>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#1a1110' }, // Dark Red tinted background
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: '#331111' },
-    headerTitle: { color: '#ff4444', fontSize: 20, fontWeight: '900', letterSpacing: 0.5 },
-    headerSubtitle: { color: '#aaa', fontSize: 12, marginTop: 2 },
-    iconBox: { width: 40, height: 40, borderRadius: 10, backgroundColor: 'rgba(255, 68, 68, 0.1)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 68, 68, 0.3)' },
+    container: { flex: 1, backgroundColor: '#000' },
+    scrollContent: { paddingBottom: 50 }, // Removed horizontal padding from container to let Pager take full width if needed, but inner pages have padding
 
-    // Filters
-    filterScroll: { paddingHorizontal: 20, paddingVertical: 15 },
-    filterChip: {
-        backgroundColor: '#1E1E1E',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
-        marginRight: 10,
-        borderWidth: 1,
-        borderColor: '#333',
-        flexDirection: 'row',
-        alignItems: 'center'
-    },
-    filterChipActive: {
-        backgroundColor: '#8B0000', // Dark Red
-        borderColor: '#ff4444'
-    },
-    filterText: { color: '#aaa', fontSize: 13, fontWeight: '600' },
-    filterTextActive: { color: '#fff', fontWeight: 'bold' },
+    // Header
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30, paddingHorizontal: 20, marginTop: 20 },
+    headerTitle: { color: '#fff', fontSize: 18, fontWeight: '300', letterSpacing: 2 },
+    headerSubtitle: { color: GOLD_MAIN, fontSize: 18, fontWeight: '900', letterSpacing: 2 },
+    headerIconBtn: { borderRadius: 12, overflow: 'hidden' },
+    iconGradient: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
 
-    // Search
-    scrollContent: { paddingHorizontal: 20 },
-    searchBarContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#1E1E1E',
-        borderRadius: 12,
-        paddingHorizontal: 15,
-        height: 46,
-        marginBottom: 20,
-        borderWidth: 1,
-        borderColor: '#333'
-    },
-    searchInput: { flex: 1, color: '#fff' },
+    // Pager System
+    sectionHeader: { color: '#666', fontSize: 11, fontWeight: 'bold', letterSpacing: 1.5, marginBottom: 15, marginTop: 10, paddingHorizontal: 20 },
+    pagerContainer: { marginBottom: 30 },
+    pagerScroll: {},
+    page: { width: width, paddingHorizontal: 20 }, // Full width, with padding inside
+    gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 12 },
 
-    // Cards
-    expertCard: {
-        backgroundColor: '#161616',
-        borderRadius: 20,
-        padding: 20,
-        marginBottom: 20,
-        borderWidth: 1,
-        borderColor: '#331a1a'
+    goldCardContainer: {
+        width: '48%', height: 120, borderRadius: 20,
+        overflow: 'hidden', position: 'relative', backgroundColor: 'rgba(255,255,255,0.02)'
     },
-    cardHeader: { flexDirection: 'row' },
-    avatar: { width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: '#ff4444' },
-    statusDotOnline: {
-        position: 'absolute', bottom: 2, right: 2,
-        width: 14, height: 14, borderRadius: 7,
-        backgroundColor: '#4CAF50', borderWidth: 2, borderColor: '#000'
-    },
-    expertName: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-    expertTitle: { color: '#aaa', fontSize: 13, marginTop: 2 },
+    goldBorderGradient: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.3 },
+    cardContent: { flex: 1, margin: 1, backgroundColor: '#0f0f0f', borderRadius: 19, alignItems: 'center', justifyContent: 'center', padding: 10 },
 
-    badge: {
-        backgroundColor: '#2b1111',
-        paddingHorizontal: 8, paddingVertical: 4,
-        borderRadius: 6, borderWidth: 1, borderColor: '#521'
-    },
-    badgeText: { color: '#ffaaaa', fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase' },
+    emergencyShadow: { shadowColor: '#EF4444', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 12, elevation: 6 },
+    redCardBg: { backgroundColor: 'rgba(40, 5, 5, 0.95)' },
 
-    specialtyBox: {
-        backgroundColor: '#0a0a0a',
-        padding: 12,
-        borderRadius: 12,
-        marginTop: 15,
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: '#331a1a'
-    },
-    specialtyTitle: { color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 4 },
-    specialtyDesc: { color: '#ccc', fontSize: 13, lineHeight: 18 },
+    iconBox: { marginBottom: 10, opacity: 0.9 },
+    gridTitle: { color: '#ddd', fontSize: 11, textAlign: 'center', fontWeight: 'bold', lineHeight: 15 },
 
-    cardFooter: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginTop: 5,
-        paddingTop: 15,
-        borderTopWidth: 1,
-        borderTopColor: '#222'
-    },
-    appointmentBtn: {
-        backgroundColor: '#8B0000',
-        paddingVertical: 10,
-        paddingHorizontal: 16,
-        borderRadius: 10,
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#ff4444'
-    },
-    appointmentBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
-    messageBtn: {
-        backgroundColor: '#333',
-        padding: 10,
-        borderRadius: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: '#444'
-    },
+    // Pagination
+    pagination: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 15 },
+    dot: { width: 6, height: 6, borderRadius: 3 },
+    activeDot: { backgroundColor: GOLD_MAIN, width: 20 },
+    inactiveDot: { backgroundColor: '#333' },
 
-    // Styles for Hukuki Çözüm Merkezi
-    centerTitle: { color: '#FFD700', fontSize: 16, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase' },
-    sectionTitle: { color: '#666', fontSize: 12, fontWeight: 'bold', marginBottom: 12, letterSpacing: 0.5 },
+    // AI Section (BOTTOM)
+    aiSection: { position: 'relative', marginTop: 10, paddingHorizontal: 20 },
+    heroGlow: { position: 'absolute', top: -30, left: -20, right: -20, height: 150, opacity: 0.6 },
 
-    toolsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 12, marginBottom: 24 },
-    toolCard: {
-        width: '48%', backgroundColor: '#161616', borderRadius: 16, padding: 16,
-        borderWidth: 1, borderColor: '#333', alignItems: 'center'
-    },
-    toolIconCircle: {
-        width: 48, height: 48, borderRadius: 24, backgroundColor: '#fff',
-        alignItems: 'center', justifyContent: 'center', marginBottom: 12
-    },
-    toolTitle: { color: '#fff', fontSize: 13, fontWeight: 'bold', marginBottom: 4, textAlign: 'center' },
-    toolDesc: { color: '#666', fontSize: 10, textAlign: 'center', lineHeight: 14 },
+    aiTitle: { color: GOLD_MAIN, fontSize: 12, fontWeight: 'bold', marginBottom: 12, letterSpacing: 1 },
 
-    aiMatchBox: {
-        backgroundColor: '#0a0a0a', borderRadius: 20, padding: 20,
-        borderWidth: 1, borderColor: '#333'
+    aiInputContainer: {
+        backgroundColor: '#111', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+        padding: 5, minHeight: 100, marginBottom: 20
     },
-    aiPrompt: { color: '#ccc', fontSize: 13, marginBottom: 12, lineHeight: 18 },
-    aiInput: {
-        backgroundColor: '#1E1E1E', borderRadius: 12, padding: 12, color: '#fff',
-        height: 80, textAlignVertical: 'top', borderWidth: 1, borderColor: '#333', marginBottom: 16
-    },
-    findExpertBtn: {
-        backgroundColor: '#FFD700', borderRadius: 12, height: 48,
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8
-    },
-    findExpertBtnText: { color: '#000', fontSize: 14, fontWeight: '900' },
+    aiInput: { flex: 1, color: '#fff', fontSize: 15, padding: 15, textAlignVertical: 'top' },
+    micBtn: { position: 'absolute', bottom: 10, right: 10, padding: 10, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 20 },
 
-    // Lawyer Mode Styles
-    headerBtn: {
-        padding: 8, backgroundColor: 'rgba(255, 68, 68, 0.1)', borderRadius: 12,
-        borderWidth: 1, borderColor: '#331111'
-    },
-    lawyerBanner: {
-        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-        backgroundColor: '#ff4444', paddingHorizontal: 20, paddingVertical: 10
-    },
-    lawyerBannerText: { color: '#000', fontWeight: '900', fontSize: 13, letterSpacing: 0.5 },
-    addProfileBtnHeader: {
-        flexDirection: 'row', alignItems: 'center', backgroundColor: '#000',
-        paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, gap: 6
-    },
-    addProfileTextHeader: { color: '#fff', fontWeight: 'bold', fontSize: 11 },
+    bigActionBtn: { borderRadius: 16, overflow: 'hidden', shadowColor: GOLD_MAIN, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
+    bigBtnGradient: { padding: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+    bigBtnText: { color: '#000', fontSize: 16, fontWeight: '900', letterSpacing: 0.5 },
 
-    // Modal Styles
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
-    modalContent: { backgroundColor: '#161616', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '85%' },
-    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-    modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#fff' },
-
-    formGroup: { marginBottom: 15 },
-    label: { color: '#aaa', marginBottom: 6, fontSize: 12 },
-    input: { backgroundColor: '#1E1E1E', color: '#fff', borderRadius: 8, padding: 12, borderWidth: 1, borderColor: '#333' },
-
-    categoryChip: { padding: 8, borderRadius: 8, backgroundColor: '#2b1111', marginRight: 8, borderWidth: 1, borderColor: '#521' },
-    categoryChipActive: { backgroundColor: '#ff4444', borderColor: '#ff4444' },
-    categoryChipText: { color: '#888', fontSize: 11 },
-    categoryChipTextActive: { color: '#000', fontWeight: 'bold' },
-
-    submitBtn: { backgroundColor: '#ff4444', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 10 },
-    submitBtnText: { color: '#000', fontWeight: 'bold', fontSize: 16 },
 });

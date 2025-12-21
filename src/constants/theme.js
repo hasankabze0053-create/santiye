@@ -7,8 +7,8 @@ export const COLORS = {
     surface: '#303030',      // Elevated
 
     // Accents
-    accent: '#FFD700',           // Pure Gold (Main Action)
-    accentSecondary: '#FDB931',  // Warm Gold
+    accent: '#D4AF37',           // Metallic Gold (True Luxury)
+    accentSecondary: '#C5A059',  // Vega Gold
     warning: '#F59E0B',          // Amber
     success: '#10B981',          // Emerald
     danger: '#EF4444',           // Red
@@ -17,14 +17,14 @@ export const COLORS = {
     // Text
     text: '#E0E0E0',             // Off-White (Better on gray)
     textSecondary: '#A0A0A0',    // Light Gray
-    textGold: '#FFD700',         // Gold Text
+    textGold: '#D4AF37',         // Metallic Gold Text
     textNeon: '#CCFF00',         // Neon Text
 
-    // Gradients (Concrete / Stone)
+    // Gradients
     gradientStart: '#232526', // Titanium
     gradientEnd: '#414345',   // Gunmetal
-    goldGradientStart: '#FFD700',
-    goldGradientEnd: '#FDB931',
+    goldGradientStart: '#D4AF37',
+    goldGradientEnd: '#AA6C39', // Bronze End
     amberGradientStart: '#FFBF00', // Amber Start
     amberGradientEnd: '#FF9100',   // Amber End (Deep Orange-ish)
 

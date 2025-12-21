@@ -1,4 +1,3 @@
-import { useNavigation } from '@react-navigation/native';
 import { Asset } from 'expo-asset';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
@@ -21,8 +20,8 @@ const ASSETS_TO_LOAD = [
     require('../../assets/categories/cat_usta.png'),
 ];
 
-export default function CustomSplashScreen() {
-    const navigation = useNavigation();
+export default function CustomSplashScreen({ navigation }) {
+    // const navigation = useNavigation(); // Refactored to use props
     const [isReady, setIsReady] = useState(false);
 
     useEffect(() => {

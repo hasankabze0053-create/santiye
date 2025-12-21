@@ -8,14 +8,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const CATEGORIES = [
     { id: 'all', label: 'Tümü' },
-    { id: 'mimar', label: 'Mimari Grup' },
-    { id: 'statik', label: 'Statik' },
-    { id: 'mekanik', label: 'Mekanik' },
-    { id: 'elektrik', label: 'Elektrik' },
-    { id: 'harita', label: 'Harita' },
-    { id: 'jeoloji', label: 'Jeoloji/Zemin' },
-    { id: 'isg', label: 'Yasal/İSG' },
-    { id: 'teknik', label: 'Teknik Personel' },
+    { id: 'insaat', label: 'İnşaat Mühendisi' },
+    { id: 'mimar', label: 'Mimar' },
+    { id: 'isg', label: 'İş Güvenliği Uzmanı' },
+    { id: 'harita', label: 'Harita Mühendisi' },
+    { id: 'teknik', label: 'Teknik Ofis' },
 ];
 
 const ENGINEERS = [
@@ -285,7 +282,7 @@ export default function EngineeringScreen() {
             bg = '#003366'; text = '#4da6ff'; icon = 'rocket';
             badge = 'HIZLI CEVAP';
         } else if (badge === 'İSG UZMANI') {
-            bg = '#333'; text = '#FFD700'; icon = 'hard-hat';
+            bg = '#333'; text = '#FFD700'; icon = 'construct';
         }
 
         return (
@@ -343,8 +340,6 @@ export default function EngineeringScreen() {
                 </View>
 
                 <ScrollView contentContainerStyle={styles.scrollContent}>
-
-
 
                     <Text style={styles.subHeader}>Alanında uzman kadromuzdan online veya şantiyede danışmanlık alın.</Text>
 

@@ -46,56 +46,56 @@ const MARKET_OPTS = {
 // Real Photography for Categories
 const CATEGORIES = [
     {
-        id: 1,
-        title: 'KİRALA',
-        subtitle: 'Ağır İş Makineleri',
-        image: require('../../assets/categories/cat_kiralama_v2.png'),
-        route: 'Kiralama'
-    },
-    {
         id: 2,
-        title: 'MARKET',
-        subtitle: 'Toptan Malzeme',
-        image: require('../../assets/categories/cat_market_v2.png'),
-        route: 'Market'
+        title: 'KİRALAMA',
+        subtitle: 'İş Makinesi',
+        image: require('../../assets/categories/cat_kiralama_v2.png'),
+        route: 'RentalStack' // Was 'Kiralama' (Tab)
     },
     {
         id: 3,
+        title: 'MARKET',
+        subtitle: 'Yapı Malzemesi',
+        image: require('../../assets/categories/cat_market_v2.png'),
+        route: 'MarketStack' // Was 'Market' (Tab)
+    },
+    {
+        id: 4,
         title: 'TADİLAT',
-        subtitle: 'Profesyonel Ekip',
+        subtitle: 'Boya & Tamirat',
         image: require('../../assets/categories/cat_tadilat_v2.png'),
         route: 'Tadilat'
     },
     {
-        id: 4,
-        title: 'PROJE',
-        subtitle: 'Mimari Çizim',
+        id: 5,
+        title: 'MÜHENDİSLİK',
+        subtitle: 'Proje & Danışman',
         image: require('../../assets/categories/cat_proje_v2.png'),
         route: 'Mühendislik'
     },
     {
-        id: 5,
+        id: 6,
         title: 'HUKUK',
         subtitle: 'Yasal Danışmanlık',
         image: require('../../assets/categories/cat_hukuk_v2.png'),
         route: 'Hukuk'
     },
     {
-        id: 6,
+        id: 7,
         title: 'NAKLİYE',
         subtitle: 'Lojistik Çözüm',
         image: require('../../assets/categories/cat_nakliye_v2.png'),
         route: 'Nakliye'
     },
     {
-        id: 7,
+        id: 8,
         title: 'YERİNDE DÖNÜŞÜM',
         subtitle: 'Devlet Destekli',
         image: require('../../assets/categories/cat_sigorta_v2.png'),
         route: 'KentselDonusum'
     },
     {
-        id: 8,
+        id: 9,
         title: 'MALİYET',
         subtitle: 'Proje Hesabı',
         image: require('../../assets/categories/cat_maliyet_v2.png'),

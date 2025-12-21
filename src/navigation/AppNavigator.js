@@ -13,12 +13,16 @@ import SmartSketchScreen from '../screens/Cost/SmartSketchScreen';
 import EngineeringScreen from '../screens/Engineering/EngineeringScreen';
 import HomeScreen from '../screens/Home/HomeScreen';
 import LawScreen from '../screens/Law/LawScreen';
+import LawyerDashboardScreen from '../screens/Law/LawyerDashboardScreen';
+import CarrierDashboardScreen from '../screens/Logistics/CarrierDashboardScreen';
 import CreateTransportScreen from '../screens/Logistics/CreateTransportScreen';
 import LogisticsScreen from '../screens/Logistics/LogisticsScreen';
 import TransportModeSelectionScreen from '../screens/Logistics/TransportModeSelectionScreen';
 import MarketScreen from '../screens/Market/MarketScreen';
+import SellerDashboardScreen from '../screens/Market/SellerDashboardScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import RenovationScreen from '../screens/Renovation/RenovationScreen';
+import CorporateDashboardScreen from '../screens/Rental/CorporateDashboardScreen';
 import ProjectProposalScreen from '../screens/Rental/ProjectProposalScreen';
 import RentalScreen from '../screens/Rental/RentalScreen';
 import UrbanTransformationScreen from '../screens/Transformation/UrbanTransformationScreen';
@@ -62,6 +66,10 @@ export default function AppNavigator() {
             {/* Main Tabs */}
             <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
 
+            {/* Stack Versions of Tab Screens (For Dashboard Navigation) */}
+            <Stack.Screen name="RentalStack" component={RentalScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="MarketStack" component={MarketScreen} options={{ headerShown: false }} />
+
             {/* Other Modules pushed on top */}
             <Stack.Screen name="Tadilat" component={RenovationScreen} options={{ headerShown: true, title: 'Tadilat & Tamirat' }} />
             <Stack.Screen name="Mühendislik" component={EngineeringScreen} options={{ headerShown: true, title: 'Mühendislik' }} />
@@ -84,6 +92,10 @@ export default function AppNavigator() {
             {/* Provider Flow */}
             <Stack.Screen name="ProviderWizard" component={ProviderWizardScreen} options={{ headerShown: false }} />
             <Stack.Screen name="ProviderDashboard" component={ProviderDashboardScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="SellerDashboard" component={SellerDashboardScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="CorporateDashboard" component={CorporateDashboardScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="LawyerDashboard" component={LawyerDashboardScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="CarrierDashboard" component={CarrierDashboardScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
     );
 }

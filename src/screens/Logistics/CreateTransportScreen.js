@@ -1,7 +1,8 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
-import { Alert, Dimensions, InputAccessoryView, Keyboard, Linking, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Dimensions, InputAccessoryView, Keyboard, KeyboardAvoidingView, Linking, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PremiumBackground from '../../components/PremiumBackground';
 import { COLORS } from '../../constants/theme';
@@ -49,6 +50,12 @@ export default function CreateTransportScreen({ navigation }) {
 
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
+    // --- FAST REQUEST STATES ---
+    const [isFastModalVisible, setFastModalVisible] = useState(false);
+    const [fastRequestText, setFastRequestText] = useState('');
+    const [fastUserPhone, setFastUserPhone] = useState('');
+
+
     useEffect(() => {
         const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
         const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
@@ -61,9 +68,54 @@ export default function CreateTransportScreen({ navigation }) {
         };
     }, []);
 
+    // --- LOGIC: FAST REQUEST SUBMIT ---
+    const handleFastSubmit = () => {
+        if (fastRequestText.length < 5) {
+            Alert.alert("Eksik Bilgi", "Lütfen talebinizi biraz daha detaylandırın.");
+            return;
+        }
+        if (fastUserPhone.length < 10) {
+            Alert.alert("Eksik Bilgi", "Lütfen telefon numaranızı giriniz.");
+            return;
+        }
+
+        const targetPhone = '905380860202';
+        const message = `⚡ HIZLI NAKLİYE TALEBİ\n\n📌 Talep: ${fastRequestText}\n\n📞 Müşteri Tel: ${fastUserPhone}`;
+        const url = `whatsapp://send?phone=${targetPhone}&text=${encodeURIComponent(message)}`;
+
+        Linking.openURL(url).catch(() => {
+            Alert.alert("Hata", "WhatsApp uygulaması bulunamadı.");
+        });
+
+        setFastModalVisible(false);
+        setFastRequestText('');
+        setFastUserPhone('');
+    };
+
     // --- STEP 1: ROUTE ---
     const renderStep1 = () => (
         <View style={styles.stepContainer}>
+            {/* NEW: FAST REQUEST TRIGGER */}
+            <TouchableOpacity style={styles.fastTriggerBtn} onPress={() => setFastModalVisible(true)} activeOpacity={0.9}>
+                <LinearGradient
+                    colors={['rgba(204, 255, 0, 0.1)', 'rgba(0,0,0,0)']}
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                    style={styles.fastTriggerGradient}
+                >
+                    <View style={styles.fastIconBox}>
+                        <MaterialCommunityIcons name="lightning-bolt" size={20} color={COLORS.neon} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.fastTriggerTitle}>HIZLI TALEP OLUŞTUR</Text>
+                        <Text style={styles.fastTriggerSub}>Form doldurmakla uğraşma, yaz biz bulalım.</Text>
+                    </View>
+                    <Ionicons name="arrow-forward" size={18} color={COLORS.neon} />
+                </LinearGradient>
+                <View style={[styles.glowBorder, { borderColor: COLORS.neon, opacity: 0.3 }]} />
+            </TouchableOpacity>
+
+            <View style={{ height: 20 }} />
+
             <Text style={styles.stepTitle}>1. ROTA BELİRLEME</Text>
             <Text style={styles.stepSub}>Nereden nereye gidilecek?</Text>
 
@@ -479,7 +531,6 @@ export default function CreateTransportScreen({ navigation }) {
                 </ScrollView>
 
                 {/* Footer (Dynamic) */}
-                {/* Footer (Dynamic) */}
                 {step < 5 && !isKeyboardVisible && (
                     <View style={styles.footer}>
                         <TouchableOpacity style={styles.nextBtn} onPress={nextStep}>
@@ -488,6 +539,74 @@ export default function CreateTransportScreen({ navigation }) {
                         </TouchableOpacity>
                     </View>
                 )}
+
+                {/* FAST REQUEST MODAL (COPIED) */}
+                <Modal
+                    visible={isFastModalVisible}
+                    transparent
+                    animationType="slide"
+                    onRequestClose={() => setFastModalVisible(false)}
+                >
+                    {/* Background */}
+                    <View style={StyleSheet.absoluteFill}>
+                        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+                        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' }} />
+                    </View>
+
+                    {/* Content */}
+                    <KeyboardAvoidingView
+                        behavior={Platform.OS === "ios" ? "padding" : "height"}
+                        style={{ flex: 1, justifyContent: 'flex-end' }}
+                    >
+                        <TouchableOpacity
+                            style={{ flex: 1 }}
+                            activeOpacity={1}
+                            onPress={() => setFastModalVisible(false)}
+                        />
+
+                        <View style={styles.modalContent}>
+                            <View style={styles.modalHeader}>
+                                <Text style={styles.modalTitle}>⚡ HIZLI ASİSTAN</Text>
+                                <TouchableOpacity onPress={() => setFastModalVisible(false)}>
+                                    <Ionicons name="close-circle" size={28} color="#666" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                                <Text style={styles.modalSub}>
+                                    Yükünüzü, nereden nereye gideceğini ve ne zaman araç lazım olduğunu kısaca yazın.
+                                </Text>
+
+                                <TextInput
+                                    style={styles.textArea}
+                                    placeholder="Örn: Kartal şantiyesinden Tuzla depoya 3 palet seramik gidecek. Saat 14:00'te araç lazım..."
+                                    placeholderTextColor="#555"
+                                    multiline
+                                    numberOfLines={6}
+                                    value={fastRequestText}
+                                    onChangeText={setFastRequestText}
+                                />
+
+                                <Text style={[styles.modalSub, { marginBottom: 10 }]}>İletişim Numaranız:</Text>
+                                <TextInput
+                                    style={[styles.textArea, { height: 50, marginBottom: 30 }]}
+                                    placeholder="0532 999 88 77"
+                                    placeholderTextColor="#555"
+                                    keyboardType="phone-pad"
+                                    value={fastUserPhone}
+                                    onChangeText={setFastUserPhone}
+                                />
+
+                                <TouchableOpacity style={styles.modalSubmitBtn} onPress={handleFastSubmit}>
+                                    <LinearGradient colors={[COLORS.neon, '#AACC00']} style={styles.submitGradient}>
+                                        <Text style={styles.submitText}>TALEBİ GÖNDER</Text>
+                                        <MaterialCommunityIcons name="send" size={20} color="#000" />
+                                    </LinearGradient>
+                                </TouchableOpacity>
+                            </ScrollView>
+                        </View>
+                    </KeyboardAvoidingView>
+                </Modal>
 
                 {/* GOLD DONE BUTTON ACCESSORY */}
                 {Platform.OS === 'ios' && (
@@ -533,6 +652,24 @@ const styles = StyleSheet.create({
     suggestionItem: { flexDirection: 'row', gap: 10, alignItems: 'center', padding: 10, borderBottomWidth: 1, borderBottomColor: '#2a2a2a' },
     sugTitle: { color: '#ddd', fontSize: 13, fontWeight: 'bold' },
     sugSub: { color: '#888', fontSize: 11 },
+
+    // FAST TRIGGER
+    fastTriggerBtn: { borderRadius: 16, overflow: 'hidden', marginBottom: 10 },
+    fastTriggerGradient: { flexDirection: 'row', alignItems: 'center', padding: 10, gap: 12 },
+    fastIconBox: { width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(204, 255, 0, 0.1)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: COLORS.neon },
+    fastTriggerTitle: { color: COLORS.neon, fontWeight: 'bold', fontSize: 13 },
+    fastTriggerSub: { color: '#aaa', fontSize: 11 },
+    glowBorder: { ...StyleSheet.absoluteFillObject, borderWidth: 1, borderRadius: 16 },
+
+    // MODAL STYLES
+    modalContent: { backgroundColor: '#1A1A1A', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 24, minHeight: 400, borderWidth: 1, borderColor: '#333' },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+    modalTitle: { color: COLORS.neon, fontSize: 18, fontWeight: '900' },
+    modalSub: { color: '#888', marginBottom: 20 },
+    textArea: { backgroundColor: '#111', borderRadius: 16, padding: 16, color: '#fff', fontSize: 16, height: 150, textAlignVertical: 'top', borderWidth: 1, borderColor: '#333', marginBottom: 20 },
+    modalSubmitBtn: { height: 56, borderRadius: 28, overflow: 'hidden' },
+    submitGradient: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+    submitText: { color: '#000', fontSize: 16, fontWeight: '900' },
 
     // STEP 2
     gridContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },

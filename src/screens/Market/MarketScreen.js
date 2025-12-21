@@ -1,4 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { Alert, Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -59,7 +60,7 @@ const MARKET_CATEGORIES = [
         id: '4',
         title: 'KALIP, İSKELE VE ŞANTİYE',
         subtitle: 'Plywood, Güvenlik',
-        icon: 'scaffold-tower', // Using custom icon name if available or generic
+        icon: 'ladder', // Valid MaterialCommunityIcons name
         items: [
             { name: 'Plywood (Huş)', spec: 'Plaka', price: '₺2.800' },
             { name: 'OSB-3 Levha', spec: 'Plaka', price: '₺450' },
@@ -228,6 +229,7 @@ const FIRM_DATA = [
 ];
 
 export default function MarketScreen() {
+    const navigation = useNavigation();
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedFirm, setSelectedFirm] = useState(null);
     const [viewMode, setViewMode] = useState('list'); // 'list', 'detail', 'firms', 'firmDetail'
@@ -368,17 +370,17 @@ export default function MarketScreen() {
                                 styles.backButton,
                                 {
                                     width: 50, height: 50, borderRadius: 14,
-                                    backgroundColor: isSellerMode ? '#1e3a8a' : '#3b5998', // Active: Dark Blue, Inactive: Light Navy
+                                    backgroundColor: '#3b5998', // Light Navy
                                     alignItems: 'center', justifyContent: 'center',
-                                    borderWidth: isSellerMode ? 1 : 0, borderColor: '#4ADE80'
+                                    borderWidth: 1, borderColor: '#4ADE80'
                                 }
                             ]}
-                            onPress={() => setIsSellerMode(!isSellerMode)}
+                            onPress={() => navigation.navigate('SellerDashboard')}
                         >
                             <MaterialCommunityIcons
-                                name={isSellerMode ? "store-check" : "store-cog"}
+                                name="store-cog"
                                 size={28}
-                                color={isSellerMode ? "#4ADE80" : "#fff"}
+                                color="#fff"
                             />
                         </TouchableOpacity>
                     )}

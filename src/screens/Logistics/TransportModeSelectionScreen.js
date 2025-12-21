@@ -132,12 +132,11 @@ export default function TransportModeSelectionScreen({ navigation }) {
                         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' }} />
                     </View>
 
-                    {/* 2. CONTENT HANDLER - Adapts to Keyboard */}
+                    {/* 2. CONTENT HANDLER - Simplified */}
                     <KeyboardAvoidingView
-                        behavior={Platform.OS === "ios" ? "height" : "height"}
+                        behavior={Platform.OS === "ios" ? "padding" : "height"}
                         style={{ flex: 1, justifyContent: 'flex-end' }}
                     >
-                        {/* Touchable to close on background tap (Optional but good UX) */}
                         <TouchableOpacity
                             style={{ flex: 1 }}
                             activeOpacity={1}
@@ -152,10 +151,7 @@ export default function TransportModeSelectionScreen({ navigation }) {
                                 </TouchableOpacity>
                             </View>
 
-                            <ScrollView
-                                keyboardShouldPersistTaps="handled"
-                                showsVerticalScrollIndicator={false}
-                            >
+                            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                                 <Text style={styles.modalSub}>
                                     Yükünüzü, nereden nereye gideceğini ve ne zaman araç lazım olduğunu kısaca yazın.
                                 </Text>
@@ -168,7 +164,7 @@ export default function TransportModeSelectionScreen({ navigation }) {
                                     numberOfLines={6}
                                     value={fastRequestText}
                                     onChangeText={setFastRequestText}
-                                    inputAccessoryViewID="toolbar_transport_mode"
+                                    // Removed ID to prevent potential native conflicts
                                 />
 
                                 <Text style={[styles.modalSub, { marginBottom: 10 }]}>İletişim Numaranız:</Text>
@@ -179,7 +175,6 @@ export default function TransportModeSelectionScreen({ navigation }) {
                                     keyboardType="phone-pad"
                                     value={userPhone}
                                     onChangeText={setUserPhone}
-                                    inputAccessoryViewID="toolbar_transport_mode"
                                 />
 
                                 <TouchableOpacity style={styles.submitBtn} onPress={handleFastSubmit}>
@@ -190,17 +185,6 @@ export default function TransportModeSelectionScreen({ navigation }) {
                                 </TouchableOpacity>
                             </ScrollView>
                         </View>
-
-                        {/* Custom JS Toolbar for Absolute Reliability */}
-                        {Platform.OS === 'ios' && (
-                            <InputAccessoryView nativeID="toolbar_transport_mode">
-                                <View style={styles.accessoryContainer}>
-                                    <TouchableOpacity onPress={() => Keyboard.dismiss()} style={styles.accessoryButton}>
-                                        <Text style={styles.accessoryText}>Bitti</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </InputAccessoryView>
-                        )}
                     </KeyboardAvoidingView>
                 </Modal>
 

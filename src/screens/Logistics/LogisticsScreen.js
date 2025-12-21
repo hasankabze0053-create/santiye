@@ -105,7 +105,7 @@ export default function LogisticsScreen({ navigation }) {
             <View style={styles.actionRow}>
                 <TouchableOpacity
                     style={[styles.mainActionBtn, styles.glowEffect, { flex: 1.2 }]}
-                    onPress={() => navigation.navigate('TransportSelection')}
+                    onPress={() => navigation.navigate('CreateTransport')}
                 >
                     <LinearGradient
                         colors={[COLORS.amberGradientStart, COLORS.amberGradientEnd]}
@@ -292,14 +292,14 @@ export default function LogisticsScreen({ navigation }) {
                         <TouchableOpacity
                             style={[
                                 styles.iconBtn,
-                                isCarrierMode && { backgroundColor: '#FFD700' }
+                                { backgroundColor: 'rgba(255, 215, 0, 0.1)', borderWidth: 1, borderColor: '#332a00' }
                             ]}
-                            onPress={() => setIsCarrierMode(!isCarrierMode)}
+                            onPress={() => navigation.navigate('CarrierDashboard')}
                         >
                             <MaterialCommunityIcons
-                                name={isCarrierMode ? "truck-check" : "truck-fast"}
+                                name="domain"
                                 size={20}
-                                color={isCarrierMode ? "#000" : "#fff"}
+                                color="#FFD700"
                             />
                         </TouchableOpacity>
                     </View>
