@@ -1,4 +1,4 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRef, useState } from 'react';
@@ -48,12 +48,10 @@ const HERO_SLIDES = [
 ];
 
 const SERVICES = [
-    { id: 'turnkey', title: 'Anahtar Teslim\nTadilat', icon: 'home-key-outline', lib: 'MaterialCommunityIcons' },
-    { id: 'restoration', title: 'Tarihi Eser &\nRestorasyon', icon: 'pillar', lib: 'MaterialCommunityIcons' },
-    { id: 'kitchen', title: 'Mutfak & Banyo\nYenileme', icon: 'faucet', lib: 'MaterialCommunityIcons' },
-    { id: 'commercial', title: 'Ticari Mekan\n& Ofis', icon: 'office-building', lib: 'MaterialCommunityIcons' },
-    { id: 'exterior', title: 'Cephe &\nPeyzaj', icon: 'tree-outline', lib: 'MaterialCommunityIcons' },
-    { id: 'smart', title: 'Akıllı Ev &\nTesisat', icon: 'lightning-bolt-outline', lib: 'MaterialCommunityIcons' },
+    { id: 'turnkey', title: 'Anahtar Teslim\nTadilat', subtitle: 'Yıkım, proje ve uygulama.', icon: 'key', lib: 'Ionicons' },
+    { id: 'restoration', title: 'Restorasyon', subtitle: 'Tarihi dokuya uygun güçlendirme.', icon: 'pillar', lib: 'MaterialCommunityIcons' },
+    { id: 'paint', title: 'Boya & Dekorasyon', subtitle: 'Duvar kağıdı, boya ve alçıpan.', icon: 'format-paint', lib: 'MaterialCommunityIcons' },
+    { id: 'kitchen', title: 'Mutfak & Banyo\nYenileme', subtitle: 'Modern ve fonksiyonel alanlar.', icon: 'water-pump', lib: 'MaterialCommunityIcons' },
 ];
 
 // Standard Gold Card (Premium Button)
@@ -73,6 +71,7 @@ const GoldCard = ({ children, style, onPress }) => (
 
 export default function RenovationScreen({ navigation }) {
     const [requestInput, setRequestInput] = useState('');
+    const [selectedQuality, setSelectedQuality] = useState('Konfor');
     const scrollX = useRef(new Animated.Value(0)).current;
 
     const handleServicePress = (service) => {
@@ -93,18 +92,23 @@ export default function RenovationScreen({ navigation }) {
             />
 
             <SafeAreaView style={{ flex: 1 }}>
+
+                {/* CUSTOM HEADER */}
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
+                        <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
+                    </TouchableOpacity>
+                    <View style={{ alignItems: 'center' }}>
+                        <Text style={styles.headerTitle}>MİMARLIK OFİSİ</Text>
+                        <Text style={styles.headerSubtitle}>Yaşam Alanınızı Yeniden Keşfedin</Text>
+                    </View>
+                    <TouchableOpacity style={styles.headerBtn}>
+                        <MaterialCommunityIcons name="account-circle-outline" size={28} color={GOLD_MAIN} />
+                    </TouchableOpacity>
+                </View>
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-                    {/* Header */}
-                    <View style={styles.header}>
-                        <View>
-                            <Text style={styles.headerTitle}>MİMARLIK OFİSİ</Text>
-                            <Text style={styles.headerSubtitle}>Yaşam Alanınızı Yeniden Keşfedin</Text>
-                        </View>
-                        <TouchableOpacity style={styles.profileBtn}>
-                            <MaterialCommunityIcons name="account-circle-outline" size={30} color={GOLD_MAIN} />
-                        </TouchableOpacity>
-                    </View>
+
 
                     {/* HERO CAROUSEL */}
                     <View style={styles.carouselContainer}>
@@ -162,33 +166,57 @@ export default function RenovationScreen({ navigation }) {
                                     onPress={() => handleServicePress(item)}
                                 >
                                     <View style={styles.iconCircle}>
-                                        <MaterialCommunityIcons name={item.icon} size={28} color={GOLD_MAIN} />
+                                        {item.lib === 'Ionicons' ? (
+                                            <Ionicons name={item.icon} size={26} color={GOLD_MAIN} />
+                                        ) : (
+                                            <MaterialCommunityIcons name={item.icon} size={28} color={GOLD_MAIN} />
+                                        )}
                                     </View>
-                                    <Text style={styles.gridItemTitle}>{item.title}</Text>
+                                    <View style={{ alignItems: 'center' }}>
+                                        <Text style={styles.gridItemTitle}>{item.title}</Text>
+                                        <Text style={styles.gridItemSubtitle}>{item.subtitle}</Text>
+                                    </View>
                                 </GoldCard>
                             ))}
                         </View>
                     </View>
 
-                    {/* SMART REQUEST SECTION */}
+
+                    {/* MIMARIM - SANAL TASARIM STÜDYOSU */}
                     <View style={styles.smartSection}>
                         <LinearGradient
                             colors={['rgba(255, 215, 0, 0.05)', 'transparent']}
                             style={StyleSheet.absoluteFill}
                         />
                         <View style={styles.smartHeader}>
-                            <MaterialCommunityIcons name="robot-outline" size={24} color={GOLD_MAIN} />
-                            <Text style={styles.smartTitle}>AKILLI KEŞİF & MALİYET</Text>
+                            <MaterialCommunityIcons name="cube-scan" size={24} color={GOLD_MAIN} />
+                            <Text style={styles.smartTitle}>Mimarım - Sanal Tasarım Stüdyosu</Text>
                         </View>
 
                         <Text style={styles.smartDesc}>
-                            Mevcut alanın fotoğrafını yükleyin veya yapmak istediklerinizi yazın, uzmanlarımız size yaklaşık maliyet sunsun.
+                            Mevcut alanın fotoğrafını yükleyin; seçtiğiniz kalite sınıfına uygun olarak <Text style={{ color: GOLD_MAIN }}>3D tasarımınızı ve maliyet teklifinizi</Text> hazırlansın.
                         </Text>
+
+                        {/* Mood Tags (Radio Selection) */}
+                        <View style={styles.moodTagsRow}>
+                            {['Ekonomik', 'Konfor', 'Exclusive'].map((tag, index) => {
+                                const isSelected = selectedQuality === tag;
+                                return (
+                                    <TouchableOpacity
+                                        key={index}
+                                        style={[styles.moodTag, isSelected ? styles.moodTagActive : {}]}
+                                        onPress={() => setSelectedQuality(tag)}
+                                    >
+                                        <Text style={[styles.moodTagText, isSelected ? styles.moodTagTextActive : {}]}>{tag}</Text>
+                                    </TouchableOpacity>
+                                )
+                            })}
+                        </View>
 
                         <View style={styles.inputContainer}>
                             <TextInput
                                 style={styles.textInput}
-                                placeholder="Duvarda çatlak var, mutfak dolapları değişecek..."
+                                placeholder="Dönüşümünüzdeki beklentilerinizi ve alanın fotoğrafını belirtin..."
                                 placeholderTextColor="#666"
                                 multiline
                                 value={requestInput}
@@ -196,18 +224,18 @@ export default function RenovationScreen({ navigation }) {
                             />
                         </View>
 
-                        {/* Action Buttons */}
-                        <View style={styles.actionRow}>
-                            <TouchableOpacity style={styles.actionBtn} onPress={() => handleAction('Fotoğraf Yükle')}>
-                                <MaterialCommunityIcons name="camera-plus-outline" size={20} color={PLATINUM_LIGHT} />
-                                <Text style={styles.actionText}>Fotoğraf Ekle</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity style={[styles.actionBtn, { borderColor: GOLD_ACCENT }]} onPress={() => handleAction('Mimar Görüşmesi')}>
-                                <MaterialCommunityIcons name="video-outline" size={20} color={GOLD_MAIN} />
-                                <Text style={[styles.actionText, { color: GOLD_MAIN }]}>Mimar ile Görüş</Text>
-                            </TouchableOpacity>
-                        </View>
+                        {/* Photo Upload Button (Large Card Style) */}
+                        <TouchableOpacity style={styles.photoUploadCard} onPress={() => handleAction('Fotoğraf Yükle')}>
+                            <View style={styles.photoIconCircle}>
+                                <MaterialCommunityIcons name="camera-plus" size={24} color="#000" />
+                                <View style={{ position: 'absolute', top: -2, right: -2, width: 8, height: 8, borderRadius: 4, backgroundColor: GOLD_MAIN }} />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.photoUploadTitle}>Mevcut Alanın Fotoğrafını Yükle</Text>
+                                <Text style={styles.photoUploadSub}>Mimarlarımız dönüşümü başlatsın</Text>
+                            </View>
+                            <MaterialCommunityIcons name="chevron-right" size={24} color="#666" />
+                        </TouchableOpacity>
 
                         <TouchableOpacity style={styles.submitBtn} onPress={() => handleAction('Analiz Başlat')}>
                             <LinearGradient
@@ -215,12 +243,37 @@ export default function RenovationScreen({ navigation }) {
                                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                                 style={styles.submitGradient}
                             >
-                                <Text style={styles.submitText}>ANALİZİ BAŞLAT</Text>
-                                <MaterialCommunityIcons name="arrow-right-circle" size={24} color="#000" />
+                                <Text style={styles.submitText}>TASARIM VE TEKLİF İSTE</Text>
+                                <MaterialCommunityIcons name="magic-staff" size={24} color="#000" />
                             </LinearGradient>
                         </TouchableOpacity>
 
+                        {/* Consultant CTA (Premium) */}
+                        <TouchableOpacity activeOpacity={0.9} onPress={() => handleAction('Mimar Görüşmesi')}>
+                            <LinearGradient
+                                colors={['#1c1917', '#292524']}
+                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                                style={styles.consultantCard}
+                            >
+                                <View style={styles.consultantContent}>
+                                    <View style={styles.consultantIconBox}>
+                                        <MaterialCommunityIcons name="face-agent" size={24} color={GOLD_MAIN} />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={styles.consultantTitle}>Karar veremediniz mi?</Text>
+                                        <Text style={styles.consultantSub}>Profesyonel destek için tıklayın.</Text>
+                                    </View>
+                                    <View style={styles.consultantBtn}>
+                                        <Text style={styles.consultantBtnText}>Mimarınızla Görüş</Text>
+                                        <MaterialCommunityIcons name="chevron-right" size={16} color="#000" />
+                                    </View>
+                                </View>
+                            </LinearGradient>
+                        </TouchableOpacity>
+
+
                     </View>
+
 
                 </ScrollView>
             </SafeAreaView>
@@ -234,9 +287,9 @@ const styles = StyleSheet.create({
 
     // Header
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, marginBottom: 20 },
-    headerTitle: { color: GOLD_MAIN, fontSize: 14, fontWeight: '900', letterSpacing: 2 },
-    headerSubtitle: { color: '#fff', fontSize: 20, fontWeight: '300', marginTop: 5 },
-    profileBtn: { padding: 5 },
+    headerTitle: { color: GOLD_MAIN, fontSize: 12, fontWeight: '900', letterSpacing: 2 },
+    headerSubtitle: { color: '#fff', fontSize: 16, fontWeight: '300', marginTop: 4 },
+    headerBtn: { padding: 5 },
 
     // Carousel
     carouselContainer: { marginBottom: 30 },
@@ -253,10 +306,10 @@ const styles = StyleSheet.create({
     dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: GOLD_MAIN },
 
     // Grid
-    sectionContainer: { px: 20, marginBottom: 30 },
-    sectionTitle: { color: '#666', fontSize: 12, fontWeight: 'bold', letterSpacing: 1, marginLeft: 20, marginBottom: 15 },
-    gridContainer: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 15, justifyContent: 'space-between', gap: 10 },
-    gridItem: { width: (width - 40) / 2 - 5, height: 130, borderRadius: 20 },
+    sectionContainer: { paddingHorizontal: 20, marginBottom: 30 },
+    sectionTitle: { color: '#666', fontSize: 12, fontWeight: 'bold', letterSpacing: 1, marginLeft: 0, marginBottom: 15 },
+    gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+    gridItem: { width: '48%', height: 160, borderRadius: 20, marginBottom: 16 },
 
     // Premium Card Styles
     goldCardContainer: {
@@ -269,23 +322,61 @@ const styles = StyleSheet.create({
     cardContent: { flex: 1, justifyContent: 'space-between', alignItems: 'center', padding: 15 },
 
     iconCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255, 215, 0, 0.1)', alignItems: 'center', justifyContent: 'center' },
-    gridItemTitle: { color: '#ddd', fontSize: 13, fontWeight: '600', textAlign: 'center', marginTop: 10 },
+    gridItemTitle: { color: '#ddd', fontSize: 13, fontWeight: 'bold', textAlign: 'center', marginTop: 12 },
+    gridItemSubtitle: { color: '#666', fontSize: 10, textAlign: 'center', marginTop: 4, paddingHorizontal: 4, lineHeight: 14 },
+
 
     // Smart Section
     smartSection: { marginHorizontal: 20, backgroundColor: '#111', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#333', overflow: 'hidden' },
     smartHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
-    smartTitle: { color: GOLD_MAIN, fontSize: 16, fontWeight: 'bold', letterSpacing: 0.5 },
-    smartDesc: { color: '#888', fontSize: 13, lineHeight: 20, marginBottom: 20 },
+    smartTitle: { color: GOLD_MAIN, fontSize: 13, fontWeight: 'bold', letterSpacing: 0.5 },
+    smartDesc: { color: '#888', fontSize: 12, lineHeight: 18, marginBottom: 20 },
 
-    inputContainer: { backgroundColor: '#000', borderRadius: 12, borderWidth: 1, borderColor: '#333', marginBottom: 15, height: 80 },
-    textInput: { flex: 1, color: '#fff', padding: 15, textAlignVertical: 'top' },
+    // Mood Tags
+    moodTagsRow: { flexDirection: 'row', gap: 8, marginBottom: 15, flexWrap: 'wrap' },
+    moodTag: {
+        backgroundColor: '#111',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#333'
+    },
+    moodTagActive: {
+        backgroundColor: GOLD_MAIN,
+        borderColor: GOLD_MAIN
+    },
+    moodTagText: { color: '#888', fontSize: 11, fontWeight: '600' },
+    moodTagTextActive: { color: '#000', fontWeight: '900' },
 
-    actionRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-    actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: '#444', backgroundColor: '#181818' },
-    actionText: { color: PLATINUM_LIGHT, fontSize: 12, fontWeight: '600' },
+    inputContainer: { backgroundColor: '#000', borderRadius: 12, borderWidth: 1, borderColor: '#333', marginBottom: 15, height: 100 },
+    textInput: { flex: 1, color: '#fff', padding: 15, textAlignVertical: 'top', fontSize: 13 },
+
+    // Photo Upload Card
+    photoUploadCard: {
+        flexDirection: 'row', alignItems: 'center', backgroundColor: '#000',
+        borderRadius: 16, padding: 16, marginBottom: 20,
+        borderWidth: 1, borderColor: '#333', borderStyle: 'dashed'
+    },
+    photoIconCircle: {
+        width: 40, height: 40, borderRadius: 20, backgroundColor: GOLD_MAIN,
+        alignItems: 'center', justifyContent: 'center', marginRight: 15
+    },
+    photoUploadTitle: { color: '#fff', fontSize: 13, fontWeight: 'bold', marginBottom: 2 },
+    photoUploadSub: { color: '#666', fontSize: 11 },
 
     submitBtn: { borderRadius: 16, overflow: 'hidden' },
     submitGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, gap: 10 },
-    submitText: { color: '#000', fontSize: 16, fontWeight: '900', letterSpacing: 1 }
+    submitText: { color: '#000', fontSize: 14, fontWeight: '900', letterSpacing: 1 },
+
+    // Consultant CTA (Premium Redesign)
+    consultantCard: { marginTop: 20, borderRadius: 16, borderWidth: 1, borderColor: '#44403c', overflow: 'hidden' },
+    consultantContent: { flexDirection: 'row', items: 'center', padding: 16, alignItems: 'center' },
+    consultantIconBox: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255, 215, 0, 0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+    consultantTitle: { color: '#fff', fontSize: 13, fontWeight: 'bold' },
+    consultantSub: { color: '#a8a29e', fontSize: 11 },
+    consultantBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: GOLD_MAIN, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 20, gap: 4 },
+    consultantBtnText: { color: '#000', fontSize: 11, fontWeight: '900' }
 
 });
+

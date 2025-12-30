@@ -18,6 +18,7 @@ import CarrierDashboardScreen from '../screens/Logistics/CarrierDashboardScreen'
 import CreateTransportScreen from '../screens/Logistics/CreateTransportScreen';
 import LogisticsScreen from '../screens/Logistics/LogisticsScreen';
 import TransportModeSelectionScreen from '../screens/Logistics/TransportModeSelectionScreen';
+import BulkRequestScreen from '../screens/Market/BulkRequestScreen';
 import MarketScreen from '../screens/Market/MarketScreen';
 import SellerDashboardScreen from '../screens/Market/SellerDashboardScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
@@ -69,11 +70,12 @@ export default function AppNavigator() {
             {/* Stack Versions of Tab Screens (For Dashboard Navigation) */}
             <Stack.Screen name="RentalStack" component={RentalScreen} options={{ headerShown: false }} />
             <Stack.Screen name="MarketStack" component={MarketScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="BulkRequest" component={BulkRequestScreen} options={{ headerShown: false }} />
 
             {/* Other Modules pushed on top */}
-            <Stack.Screen name="Tadilat" component={RenovationScreen} options={{ headerShown: true, title: 'Tadilat & Tamirat' }} />
-            <Stack.Screen name="Mühendislik" component={EngineeringScreen} options={{ headerShown: true, title: 'Mühendislik' }} />
-            <Stack.Screen name="AI_Galeri" component={AiArchitectScreen} options={{ headerShown: true, title: 'Cebimdeki Mimar', headerTintColor: COLORS.primary }} />
+            <Stack.Screen name="Tadilat" component={RenovationScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="Mühendislik" component={EngineeringScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="AI_Galeri" component={AiArchitectScreen} options={{ headerShown: false }} />
 
             {/* New Modules */}
             <Stack.Screen name="Hukuk" component={LawScreen} options={{ headerShown: true, title: 'Hukuki Destek' }} />
