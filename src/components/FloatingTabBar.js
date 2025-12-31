@@ -1,8 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { COLORS } from '../constants/theme';
+import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -61,20 +60,34 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
                                     <Ionicons
                                         name={isFocused ? tabItem.icon : `${tabItem.icon}-outline`}
                                         size={24}
-                                        color={isFocused ? '#000' : '#888'}
+                                        color={isFocused ? '#D4AF37' : '#666'} // Metallic Gold vs Grey
                                     />
                                 ) : (
                                     <MaterialCommunityIcons
                                         name={tabItem.icon}
                                         size={24}
-                                        color={isFocused ? '#000' : '#888'}
+                                        color={isFocused ? '#D4AF37' : '#666'}
                                     />
+                                )}
+                                {/* Active Dot Indicator */}
+                                {isFocused && (
+                                    <View style={{
+                                        position: 'absolute',
+                                        bottom: 0,
+                                        width: 4,
+                                        height: 4,
+                                        borderRadius: 2,
+                                        backgroundColor: '#D4AF37',
+                                        shadowColor: "#D4AF37",
+                                        shadowOffset: { width: 0, height: 0 },
+                                        shadowOpacity: 1,
+                                        shadowRadius: 4,
+                                    }} />
                                 )}
                             </View>
 
-                            {isFocused && (
-                                <Text style={styles.label}>{label}</Text>
-                            )}
+                            {/* Label removed for cleaner look, or added back if requested. 
+                                Keeping it hidden for 'Showroom' aesthetic, relying on Icon + Dot */}
                         </TouchableOpacity>
                     );
                 })}
@@ -86,43 +99,48 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
 const styles = StyleSheet.create({
     container: {
         position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: 'transparent',
-        elevation: 0, // Handled by blur
+        bottom: 25, // Floating effect
+        left: 20,
+        right: 20,
+        borderRadius: 35,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.1)', // Glass border
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.5,
+        shadowRadius: 20,
+        elevation: 10,
     },
+    // The BlurView wraps this, so we don't need background color here mostly
     tabContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
         alignItems: 'center',
-        paddingBottom: 20, // Safe area padding
-        paddingTop: 15,
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(255, 255, 255, 0.1)',
-        backgroundColor: 'rgba(15, 15, 15, 0.95)', // Solid dark base with slight transparency
+        paddingVertical: 12, // Compact vertical padding
+        backgroundColor: 'rgba(10, 10, 10, 0.85)', // Dark Glass tint
     },
     tabBtn: {
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 5,
-        width: 60,
+        height: 50,
+        flex: 1,
     },
     iconContainer: {
         width: 40,
         height: 40,
-        borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 4,
+        borderRadius: 20,
     },
     focusedIconContainer: {
-        backgroundColor: COLORS.accent, // Gold Background
+        // Removed solid background, added subtle glow via shadow if needed, or kept clean
+        // backgroundColor: 'rgba(212, 175, 55, 0.15)', // Optional: very subtle gold tint
     },
     label: {
         fontSize: 10,
-        fontWeight: '600',
-        letterSpacing: 0.5,
-        color: COLORS.accent,
+        fontWeight: '700',
+        marginTop: 2,
+        color: '#D4AF37', // Metallic Gold
     }
 });

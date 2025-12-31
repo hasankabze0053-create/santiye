@@ -333,20 +333,20 @@ export default function RentalScreen() {
                             </TouchableOpacity>
 
                             <TouchableOpacity
-                                style={[styles.typeCard, activeTab === 'project' && styles.typeCardActive]}
+                                style={[styles.typeCard, activeTab === 'project' && { borderColor: '#B0B0B0' }]} // Silver Border
                                 onPress={() => setActiveTab('project')}
                                 activeOpacity={0.9}
                             >
                                 <LinearGradient
-                                    colors={activeTab === 'project' ? ['#2A2A2A', '#1A1A1A'] : ['#1A1A1A', '#111']}
+                                    colors={activeTab === 'project' ? ['#F5F5F5', '#B0B0B0'] : ['#1A1A1A', '#111']} // Silver Gradient
                                     style={styles.typeCardGradient}
                                 >
-                                    <View style={[styles.typeIconCircle, activeTab === 'project' && { backgroundColor: '#FFD700' }]}>
-                                        <MaterialCommunityIcons name="domain" size={24} color={activeTab === 'project' ? '#000' : '#FFD700'} />
+                                    <View style={[styles.typeIconCircle, activeTab === 'project' && { backgroundColor: '#1A1A1A', borderColor: '#333' }]}>
+                                        <MaterialCommunityIcons name="domain" size={24} color={activeTab === 'project' ? '#F5F5F5' : '#FFD700'} />
                                     </View>
                                     <View>
-                                        <Text style={[styles.typeCardTitle, activeTab === 'project' && { color: '#FFD700' }]}>KURUMSAL KİRALAMA</Text>
-                                        <Text style={styles.typeCardSub}>Filo ve Proje Çözümleri</Text>
+                                        <Text style={[styles.typeCardTitle, activeTab === 'project' ? { color: '#000' } : { color: '#FFD700' }]}>KURUMSAL KİRALAMA</Text>
+                                        <Text style={[styles.typeCardSub, activeTab === 'project' && { color: '#444' }]}>Filo ve Proje Çözümleri</Text>
                                     </View>
                                 </LinearGradient>
                             </TouchableOpacity>
@@ -524,7 +524,7 @@ export default function RentalScreen() {
                                     <View key={idx} style={styles.cardContainer}>
                                         <TouchableOpacity activeOpacity={0.9} onPress={() => togglePricing(idx)}>
                                             <LinearGradient
-                                                colors={['#F5F5F5', '#B0B0B0']} // Light Silver/Metallic Gradient
+                                                colors={['#D0D0D0', '#777777']} // Premium Darker Silver Gradient
                                                 style={styles.itemCard}
                                                 start={{ x: 0, y: 0 }}
                                                 end={{ x: 1, y: 1 }}
@@ -553,15 +553,21 @@ export default function RentalScreen() {
                                             <View style={styles.accordionContent}>
                                                 <Text style={styles.accordionTitle}>Firma Teklifleri</Text>
                                                 {MOCK_ITEM_SUPPLIERS.map((supplier) => (
-                                                    <View key={supplier.id} style={styles.supplierCard}>
+                                                    <LinearGradient
+                                                        key={supplier.id}
+                                                        colors={['#D0D0D0', '#777777']} // Premium Darker Silver Gradient
+                                                        style={styles.supplierCard}
+                                                        start={{ x: 0, y: 0 }}
+                                                        end={{ x: 1, y: 1 }}
+                                                    >
                                                         {/* Supplier Header */}
                                                         <View style={styles.supplierHeader}>
                                                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                                <MaterialCommunityIcons name={supplier.logo} size={18} color="#FFD700" style={{ marginRight: 6 }} />
+                                                                <MaterialCommunityIcons name={supplier.logo} size={18} color="#000" style={{ marginRight: 6 }} />
                                                                 <Text style={styles.supplierName}>{supplier.name}</Text>
                                                             </View>
                                                             {supplier.verified && (
-                                                                <MaterialCommunityIcons name="check-decagram" size={16} color="#4CAF50" />
+                                                                <MaterialCommunityIcons name="check-decagram" size={16} color="#000" />
                                                             )}
                                                         </View>
 
@@ -587,7 +593,7 @@ export default function RentalScreen() {
                                                         <TouchableOpacity style={styles.selectSupplierBtn} onPress={() => handleRentRequest(item, supplier.name)}>
                                                             <Text style={styles.selectSupplierText}>FİRMA SEÇ</Text>
                                                         </TouchableOpacity>
-                                                    </View>
+                                                    </LinearGradient>
                                                 ))}
                                             </View>
                                         )}
@@ -784,7 +790,7 @@ const styles = StyleSheet.create({
         padding: 0,
         borderRadius: 12, // Reduced for elegance
         borderWidth: 0, // Removed border for cleaner look
-        height: 100, // Slightly reduced height
+        height: 110, // Updated to match Market Screen
         overflow: 'hidden',
         // Shadow for depth
         shadowColor: "#000",
@@ -794,27 +800,28 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     itemInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-    itemImageBox: { width: 100, height: 100 }, // Matches card height
+    itemImageBox: { width: 110, height: 110 }, // Updated to match card height
     itemImage: { width: '100%', height: '100%' },
     itemName: { color: '#000', fontSize: 15, fontWeight: '800', marginBottom: 2, marginLeft: 12 }, // Black text for silver bg
     itemType: { color: '#444', fontSize: 12, marginLeft: 12, fontWeight: '500' }, // Dark grey text
-    priceInfoBtn: { alignItems: 'center', justifyContent: 'center', backgroundColor: '#000', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, marginRight: 12 }, // Black button for contrast
-    priceInfoText: { color: '#FFD700', fontSize: 10, fontWeight: 'bold' },
+    priceInfoBtn: { alignItems: 'center', justifyContent: 'center', backgroundColor: '#000', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, marginRight: 12 }, // Updated padding
+    priceInfoText: { color: '#FFD700', fontSize: 13, fontWeight: 'bold' }, // Updated font size
 
     // ACCORDION
     accordionContent: { backgroundColor: '#1A1A1A', marginTop: 4, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#333' },
     accordionTitle: { color: '#FFD700', fontSize: 14, fontWeight: 'bold', marginBottom: 12 },
 
     // Supplier Card
-    supplierCard: { marginBottom: 16, backgroundColor: '#222', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#444' },
-    supplierHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, borderBottomWidth: 1, borderBottomColor: '#333', paddingBottom: 8 },
-    supplierName: { color: '#fff', fontSize: 14, fontWeight: 'bold' },
+    // Supplier Card - Updated for Silver Theme
+    supplierCard: { marginBottom: 16, borderRadius: 12, padding: 12, overflow: 'hidden' }, // BG handled by Gradient
+    supplierHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, borderBottomWidth: 1, borderBottomColor: '#999', paddingBottom: 8 },
+    supplierName: { color: '#000', fontSize: 14, fontWeight: 'bold' },
     priceGrid: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
     priceColumn: { alignItems: 'center', flex: 1 },
-    priceSeparator: { width: 1, backgroundColor: '#333', height: '80%' },
-    priceLabel: { color: '#FFF', fontSize: 12, fontWeight: 'bold', marginBottom: 4 },
-    priceValue: { color: '#FFD700', fontSize: 14, fontWeight: '900' },
-    selectSupplierBtn: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#FFD700', borderRadius: 8, paddingVertical: 8, alignItems: 'center', marginTop: 4 },
+    priceSeparator: { width: 1, backgroundColor: '#999', height: '80%' },
+    priceLabel: { color: '#333', fontSize: 12, fontWeight: 'bold', marginBottom: 4 },
+    priceValue: { color: '#000', fontSize: 14, fontWeight: '900' },
+    selectSupplierBtn: { backgroundColor: '#000', borderRadius: 8, paddingVertical: 10, alignItems: 'center', marginTop: 4 },
     selectSupplierText: { color: '#FFD700', fontSize: 12, fontWeight: 'bold' },
 
     // STICKY FOOTER
