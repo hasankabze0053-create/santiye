@@ -231,7 +231,11 @@ export default function RentalScreen() {
     };
 
     const handleRentRequest = (item, supplierName) => {
-        Alert.alert("Talep Alındı", `${item.name} için ${supplierName} ile iletişime geçiliyor.`);
+        // Navigate to the new Smart Proposal Wizard
+        navigation.navigate('RentalProposal', {
+            item: item,
+            supplier: { name: supplierName }
+        });
     };
 
     // Search Logic

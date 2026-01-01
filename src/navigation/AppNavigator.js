@@ -25,6 +25,7 @@ import ProfileScreen from '../screens/Profile/ProfileScreen';
 import RenovationScreen from '../screens/Renovation/RenovationScreen';
 import CorporateDashboardScreen from '../screens/Rental/CorporateDashboardScreen';
 import ProjectProposalScreen from '../screens/Rental/ProjectProposalScreen';
+import RentalProposalScreen from '../screens/Rental/RentalProposalScreen';
 import RentalScreen from '../screens/Rental/RentalScreen';
 import UrbanTransformationScreen from '../screens/Transformation/UrbanTransformationScreen';
 
@@ -90,6 +91,8 @@ export default function AppNavigator() {
             <Stack.Screen name="DetailedCost" component={DetailedCostScreen} options={{ headerShown: false }} />
             <Stack.Screen name="PosCost" component={PosCostScreen} options={{ headerShown: false, title: 'Poz No Hesap' }} />
             <Stack.Screen name="ProjectProposal" component={ProjectProposalScreen} options={{ headerShown: false }} />
+            {/* New Smart Wizard */}
+            <Stack.Screen name="RentalProposal" component={RentalProposalScreen} options={{ headerShown: false }} />
 
             {/* Provider Flow */}
             <Stack.Screen name="ProviderWizard" component={ProviderWizardScreen} options={{ headerShown: false }} />
