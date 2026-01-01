@@ -1,18 +1,18 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRef, useState } from 'react';
-import { Alert, Animated, Dimensions, ImageBackground, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Animated, Dimensions, ImageBackground, Keyboard, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
 // MOCK DATA FOR WIZARD
 const DURATION_OPTIONS = [
-    { id: 'hourly', title: 'Saatlik Kiralama', icon: 'clock-outline', sub: 'Kısa süreli işler (Min. 4 Saat)' },
-    { id: 'daily', title: 'Günlük Kiralama', icon: 'weather-sunny', sub: '1-6 gün arası standart işler' },
-    { id: 'weekly', title: 'Haftalık Kiralama', icon: 'calendar-week', sub: 'Uzun süreli işler için avantajlı' },
-    { id: 'monthly', title: 'Proje Bazlı / Aylık', icon: 'office-building', sub: 'Şantiye kurulumu ve uzun vade' },
+    { id: 'hourly', title: 'Saatlik Kiralama', icon: 'clock-outline', sub: 'Kısa süreli işler (Min. 4 Saat)', basePrice: 1500, operatorPrice: 500 },
+    { id: 'daily', title: 'Günlük Kiralama', icon: 'weather-sunny', sub: '1-6 gün arası standart işler', basePrice: 12000, operatorPrice: 2500 },
+    { id: 'weekly', title: 'Haftalık Kiralama', icon: 'calendar-week', sub: 'Uzun süreli işler için avantajlı', basePrice: 70000, operatorPrice: 15000 },
+    { id: 'monthly', title: 'Proje Bazlı / Aylık', icon: 'office-building', sub: 'Şantiye kurulumu ve uzun vade', basePrice: 250000, operatorPrice: 50000 },
 ];
 
 export default function RentalProposalScreen() {
@@ -29,23 +29,55 @@ export default function RentalProposalScreen() {
         count: 1,
     });
 
-    // Updated Location State
+    // Location State
     const [locationValues, setLocationValues] = useState({
         locationSet: false,
         address: "Konum Seçilmedi",
         transportIncluded: false,
     });
     const [searchText, setSearchText] = useState("");
+    const [isSearching, setIsSearching] = useState(false);
 
     const [serviceValues, setServiceValues] = useState({
         operatorIncluded: true,
         fuelIncluded: false,
     });
 
+    // Price Calculation State
+    const [estimatedPrice, setEstimatedPrice] = useState(0);
+
     // Animations
     const fadeAnimStep2 = useRef(new Animated.Value(0)).current;
     const fadeAnimStep3 = useRef(new Animated.Value(0)).current;
     const fadeAnimSummary = useRef(new Animated.Value(0)).current;
+
+    // Calculate Price whenever dependencies change
+    useEffect(() => {
+        calculateTotal();
+    }, [durationValues, serviceValues, locationValues]);
+
+    const calculateTotal = () => {
+        if (!durationValues.type) return;
+
+        const option = DURATION_OPTIONS.find(d => d.id === durationValues.type);
+        if (!option) return;
+
+        let base = option.basePrice * durationValues.count;
+        let operator = serviceValues.operatorIncluded ? (option.operatorPrice * durationValues.count) : 0;
+        let total = base + operator;
+
+        // Mock Item specifics if available
+        if (item?.price) {
+            // If item has a specific price, we could use it, but for now we use the mock basePrice 
+            // to ensure consistent "working" logic for the demo.
+        }
+
+        setEstimatedPrice(total);
+    };
+
+    const formatCurrency = (amount) => {
+        return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " ₺";
+    };
 
     const handleDurationSelect = (type) => {
         setDurationValues(prev => ({ ...prev, type }));
@@ -56,21 +88,37 @@ export default function RentalProposalScreen() {
     };
 
     const handleSearchSubmit = () => {
-        // Mock search logic
         if (searchText.length > 2) {
-            setLocationValues(prev => ({ ...prev, address: `${searchText} Mah. Merkez Sok. No:1, İstanbul` }));
-            // Simulate zoom/find
-            Alert.alert("Konum Bulundu", `${searchText} bölgesine gidildi.`);
+            setIsSearching(true);
+            Keyboard.dismiss();
+
+            // Simulate API Search Delay
+            setTimeout(() => {
+                setIsSearching(false);
+                const mockAddress = `${searchText} Mah. Merkez Sok. No:1, İstanbul`;
+                setLocationValues(prev => ({ ...prev, address: mockAddress }));
+                Alert.alert("Konum Bulundu", `Harita ${searchText} bölgesine odaklandı.`);
+            }, 1500);
         }
+    };
+
+    const handleGPS = () => {
+        setIsSearching(true);
+        setTimeout(() => {
+            setIsSearching(false);
+            const gpsAddress = "Şantiye Sahası (Enlem: 41.0082, Boylam: 28.9784)";
+            setLocationValues(prev => ({ ...prev, address: gpsAddress }));
+            setSearchText("Mevcut Konum");
+            Alert.alert("GPS Başarılı", "Mevcut konumunuz haritaya işlendi.");
+        }, 1200);
     };
 
     const handleLocationConfirm = () => {
         if (!locationValues.locationSet) {
-            // Mock setting current center
             setLocationValues(prev => ({
                 ...prev,
                 locationSet: true,
-                address: searchText ? `${searchText} Mah. Merkez Sok. No:1, İstanbul` : "Maslak Mah. Büyükdere Cad. No:1, Sarıyer/İSTANBUL"
+                address: prev.address === "Konum Seçilmedi" ? "Maslak Mah. Büyükdere Cad. No:1, Sarıyer/İSTANBUL" : prev.address
             }));
         }
 
@@ -161,7 +209,7 @@ export default function RentalProposalScreen() {
                 <Text style={styles.questionTitle}>2. Makine nerede çalışacak?</Text>
 
                 {/* NEW MAP UI */}
-                <View style={styles.mapContainer}>
+                <View style={[styles.mapContainer, locationValues.locationSet && { borderColor: '#D4AF37' }]}>
                     {/* Dark Map Background */}
                     <ImageBackground
                         source={require('../../assets/map_bg.png')}
@@ -181,7 +229,9 @@ export default function RentalProposalScreen() {
                                 value={searchText}
                                 onChangeText={setSearchText}
                                 onSubmitEditing={handleSearchSubmit}
+                                returnKeyType="search"
                             />
+                            {isSearching && <ActivityIndicator size="small" color="#D4AF37" style={{ marginLeft: 8 }} />}
                         </View>
 
                         {/* Center Pin (Uber Style) */}
@@ -190,7 +240,7 @@ export default function RentalProposalScreen() {
                         </View>
 
                         {/* GPS Button */}
-                        <TouchableOpacity style={styles.gpsButton} onPress={() => Alert.alert("GPS", "Konumunuz alındı.")}>
+                        <TouchableOpacity style={styles.gpsButton} onPress={handleGPS}>
                             <MaterialCommunityIcons name="crosshairs-gps" size={24} color="#000" />
                         </TouchableOpacity>
 
@@ -199,7 +249,7 @@ export default function RentalProposalScreen() {
                             <View style={styles.addressContainer}>
                                 <Text style={styles.addressLabel}>Seçilen Konum:</Text>
                                 <Text style={styles.addressText} numberOfLines={2}>
-                                    {locationValues.locationSet ? locationValues.address : (searchText ? "Harita üzerinde işaretleniyor..." : "Konum belirlemek için haritayı sürükleyin")}
+                                    {locationValues.address}
                                 </Text>
                             </View>
 
@@ -335,11 +385,11 @@ export default function RentalProposalScreen() {
 
                     <View style={styles.totalRow}>
                         <Text style={styles.totalLabel}>Tahmini Tutar:</Text>
-                        <Text style={styles.totalValue}>Fiyat Hesaplanıyor...</Text>
+                        <Text style={styles.totalValue}>{formatCurrency(estimatedPrice)}</Text>
                     </View>
                 </View>
 
-                <TouchableOpacity style={styles.submitBtn} onPress={() => Alert.alert("Başarılı", "Talebiniz firmaya iletildi!")}>
+                <TouchableOpacity style={styles.submitBtn} onPress={() => Alert.alert("Başarılı", "Talebiniz firmaya iletildi! Firma sizinle iletişime geçecektir.")}>
                     <Text style={styles.submitBtnText}>TEKLİFİ ONAYLA VE GÖNDER</Text>
                     <MaterialCommunityIcons name="send" size={20} color="#000" style={{ marginLeft: 8 }} />
                 </TouchableOpacity>
