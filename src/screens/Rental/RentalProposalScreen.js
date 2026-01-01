@@ -2,7 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Animated, Dimensions, ImageBackground, Keyboard, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Dimensions, ImageBackground, Keyboard, PanResponder, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
@@ -51,6 +51,32 @@ export default function RentalProposalScreen() {
     const fadeAnimStep3 = useRef(new Animated.Value(0)).current;
     const fadeAnimSummary = useRef(new Animated.Value(0)).current;
 
+    // Map Animations & Pan
+    const mapPan = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
+    const mapScale = useRef(new Animated.Value(1)).current;
+
+    // PanResponder for Map Dragging
+    const panResponder = useRef(
+        PanResponder.create({
+            onStartShouldSetPanResponder: () => true,
+            onMoveShouldSetPanResponder: () => true,
+            onPanResponderGrant: () => {
+                mapPan.setOffset({
+                    x: mapPan.x._value,
+                    y: mapPan.y._value
+                });
+                mapPan.setValue({ x: 0, y: 0 });
+            },
+            onPanResponderMove: Animated.event(
+                [null, { dx: mapPan.x, dy: mapPan.y }],
+                { useNativeDriver: false }
+            ),
+            onPanResponderRelease: () => {
+                mapPan.flattenOffset();
+            }
+        })
+    ).current;
+
     // Calculate Price whenever dependencies change
     useEffect(() => {
         calculateTotal();
@@ -68,8 +94,7 @@ export default function RentalProposalScreen() {
 
         // Mock Item specifics if available
         if (item?.price) {
-            // If item has a specific price, we could use it, but for now we use the mock basePrice 
-            // to ensure consistent "working" logic for the demo.
+            // override if needed
         }
 
         setEstimatedPrice(total);
@@ -87,6 +112,22 @@ export default function RentalProposalScreen() {
         }
     };
 
+    const simulateMapMovement = () => {
+        // Zoom out then Zoom in to random location
+        Animated.sequence([
+            Animated.timing(mapScale, { toValue: 0.8, duration: 300, useNativeDriver: false }),
+            Animated.parallel([
+                Animated.timing(mapPan, {
+                    // Move to a random nearby offset to simulate "finding" the place
+                    toValue: { x: (Math.random() - 0.5) * 150, y: (Math.random() - 0.5) * 150 },
+                    duration: 800,
+                    useNativeDriver: false
+                }),
+                Animated.timing(mapScale, { toValue: 1, duration: 800, useNativeDriver: false })
+            ]),
+        ]).start();
+    };
+
     const handleSearchSubmit = () => {
         if (searchText.length > 2) {
             setIsSearching(true);
@@ -97,8 +138,10 @@ export default function RentalProposalScreen() {
                 setIsSearching(false);
                 const mockAddress = `${searchText} Mah. Merkez Sok. No:1, İstanbul`;
                 setLocationValues(prev => ({ ...prev, address: mockAddress }));
+
+                simulateMapMovement();
                 Alert.alert("Konum Bulundu", `Harita ${searchText} bölgesine odaklandı.`);
-            }, 1500);
+            }, 1000);
         }
     };
 
@@ -109,6 +152,12 @@ export default function RentalProposalScreen() {
             const gpsAddress = "Şantiye Sahası (Enlem: 41.0082, Boylam: 28.9784)";
             setLocationValues(prev => ({ ...prev, address: gpsAddress }));
             setSearchText("Mevcut Konum");
+
+            // GPS resets to center
+            mapPan.setOffset({ x: 0, y: 0 });
+            mapPan.setValue({ x: 0, y: 0 });
+            simulateMapMovement();
+
             Alert.alert("GPS Başarılı", "Mevcut konumunuz haritaya işlendi.");
         }, 1200);
     };
@@ -123,9 +172,12 @@ export default function RentalProposalScreen() {
         }
 
         // Proceed to next step
-        if (step < 3) {
-            setStep(3);
-            Animated.timing(fadeAnimStep3, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+        if (step < 4) {
+            setStep(4);
+            Animated.stagger(300, [
+                Animated.timing(fadeAnimStep3, { toValue: 1, duration: 600, useNativeDriver: true }),
+                Animated.timing(fadeAnimSummary, { toValue: 1, duration: 600, useNativeDriver: true })
+            ]).start();
         }
     };
 
@@ -208,59 +260,75 @@ export default function RentalProposalScreen() {
             <Animated.View style={[styles.stepContainer, { opacity: fadeAnimStep2, transform: [{ translateY: fadeAnimStep2.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }]}>
                 <Text style={styles.questionTitle}>2. Makine nerede çalışacak?</Text>
 
-                {/* NEW MAP UI */}
+                {/* NEW INTERACTIVE MAP UI */}
                 <View style={[styles.mapContainer, locationValues.locationSet && { borderColor: '#D4AF37' }]}>
-                    {/* Dark Map Background */}
-                    <ImageBackground
-                        source={require('../../assets/map_bg.png')}
-                        style={styles.mapImage}
-                        imageStyle={{ opacity: 0.4 }} // Dim it down
-                    >
-                        {/* Dark Overlay for "Night Mode" feel */}
-                        <View style={styles.mapDarkOverlay} />
 
-                        {/* Floating Search Bar */}
-                        <View style={styles.searchBarFloating}>
-                            <MaterialCommunityIcons name="magnify" size={20} color="#666" />
-                            <TextInput
-                                style={styles.searchInput}
-                                placeholder="Şantiye adresi veya ilçe ara..."
-                                placeholderTextColor="#999"
-                                value={searchText}
-                                onChangeText={setSearchText}
-                                onSubmitEditing={handleSearchSubmit}
-                                returnKeyType="search"
-                            />
-                            {isSearching && <ActivityIndicator size="small" color="#D4AF37" style={{ marginLeft: 8 }} />}
+                    {/* Pannable Image Layer */}
+                    <View style={styles.mapMask} {...panResponder.panHandlers}>
+                        <Animated.View
+                            style={[
+                                styles.pannableLayer,
+                                {
+                                    transform: [
+                                        { translateX: mapPan.x },
+                                        { translateY: mapPan.y },
+                                        { scale: mapScale }
+                                    ]
+                                }
+                            ]}
+                        >
+                            <ImageBackground
+                                source={require('../../assets/map_bg.png')}
+                                style={{ width: '100%', height: '100%' }}
+                                imageStyle={{ opacity: 0.6 }}
+                            >
+                                <View style={styles.mapDarkOverlay} />
+                            </ImageBackground>
+                        </Animated.View>
+                    </View>
+
+                    {/* Floating Search Bar */}
+                    <View style={styles.searchBarFloating}>
+                        <MaterialCommunityIcons name="magnify" size={20} color="#666" />
+                        <TextInput
+                            style={styles.searchInput}
+                            placeholder="Şantiye adresi veya ilçe ara..."
+                            placeholderTextColor="#999"
+                            value={searchText}
+                            onChangeText={setSearchText}
+                            onSubmitEditing={handleSearchSubmit}
+                            blurOnSubmit={true}
+                            returnKeyType="search"
+                        />
+                        {isSearching && <ActivityIndicator size="small" color="#D4AF37" style={{ marginLeft: 8 }} />}
+                    </View>
+
+                    {/* Center Pin (Fixed) */}
+                    <View style={styles.centerPinContainer} pointerEvents="none">
+                        <MaterialCommunityIcons name="map-marker" size={48} color="#D4AF37" style={styles.pinShadow} />
+                    </View>
+
+                    {/* GPS Button */}
+                    <TouchableOpacity style={styles.gpsButton} onPress={handleGPS}>
+                        <MaterialCommunityIcons name="crosshairs-gps" size={24} color="#000" />
+                    </TouchableOpacity>
+
+                    {/* Bottom Action Area */}
+                    <View style={styles.mapBottomBar}>
+                        <View style={styles.addressContainer}>
+                            <Text style={styles.addressLabel}>Seçilen Konum:</Text>
+                            <Text style={styles.addressText} numberOfLines={2}>
+                                {locationValues.address}
+                            </Text>
                         </View>
 
-                        {/* Center Pin (Uber Style) */}
-                        <View style={styles.centerPinContainer}>
-                            <MaterialCommunityIcons name="map-marker" size={48} color="#D4AF37" style={styles.pinShadow} />
-                        </View>
-
-                        {/* GPS Button */}
-                        <TouchableOpacity style={styles.gpsButton} onPress={handleGPS}>
-                            <MaterialCommunityIcons name="crosshairs-gps" size={24} color="#000" />
+                        <TouchableOpacity style={styles.confirmLocationBtn} onPress={handleLocationConfirm}>
+                            <Text style={styles.confirmLocationText}>
+                                {locationValues.locationSet ? "GÜNCELLE" : "KONUM İŞARETLE"}
+                            </Text>
                         </TouchableOpacity>
+                    </View>
 
-                        {/* Bottom Action Area */}
-                        <View style={styles.mapBottomBar}>
-                            <View style={styles.addressContainer}>
-                                <Text style={styles.addressLabel}>Seçilen Konum:</Text>
-                                <Text style={styles.addressText} numberOfLines={2}>
-                                    {locationValues.address}
-                                </Text>
-                            </View>
-
-                            <TouchableOpacity style={styles.confirmLocationBtn} onPress={handleLocationConfirm}>
-                                <Text style={styles.confirmLocationText}>
-                                    {locationValues.locationSet ? "GÜNCELLE" : "KONUM İŞARETLE"}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-
-                    </ImageBackground>
                 </View>
 
                 {locationValues.locationSet && (
@@ -363,8 +431,8 @@ export default function RentalProposalScreen() {
                         <Text style={styles.receiptValue}>
                             {DURATION_OPTIONS.find(d => d.id === durationValues.type)?.title}
                             {` (${durationValues.count} ${durationValues.type === 'hourly' ? 'Saat' :
-                                    durationValues.type === 'daily' ? 'Gün' :
-                                        durationValues.type === 'weekly' ? 'Hafta' : 'Ay'
+                                durationValues.type === 'daily' ? 'Gün' :
+                                    durationValues.type === 'weekly' ? 'Hafta' : 'Ay'
                                 })`}
                         </Text>
                     </View>
@@ -389,12 +457,43 @@ export default function RentalProposalScreen() {
                     </View>
                 </View>
 
-                <TouchableOpacity style={styles.submitBtn} onPress={() => Alert.alert("Başarılı", "Talebiniz firmaya iletildi! Firma sizinle iletişime geçecektir.")}>
+                <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
                     <Text style={styles.submitBtnText}>TEKLİFİ ONAYLA VE GÖNDER</Text>
                     <MaterialCommunityIcons name="send" size={20} color="#000" style={{ marginLeft: 8 }} />
                 </TouchableOpacity>
                 <View style={{ height: 40 }} />
             </Animated.View>
+        );
+    };
+
+    const handleSubmit = () => {
+        // MOCK: Send to Provider Panel
+        console.log(`[Mock API] Sending request to Supplier: ${supplier?.name || "Unknown"} (ID: ${supplier?.id || "N/A"})`);
+        setStep(5);
+    };
+
+    const renderSuccess = () => {
+        if (step !== 5) return null;
+        return (
+            <View style={styles.successContainer}>
+                <View style={styles.successContent}>
+                    <MaterialCommunityIcons name="check-decagram" size={120} color="#D4AF37" />
+                    <Text style={styles.successTitle}>TALEBİNİZ ALINDI</Text>
+                    <Text style={styles.successText}>
+                        Talebiniz <Text style={{ fontWeight: 'bold', color: '#D4AF37' }}>{supplier?.name}</Text> firmasına başarıyla iletildi.
+                        {"\n\n"}
+                        Kısa süre içerisinde tarafınıza dönüş yapılacaktır.
+                    </Text>
+
+                    <TouchableOpacity
+                        style={styles.exitBtn}
+                        onPress={() => navigation.navigate('MainTabs', { screen: 'Ana Sayfa' })}
+                    >
+                        <Text style={styles.exitBtnText}>ANA EKRANA DÖN</Text>
+                        <MaterialCommunityIcons name="logout" size={24} color="#000" style={{ marginLeft: 8 }} />
+                    </TouchableOpacity>
+                </View>
+            </View>
         );
     };
 
@@ -404,19 +503,25 @@ export default function RentalProposalScreen() {
                 <SafeAreaView style={{ flex: 1 }}>
                     {/* Header */}
                     <View style={styles.header}>
-                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                            <Ionicons name="arrow-back" size={24} color="#fff" />
-                        </TouchableOpacity>
-                        <Text style={styles.headerTitle}>AKILLI TALEP SİHİRBAZI</Text>
+                        {step !== 5 && (
+                            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                                <Ionicons name="arrow-back" size={24} color="#fff" />
+                            </TouchableOpacity>
+                        )}
+                        <Text style={styles.headerTitle}>{step === 5 ? 'İŞLEM BAŞARILI' : 'AKILLI TALEP SİHİRBAZI'}</Text>
                         <View style={{ width: 24 }} />
                     </View>
 
-                    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                        {renderDurationStep()}
-                        {renderLocationStep()}
-                        {renderServiceStep()}
-                        {renderSummary()}
-                    </ScrollView>
+                    {step === 5 ? (
+                        renderSuccess()
+                    ) : (
+                        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                            {renderDurationStep()}
+                            {renderLocationStep()}
+                            {renderServiceStep()}
+                            {renderSummary()}
+                        </ScrollView>
+                    )}
                 </SafeAreaView>
             </LinearGradient>
         </View>
@@ -455,8 +560,10 @@ const styles = StyleSheet.create({
 
     // MAP & LOCATION - NEW
     mapContainer: { height: 320, borderRadius: 16, overflow: 'hidden', marginBottom: 16, borderWidth: 1, borderColor: '#333' },
-    mapImage: { width: '100%', height: '100%' },
-    mapDarkOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
+    // NEW MAP STYLES
+    mapMask: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
+    pannableLayer: { width: '250%', height: '250%' },
+    mapDarkOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.45)' },
 
     searchBarFloating: { position: 'absolute', top: 20, left: 20, right: 20, backgroundColor: '#fff', borderRadius: 8, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 4 },
     searchInput: { flex: 1, marginLeft: 10, fontSize: 14, color: '#000' },
@@ -503,4 +610,12 @@ const styles = StyleSheet.create({
 
     submitBtn: { flexDirection: 'row', backgroundColor: '#D4AF37', marginHorizontal: 10, marginTop: -4, borderBottomLeftRadius: 12, borderBottomRightRadius: 12, paddingVertical: 18, justifyContent: 'center', alignItems: 'center', shadowColor: "#D4AF37", shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.3, shadowRadius: 10 },
     submitBtnText: { color: '#000', fontSize: 16, fontWeight: '900', letterSpacing: 1 },
+
+    // SUCCESS SCREEN
+    successContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+    successContent: { width: '100%', alignItems: 'center', backgroundColor: '#111', padding: 30, borderRadius: 20, borderWidth: 1, borderColor: '#333' },
+    successTitle: { fontSize: 24, fontWeight: '900', color: '#FFF', marginTop: 20, marginBottom: 10, letterSpacing: 1 },
+    successText: { fontSize: 15, color: '#ccc', textAlign: 'center', marginBottom: 40, lineHeight: 22 },
+    exitBtn: { flexDirection: 'row', backgroundColor: '#D4AF37', paddingHorizontal: 30, paddingVertical: 15, borderRadius: 12, alignItems: 'center' },
+    exitBtnText: { color: '#000', fontWeight: 'bold', fontSize: 16 },
 });
