@@ -1,8 +1,9 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRef, useState } from 'react';
-import { Alert, Animated, Dimensions, FlatList, Image, ImageBackground, Keyboard, Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Alert, Animated, Dimensions, FlatList, Keyboard, Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -118,6 +119,7 @@ const MOCK_ITEM_SUPPLIERS = [
         verified: true,
         logo: 'domain', // material icon name
         prices: {
+            hourly: '850 ₺',
             daily: '6.500 ₺',
             weekly: '35.000 ₺',
             monthly: '110.000 ₺'
@@ -130,6 +132,7 @@ const MOCK_ITEM_SUPPLIERS = [
         verified: true,
         logo: 'tow-truck',
         prices: {
+            hourly: '800 ₺',
             daily: '6.200 ₺',
             weekly: '33.000 ₺',
             monthly: '105.000 ₺'
@@ -142,6 +145,7 @@ const MOCK_ITEM_SUPPLIERS = [
         verified: true,
         logo: 'excavator',
         prices: {
+            hourly: '950 ₺',
             daily: '7.000 ₺',
             weekly: '38.000 ₺',
             monthly: '120.000 ₺'
@@ -152,10 +156,15 @@ const MOCK_ITEM_SUPPLIERS = [
 
 export default function RentalScreen() {
     // Force Refresh
+    // Force Refresh
     const navigation = useNavigation();
+    const route = useRoute();
+
     // Premium Rental Screen UI
-    const [selectedCategory, setSelectedCategory] = useState(null);
-    const [viewMode, setViewMode] = useState('list'); // 'list' or 'detail'
+    // Consume params from navigation (Native Stack behavior)
+    const viewMode = route.params?.viewMode || 'list';
+    const selectedCategory = route.params?.category || null;
+
     const [activeTab, setActiveTab] = useState('periodic'); // 'periodic' or 'project'
 
     // Animation Ref
@@ -215,8 +224,10 @@ export default function RentalScreen() {
     const [searchResults, setSearchResults] = useState([]);
 
     const handleCategorySelect = (category) => {
-        setSelectedCategory(category);
-        setViewMode('detail');
+        navigation.push('RentalStack', {
+            viewMode: 'detail',
+            category: category
+        });
     };
 
     const handleRentRequest = (item, supplierName) => {
@@ -253,7 +264,10 @@ export default function RentalScreen() {
 
                 {/* Header (Standardized) */}
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
+                    <TouchableOpacity
+                        onPress={() => navigation.goBack()}
+                        style={styles.headerBtn}
+                    >
                         <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
                     </TouchableOpacity>
                     <View style={{ alignItems: 'center' }}>
@@ -283,7 +297,8 @@ export default function RentalScreen() {
                             >
                                 {SHOWCASE_SLIDES.map((slide) => (
                                     <View key={slide.id} style={styles.showcaseCard}>
-                                        <ImageBackground source={{ uri: slide.image }} style={styles.showcaseImage} imageStyle={{ borderRadius: 0 }}>
+                                        <View style={styles.showcaseImage}>
+                                            <Image source={{ uri: slide.image }} style={StyleSheet.absoluteFill} contentFit="cover" transition={500} />
                                             <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={StyleSheet.absoluteFill} />
                                             <View style={styles.showcaseTag}>
                                                 <Text style={styles.showcaseTagText}>{slide.tag}</Text>
@@ -292,7 +307,7 @@ export default function RentalScreen() {
                                                 <Text style={styles.showcaseTitle}>{slide.title}</Text>
                                                 <Text style={styles.showcaseSubtitle}>{slide.subtitle}</Text>
                                             </View>
-                                        </ImageBackground>
+                                        </View>
                                     </View>
                                 ))}
                             </Animated.ScrollView>
@@ -377,11 +392,13 @@ export default function RentalScreen() {
                                         onPress={() => handleCategorySelect(cat)}
                                         activeOpacity={0.9}
                                     >
-                                        <ImageBackground
-                                            source={typeof cat.image === 'number' ? cat.image : { uri: cat.image }}
-                                            style={styles.gridImage}
-                                            imageStyle={{ borderRadius: 16 }}
-                                        >
+                                        <View style={styles.gridImage}>
+                                            <Image
+                                                source={typeof cat.image === 'number' ? cat.image : { uri: cat.image }}
+                                                style={{ ...StyleSheet.absoluteFillObject, borderRadius: 16 }}
+                                                contentFit="cover"
+                                                transition={500}
+                                            />
                                             <LinearGradient colors={['transparent', 'rgba(0,0,0,0.9)']} style={StyleSheet.absoluteFill} />
                                             <View style={styles.gridIconBadge}>
                                                 <MaterialCommunityIcons name={cat.icon} size={20} color="#D4AF37" />
@@ -392,7 +409,7 @@ export default function RentalScreen() {
                                                 </View>
                                                 <MaterialCommunityIcons name="chevron-right" size={20} color="#D4AF37" />
                                             </View>
-                                        </ImageBackground>
+                                        </View>
                                         <View style={styles.gridBorder} />
                                     </TouchableOpacity>
                                 ))}
@@ -458,7 +475,7 @@ export default function RentalScreen() {
                                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                             {photos.map(p => (
                                                 <View key={p.id} style={styles.photoContainer}>
-                                                    <Image source={{ uri: p.uri }} style={styles.photo} />
+                                                    <Image source={{ uri: p.uri }} style={styles.photo} contentFit="cover" />
                                                     <TouchableOpacity style={styles.deleteBtn} onPress={() => handleRemovePhoto(p.id)}>
                                                         <Ionicons name="close" size={14} color="#fff" />
                                                     </TouchableOpacity>
@@ -517,7 +534,7 @@ export default function RentalScreen() {
                     {viewMode === 'detail' && selectedCategory && (
                         <View style={styles.detailContainer}>
                             <View style={styles.detailHeader}>
-                                <Image source={{ uri: selectedCategory.image }} style={styles.detailHeaderImage} />
+                                <Image source={{ uri: selectedCategory.image }} style={styles.detailHeaderImage} contentFit="cover" transition={500} />
                                 <LinearGradient colors={['transparent', '#000']} style={StyleSheet.absoluteFill} />
                                 <Text style={styles.detailCategoryTitle}>{selectedCategory.title}</Text>
                             </View>
@@ -538,7 +555,8 @@ export default function RentalScreen() {
                                                         <Image
                                                             source={typeof item.image === 'number' ? item.image : { uri: item.image || selectedCategory.image }}
                                                             style={styles.itemImage}
-                                                            resizeMode="cover"
+                                                            contentFit="cover"
+                                                            transition={300}
                                                         />
                                                     </View>
                                                     <View style={{ flex: 1, paddingRight: 8 }}>
@@ -571,7 +589,14 @@ export default function RentalScreen() {
                                                         <View style={styles.supplierHeader}>
                                                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                                                 <MaterialCommunityIcons name={supplier.logo} size={18} color="#D4AF37" style={{ marginRight: 6 }} />
-                                                                <Text style={styles.supplierName}>{supplier.name}</Text>
+                                                                <TouchableOpacity onPress={() => navigation.navigate('SellerStore', {
+                                                                    sellerName: supplier.name,
+                                                                    rating: supplier.rating,
+                                                                    location: 'İstanbul',
+                                                                    isRental: true
+                                                                })}>
+                                                                    <Text style={[styles.supplierName, { textDecorationLine: 'underline', color: '#FFF' }]}>{supplier.name}</Text>
+                                                                </TouchableOpacity>
                                                             </View>
                                                             {supplier.verified && (
                                                                 <MaterialCommunityIcons name="check-decagram" size={16} color="#D4AF37" />
@@ -579,20 +604,32 @@ export default function RentalScreen() {
                                                         </View>
 
                                                         {/* Pricing Grid */}
-                                                        <View style={styles.priceGrid}>
-                                                            <View style={styles.priceColumn}>
-                                                                <Text style={styles.priceLabel}>Günlük</Text>
-                                                                <Text style={styles.priceValue}>{supplier.prices.daily}</Text>
+                                                        <View style={[styles.priceGrid, { justifyContent: 'space-between', alignItems: 'flex-start' }]}>
+                                                            {/* Left Side: Short Term */}
+                                                            <View style={{ flex: 1 }}>
+                                                                <View style={{ marginBottom: 12 }}>
+                                                                    <Text style={styles.priceLabel}>Saatlik</Text>
+                                                                    <Text style={[styles.priceValue, { fontSize: 15 }]}>{supplier.prices.hourly}</Text>
+                                                                </View>
+                                                                <View>
+                                                                    <Text style={styles.priceLabel}>Günlük</Text>
+                                                                    <Text style={[styles.priceValue, { fontSize: 15 }]}>{supplier.prices.daily}</Text>
+                                                                </View>
                                                             </View>
-                                                            <View style={styles.priceSeparator} />
-                                                            <View style={styles.priceColumn}>
-                                                                <Text style={styles.priceLabel}>Haftalık</Text>
-                                                                <Text style={styles.priceValue}>{supplier.prices.weekly}</Text>
-                                                            </View>
-                                                            <View style={styles.priceSeparator} />
-                                                            <View style={styles.priceColumn}>
-                                                                <Text style={styles.priceLabel}>Aylık</Text>
-                                                                <Text style={styles.priceValue}>{supplier.prices.monthly}</Text>
+
+                                                            {/* Vertical Divider */}
+                                                            <View style={{ width: 1, backgroundColor: '#333', height: '100%', marginHorizontal: 16 }} />
+
+                                                            {/* Right Side: Long Term */}
+                                                            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                                                                <View style={{ marginBottom: 12, alignItems: 'flex-end' }}>
+                                                                    <Text style={styles.priceLabel}>Haftalık</Text>
+                                                                    <Text style={[styles.priceValue, { fontSize: 15 }]}>{supplier.prices.weekly}</Text>
+                                                                </View>
+                                                                <View style={{ alignItems: 'flex-end' }}>
+                                                                    <Text style={styles.priceLabel}>Aylık</Text>
+                                                                    <Text style={[styles.priceValue, { fontSize: 15 }]}>{supplier.prices.monthly}</Text>
+                                                                </View>
                                                             </View>
                                                         </View>
 
@@ -823,14 +860,14 @@ const styles = StyleSheet.create({
     // Supplier Card (Dark Theme)
     supplierCard: { marginBottom: 16, borderRadius: 12, padding: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#333' },
     supplierHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, borderBottomWidth: 1, borderBottomColor: '#333', paddingBottom: 8 },
-    supplierName: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
-    priceGrid: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-    priceColumn: { alignItems: 'center', flex: 1 },
-    priceSeparator: { width: 1, backgroundColor: '#333', height: '80%' },
-    priceLabel: { color: '#888', fontSize: 12, fontWeight: 'bold', marginBottom: 4 },
-    priceValue: { color: '#D4AF37', fontSize: 14, fontWeight: '900' },
-    selectSupplierBtn: { backgroundColor: '#D4AF37', borderRadius: 8, paddingVertical: 10, alignItems: 'center', marginTop: 4 },
-    selectSupplierText: { color: '#000', fontSize: 12, fontWeight: 'bold' },
+    orderPrice: { color: '#FFD700', fontSize: 16, fontWeight: 'bold' },
+
+    // STYLES RESTORED
+    priceGrid: { flexDirection: 'row', marginBottom: 16 },
+    priceLabel: { color: '#E0E0E0', fontSize: 13, fontWeight: '600', marginBottom: 4 }, // Made lighter and slightly larger
+    priceValue: { color: '#D4AF37', fontWeight: '900' },
+    selectSupplierBtn: { backgroundColor: '#000', borderWidth: 1, borderColor: '#D4AF37', borderRadius: 8, paddingVertical: 12, alignItems: 'center', marginTop: 8 },
+    selectSupplierText: { color: '#D4AF37', fontSize: 13, fontWeight: 'bold' },
 
     // STICKY FOOTER
     stickyFooter: { position: 'absolute', bottom: 20, left: 16, right: 16, alignItems: 'center' },

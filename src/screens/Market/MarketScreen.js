@@ -1,8 +1,9 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRef, useState } from 'react';
-import { Alert, Animated, Dimensions, ImageBackground, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Dimensions, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -21,7 +22,7 @@ const MARKET_CATEGORIES = [
         title: 'KABA YAPI & İNŞAAT',
         subtitle: 'Demir, Çimento, Tuğla, Çatı',
         icon: 'office-building',
-        image: require('../../assets/carbon_bg.png'), // Placeholder
+        image: require('../../assets/market/kaba_yapi.png'), // Generated
         subcategories: [
             { id: '1.1', name: 'Demir & Çelik', icon: 'grid' },
             { id: '1.2', name: 'Çimento & Bağlayıcılar', icon: 'cup' },
@@ -44,7 +45,7 @@ const MARKET_CATEGORIES = [
         title: 'YALITIM & ÇATI',
         subtitle: 'Mantolama, Su Yalıtımı, Çatı',
         icon: 'shield-home',
-        image: require('../../assets/carbon_bg.png'),
+        image: require('../../assets/market/yalitim_cati.png'),
         subcategories: [
             { id: '2.1', name: 'Isı Yalıtımı (Mantolama)', icon: 'temperature-celsius' },
             { id: '2.2', name: 'Su Yalıtımı', icon: 'water-off' },
@@ -65,7 +66,7 @@ const MARKET_CATEGORIES = [
         title: 'KURU YAPI & TAVAN',
         subtitle: 'Alçıpan, Profil, Taşyünü Tavan',
         icon: 'view-quilt',
-        image: require('../../assets/carbon_bg.png'),
+        image: require('../../assets/market/kuru_yapi.png'),
         subcategories: [
             { id: '3.1', name: 'Alçıpan Grubu', icon: 'layers' },
             { id: '3.2', name: 'Toz Alçı Grubu', icon: 'shaker-outline' }, // Custom icon proxy
@@ -86,7 +87,7 @@ const MARKET_CATEGORIES = [
         title: 'ZEMİN & DUVAR',
         subtitle: 'Seramik, Parke, Doğal Taş',
         icon: 'floor-plan',
-        image: require('../../assets/carbon_bg.png'),
+        image: require('../../assets/market/zemin_duvar.png'),
         subcategories: [
             { id: '4.1', name: 'Seramik & Porselen', icon: 'checkerboard' },
             { id: '4.2', name: 'Doğal Taş & Mermer', icon: 'diamond-stone' },
@@ -106,7 +107,7 @@ const MARKET_CATEGORIES = [
         title: 'BOYA & KİMYASAL',
         subtitle: 'Boya, Yapıştırıcı, Silikon',
         icon: 'format-paint',
-        image: require('../../assets/carbon_bg.png'),
+        image: require('../../assets/market/boya_kimyasal.png'),
         subcategories: [
             { id: '5.1', name: 'Boyalar', icon: 'bucket-outline' },
             { id: '5.2', name: 'Yapıştırıcılar', icon: 'sticker-plus-outline' },
@@ -125,7 +126,7 @@ const MARKET_CATEGORIES = [
         title: 'SIHHİ TESİSAT',
         subtitle: 'Boru, Vitrifiye, Batarya',
         icon: 'water',
-        image: require('../../assets/carbon_bg.png'),
+        image: require('../../assets/market/sihhi_tesisat.png'),
         subcategories: [
             { id: '6.1', name: 'Altyapı (Boru Grubu)', icon: 'pipe' },
             { id: '6.2', name: 'Vitrifiye & Banyo', icon: 'toilet' },
@@ -145,7 +146,7 @@ const MARKET_CATEGORIES = [
         title: 'ISITMA & DOĞALGAZ',
         subtitle: 'Kombi, Radyatör, Klima',
         icon: 'radiator',
-        image: require('../../assets/carbon_bg.png'),
+        image: require('../../assets/market/isitma_dogalgaz.png'),
         subcategories: [
             { id: '7.1', name: 'Isıtma Sistemleri', icon: 'fire' },
             { id: '7.2', name: 'Doğalgaz Tesisatı', icon: 'gas-cylinder' },
@@ -164,7 +165,7 @@ const MARKET_CATEGORIES = [
         title: 'ELEKTRİK & AKILLI EV',
         subtitle: 'Kablo, Priz, Aydınlatma',
         icon: 'lightning-bolt',
-        image: require('../../assets/carbon_bg.png'),
+        image: require('../../assets/market/elektrik.png'),
         subcategories: [
             { id: '8.1', name: 'Altyapı Kablo & Boru', icon: 'cable-data' },
             { id: '8.2', name: 'Anahtar & Priz', icon: 'power-socket-eu' },
@@ -185,7 +186,7 @@ const MARKET_CATEGORIES = [
         title: 'HIRDAVAT & NALBURİYE',
         subtitle: 'El Aletleri, Vida, Bağlantı',
         icon: 'tools',
-        image: require('../../assets/carbon_bg.png'),
+        image: require('../../assets/market/hirdavat.png'),
         subcategories: [
             { id: '9.1', name: 'Elektrikli El Aletleri', icon: 'drill' }, // Proxy for power tool
             { id: '9.2', name: 'Manuel El Aletleri', icon: 'hammer' },
@@ -258,10 +259,16 @@ const MARKET_CATEGORIES = [
 
 export default function MarketScreen() { // Force Refresh
     const navigation = useNavigation();
-    const [selectedCategory, setSelectedCategory] = useState(null);
-    const [selectedSubCategory, setSelectedSubCategory] = useState(null); // Updated: null by default
+    const route = useRoute();
+
+    // Navigation State (Native Stack derived)
+    const viewMode = route.params?.viewMode || 'list';
+    const selectedCategory = route.params?.category || null;
+
+    // SubCategory is stateful because chips in Detail view allow switching it
+    const [selectedSubCategory, setSelectedSubCategory] = useState(route.params?.subCategory || null);
+
     const [expandedItemIndex, setExpandedItemIndex] = useState(null); // NEW: Track expanded item
-    const [viewMode, setViewMode] = useState('list'); // 'list', 'subcategory', 'detail'
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedOptions, setSelectedOptions] = useState({}); // New: Track selections for expanded item
 
@@ -307,15 +314,7 @@ export default function MarketScreen() { // Force Refresh
     const handleRfq = () => navigation.navigate('BulkRequest');
 
     const handleBack = () => {
-        if (viewMode === 'detail') {
-            setViewMode('subcategory');
-            setSelectedSubCategory(null);
-        } else if (viewMode === 'subcategory') {
-            setViewMode('list');
-            setSelectedCategory(null);
-        } else {
-            navigation.goBack();
-        }
+        navigation.goBack();
     };
 
     const renderVariationSelectors = (item) => {
@@ -410,14 +409,15 @@ export default function MarketScreen() { // Force Refresh
                                 >
                                     {MARKET_SHOWCASE.map((item) => (
                                         <View key={item.id} style={styles.heroCard}>
-                                            <ImageBackground source={{ uri: item.image }} style={styles.heroImage} imageStyle={{ borderRadius: 0 }}>
+                                            <View style={styles.heroImage}>
+                                                <Image source={{ uri: item.image }} style={StyleSheet.absoluteFill} contentFit="cover" transition={500} />
                                                 <LinearGradient colors={['transparent', 'rgba(0,0,0,0.9)']} style={StyleSheet.absoluteFill} />
                                                 <View style={styles.heroTag}><Text style={styles.heroTagText}>{item.tag}</Text></View>
                                                 <View style={styles.heroContent}>
                                                     <Text style={styles.heroTitle}>{item.title}</Text>
                                                     <Text style={styles.heroSubtitle}>{item.subtitle}</Text>
                                                 </View>
-                                            </ImageBackground>
+                                            </View>
                                         </View>
                                     ))}
                                 </Animated.ScrollView>
@@ -459,18 +459,35 @@ export default function MarketScreen() { // Force Refresh
                                         key={cat.id}
                                         style={styles.gridCard}
                                         onPress={() => {
-                                            setSelectedCategory(cat);
-                                            setViewMode('subcategory'); // Go to subcategory view
+                                            navigation.push('MarketStack', {
+                                                viewMode: 'subcategory',
+                                                category: cat
+                                            });
                                         }}
                                         activeOpacity={0.9}
                                     >
-                                        <ImageBackground source={{ uri: cat.image }} style={styles.gridImage} imageStyle={{ borderRadius: 16 }}>
-                                            <LinearGradient colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.85)']} style={StyleSheet.absoluteFill} />
+                                        <View style={styles.gridImage}>
+                                            <Image source={cat.image} style={StyleSheet.absoluteFill} contentFit="cover" transition={500} />
+
+                                            {/* ARTIFACT CORRECTION PATCHES (Hiding baked-in white boxes) */}
+                                            {/* Top Right Patch */}
+                                            <LinearGradient
+                                                colors={['rgba(0,0,0,1)', 'rgba(0,0,0,0)']}
+                                                start={{ x: 1, y: 0 }} end={{ x: 0, y: 1 }}
+                                                style={{ position: 'absolute', top: 0, right: 0, width: 80, height: 80 }}
+                                            />
+                                            {/* Bottom Left Patch (Integrated with main gradient) */}
+                                            <LinearGradient
+                                                colors={['transparent', '#000000']}
+                                                style={StyleSheet.absoluteFill}
+                                            />
+
+                                            <MaterialCommunityIcons name={cat.icon} size={24} color="#D4AF37" style={styles.gridIconAbsolute} />
+                                            {/* Removed old gradient to avoid double darkening */}
                                             <View style={styles.gridContent}>
-                                                <MaterialCommunityIcons name={cat.icon} size={24} color="#D4AF37" style={{ marginBottom: 4 }} />
                                                 <Text style={styles.gridTitle}>{cat.title}</Text>
                                             </View>
-                                        </ImageBackground>
+                                        </View>
                                     </TouchableOpacity>
                                 ))}
                             </View>
@@ -491,8 +508,11 @@ export default function MarketScreen() { // Force Refresh
                                         key={sub.id}
                                         style={styles.listCard}
                                         onPress={() => {
-                                            setSelectedSubCategory(sub.name);
-                                            setViewMode('detail');
+                                            navigation.push('MarketStack', {
+                                                viewMode: 'detail',
+                                                category: selectedCategory,
+                                                subCategory: sub.name
+                                            });
                                         }}
                                         activeOpacity={0.7}
                                     >
@@ -595,7 +615,7 @@ export default function MarketScreen() { // Force Refresh
 
                                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
                                                     <MaterialCommunityIcons name="storefront-outline" size={16} color="#D4AF37" style={{ marginRight: 6 }} />
-                                                    <Text style={styles.supplierListHeader} style={{ marginBottom: 0 }}>TEDARİKÇİLER & FİYATLAR</Text>
+                                                    <Text style={[styles.supplierListHeader, { marginBottom: 0 }]}>TEDARİKÇİLER & FİYATLAR</Text>
                                                 </View>
 
                                                 {getMockSuppliers(item.price).map((supplier) => (
@@ -697,8 +717,9 @@ const styles = StyleSheet.create({
     gridContainer: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12 },
     gridCard: { width: '50%', padding: 6, height: 160, marginBottom: 4 },
     gridImage: { width: '100%', height: '100%', justifyContent: 'flex-end', padding: 12, borderWidth: 1, borderColor: '#333', borderRadius: 16, overflow: 'hidden' },
-    gridContent: { alignItems: 'flex-start' },
-    gridTitle: { color: '#fff', fontSize: 14, fontWeight: 'bold', marginBottom: 8, textShadowColor: 'rgba(0,0,0,0.9)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3, lineHeight: 18 },
+    gridContent: { alignItems: 'flex-start', width: '100%' }, // Ensure text takes width if needed
+    gridIconAbsolute: { position: 'absolute', top: 12, right: 12, zIndex: 10 },
+    gridTitle: { color: '#fff', fontSize: 13, fontWeight: 'bold', marginBottom: 0, textShadowColor: 'rgba(0,0,0,0.9)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3, lineHeight: 18 },
     gridBadge: { backgroundColor: 'rgba(255,215,0,0.25)', alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#D4AF37' },
     gridBadgeText: { color: '#D4AF37', fontSize: 10, fontWeight: 'bold' },
 

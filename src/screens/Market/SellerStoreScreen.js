@@ -8,15 +8,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function SellerStoreScreen() {
     const navigation = useNavigation();
     const route = useRoute();
-    const { sellerName, rating, location } = route.params || { sellerName: 'Mağaza', rating: '4.8', location: 'İstanbul' };
+    const { sellerName, rating, location, isRental } = route.params || { sellerName: 'Mağaza', rating: '4.8', location: 'İstanbul', isRental: false };
+
+    // Mock Rental Machines
+    const rentalMachines = [
+        { id: '1', name: 'Mobil Vinç 30 Ton (Liebherr)', price: '6.500 ₺ / Gün', unit: 'Saatlik: 850 ₺', image: 'https://images.unsplash.com/photo-1579623862660-3162b7571343?q=80&w=400' },
+        { id: '2', name: 'Makaslı Platform (Genie)', price: '2.500 ₺ / Gün', unit: 'Saatlik: 400 ₺', image: 'https://images.unsplash.com/photo-1519003300449-424ad9e12435?q=80&w=400' },
+        { id: '3', name: 'JCB Beko Loder 3CX', price: '4.500 ₺ / Gün', unit: 'Saatlik: 600 ₺', image: 'https://images.unsplash.com/photo-1550953930-a9cb579aa32a?q=80&w=400' },
+    ];
 
     // Mock Products for this Seller
-    const [products, setProducts] = useState([
+    const marketProducts = [
         { id: '1', name: 'Nervürlü İnşaat Demiri Ø12', price: '₺24.500', unit: 'Ton', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=400' },
         { id: '2', name: 'Çelik Hasır Q188', price: '₺1.450', unit: 'Adet', image: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=400' },
         { id: '3', name: 'İnşaat Çivisi (5kg)', price: '₺120', unit: 'Kutu', image: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=400' },
         { id: '4', name: 'Bağlama Teli', price: '₺850', unit: 'Rulo', image: 'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=400' },
-    ]);
+    ];
+
+    const [products, setProducts] = useState(isRental ? rentalMachines : marketProducts);
 
     const renderProduct = ({ item }) => (
         <View style={styles.productCard}>
@@ -28,9 +37,9 @@ export default function SellerStoreScreen() {
             </View>
             <View style={styles.productInfo}>
                 <Text style={styles.productName}>{item.name}</Text>
-                <Text style={styles.productUnit}>{item.unit} Fiyatı</Text>
+                <Text style={styles.productUnit}>{isRental ? item.unit : item.unit + ' Fiyatı'}</Text>
                 <TouchableOpacity style={styles.addButton}>
-                    <Text style={styles.addButtonText}>SEPETE EKLE</Text>
+                    <Text style={styles.addButtonText}>{isRental ? 'KİRALA' : 'SEPETE EKLE'}</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -47,7 +56,7 @@ export default function SellerStoreScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                         <Ionicons name="arrow-back" size={24} color="#fff" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>MAĞAZA PROFİLİ</Text>
+                    <Text style={styles.headerTitle}>{isRental ? 'FİRMA PROFİLİ' : 'MAĞAZA PROFİLİ'}</Text>
                     <TouchableOpacity style={styles.moreBtn}>
                         <MaterialCommunityIcons name="dots-vertical" size={24} color="#fff" />
                     </TouchableOpacity>
@@ -86,7 +95,7 @@ export default function SellerStoreScreen() {
                 {/* Product List */}
                 <View style={styles.productListContainer}>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Tüm Ürünler</Text>
+                        <Text style={styles.sectionTitle}>{isRental ? 'Kiralık Makine Parkı' : 'Tüm Ürünler'}</Text>
                         <Text style={styles.productCount}>{products.length} Ürün</Text>
                     </View>
 

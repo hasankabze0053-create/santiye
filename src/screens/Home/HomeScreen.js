@@ -1,7 +1,8 @@
 ﻿import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, Easing, FlatList, Image, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Dimensions, Easing, FlatList, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
@@ -169,19 +170,19 @@ export default function HomeScreen({ navigation }) {
     const openSelectionModal = (categoryKey) => {
         const baseKey = categoryKey.split('-')[0];
         setActiveCategory(baseKey);
-        setIsAutoScrolling(false); // Stop scrolling instantly
+        // setIsAutoScrolling(false); // REMOVED: Keep scrolling
         setModalVisible(true);
     };
 
     const handleSelectOption = (item) => {
         setSelectedValues(prev => ({ ...prev, [activeCategory]: item }));
         setModalVisible(false);
-        setIsAutoScrolling(true); // Resume scrolling
+        // setIsAutoScrolling(true); // REMOVED
     };
 
     const closeModal = () => {
         setModalVisible(false);
-        setIsAutoScrolling(true);
+        // setIsAutoScrolling(true); // REMOVED
     };
 
     const renderTickerItem = (item, categoryKey) => (
@@ -234,6 +235,8 @@ export default function HomeScreen({ navigation }) {
                             <Image
                                 source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop' }}
                                 style={styles.profileImg}
+                                contentFit="cover"
+                                transition={500}
                             />
                             <View style={styles.onlineDot} />
                         </TouchableOpacity>
@@ -344,7 +347,7 @@ export default function HomeScreen({ navigation }) {
                                 <View style={styles.cardContainer}>
                                     {/* Full Height Image */}
                                     <View style={styles.cardImageContainer}>
-                                        <Image source={cat.image} style={styles.cardImageFull} />
+                                        <Image source={cat.image} style={styles.cardImageFull} contentFit="cover" transition={300} />
                                     </View>
 
                                     {/* Overlay Gradient Footer */}

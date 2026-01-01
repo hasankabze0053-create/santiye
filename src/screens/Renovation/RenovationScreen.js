@@ -1,12 +1,12 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRef, useState } from 'react';
 import {
     Alert,
     Animated,
     Dimensions,
-    Image,
     SafeAreaView,
     ScrollView,
     StatusBar,
@@ -123,7 +123,7 @@ export default function RenovationScreen({ navigation }) {
                         >
                             {HERO_SLIDES.map((slide) => (
                                 <View key={slide.id} style={styles.slide}>
-                                    <Image source={slide.image} style={styles.slideImage} />
+                                    <Image source={slide.image} style={styles.slideImage} contentFit="cover" transition={500} />
                                     <View style={styles.slideOverlay}>
                                         <LinearGradient
                                             colors={['transparent', 'rgba(0,0,0,0.9)']}
