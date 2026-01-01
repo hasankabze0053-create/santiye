@@ -96,10 +96,14 @@ export default function RentalProposalScreen() {
                             {isSelected && <MaterialCommunityIcons name="check-circle" size={24} color="#D4AF37" />}
                         </TouchableOpacity>
 
-                        {/* ACCORDION DETAIL FOR WEEKLY/MONTHLY */}
-                        {isSelected && (opt.id === 'weekly' || opt.id === 'monthly') && (
+                        {/* ACCORDION DETAIL FOR ALL TYPES */}
+                        {isSelected && (
                             <View style={styles.detailArea}>
-                                <Text style={styles.detailLabel}>Kaç {opt.id === 'weekly' ? 'Hafta' : 'Ay'} ve Ne Zaman?</Text>
+                                <Text style={styles.detailLabel}>
+                                    {opt.id === 'hourly' ? 'Kaç Saat' :
+                                        opt.id === 'daily' ? 'Kaç Gün' :
+                                            opt.id === 'weekly' ? 'Kaç Hafta' : 'Kaç Ay'} ve Ne Zaman?
+                                </Text>
                                 <View style={styles.detailRow}>
                                     <TouchableOpacity style={styles.dateBtn}>
                                         <MaterialCommunityIcons name="calendar" size={20} color="#D4AF37" />
@@ -110,7 +114,13 @@ export default function RentalProposalScreen() {
                                         <TouchableOpacity onPress={() => setDurationValues(prev => ({ ...prev, count: Math.max(1, prev.count - 1) }))}>
                                             <MaterialCommunityIcons name="minus-circle-outline" size={28} color="#666" />
                                         </TouchableOpacity>
-                                        <Text style={styles.counterText}>{durationValues.count} {opt.id === 'weekly' ? 'Hafta' : 'Ay'}</Text>
+                                        <Text style={styles.counterText}>
+                                            {durationValues.count} {
+                                                opt.id === 'hourly' ? 'Saat' :
+                                                    opt.id === 'daily' ? 'Gün' :
+                                                        opt.id === 'weekly' ? 'Hafta' : 'Ay'
+                                            }
+                                        </Text>
                                         <TouchableOpacity onPress={() => setDurationValues(prev => ({ ...prev, count: prev.count + 1 }))}>
                                             <MaterialCommunityIcons name="plus-circle" size={28} color="#D4AF37" />
                                         </TouchableOpacity>
@@ -249,7 +259,10 @@ export default function RentalProposalScreen() {
                         <Text style={styles.receiptLabel}>Süre:</Text>
                         <Text style={styles.receiptValue}>
                             {DURATION_OPTIONS.find(d => d.id === durationValues.type)?.title}
-                            {(durationValues.type === 'weekly' || durationValues.type === 'monthly') ? ` (${durationValues.count} ${durationValues.type === 'weekly' ? 'Hafta' : 'Ay'})` : ''}
+                            {` (${durationValues.count} ${durationValues.type === 'hourly' ? 'Saat' :
+                                    durationValues.type === 'daily' ? 'Gün' :
+                                        durationValues.type === 'weekly' ? 'Hafta' : 'Ay'
+                                })`}
                         </Text>
                     </View>
                     <View style={styles.receiptRow}>
