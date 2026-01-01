@@ -2,7 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRef, useState } from 'react';
-import { Alert, Animated, Dimensions, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Dimensions, ImageBackground, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
@@ -20,20 +20,22 @@ export default function RentalProposalScreen() {
     const route = useRoute();
     const { item, supplier } = route.params || {};
 
-    // Steps: 1: Duration, 2: Location, 3: Operator/Fuel, 4: Summary
     const [step, setStep] = useState(1);
 
     // Selections
     const [durationValues, setDurationValues] = useState({
-        type: null, // hourly, daily, weekly, monthly
+        type: null,
         startDate: new Date(),
-        count: 1, // e.g. 2 weeks
+        count: 1,
     });
 
+    // Updated Location State
     const [locationValues, setLocationValues] = useState({
         locationSet: false,
+        address: "Konum Seçilmedi",
         transportIncluded: false,
     });
+    const [searchText, setSearchText] = useState("");
 
     const [serviceValues, setServiceValues] = useState({
         operatorIncluded: true,
@@ -47,15 +49,32 @@ export default function RentalProposalScreen() {
 
     const handleDurationSelect = (type) => {
         setDurationValues(prev => ({ ...prev, type }));
-        // Advance to step 2 if not already there, with animation
         if (step < 2) {
             setStep(2);
             Animated.timing(fadeAnimStep2, { toValue: 1, duration: 600, useNativeDriver: true }).start();
         }
     };
 
-    const handleLocationSet = () => {
-        setLocationValues(prev => ({ ...prev, locationSet: true }));
+    const handleSearchSubmit = () => {
+        // Mock search logic
+        if (searchText.length > 2) {
+            setLocationValues(prev => ({ ...prev, address: `${searchText} Mah. Merkez Sok. No:1, İstanbul` }));
+            // Simulate zoom/find
+            Alert.alert("Konum Bulundu", `${searchText} bölgesine gidildi.`);
+        }
+    };
+
+    const handleLocationConfirm = () => {
+        if (!locationValues.locationSet) {
+            // Mock setting current center
+            setLocationValues(prev => ({
+                ...prev,
+                locationSet: true,
+                address: searchText ? `${searchText} Mah. Merkez Sok. No:1, İstanbul` : "Maslak Mah. Büyükdere Cad. No:1, Sarıyer/İSTANBUL"
+            }));
+        }
+
+        // Proceed to next step
         if (step < 3) {
             setStep(3);
             Animated.timing(fadeAnimStep3, { toValue: 1, duration: 600, useNativeDriver: true }).start();
@@ -81,7 +100,7 @@ export default function RentalProposalScreen() {
                             style={[
                                 styles.optionRow,
                                 isSelected && styles.optionRowSelected,
-                                step > 1 && !isSelected && { opacity: 0.5 } // Dim others if moved past
+                                step > 1 && !isSelected && { opacity: 0.5 }
                             ]}
                             onPress={() => handleDurationSelect(opt.id)}
                             activeOpacity={0.8}
@@ -141,21 +160,57 @@ export default function RentalProposalScreen() {
             <Animated.View style={[styles.stepContainer, { opacity: fadeAnimStep2, transform: [{ translateY: fadeAnimStep2.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }]}>
                 <Text style={styles.questionTitle}>2. Makine nerede çalışacak?</Text>
 
-                <View style={[styles.mapPlaceholder, locationValues.locationSet && { borderColor: '#D4AF37' }]}>
-                    <MaterialCommunityIcons name="map-marker-radius" size={40} color="#666" />
-                    <Text style={styles.mapText}>{locationValues.locationSet ? "İstanbul, Maslak (İşaretlendi)" : "Konum Seçilmedi"}</Text>
+                {/* NEW MAP UI */}
+                <View style={styles.mapContainer}>
+                    {/* Dark Map Background */}
+                    <ImageBackground
+                        source={require('../../assets/map_bg.png')}
+                        style={styles.mapImage}
+                        imageStyle={{ opacity: 0.4 }} // Dim it down
+                    >
+                        {/* Dark Overlay for "Night Mode" feel */}
+                        <View style={styles.mapDarkOverlay} />
 
-                    {!locationValues.locationSet && (
-                        <TouchableOpacity style={styles.mapBtn} onPress={handleLocationSet}>
-                            <Text style={styles.mapBtnText}>KONUM İŞARETLE</Text>
-                        </TouchableOpacity>
-                    )}
-
-                    {locationValues.locationSet && (
-                        <View style={styles.mapOverlay}>
-                            <MaterialCommunityIcons name="check-bold" size={20} color="#000" />
+                        {/* Floating Search Bar */}
+                        <View style={styles.searchBarFloating}>
+                            <MaterialCommunityIcons name="magnify" size={20} color="#666" />
+                            <TextInput
+                                style={styles.searchInput}
+                                placeholder="Şantiye adresi veya ilçe ara..."
+                                placeholderTextColor="#999"
+                                value={searchText}
+                                onChangeText={setSearchText}
+                                onSubmitEditing={handleSearchSubmit}
+                            />
                         </View>
-                    )}
+
+                        {/* Center Pin (Uber Style) */}
+                        <View style={styles.centerPinContainer}>
+                            <MaterialCommunityIcons name="map-marker" size={48} color="#D4AF37" style={styles.pinShadow} />
+                        </View>
+
+                        {/* GPS Button */}
+                        <TouchableOpacity style={styles.gpsButton} onPress={() => Alert.alert("GPS", "Konumunuz alındı.")}>
+                            <MaterialCommunityIcons name="crosshairs-gps" size={24} color="#000" />
+                        </TouchableOpacity>
+
+                        {/* Bottom Action Area */}
+                        <View style={styles.mapBottomBar}>
+                            <View style={styles.addressContainer}>
+                                <Text style={styles.addressLabel}>Seçilen Konum:</Text>
+                                <Text style={styles.addressText} numberOfLines={2}>
+                                    {locationValues.locationSet ? locationValues.address : (searchText ? "Harita üzerinde işaretleniyor..." : "Konum belirlemek için haritayı sürükleyin")}
+                                </Text>
+                            </View>
+
+                            <TouchableOpacity style={styles.confirmLocationBtn} onPress={handleLocationConfirm}>
+                                <Text style={styles.confirmLocationText}>
+                                    {locationValues.locationSet ? "GÜNCELLE" : "KONUM İŞARETLE"}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+
+                    </ImageBackground>
                 </View>
 
                 {locationValues.locationSet && (
@@ -177,10 +232,8 @@ export default function RentalProposalScreen() {
     };
 
     const renderServiceStep = () => {
-        // Triggered when location matches requirements or manually moved
         if (step < 2 || !locationValues.locationSet) return null;
 
-        // Auto-show service step once location is set
         return (
             <Animated.View style={[styles.stepContainer, { opacity: fadeAnimStep3, transform: [{ translateY: fadeAnimStep3.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }]}>
                 <Text style={styles.questionTitle}>3. Operatör ve Yakıt durumu</Text>
@@ -266,6 +319,10 @@ export default function RentalProposalScreen() {
                         </Text>
                     </View>
                     <View style={styles.receiptRow}>
+                        <Text style={styles.receiptLabel}>Adres:</Text>
+                        <Text style={styles.receiptValue} numberOfLines={1}>{locationValues.address}</Text>
+                    </View>
+                    <View style={styles.receiptRow}>
                         <Text style={styles.receiptLabel}>Operatör:</Text>
                         <Text style={styles.receiptValue}>{serviceValues.operatorIncluded ? 'DAHİL' : 'HARİÇ'}</Text>
                     </View>
@@ -336,7 +393,7 @@ const styles = StyleSheet.create({
     optionTitleSelected: { color: '#fff' },
     optionSub: { color: '#666', fontSize: 12 },
 
-    // DETAIL AREA (Weekly/Monthly)
+    // DETAIL AREA
     detailArea: { marginLeft: 60, marginTop: -4, marginBottom: 16, backgroundColor: '#151515', borderBottomLeftRadius: 12, borderBottomRightRadius: 12, padding: 12, borderWidth: 1, borderColor: '#D4AF37', borderTopWidth: 0 },
     detailLabel: { color: '#fff', fontSize: 13, marginBottom: 10 },
     detailRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -346,12 +403,26 @@ const styles = StyleSheet.create({
     counterText: { color: '#D4AF37', marginHorizontal: 12, fontWeight: 'bold' },
     estimateText: { color: '#D4AF37', fontSize: 11, fontStyle: 'italic', marginTop: 8, textAlign: 'right' },
 
-    // LOCATION STEP
-    mapPlaceholder: { height: 180, backgroundColor: '#1A1A1A', borderRadius: 16, borderWidth: 1, borderColor: '#333', justifyContent: 'center', alignItems: 'center', marginBottom: 16, overflow: 'hidden' },
-    mapText: { color: '#666', marginTop: 10, fontSize: 14 },
-    mapBtn: { position: 'absolute', backgroundColor: '#D4AF37', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20 },
-    mapBtnText: { color: '#000', fontWeight: 'bold', fontSize: 12 },
-    mapOverlay: { position: 'absolute', top: 10, right: 10, backgroundColor: '#D4AF37', width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+    // MAP & LOCATION - NEW
+    mapContainer: { height: 320, borderRadius: 16, overflow: 'hidden', marginBottom: 16, borderWidth: 1, borderColor: '#333' },
+    mapImage: { width: '100%', height: '100%' },
+    mapDarkOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
+
+    searchBarFloating: { position: 'absolute', top: 20, left: 20, right: 20, backgroundColor: '#fff', borderRadius: 8, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 4 },
+    searchInput: { flex: 1, marginLeft: 10, fontSize: 14, color: '#000' },
+
+    centerPinContainer: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 40, justifyContent: 'center', alignItems: 'center', zIndex: 10 },
+    pinShadow: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.6, shadowRadius: 6, elevation: 6 },
+
+    gpsButton: { position: 'absolute', right: 20, bottom: 100, backgroundColor: '#D4AF37', width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 3, elevation: 3 },
+
+    mapBottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(20,20,20,0.95)', padding: 16, borderTopWidth: 1, borderTopColor: '#333' },
+    addressContainer: { marginBottom: 12 },
+    addressLabel: { color: '#666', fontSize: 11, marginBottom: 2 },
+    addressText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+
+    confirmLocationBtn: { backgroundColor: '#D4AF37', borderRadius: 8, paddingVertical: 12, alignItems: 'center' },
+    confirmLocationText: { color: '#000', fontWeight: 'bold', fontSize: 14 },
 
     transportToggleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1A1A1A', borderRadius: 12, padding: 16 },
     toggleLabel: { color: '#fff', fontSize: 14 },
@@ -374,7 +445,7 @@ const styles = StyleSheet.create({
     receiptTitle: { fontSize: 16, fontWeight: '900', textAlign: 'center', marginBottom: 20, letterSpacing: 2 },
     receiptRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
     receiptLabel: { color: '#666', fontSize: 13, fontWeight: 'bold' },
-    receiptValue: { color: '#000', fontSize: 13, fontWeight: '600' },
+    receiptValue: { color: '#000', fontSize: 13, fontWeight: '600', maxWidth: '70%', textAlign: 'right' },
     divider: { height: 1, backgroundColor: '#ddd', marginVertical: 16, borderStyle: 'dashed', borderWidth: 1, borderColor: '#ccc' },
     totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     totalLabel: { fontSize: 14, fontWeight: 'bold', color: '#000' },
