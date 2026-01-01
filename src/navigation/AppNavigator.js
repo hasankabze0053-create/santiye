@@ -1,6 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { COLORS } from '../constants/theme';
 
 // Screens
 import AiArchitectScreen from '../screens/AI/AiArchitectScreen';
@@ -21,6 +20,7 @@ import TransportModeSelectionScreen from '../screens/Logistics/TransportModeSele
 import BulkRequestScreen from '../screens/Market/BulkRequestScreen';
 import MarketScreen from '../screens/Market/MarketScreen';
 import SellerDashboardScreen from '../screens/Market/SellerDashboardScreen';
+import SellerStoreScreen from '../screens/Market/SellerStoreScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import RenovationScreen from '../screens/Renovation/RenovationScreen';
 import CorporateDashboardScreen from '../screens/Rental/CorporateDashboardScreen';
@@ -78,23 +78,24 @@ export default function AppNavigator() {
             <Stack.Screen name="AI_Galeri" component={AiArchitectScreen} options={{ headerShown: false }} />
 
             {/* New Modules */}
-            <Stack.Screen name="Hukuk" component={LawScreen} options={{ headerShown: true, title: 'Hukuki Destek' }} />
+            <Stack.Screen name="Hukuk" component={LawScreen} options={{ headerShown: false, title: 'Hukuki Destek' }} />
             <Stack.Screen name="CreateTransport" component={CreateTransportScreen} options={{ headerShown: false }} />
             <Stack.Screen name="TransportSelection" component={TransportModeSelectionScreen} options={{ headerShown: false, presentation: 'transparentModal' }} />
             <Stack.Screen name="Nakliye" component={LogisticsScreen} options={{ headerShown: false, title: 'Nakliye & Lojistik' }} />
             <Stack.Screen name="KentselDonusum" component={UrbanTransformationScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="Maliyet" component={MaliyetScreen} options={{ headerShown: true, title: 'Yaklaşık Maliyet' }} />
-            <Stack.Screen name="SimpleCost" component={SimpleCostScreen} options={{ headerShown: true, title: 'Hızlı Hesaplama' }} />
+            <Stack.Screen name="Maliyet" component={MaliyetScreen} options={{ headerShown: false, title: 'Yaklaşık Maliyet' }} />
+            <Stack.Screen name="SimpleCost" component={SimpleCostScreen} options={{ headerShown: false, title: 'Hızlı Hesaplama' }} />
             <Stack.Screen name="ProjectIdentity" component={ProjectIdentityScreen} options={{ headerShown: false }} />
             <Stack.Screen name="SmartSketch" component={SmartSketchScreen} options={{ headerShown: false }} />
             <Stack.Screen name="DetailedCost" component={DetailedCostScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="PosCost" component={PosCostScreen} options={{ headerShown: true, title: 'Poz No Hesap' }} />
+            <Stack.Screen name="PosCost" component={PosCostScreen} options={{ headerShown: false, title: 'Poz No Hesap' }} />
             <Stack.Screen name="ProjectProposal" component={ProjectProposalScreen} options={{ headerShown: false }} />
 
             {/* Provider Flow */}
             <Stack.Screen name="ProviderWizard" component={ProviderWizardScreen} options={{ headerShown: false }} />
             <Stack.Screen name="ProviderDashboard" component={ProviderDashboardScreen} options={{ headerShown: false }} />
             <Stack.Screen name="SellerDashboard" component={SellerDashboardScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="SellerStore" component={SellerStoreScreen} options={{ headerShown: false }} />
             <Stack.Screen name="CorporateDashboard" component={CorporateDashboardScreen} options={{ headerShown: false }} />
             <Stack.Screen name="LawyerDashboard" component={LawyerDashboardScreen} options={{ headerShown: false }} />
             <Stack.Screen name="CarrierDashboard" component={CarrierDashboardScreen} options={{ headerShown: false }} />

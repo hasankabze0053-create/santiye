@@ -211,9 +211,16 @@ export default function MaliyetScreen({ navigation }) {
                     contentContainerStyle={styles.content}
                     style={{ opacity: fadeAnim }}
                 >
-                    <View style={styles.header}>
-                        <Text style={styles.headerTitle}>MALİYET MERKEZİ</Text>
-                        <Text style={styles.headerSubtitle}>Proje bütçe ve analiz araçları</Text>
+                    {/* CUSTOM HEADER (Previously Native) */}
+                    <View style={[styles.header, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
+                        <View>
+                            <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8, marginLeft: -12, marginBottom: 10 }}>
+                                <Ionicons name="arrow-back" size={24} color="#FFF" />
+                            </TouchableOpacity>
+                            <Text style={styles.headerTitle}>MALİYET MERKEZİ</Text>
+                            <Text style={styles.headerSubtitle}>Proje bütçe ve analiz araçları</Text>
+                        </View>
+                        <MaterialCommunityIcons name="calculator-variant" size={32} color="#D4AF37" style={{ opacity: 0.2 }} />
                     </View>
 
                     <LocationSelector

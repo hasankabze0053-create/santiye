@@ -46,6 +46,17 @@ export default function CorporateDashboardScreen() {
                                 color="#000"
                             />
                         </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.exitBtn, { backgroundColor: '#1A1A1A', borderColor: '#333' }]}
+                            onPress={() => navigation.navigate('Market')}
+                        >
+                            <MaterialCommunityIcons
+                                name="store"
+                                size={20}
+                                color="#D4AF37"
+                            />
+                        </TouchableOpacity>
                     </View>
                 </View>
 

@@ -319,9 +319,14 @@ export default function LawScreen() {
 
                         {/* HEADER */}
                         <View style={styles.header}>
-                            <View>
-                                <Text style={styles.headerTitle}>HUKUKİ ÇÖZÜM</Text>
-                                <Text style={styles.headerSubtitle}>MERKEZİ</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
+                                    <Ionicons name="arrow-back" size={24} color="#FFF" />
+                                </TouchableOpacity>
+                                <View>
+                                    <Text style={styles.headerTitle}>HUKUKİ ÇÖZÜM</Text>
+                                    <Text style={styles.headerSubtitle}>MERKEZİ</Text>
+                                </View>
                             </View>
                             <TouchableOpacity
                                 style={styles.headerIconBtn}
@@ -352,7 +357,10 @@ export default function LawScreen() {
                                 <View style={styles.page}>
                                     <View style={styles.gridContainer}>
                                         {/* 1. ACİL (RED/BLINK) */}
-                                        <HighlightCard style={styles.gridItem} onPress={() => handleQuickTool('ACİL İŞ KAZASI')}>
+                                        <HighlightCard
+                                            style={styles.gridItem}
+                                            onPress={() => handleQuickTool('ACİL İŞ KAZASI')}
+                                        >
                                             <View style={styles.iconBox}>
                                                 <BlinkingIcon name="ambulance" size={32} color={DANGER_RED} />
                                             </View>
@@ -360,7 +368,10 @@ export default function LawScreen() {
                                         </HighlightCard>
 
                                         {/* 2. SÖZLEŞME (GOLD) */}
-                                        <GoldCard style={styles.gridItem} onPress={() => handleQuickTool('SÖZLEŞME')}>
+                                        <GoldCard
+                                            style={styles.gridItem}
+                                            onPress={() => handleQuickTool('SÖZLEŞME')}
+                                        >
                                             <View style={styles.iconBox}>
                                                 <FontAwesome5 name="file-contract" size={24} color={GOLD_MAIN} />
                                             </View>
@@ -368,7 +379,10 @@ export default function LawScreen() {
                                         </GoldCard>
 
                                         {/* 3. TAŞERON (GOLD) */}
-                                        <GoldCard style={styles.gridItem} onPress={() => handleQuickTool('TAŞERON')}>
+                                        <GoldCard
+                                            style={styles.gridItem}
+                                            onPress={() => handleQuickTool('TAŞERON')}
+                                        >
                                             <View style={styles.iconBox}>
                                                 <MaterialCommunityIcons name="account-hard-hat" size={28} color={GOLD_MAIN} />
                                             </View>
@@ -376,7 +390,10 @@ export default function LawScreen() {
                                         </GoldCard>
 
                                         {/* 4. İMAR (GOLD) */}
-                                        <GoldCard style={styles.gridItem} onPress={() => handleQuickTool('İMAR')}>
+                                        <GoldCard
+                                            style={styles.gridItem}
+                                            onPress={() => handleQuickTool('İMAR')}
+                                        >
                                             <View style={styles.iconBox}>
                                                 <MaterialCommunityIcons name="bank-outline" size={28} color={GOLD_MAIN} />
                                             </View>
@@ -389,7 +406,10 @@ export default function LawScreen() {
                                 <View style={styles.page}>
                                     <View style={styles.gridContainer}>
                                         {/* 5. KENTSEL DÖNÜŞÜM */}
-                                        <GoldCard style={styles.gridItem} onPress={() => handleQuickTool('KENTSEL DÖNÜŞÜM')}>
+                                        <GoldCard
+                                            style={styles.gridItem}
+                                            onPress={() => handleQuickTool('KENTSEL DÖNÜŞÜM')}
+                                        >
                                             <View style={styles.iconBox}>
                                                 <MaterialCommunityIcons name="crane" size={28} color={GOLD_MAIN} />
                                             </View>
@@ -397,7 +417,10 @@ export default function LawScreen() {
                                         </GoldCard>
 
                                         {/* 6. MALZEME & TEDARİKÇİ */}
-                                        <GoldCard style={styles.gridItem} onPress={() => handleQuickTool('MALZEME')}>
+                                        <GoldCard
+                                            style={styles.gridItem}
+                                            onPress={() => handleQuickTool('MALZEME')}
+                                        >
                                             <View style={styles.iconBox}>
                                                 <MaterialCommunityIcons name="wall" size={28} color={GOLD_MAIN} />
                                             </View>
@@ -405,7 +428,10 @@ export default function LawScreen() {
                                         </GoldCard>
 
                                         {/* 7. ŞİRKET & SGK */}
-                                        <GoldCard style={styles.gridItem} onPress={() => handleQuickTool('ŞİRKET')}>
+                                        <GoldCard
+                                            style={styles.gridItem}
+                                            onPress={() => handleQuickTool('ŞİRKET')}
+                                        >
                                             <View style={styles.iconBox}>
                                                 <MaterialCommunityIcons name="briefcase-variant-outline" size={28} color={GOLD_MAIN} />
                                             </View>
@@ -413,7 +439,10 @@ export default function LawScreen() {
                                         </GoldCard>
 
                                         {/* 8. EMLAK HUKUKU */}
-                                        <GoldCard style={styles.gridItem} onPress={() => handleQuickTool('EMLAK')}>
+                                        <GoldCard
+                                            style={styles.gridItem}
+                                            onPress={() => handleQuickTool('EMLAK')}
+                                        >
                                             <View style={styles.iconBox}>
                                                 <MaterialCommunityIcons name="home-city-outline" size={28} color={GOLD_MAIN} />
                                             </View>

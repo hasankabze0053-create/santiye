@@ -102,9 +102,11 @@ export default function RenovationScreen({ navigation }) {
                         <Text style={styles.headerTitle}>MİMARLIK OFİSİ</Text>
                         <Text style={styles.headerSubtitle}>Yaşam Alanınızı Yeniden Keşfedin</Text>
                     </View>
-                    <TouchableOpacity style={styles.headerBtn}>
-                        <MaterialCommunityIcons name="account-circle-outline" size={28} color={GOLD_MAIN} />
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                        <TouchableOpacity style={styles.adminBtn} onPress={() => navigation.navigate('ProviderDashboard')}>
+                            <MaterialCommunityIcons name="store-cog" size={22} color="#D4AF37" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
@@ -307,6 +309,17 @@ const styles = StyleSheet.create({
 
     // Grid
     sectionContainer: { paddingHorizontal: 20, marginBottom: 30 },
+
+    adminBtn: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#1A1A1A',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#333'
+    },
     sectionTitle: { color: '#666', fontSize: 12, fontWeight: 'bold', letterSpacing: 1, marginLeft: 0, marginBottom: 15 },
     gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
     gridItem: { width: '48%', height: 160, borderRadius: 20, marginBottom: 16 },

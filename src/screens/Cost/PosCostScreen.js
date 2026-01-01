@@ -36,6 +36,17 @@ export default function PosCostScreen({ navigation }) {
             <LinearGradient colors={['#121212', '#1C1C1E']} style={StyleSheet.absoluteFill} />
             <SafeAreaView style={{ flex: 1 }}>
 
+                {/* Custom Header */}
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <Ionicons name="arrow-back" size={24} color="#FFF" />
+                    </TouchableOpacity>
+                    <View>
+                        <Text style={styles.headerTitle}>POZ SORGULAMA</Text>
+                        <Text style={styles.headerSubtitle}>Birim Fiyat Kütüphanesi</Text>
+                    </View>
+                </View>
+
                 {/* Search Header */}
                 <View style={styles.searchContainer}>
                     <View style={styles.searchBar}>
@@ -95,6 +106,33 @@ export default function PosCostScreen({ navigation }) {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#121212' },
+
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingTop: 10,
+        paddingBottom: 20,
+        backgroundColor: '#121212',
+        gap: 15
+    },
+    backButton: {
+        padding: 8,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 12,
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#fff',
+        letterSpacing: 1,
+    },
+    headerSubtitle: {
+        fontSize: 12,
+        color: '#8E8E93',
+        fontWeight: '500',
+    },
+
     searchContainer: { padding: 16, backgroundColor: 'rgba(255,255,255,0.02)' },
     searchBar: {
         flexDirection: 'row', alignItems: 'center',

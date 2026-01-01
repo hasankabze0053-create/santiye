@@ -14,64 +14,249 @@ const MARKET_SHOWCASE = [
     { id: '3', title: 'YALITIM ÇÖZÜMLERİ', subtitle: 'Kışa hazırlık için mantolama paketlerinde fırsat', image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=800', tag: 'YENİ SEZON' },
 ];
 
-// 15 KATEGORİLİ DEV MARKET YAPISI (Updated with Subcategory Objects and Enriched Items)
+// 12 MAIN CATEGORIES - MEGA MARKET INVENTORY
 const MARKET_CATEGORIES = [
     {
         id: '1',
         title: 'KABA YAPI & İNŞAAT',
         subtitle: 'Demir, Çimento, Tuğla, Çatı',
         icon: 'office-building',
-        image: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=600',
+        image: require('../../assets/carbon_bg.png'), // Placeholder
         subcategories: [
-            { id: 'sc1', name: 'Demir & Çelik', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=400', icon: 'grid' },
-            { id: 'sc2', name: 'Çimento & Harçlar', image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=400', icon: 'cup' },
-            { id: 'sc3', name: 'Duvar Elemanları', image: 'https://images.unsplash.com/photo-1588011930968-748435e16ee9?q=80&w=400', icon: 'wall' },
-            { id: 'sc4', name: 'Yalıtım', image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=400', icon: 'shield-home' },
-            { id: 'sc5', name: 'Çatı Malzemeleri', image: 'https://images.unsplash.com/photo-1632759145351-1d592911f3b3?q=80&w=400', icon: 'home-roof' }
+            { id: '1.1', name: 'Demir & Çelik', icon: 'grid' },
+            { id: '1.2', name: 'Çimento & Bağlayıcılar', icon: 'cup' },
+            { id: '1.3', name: 'Duvar Blokları & Tuğla', icon: 'wall' },
+            { id: '1.4', name: 'Agrega (Kum & Çakıl)', icon: 'truck-snowflake' } // using snowflake as sand proxy or truck
         ],
         items: [
-            { name: 'Nervürlü İnşaat Demiri Ø12', subcategory: 'Demir & Çelik', spec: 'Ton', price: '₺24.500', seller: 'Demir Dünyası', location: 'Gebze', rating: '4.9', options: { brand: ['İÇDAŞ', 'KARDEMİR', 'İZMİR DEMİR'], weight: ['1 Ton', '10 Ton', '25 Ton'] } },
-            { name: 'Çelik Hasır Q188', subcategory: 'Demir & Çelik', spec: 'Adet', price: '₺1.450', seller: 'Hasır Metal', location: 'Dudullu', rating: '4.7', options: { brand: ['HasırSAN', 'ÇelikMesh'], size: ['2.15x5.00m', '2.00x4.00m'] } },
-            { name: 'Portland Çimento (CEM I)', subcategory: 'Çimento & Harçlar', spec: '50 Kg Torba', price: '₺195', seller: 'Beton Market', location: 'Tuzla', rating: '4.6', options: { brand: ['NUH Çimento', 'AKÇANSA', 'LİMAK'], weight: ['50 Kg', '25 Kg', 'Palet (1.5 Ton)'] } },
-            { name: 'Beyaz Çimento', subcategory: 'Çimento & Harçlar', spec: '50 Kg Torba', price: '₺320', seller: 'Yapı Kimyasalları', location: 'Pendik', rating: '4.9', options: { brand: ['Çimsa', 'Bursa Çimento'], weight: ['50 Kg', '25 Kg'] } },
-            { name: 'Gazbeton 20\'lik', subcategory: 'Duvar Elemanları', spec: 'Adet', price: '₺72', seller: 'Ytong Market', location: 'Pendik', rating: '4.8', options: { brand: ['Ytong', 'Nuh Gazbeton'], type: ['G2', 'G4'] } },
-            { name: 'XPS Köpük Levha 5cm', subcategory: 'Yalıtım', spec: 'Paket', price: '₺1.350', seller: 'İzocam Bayi', location: 'Ümraniye', rating: '4.7', options: { brand: ['İzocam', 'Bonus', 'Dow'], thickness: ['3cm', '4cm', '5cm'] } },
+            { name: 'Nervürlü İnşaat Demiri Ø12', subcategory: 'Demir & Çelik', spec: 'Ton', price: '₺24.500', options: { type: ['Ø8', 'Ø10', 'Ø12', 'Ø16'], brand: ['İÇDAŞ', 'KARDEMİR'] } },
+            { name: 'Çelik Hasır Q188', subcategory: 'Demir & Çelik', spec: 'Adet', price: '₺1.450', options: { type: ['Q Tip', 'R Tip'] } },
+            { name: 'Portland Kompoze Çimento', subcategory: 'Çimento & Bağlayıcılar', spec: '50kg Torba', price: '₺195', options: { brand: ['Nuh', 'Akçansa', 'Limak'] } },
+            { name: 'Beyaz Çimento', subcategory: 'Çimento & Bağlayıcılar', spec: '25kg', price: '₺180', options: { brand: ['Çimsa'] } },
+            { name: 'Yığma Tuğla 13.5', subcategory: 'Duvar Blokları & Tuğla', spec: 'Adet', price: '₺6.50', options: { brand: ['Kılıçoğlu', 'Işıklar'] } },
+            { name: 'Gazbeton G2 Düz', subcategory: 'Duvar Blokları & Tuğla', spec: 'Adet', price: '₺75', options: { size: ['10cm', '15cm', '20cm'] } },
+            { name: 'Sıva Kumu (İnce)', subcategory: 'Agrega (Kum & Çakıl)', spec: 'Ton', price: '₺450', options: { origin: ['Şile', 'Kemerburgaz'] } },
+            { name: 'Mıcır 1 No', subcategory: 'Agrega (Kum & Çakıl)', spec: 'Ton', price: '₺420' }
         ]
     },
     {
         id: '2',
-        title: 'İNCE YAPI & DEKORASYON',
-        subtitle: 'Boya, Parke, Seramik, Kapı',
-        icon: 'format-paint',
-        image: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=600',
+        title: 'YALITIM & ÇATI',
+        subtitle: 'Mantolama, Su Yalıtımı, Çatı',
+        icon: 'shield-home',
+        image: require('../../assets/carbon_bg.png'),
         subcategories: [
-            { id: 'sc6', name: 'Boya & Ürünleri', image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=400', icon: 'format-paint' },
-            { id: 'sc7', name: 'Zemin Kaplama', image: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=400', icon: 'floor-plan' },
-            { id: 'sc8', name: 'Tavan Sistemleri', image: 'https://images.unsplash.com/photo-1594913785162-e678a0c2fc6a?q=80&w=400', icon: 'view-quilt' },
-            { id: 'sc9', name: 'Kapı & Pencere', image: 'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=400', icon: 'door' }
+            { id: '2.1', name: 'Isı Yalıtımı (Mantolama)', icon: 'temperature-celsius' },
+            { id: '2.2', name: 'Su Yalıtımı', icon: 'water-off' },
+            { id: '2.3', name: 'Çatı Kaplamaları', icon: 'home-roof' }
         ],
         items: [
-            { name: 'Silikonlu İç Cephe Boyası', subcategory: 'Boya & Ürünleri', spec: '15 Lt', price: '₺2.100', seller: 'Marshall Bayi', location: 'Maltepe', rating: '4.8', options: { brand: ['Marshall', 'Filli Boya', 'Dyo', 'Polisan'], weight: ['2.5 Lt', '7.5 Lt', '15 Lt'], color: ['Beyaz', 'Kumsal', 'Gri'] } },
-            { name: 'Tavan Boyası', subcategory: 'Boya & Ürünleri', spec: '17.5 Kg', price: '₺950', seller: 'Renk Dünyası', location: 'Kartal', rating: '4.5', options: { brand: ['Permolit', 'Filli Boya'], weight: ['10 Kg', '17.5 Kg', '20 Kg'] } },
-            { name: 'Laminat Parke 8mm', subcategory: 'Zemin Kaplama', spec: 'm²', price: '₺380', seller: 'Parke Center', location: 'Pendik', rating: '4.6', options: { brand: ['Çamsan', 'Yıldız Entegre', 'AGT'], class: ['31. Sınıf', '32. Sınıf'] } },
-            { name: '60x120 Granit Seramik', subcategory: 'Zemin Kaplama', spec: 'm²', price: '₺650', seller: 'Seramiksan', location: 'Ataşehir', rating: '4.7', options: { brand: ['Vitra', 'Bien', 'NG Kütahya'], surface: ['Mat', 'Parlak'] } },
+            { name: 'Karbonlu EPS Levha (Gri)', subcategory: 'Isı Yalıtımı (Mantolama)', spec: 'Paket', price: '₺850', options: { thickness: ['3cm', '4cm', '5cm'] } },
+            { name: 'Folyolu Taşyünü Levha', subcategory: 'Isı Yalıtımı (Mantolama)', spec: 'Paket', price: '₺1.200', options: { density: ['50kg', '70kg'] } },
+            { name: 'Bitümlü Membran PP3000', subcategory: 'Su Yalıtımı', spec: 'Top (10m)', price: '₺950', options: { type: ['3mm', '4mm', 'Arduazlı'] } },
+            { name: 'Sürme İzolasyon (Çimento)', subcategory: 'Su Yalıtımı', spec: '25kg Set', price: '₺650' },
+            { name: 'Marsilya Kiremit', subcategory: 'Çatı Kaplamaları', spec: 'Adet', price: '₺18', options: { material: ['Toprak', 'Beton'] } },
+            { name: 'Onduline Levha', subcategory: 'Çatı Kaplamaları', spec: 'Adet', price: '₺320', options: { color: ['Kırmızı', 'Yeşil', 'Siyah'] } },
+            { name: 'OSB-3 Levha 11mm', subcategory: 'Çatı Kaplamaları', spec: 'Plaka', price: '₺450' }
         ]
     },
-    // ... Other categories kept minimal for brevity in this update, assuming previous structure or fill on demand if needed.
-    // Ideally I would keep all but I'm updating the structure. Let's keep the others simple or copy them if I had full file content. 
-    // Since I'm using replace, I'll try to preserve as much as possible, but for this task, the focus is on 'Boya' and general structure.
     {
         id: '3',
-        title: 'TESİSAT & ALTYAPI',
-        subtitle: 'Elektrik, Su, Isıtma/Soğutma',
-        icon: 'pipe',
-        image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=600',
-        subcategories: [], // Placeholder to save tokens if not modified, but better to keep consistency.
-        items: []
+        title: 'KURU YAPI & TAVAN',
+        subtitle: 'Alçıpan, Profil, Taşyünü Tavan',
+        icon: 'view-quilt',
+        image: require('../../assets/carbon_bg.png'),
+        subcategories: [
+            { id: '3.1', name: 'Alçıpan Grubu', icon: 'layers' },
+            { id: '3.2', name: 'Toz Alçı Grubu', icon: 'shaker-outline' }, // Custom icon proxy
+            { id: '3.3', name: 'Profil & Aksesuar', icon: 'shape-outline' },
+            { id: '3.4', name: 'Tavan Plakaları', icon: 'view-grid' }
+        ],
+        items: [
+            { name: 'Standart Alçıpan (Beyaz)', subcategory: 'Alçıpan Grubu', spec: 'Plaka', price: '₺140', options: { type: ['Beyaz', 'Yeşil (Su)', 'Kırmızı (Yangın)'] } },
+            { name: 'Boardex Dış Cephe Levhası', subcategory: 'Alçıpan Grubu', spec: 'Plaka', price: '₺480' },
+            { name: 'Saten Perdah Alçısı', subcategory: 'Toz Alçı Grubu', spec: '25kg', price: '₺110' },
+            { name: 'Tavan U Profili', subcategory: 'Profil & Aksesuar', spec: '3m Boy', price: '₺45' },
+            { name: 'Duvar C Profili 75\'lik', subcategory: 'Profil & Aksesuar', spec: '3m Boy', price: '₺65' },
+            { name: 'Karolam Asma Tavan', subcategory: 'Tavan Plakaları', spec: 'Paket (m²)', price: '₺180', options: { pattern: ['Yıldızlı', 'Kırçıllı'] } }
+        ]
+    },
+    {
+        id: '4',
+        title: 'ZEMİN & DUVAR',
+        subtitle: 'Seramik, Parke, Doğal Taş',
+        icon: 'floor-plan',
+        image: require('../../assets/carbon_bg.png'),
+        subcategories: [
+            { id: '4.1', name: 'Seramik & Porselen', icon: 'checkerboard' },
+            { id: '4.2', name: 'Doğal Taş & Mermer', icon: 'diamond-stone' },
+            { id: '4.3', name: 'Ahşap Zemin', icon: 'wood' } // custom icon proxy
+        ],
+        items: [
+            { name: '60x120 Granit Seramik', subcategory: 'Seramik & Porselen', spec: 'm²', price: '₺650', options: { finish: ['Mat', 'Parlak', 'Lappato'], color: ['Gri', 'Bej', 'Antrasit'] } },
+            { name: 'Duvar Fayansı 30x90', subcategory: 'Seramik & Porselen', spec: 'm²', price: '₺420', options: { pattern: ['Düz', 'Rölyefli'] } },
+            { name: 'Afyon Mermer Basamak', subcategory: 'Doğal Taş & Mermer', spec: 'Metretül', price: '₺950' },
+            { name: 'Patlatma Doğal Taş', subcategory: 'Doğal Taş & Mermer', spec: 'm²', price: '₺850' },
+            { name: 'Laminat Parke 8mm 32.Sınıf', subcategory: 'Ahşap Zemin', spec: 'm²', price: '₺380', options: { brand: ['Çamsan', 'AGT', 'Yıldız'] } },
+            { name: 'Süpürgelik 10cm', subcategory: 'Ahşap Zemin', spec: 'Metretül', price: '₺65', options: { color: ['Beyaz', 'Antrasit', 'Ahşap'] } }
+        ]
+    },
+    {
+        id: '5',
+        title: 'BOYA & KİMYASAL',
+        subtitle: 'Boya, Yapıştırıcı, Silikon',
+        icon: 'format-paint',
+        image: require('../../assets/carbon_bg.png'),
+        subcategories: [
+            { id: '5.1', name: 'Boyalar', icon: 'bucket-outline' },
+            { id: '5.2', name: 'Yapıştırıcılar', icon: 'sticker-plus-outline' },
+            { id: '5.3', name: 'Teknik Kimyasallar', icon: 'bottle-tonic-plus' }
+        ],
+        items: [
+            { name: 'Silikonlu İç Cephe Boyası', subcategory: 'Boyalar', spec: '15Lt', price: '₺2.200', options: { brand: ['Marshall', 'Filli', 'Jotun'] } },
+            { name: 'Dış Cephe Grenli Boya', subcategory: 'Boyalar', spec: '20kg', price: '₺2.400' },
+            { name: 'Seramik Yapıştırıcısı C2TE', subcategory: 'Yapıştırıcılar', spec: '25kg', price: '₺250', options: { brand: ['Kalekim', 'Weber', 'Yurtbay'] } },
+            { name: 'Poliüretan Köpük', subcategory: 'Teknik Kimyasallar', spec: 'Adet', price: '₺120' },
+            { name: 'Şeffaf Silikon', subcategory: 'Teknik Kimyasallar', spec: 'Adet', price: '₺85' }
+        ]
+    },
+    {
+        id: '6',
+        title: 'SIHHİ TESİSAT',
+        subtitle: 'Boru, Vitrifiye, Batarya',
+        icon: 'water',
+        image: require('../../assets/carbon_bg.png'),
+        subcategories: [
+            { id: '6.1', name: 'Altyapı (Boru Grubu)', icon: 'pipe' },
+            { id: '6.2', name: 'Vitrifiye & Banyo', icon: 'toilet' },
+            { id: '6.3', name: 'Armatürler', icon: 'water-pump' }
+        ],
+        items: [
+            { name: 'PPRC Temiz Su Borusu Ø20', subcategory: 'Altyapı (Boru Grubu)', spec: '4m Boy', price: '₺45' },
+            { name: '100\'lük Pimaş Boru', subcategory: 'Altyapı (Boru Grubu)', spec: '3m Boy', price: '₺150', options: { type: ['3.2mm', '2.2mm'] } },
+            { name: 'Asma Klozet Seti', subcategory: 'Vitrifiye & Banyo', spec: 'Takım', price: '₺4.500', options: { brand: ['Vitra', 'Serel', 'Kale'] } },
+            { name: 'Gömme Rezervuar', subcategory: 'Vitrifiye & Banyo', spec: 'Set', price: '₺2.200' },
+            { name: 'Lavabo Bataryası', subcategory: 'Armatürler', spec: 'Adet', price: '₺1.200', options: { brand: ['Artema', 'ECA', 'GPD'] } },
+            { name: 'Krom Banyo Bataryası', subcategory: 'Armatürler', spec: 'Adet', price: '₺1.600' }
+        ]
+    },
+    {
+        id: '7',
+        title: 'ISITMA & DOĞALGAZ',
+        subtitle: 'Kombi, Radyatör, Klima',
+        icon: 'radiator',
+        image: require('../../assets/carbon_bg.png'),
+        subcategories: [
+            { id: '7.1', name: 'Isıtma Sistemleri', icon: 'fire' },
+            { id: '7.2', name: 'Doğalgaz Tesisatı', icon: 'gas-cylinder' },
+            { id: '7.3', name: 'İklimlendirme', icon: 'air-conditioner' }
+        ],
+        items: [
+            { name: 'Tam Yoğuşmalı Kombi 24kW', subcategory: 'Isıtma Sistemleri', spec: 'Adet', price: '₺22.000', options: { brand: ['Vaillant', 'DemirDöküm', 'ECA'] } },
+            { name: 'Panel Radyatör 600x1200', subcategory: 'Isıtma Sistemleri', spec: 'Adet', price: '₺3.200', options: { type: ['22 Tip (PKKP)'] } },
+            { name: 'Yerden Isıtma Borusu PEX-b', subcategory: 'Isıtma Sistemleri', spec: 'Top (160m)', price: '₺4.500' },
+            { name: 'Doğalgaz Flex 1/2"', subcategory: 'Doğalgaz Tesisatı', spec: 'Adet', price: '₺120' },
+            { name: 'Bakır Klima Borusu', subcategory: 'İklimlendirme', spec: 'Metre', price: '₺450' }
+        ]
+    },
+    {
+        id: '8',
+        title: 'ELEKTRİK & AKILLI EV',
+        subtitle: 'Kablo, Priz, Aydınlatma',
+        icon: 'lightning-bolt',
+        image: require('../../assets/carbon_bg.png'),
+        subcategories: [
+            { id: '8.1', name: 'Altyapı Kablo & Boru', icon: 'cable-data' },
+            { id: '8.2', name: 'Anahtar & Priz', icon: 'power-socket-eu' },
+            { id: '8.3', name: 'Aydınlatma', icon: 'lightbulb-on' },
+            { id: '8.4', name: 'Zayıf Akım & Güvenlik', icon: 'cctv' }
+        ],
+        items: [
+            { name: 'NYM (Antigron) Kablo 3x2.5', subcategory: 'Altyapı Kablo & Boru', spec: '100m Top', price: '₺3.800', options: { brand: ['Öznur', 'Hes', 'Siemens'] } },
+            { name: 'W Otomat Sigorta B16', subcategory: 'Altyapı Kablo & Boru', spec: 'Adet', price: '₺120', options: { brand: ['Siemens', 'Schneider', 'Legrand'] } },
+            { name: 'Topraklı Priz', subcategory: 'Anahtar & Priz', spec: 'Adet', price: '₺85', options: { color: ['Beyaz', 'Antrasit', 'Ahşap'] } },
+            { name: 'LED Panel 60x60 (Sıva Altı)', subcategory: 'Aydınlatma', spec: 'Adet', price: '₺450' },
+            { name: 'Akıllı Anahtar Modülü (WiFi)', subcategory: 'Zayıf Akım & Güvenlik', spec: 'Adet', price: '₺850' },
+            { name: 'Görüntülü Diyafon Seti', subcategory: 'Zayıf Akım & Güvenlik', spec: 'Daire Başı', price: '₺3.500' }
+        ]
+    },
+    {
+        id: '9',
+        title: 'HIRDAVAT & NALBURİYE',
+        subtitle: 'El Aletleri, Vida, Bağlantı',
+        icon: 'tools',
+        image: require('../../assets/carbon_bg.png'),
+        subcategories: [
+            { id: '9.1', name: 'Elektrikli El Aletleri', icon: 'drill' }, // Proxy for power tool
+            { id: '9.2', name: 'Manuel El Aletleri', icon: 'hammer' },
+            { id: '9.3', name: 'Bağlantı Elemanları', icon: 'screw-flat-top' },
+            { id: '9.4', name: 'Mobilya Aksesuarları', icon: 'handle' } // Proxy for handle
+        ],
+        items: [
+            { name: 'Şarjlı Vidalama Seti 18V', subcategory: 'Elektrikli El Aletleri', spec: 'Set', price: '₺4.500', options: { brand: ['Bosch', 'Makita', 'Dewalt'] } },
+            { name: 'Kırıcı-Delici Hilti 3kg', subcategory: 'Elektrikli El Aletleri', spec: 'Adet', price: '₺6.200' },
+            { name: 'Profesyonel Pense', subcategory: 'Manuel El Aletleri', spec: 'Adet', price: '₺350', options: { brand: ['İzeltaş', 'Knipex'] } },
+            { name: 'Sunta Vidası 4x50', subcategory: 'Bağlantı Elemanları', spec: 'Kutu (500)', price: '₺180' },
+            { name: 'Frenli Menteşe', subcategory: 'Mobilya Aksesuarları', spec: 'Adet', price: '₺45' }
+        ]
+    },
+    {
+        id: '10',
+        title: 'KAPI & PENCERE',
+        subtitle: 'Çelik Kapı, PVC, Doğrama',
+        icon: 'door',
+        image: require('../../assets/carbon_bg.png'),
+        subcategories: [
+            { id: '10.1', name: 'Kapılar', icon: 'door-closed' },
+            { id: '10.2', name: 'Pencere & Aksesuar', icon: 'window-closed-variant' },
+            { id: '10.3', name: 'Merdivenler', icon: 'stairs' }
+        ],
+        items: [
+            { name: 'Çelik Kapı (Lüks)', subcategory: 'Kapılar', spec: 'Adet', price: '₺12.000', options: { type: ['Ahşap Kaplama', 'Kompozit'] } },
+            { name: 'Amerikan Panel Kapı', subcategory: 'Kapılar', spec: 'Adet', price: '₺2.800' },
+            { name: 'PVC Pencere Kolu', subcategory: 'Pencere & Aksesuar', spec: 'Adet', price: '₺85' },
+            { name: 'Sineklik Pileli', subcategory: 'Pencere & Aksesuar', spec: 'm²', price: '₺650' },
+            { name: 'Alüminyum Akrobat Merdiven', subcategory: 'Merdivenler', spec: '4x4', price: '₺3.200' }
+        ]
+    },
+    {
+        id: '11',
+        title: 'İŞ GÜVENLİĞİ & SAHA',
+        subtitle: 'Baret, Yelek, El Arabası',
+        icon: 'hard-hat',
+        image: require('../../assets/carbon_bg.png'),
+        subcategories: [
+            { id: '11.1', name: 'Kişisel Koruyucu (KKD)', icon: 'account-hard-hat' },
+            { id: '11.2', name: 'Saha Ekipmanı', icon: 'cone' }
+        ],
+        items: [
+            { name: 'Mühendis Bareti (Beyaz)', subcategory: 'Kişisel Koruyucu (KKD)', spec: 'Adet', price: '₺250', options: { brand: ['3M', 'Uvex'] } },
+            { name: 'Çelik Burunlu İş Ayakkabısı', subcategory: 'Kişisel Koruyucu (KKD)', spec: 'Çift', price: '₺850', options: { size: ['41', '42', '43', '44'] } },
+            { name: 'İnşaat El Arabası (Kalın Sac)', subcategory: 'Saha Ekipmanı', spec: 'Adet', price: '₺1.400' },
+            { name: 'İnşaat Filesi (Güvenlik Ağı)', subcategory: 'Saha Ekipmanı', spec: 'm²', price: '₺45' }
+        ]
+    },
+    {
+        id: '12',
+        title: 'PEYZAJ & BAHÇE',
+        subtitle: 'Kilit Taşı, Çit, Sulama',
+        icon: 'pine-tree',
+        image: require('../../assets/carbon_bg.png'),
+        subcategories: [
+            { id: '12.1', name: 'Zemin Düzenleme', icon: 'road-variant' },
+            { id: '12.2', name: 'Bahçe Ekipmanı', icon: 'sprinkler' }, // proxy
+            { id: '12.3', name: 'Çit Sistemleri', icon: 'gate' }
+        ],
+        items: [
+            { name: 'Kilit Parke Taşı (8cm)', subcategory: 'Zemin Düzenleme', spec: 'm²', price: '₺180', options: { color: ['Gri', 'Kırmızı'] } },
+            { name: 'Bahçe Bordürü', subcategory: 'Zemin Düzenleme', spec: 'Adet', price: '₺45' },
+            { name: 'Hortum Makarası Seti', subcategory: 'Bahçe Ekipmanı', spec: 'Set', price: '₺1.200' },
+            { name: 'Panel Çit 150x250', subcategory: 'Çit Sistemleri', spec: 'Adet', price: '₺650' }
+        ]
     }
 ];
 
-export default function MarketScreen() {
+export default function MarketScreen() { // Force Refresh
     const navigation = useNavigation();
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedSubCategory, setSelectedSubCategory] = useState(null); // Updated: null by default
@@ -186,9 +371,11 @@ export default function MarketScreen() {
                             {viewMode === 'list' ? 'Tüm İhtiyaçlarınız Kapınızda' : (selectedCategory ? selectedCategory.title : 'Market')}
                         </Text>
                     </View>
-                    <TouchableOpacity style={styles.headerBtn}>
-                        <MaterialCommunityIcons name="account-circle-outline" size={28} color="#D4AF37" />
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                        <TouchableOpacity style={styles.adminBtn} onPress={() => navigation.navigate('SellerDashboard')}>
+                            <MaterialCommunityIcons name="store-cog" size={22} color="#D4AF37" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 {/* SEARCH BAR (In-Flow) */}
@@ -290,7 +477,7 @@ export default function MarketScreen() {
                         </>
                     )}
 
-                    {/* NEW: SUBCATEGORY VIEW */}
+                    {/* NEW: SUBCATEGORY VIEW (List Mode) */}
                     {viewMode === 'subcategory' && selectedCategory && (
                         <View style={styles.detailContainer}>
                             <View style={styles.categoryHeader}>
@@ -298,29 +485,27 @@ export default function MarketScreen() {
                                 <Text style={styles.categorySubtitle}>İlgilendiğiniz alt kategoriyi seçin</Text>
                             </View>
 
-                            <View style={styles.gridContainer}>
+                            <View style={styles.listContainer}>
                                 {selectedCategory.subcategories.map((sub) => (
                                     <TouchableOpacity
                                         key={sub.id}
-                                        style={styles.gridCard}
+                                        style={styles.listCard}
                                         onPress={() => {
                                             setSelectedSubCategory(sub.name);
-                                            setViewMode('detail'); // Go to product list
+                                            setViewMode('detail');
                                         }}
-                                        activeOpacity={0.9}
+                                        activeOpacity={0.7}
                                     >
-                                        <ImageBackground source={{ uri: sub.image }} style={styles.gridImage} imageStyle={{ borderRadius: 16 }}>
-                                            <LinearGradient colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.85)']} style={StyleSheet.absoluteFill} />
-                                            <View style={styles.gridContent}>
-                                                <MaterialCommunityIcons name={sub.icon} size={24} color="#D4AF37" style={{ marginBottom: 4 }} />
-                                                <Text style={styles.gridTitle}>{sub.name}</Text>
-                                                <View style={styles.gridBadge}>
-                                                    <Text style={styles.gridBadgeText}>
-                                                        {selectedCategory.items.filter(item => item.subcategory === sub.name).length} Ürün
-                                                    </Text>
-                                                </View>
-                                            </View>
-                                        </ImageBackground>
+                                        <View style={styles.listIconContainer}>
+                                            <MaterialCommunityIcons name={sub.icon} size={24} color="#D4AF37" />
+                                        </View>
+                                        <View style={styles.listContent}>
+                                            <Text style={styles.listTitle}>{sub.name}</Text>
+                                            <Text style={styles.listSubtitle}>
+                                                {selectedCategory.items.filter(item => item.subcategory === sub.name).length} Ürün Mevcut
+                                            </Text>
+                                        </View>
+                                        <MaterialCommunityIcons name="chevron-right" size={24} color="#666" />
                                     </TouchableOpacity>
                                 ))}
                             </View>
@@ -359,56 +544,59 @@ export default function MarketScreen() {
                             </ScrollView>
 
                             {/* PRODUCTS LIST (Standard - Expandable) */}
+                            {/* PRODUCTS LIST (Premium Text-Based) */}
                             {filteredItems.map((item, idx) => {
                                 const isExpanded = expandedItemIndex === idx;
                                 return (
-                                    <View key={idx} style={[styles.productCard, isExpanded && { height: 'auto', borderColor: '#D4AF37', borderWidth: 1 }]}>
-                                        <LinearGradient colors={['#2C2C2C', '#1A1A1A']} style={styles.productMainRow} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-                                            <View style={styles.productImageContainer}>
-                                                <ImageBackground source={{ uri: selectedCategory.image }} style={styles.productImage}>
-                                                    <LinearGradient colors={['transparent', 'rgba(0,0,0,0.3)']} style={StyleSheet.absoluteFill} />
-                                                </ImageBackground>
+                                    <View key={idx} style={[styles.productCard, isExpanded && { borderColor: '#D4AF37' }]}>
+                                        <TouchableOpacity
+                                            style={styles.productMainRow}
+                                            onPress={() => toggleExpand(idx, filteredItems)}
+                                            activeOpacity={0.8}
+                                        >
+                                            {/* Left Icon (Gold) */}
+                                            <View style={styles.productIconBox}>
+                                                <MaterialCommunityIcons name={selectedCategory.subcategories.find(s => s.name === item.subcategory)?.icon || 'cube-outline'} size={24} color="#D4AF37" />
                                             </View>
 
-                                            <TouchableOpacity
-                                                style={styles.productInfo}
-                                                onPress={() => toggleExpand(idx, filteredItems)}
-                                                activeOpacity={0.9}
-                                            >
-                                                <View style={{ flex: 1, justifyContent: 'center' }}>
-                                                    <Text style={styles.productName}>{item.name}</Text>
-                                                    <Text style={styles.productSpec}>{item.spec}</Text>
-                                                    {isExpanded && item.options && (
-                                                        <Text style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
-                                                            Seçim: {Object.values(selectedOptions).join(', ')}
-                                                        </Text>
-                                                    )}
+                                            {/* Center Content */}
+                                            <View style={styles.productInfo}>
+                                                <Text style={styles.productName}>{item.name}</Text>
+                                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                    <Text style={styles.productSpec}>{item.subcategory} • {item.spec}</Text>
+                                                    {item.options && <Text style={{ color: '#666', fontSize: 11, marginLeft: 6 }}>({Object.keys(item.options).length} Seçenek)</Text>}
                                                 </View>
-
-                                                <TouchableOpacity
-                                                    style={[styles.priceExpandBtn, isExpanded && { backgroundColor: '#000' }]} // Keep Black
-                                                    onPress={() => toggleExpand(idx, filteredItems)}
-                                                >
-                                                    <Text style={[styles.priceExpandText, isExpanded && { color: '#D4AF37' }]}>
-                                                        {isExpanded ? 'KAPAT' : 'FİYAT'}
+                                                {isExpanded && item.options && (
+                                                    <Text style={{ fontSize: 11, color: '#D4AF37', marginTop: 4 }}>
+                                                        Seçilen: {Object.values(selectedOptions).join(', ')}
                                                     </Text>
-                                                    <MaterialCommunityIcons
-                                                        name={isExpanded ? "chevron-up" : "chevron-down"}
-                                                        size={20}
-                                                        color="#D4AF37"
-                                                        style={{ marginLeft: 4 }}
-                                                    />
-                                                </TouchableOpacity>
-                                            </TouchableOpacity>
-                                        </LinearGradient>
+                                                )}
+                                            </View>
+
+                                            {/* Right Action (Price/Expand) */}
+                                            <View style={[styles.priceExpandBtn, isExpanded && { backgroundColor: '#D4AF37' }]}>
+                                                <Text style={[styles.priceExpandText, isExpanded && { color: '#000' }]}>
+                                                    {isExpanded ? 'KAPAT' : 'FİYAT'}
+                                                </Text>
+                                                <MaterialCommunityIcons
+                                                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                                                    size={18}
+                                                    color={isExpanded ? "#000" : "#D4AF37"}
+                                                    style={{ marginLeft: 4 }}
+                                                />
+                                            </View>
+                                        </TouchableOpacity>
 
                                         {isExpanded && (
-                                            <LinearGradient colors={['#1A1A1A', '#000000']} style={[styles.supplierListContainer, { backgroundColor: 'transparent' }]}>
+                                            <View style={styles.supplierListContainer}>
 
                                                 {/* Variants Selection */}
                                                 {renderVariationSelectors(item)}
 
-                                                <Text style={styles.supplierListHeader}>TEDARİKÇİLER & FİYATLAR</Text>
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                                                    <MaterialCommunityIcons name="storefront-outline" size={16} color="#D4AF37" style={{ marginRight: 6 }} />
+                                                    <Text style={styles.supplierListHeader} style={{ marginBottom: 0 }}>TEDARİKÇİLER & FİYATLAR</Text>
+                                                </View>
 
                                                 {getMockSuppliers(item.price).map((supplier) => (
                                                     <View key={supplier.id} style={styles.supplierRow}>
@@ -417,7 +605,11 @@ export default function MarketScreen() {
                                                                 <Text style={styles.supplierInitials}>{supplier.name.substring(0, 2).toUpperCase()}</Text>
                                                             </View>
                                                             <View>
-                                                                <TouchableOpacity onPress={() => navigation.navigate('SellerDashboard')}>
+                                                                <TouchableOpacity onPress={() => navigation.navigate('SellerStore', {
+                                                                    sellerName: supplier.name,
+                                                                    rating: supplier.rating,
+                                                                    location: 'İstanbul' // Mock location
+                                                                })}>
                                                                     <Text style={[styles.supplierNameText, { textDecorationLine: 'underline' }]}>{supplier.name}</Text>
                                                                 </TouchableOpacity>
                                                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -429,7 +621,7 @@ export default function MarketScreen() {
 
                                                         <View style={{ alignItems: 'flex-end', gap: 6 }}>
                                                             <View style={{ alignItems: 'flex-end' }}>
-                                                                <Text style={{ color: '#888', fontSize: 10, fontWeight: 'bold' }}>BİRİM FİYAT</Text>
+                                                                <Text style={{ color: '#666', fontSize: 10, fontWeight: 'bold' }}>BİRİM FİYAT</Text>
                                                                 <Text style={styles.supplierPrice}>{supplier.price}</Text>
                                                             </View>
                                                             <TouchableOpacity style={styles.addToCartBtnSmall} onPress={() => handleAddToCart(item)}>
@@ -438,7 +630,7 @@ export default function MarketScreen() {
                                                         </View>
                                                     </View>
                                                 ))}
-                                            </LinearGradient>
+                                            </View>
                                         )}
                                     </View>
                                 );
@@ -516,36 +708,35 @@ const styles = StyleSheet.create({
     categoryTitle: { color: '#D4AF37', fontSize: 22, fontWeight: '900', marginBottom: 4 },
     categorySubtitle: { color: '#888', fontSize: 14 },
     // Product Card (Expandable List View)
-    productCard: { borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#333', overflow: 'hidden' }, // Dark Border
-    productMainRow: { flexDirection: 'row', height: 110 },
-    productImageContainer: { width: 110, height: '100%', backgroundColor: '#222' },
-    productImage: { width: '100%', height: '100%' },
-    productInfo: { flex: 1, padding: 12, justifyContent: 'space-between' },
-    productName: { color: '#FFF', fontSize: 15, fontWeight: 'bold', marginBottom: 2 }, // White Text
-    productSpec: { color: '#BBB', fontSize: 13, fontWeight: '500' }, // Light Grey Text
+    productCard: { borderRadius: 12, marginBottom: 12, backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#333', overflow: 'hidden' },
+    productMainRow: { flexDirection: 'row', alignItems: 'center', padding: 16 }, // Adjusted padding for list
+    productIconBox: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(212, 175, 55, 0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 12 }, // New Icon Box
+    productInfo: { flex: 1, justifyContent: 'center' },
+    productName: { color: '#FFF', fontSize: 15, fontWeight: 'bold', marginBottom: 2 },
+    productSpec: { color: '#888', fontSize: 12, fontWeight: '500' },
 
     // Price & Expand Button
-    priceExpandBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#000', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, alignSelf: 'flex-end' }, // Black Button
-    priceExpandText: { fontSize: 13, fontWeight: 'bold', color: '#D4AF37' }, // Gold Text
+    priceExpandBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#000', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 },
+    priceExpandText: { fontSize: 12, fontWeight: 'bold', color: '#D4AF37' },
 
     // Expanded Supplier List (NEW: Dark Theme)
-    supplierListContainer: { backgroundColor: '#111', padding: 16, borderTopWidth: 1, borderTopColor: '#333' }, // Dark BG
-    supplierListHeader: { color: '#D4AF37', fontSize: 12, fontWeight: '900', marginBottom: 16, letterSpacing: 1 }, // Gold Header
-    supplierRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottomWidth: 1, borderBottomColor: '#333', paddingBottom: 10 },
+    supplierListContainer: { backgroundColor: '#111', padding: 16, borderTopWidth: 1, borderTopColor: '#333' },
+    supplierListHeader: { color: '#D4AF37', fontSize: 12, fontWeight: '900', letterSpacing: 1 },
+    supplierRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottomWidth: 1, borderBottomColor: '#222', paddingBottom: 10 },
     supplierInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
     supplierAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#333', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
     supplierInitials: { color: '#D4AF37', fontWeight: 'bold', fontSize: 14 },
-    supplierNameText: { color: '#FFF', fontSize: 14, fontWeight: 'bold', marginBottom: 2 }, // White Name
-    supplierRating: { color: '#888', fontSize: 12, marginLeft: 4 }, // Grey Rating
-    supplierPrice: { color: '#D4AF37', fontSize: 18, fontWeight: '900' }, // Price Gold
+    supplierNameText: { color: '#FFF', fontSize: 14, fontWeight: 'bold', marginBottom: 2 },
+    supplierRating: { color: '#888', fontSize: 12, marginLeft: 4 },
+    supplierPrice: { color: '#D4AF37', fontSize: 18, fontWeight: '900' },
     addToCartBtnSmall: { backgroundColor: '#D4AF37', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, marginTop: 4 },
     addToCartText: { color: '#000', fontSize: 11, fontWeight: 'bold' },
 
     // Options (New)
     optionsContainer: { marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#333' },
     optionRow: { marginBottom: 12 },
-    optionLabel: { color: '#FFF', fontSize: 13, fontWeight: 'bold', marginBottom: 6 }, // White Label
-    optionChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, backgroundColor: '#333', marginRight: 8, borderWidth: 1, borderColor: '#444' }, // Dark Chip
+    optionLabel: { color: '#FFF', fontSize: 13, fontWeight: 'bold', marginBottom: 6 },
+    optionChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, backgroundColor: '#333', marginRight: 8, borderWidth: 1, borderColor: '#444' },
     optionChipActive: { backgroundColor: '#D4AF37', borderColor: '#D4AF37' },
     optionChipText: { color: '#ccc', fontSize: 12, fontWeight: '500' },
     optionChipTextActive: { color: '#000', fontWeight: 'bold' },
@@ -558,4 +749,19 @@ const styles = StyleSheet.create({
     filterChipActive: { backgroundColor: '#D4AF37', borderColor: '#D4AF37' },
     filterChipText: { color: '#ccc', fontSize: 13, fontWeight: '500' },
     filterChipTextActive: { color: '#000', fontWeight: 'bold' },
+
+    // List View Styles
+    listContainer: { paddingHorizontal: 16 },
+    listCard: {
+        flexDirection: 'row', alignItems: 'center', backgroundColor: '#1A1A1A',
+        borderRadius: 12, padding: 16, marginBottom: 12,
+        borderWidth: 1, borderColor: '#333'
+    },
+    listIconContainer: {
+        width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(212, 175, 55, 0.1)',
+        alignItems: 'center', justifyContent: 'center', marginRight: 16
+    },
+    listContent: { flex: 1 },
+    listTitle: { fontSize: 16, fontWeight: 'bold', color: '#FFF' },
+    listSubtitle: { fontSize: 12, color: '#888', marginTop: 2 },
 });

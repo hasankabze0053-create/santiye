@@ -54,6 +54,17 @@ export default function LawyerDashboardScreen() {
                                 color="#fff"
                             />
                         </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.exitBtn, { backgroundColor: '#333', borderColor: '#444' }]}
+                            onPress={() => navigation.navigate('Market')}
+                        >
+                            <MaterialCommunityIcons
+                                name="store"
+                                size={20}
+                                color="#D4AF37"
+                            />
+                        </TouchableOpacity>
                     </View>
                 </View>
 

@@ -1,9 +1,8 @@
 ﻿import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
-import { Dimensions, FlatList, Image, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Dimensions, Easing, FlatList, Image, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '../../constants/theme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -117,6 +116,49 @@ export default function HomeScreen({ navigation }) {
     const [modalVisible, setModalVisible] = useState(false);
     const [activeCategory, setActiveCategory] = useState(null); // 'iron', 'concrete', 'currency'
 
+    // Hybrid Auto-Scroll Logic
+    // Native Animated Ticker Logic
+    // Using Animated.Value with native driver for zero JS-thread impact
+    const scrollX = useRef(new Animated.Value(0)).current;
+    const [contentWidth, setContentWidth] = useState(0);
+    const animationRef = useRef(null);
+    const [isAutoScrolling, setIsAutoScrolling] = useState(true);
+
+    const startAnimation = () => {
+        // Only start if we have measured width
+        if (contentWidth > 0) {
+            // Calculate duration based on width for consistent speed
+            // Speed factor: 50ms per pixel approx
+            const duration = contentWidth * 20;
+
+            // Create loop animation: 0 -> 1 (mapped to 0 -> -contentWidth)
+            animationRef.current = Animated.loop(
+                Animated.timing(scrollX, {
+                    toValue: 1,
+                    duration: duration,
+                    easing: Easing.linear,
+                    useNativeDriver: true, // CRITICAL: Runs on UI thread
+                })
+            );
+            animationRef.current.start();
+        }
+    };
+
+    const stopAnimation = () => {
+        if (animationRef.current) {
+            animationRef.current.stop();
+        }
+    };
+
+    useEffect(() => {
+        if (isAutoScrolling && contentWidth > 0) {
+            startAnimation();
+        } else {
+            stopAnimation();
+        }
+        return () => stopAnimation();
+    }, [isAutoScrolling, contentWidth]);
+
     useEffect(() => {
         const hour = new Date().getHours();
         if (hour < 12) setGreeting('GÜNAYDIN');
@@ -125,13 +167,21 @@ export default function HomeScreen({ navigation }) {
     }, []);
 
     const openSelectionModal = (categoryKey) => {
-        setActiveCategory(categoryKey);
+        const baseKey = categoryKey.split('-')[0];
+        setActiveCategory(baseKey);
+        setIsAutoScrolling(false); // Stop scrolling instantly
         setModalVisible(true);
     };
 
     const handleSelectOption = (item) => {
         setSelectedValues(prev => ({ ...prev, [activeCategory]: item }));
         setModalVisible(false);
+        setIsAutoScrolling(true); // Resume scrolling
+    };
+
+    const closeModal = () => {
+        setModalVisible(false);
+        setIsAutoScrolling(true);
     };
 
     const renderTickerItem = (item, categoryKey) => (
@@ -167,7 +217,11 @@ export default function HomeScreen({ navigation }) {
             {/* Background Gradient Removed to show Deep Black */}
 
             <SafeAreaView style={{ flex: 1 }}>
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.scrollContent}
+                    keyboardShouldPersistTaps="always"
+                >
 
                     {/* HERO HEADER - REF_IMAGE_MATCH */}
                     <View style={styles.headerContainer}>
@@ -196,31 +250,76 @@ export default function HomeScreen({ navigation }) {
                             {/* Top/Bottom Gold Borders */}
                             <View style={styles.goldBorderTop} />
 
-                            <ScrollView
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                                contentContainerStyle={styles.tickerScroll}
-                            >
-                                {renderTickerItem(selectedValues.iron, 'iron')}
-                                <View style={styles.tickerSeparator} />
-                                {renderTickerItem(selectedValues.concrete, 'concrete')}
-                                <View style={styles.tickerSeparator} />
-                                {renderTickerItem(selectedValues.currency, 'currency')}
-                                <View style={styles.tickerSeparator} />
-                                {/* Static Weather Item */}
-                                <View style={styles.tickerItem}>
-                                    <View style={styles.tickerIconBox}>
-                                        <Ionicons name="sunny" size={14} color="#000" />
-                                    </View>
-                                    <View>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                            <Text style={styles.tickerLabel}>İSTANBUL</Text>
-                                            <Ionicons name="caret-up" size={10} color="#4ADE80" style={{ marginLeft: 4 }} />
+                            {/* Native Animated Ticker (No Drag, High Performance) */}
+                            <View style={{ overflow: 'hidden', width: '100%' }}>
+                                <Animated.View
+                                    style={{
+                                        flexDirection: 'row',
+                                        transform: [{
+                                            translateX: scrollX.interpolate({
+                                                inputRange: [0, 1],
+                                                outputRange: [0, -contentWidth]
+                                            })
+                                        }]
+                                    }}
+                                >
+                                    {/* FIRST SET - We measure this one */}
+                                    <View
+                                        style={{ flexDirection: 'row' }}
+                                        onLayout={(e) => {
+                                            if (contentWidth === 0 && e.nativeEvent.layout.width > 0) {
+                                                setContentWidth(e.nativeEvent.layout.width);
+                                            }
+                                        }}
+                                    >
+                                        {/* Ticker Items */}
+                                        <View style={{ flexDirection: 'row' }}>
+                                            {renderTickerItem(selectedValues.iron, `iron-1`)}
+                                            <View style={styles.tickerSeparator} />
+                                            {renderTickerItem(selectedValues.concrete, `concrete-1`)}
+                                            <View style={styles.tickerSeparator} />
+                                            {renderTickerItem(selectedValues.currency, `currency-1`)}
+                                            <View style={styles.tickerSeparator} />
+                                            <View style={styles.tickerItem}>
+                                                <View style={styles.tickerIconBox}>
+                                                    <Ionicons name="sunny" size={14} color="#000" />
+                                                </View>
+                                                <View>
+                                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                        <Text style={styles.tickerLabel}>İSTANBUL</Text>
+                                                        <Ionicons name="caret-up" size={10} color="#4ADE80" style={{ marginLeft: 4 }} />
+                                                    </View>
+                                                    <Text style={styles.tickerValue}>18°C</Text>
+                                                </View>
+                                            </View>
+                                            <View style={styles.tickerSeparator} />
                                         </View>
-                                        <Text style={styles.tickerValue}>18°C</Text>
                                     </View>
-                                </View>
-                            </ScrollView>
+
+                                    {/* SECOND SET - Duplicate for Loop continuity */}
+                                    <View style={{ flexDirection: 'row' }}>
+                                        {renderTickerItem(selectedValues.iron, `iron-2`)}
+                                        <View style={styles.tickerSeparator} />
+                                        {renderTickerItem(selectedValues.concrete, `concrete-2`)}
+                                        <View style={styles.tickerSeparator} />
+                                        {renderTickerItem(selectedValues.currency, `currency-2`)}
+                                        <View style={styles.tickerSeparator} />
+                                        <View style={styles.tickerItem}>
+                                            <View style={styles.tickerIconBox}>
+                                                <Ionicons name="sunny" size={14} color="#000" />
+                                            </View>
+                                            <View>
+                                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                    <Text style={styles.tickerLabel}>İSTANBUL</Text>
+                                                    <Ionicons name="caret-up" size={10} color="#4ADE80" style={{ marginLeft: 4 }} />
+                                                </View>
+                                                <Text style={styles.tickerValue}>18°C</Text>
+                                            </View>
+                                        </View>
+                                        <View style={styles.tickerSeparator} />
+                                    </View>
+                                </Animated.View>
+                            </View>
 
                             <View style={styles.goldBorderBottom} />
                             <View style={styles.goldBorderBottom} />
@@ -279,39 +378,61 @@ export default function HomeScreen({ navigation }) {
                 animationType="slide"
                 transparent={true}
                 visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
+                onRequestClose={closeModal}
             >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>
-                                {activeCategory ? MARKET_OPTS[activeCategory].title : 'SEÃ‡Ä°M YAPIN'}
-                            </Text>
-                            <TouchableOpacity onPress={() => setModalVisible(false)}>
-                                <Ionicons name="close-circle" size={28} color="#666" />
-                            </TouchableOpacity>
-                        </View>
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={closeModal}
+                >
+                    {/* Glassy Gradient Background for Modal */}
+                    <TouchableOpacity
+                        activeOpacity={1}
+                        style={styles.modalContainer}
+                        onPress={(e) => e.stopPropagation()}
+                    >
+                        <LinearGradient
+                            colors={['#1a1a1a', '#000000']}
+                            style={styles.modalContent}
+                        >
+                            {/* Drag Handle */}
+                            <View style={styles.modalHandleContainer}>
+                                <View style={styles.modalHandle} />
+                            </View>
 
-                        <FlatList
-                            data={activeCategory ? MARKET_OPTS[activeCategory].items : []}
-                            keyExtractor={(item, index) => index.toString()}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    style={styles.modalItem}
-                                    onPress={() => handleSelectOption(item)}
-                                >
-                                    <Text style={styles.modalItemLabel}>{item.label}</Text>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <Text style={styles.modalItemValue}>{item.value}</Text>
-                                        {item.trend === 'up' && <Ionicons name="caret-up" size={14} color={COLORS.success} style={{ marginLeft: 8 }} />}
-                                        {item.trend === 'down' && <Ionicons name="caret-down" size={14} color={COLORS.danger} style={{ marginLeft: 8 }} />}
-                                    </View>
+                            <View style={styles.modalHeader}>
+                                <Text style={styles.modalTitle}>
+                                    {activeCategory ? MARKET_OPTS[activeCategory].title : 'SEÇİM YAPIN'}
+                                </Text>
+                                <TouchableOpacity onPress={closeModal} style={styles.closeBtn}>
+                                    <Ionicons name="close" size={20} color="#000" />
                                 </TouchableOpacity>
-                            )}
-                            ItemSeparatorComponent={() => <View style={styles.modalSeparator} />}
-                        />
-                    </View>
-                </View>
+                            </View>
+
+                            <FlatList
+                                data={activeCategory ? MARKET_OPTS[activeCategory].items : []}
+                                keyExtractor={(item, index) => index.toString()}
+                                contentContainerStyle={{ paddingBottom: 40 }}
+                                renderItem={({ item }) => (
+                                    <TouchableOpacity
+                                        style={styles.modalItem}
+                                        onPress={() => handleSelectOption(item)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Text style={styles.modalItemLabel}>{item.label}</Text>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                            <Text style={styles.modalItemValue}>{item.value}</Text>
+                                            {item.trend === 'up' && <Ionicons name="caret-up" size={14} color="#4ADE80" style={{ marginLeft: 8 }} />}
+                                            {item.trend === 'down' && <Ionicons name="caret-down" size={14} color="#EF4444" style={{ marginLeft: 8 }} />}
+                                            {item.trend === 'neutral' && <Ionicons name="remove" size={14} color="#9CA3AF" style={{ marginLeft: 8 }} />}
+                                        </View>
+                                    </TouchableOpacity>
+                                )}
+                                ItemSeparatorComponent={() => <View style={styles.modalSeparator} />}
+                            />
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </TouchableOpacity>
             </Modal>
 
         </View>
@@ -435,48 +556,81 @@ const styles = StyleSheet.create({
     // Modal Styles
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.8)',
+        backgroundColor: 'rgba(0,0,0,0.85)',
         justifyContent: 'flex-end',
     },
+    modalContainer: {
+        width: '100%',
+        maxHeight: '50%',
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
+        overflow: 'hidden',
+        // Glow effect
+        shadowColor: "#D4AF37",
+        shadowOffset: { width: 0, height: -5 },
+        shadowOpacity: 0.2,
+        shadowRadius: 20,
+        elevation: 10,
+    },
     modalContent: {
-        backgroundColor: '#111',
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        padding: 24,
-        borderTopWidth: 1,
-        borderTopColor: '#333',
-        maxHeight: height * 0.5,
+        width: '100%', // Replaces flex: 1
+        paddingHorizontal: 0,
+    },
+    modalHandleContainer: {
+        alignItems: 'center',
+        paddingVertical: 12,
+    },
+    modalHandle: {
+        width: 40,
+        height: 4,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        borderRadius: 2,
     },
     modalHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 20,
+        paddingHorizontal: 24,
+        paddingBottom: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255,255,255,0.05)',
     },
     modalTitle: {
-        color: COLORS.white,
-        fontSize: 18,
-        fontWeight: 'bold',
+        color: '#D4AF37', // Gold Title
+        fontSize: 20,
+        fontWeight: '900',
         letterSpacing: 1,
+    },
+    closeBtn: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#D4AF37', // Gold Button
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     modalItem: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 16,
+        paddingVertical: 20,
+        paddingHorizontal: 24,
     },
     modalItemLabel: {
-        color: '#ccc',
+        color: '#E5E5E5', // Almost white
         fontSize: 16,
-        fontWeight: '500',
+        fontWeight: '600',
+        letterSpacing: 0.5,
     },
     modalItemValue: {
-        color: '#fff',
-        fontSize: 16,
+        color: '#D4AF37', // Gold Value
+        fontSize: 18,
         fontWeight: 'bold',
+        letterSpacing: 0.5,
     },
     modalSeparator: {
         height: 1,
-        backgroundColor: 'rgba(255,255,255,0.1)',
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        marginHorizontal: 24,
     },
 });

@@ -20,7 +20,7 @@ const RENTAL_CATEGORIES = [
         title: 'VİNÇ SİSTEMLERİ',
         subtitle: 'Kule, Mobil ve Hiyap Çözümleri',
         icon: 'tower-beach',
-        image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=800&auto=format&fit=crop',
+        image: require('../../assets/rental/cover_rental_crane_v1_1767275715417.png'),
         items: [
             { name: 'Mobil Vinç (Lastikli)', type: 'Şehir İçi / Ağır Tonaj', image: require('../../assets/rental/rental_crane_mobile_v1_1767228684034.png') },
             { name: 'Kule Vinç (Sabit)', type: 'Yüksek Yapılar İçin', image: require('../../assets/rental/rental_crane_tower_v1_1767228696248.png') },
@@ -33,7 +33,7 @@ const RENTAL_CATEGORIES = [
         title: 'HAFRİYAT GRUBU',
         subtitle: 'Ekskavatör ve Kazıcılar',
         icon: 'excavator',
-        image: 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?q=80&w=800&auto=format&fit=crop',
+        image: require('../../assets/rental/cover_rental_excavator_v1_1767275744509.png'),
         items: [
             { name: 'Paletli Ekskavatör', type: 'Genel Hafriyat', image: require('../../assets/rental/rental_earth_excavator_crawler_v1_1767228784937.png') },
             { name: 'Lastikli Ekskavatör', type: 'Mobil Kazı İşleri', image: require('../../assets/rental/rental_earth_excavator_wheeled_v1_1767228798846.png') },
@@ -47,7 +47,7 @@ const RENTAL_CATEGORIES = [
         title: 'PLATFORM & MANLIFT',
         subtitle: 'Personel Yükseltici Çözümleri',
         icon: 'ladder',
-        image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=800&auto=format&fit=crop',
+        image: require('../../assets/rental/cover_rental_platform_v3_1767278384979.png'),
         items: [
             { name: 'Makaslı Platform (Akülü)', type: 'İç Mekan / Sessiz', image: require('../../assets/rental/rental_platform_scissor_electric_v1_1767228882412.png') },
             { name: 'Makaslı Platform (Dizel)', type: 'Dış Mekan / Zorlu Zemin', image: require('../../assets/rental/rental_platform_scissor_diesel_v1_1767228896600.png') },
@@ -61,7 +61,7 @@ const RENTAL_CATEGORIES = [
         title: 'YÜKLEYİCİLER (LODER)',
         subtitle: 'Telehandler ve Mini Yükleyiciler',
         icon: 'bulldozer',
-        image: 'https://images.unsplash.com/photo-1518659106066-5e044146a894?q=80&w=800&auto=format&fit=crop',
+        image: require('../../assets/rental/cover_rental_loader_v1_1767275923552.png'),
         items: [
             { name: 'Loder (Lastikli)', type: 'Seri Yükleme', image: require('../../assets/rental/rental_loader_wheel_v1_1767228986639.png') },
             { name: 'Telehandler (Manitou)', type: 'Teleskopik Yükleyici', image: require('../../assets/rental/rental_loader_telehandler_v1_1767229001070.png') },
@@ -74,12 +74,12 @@ const RENTAL_CATEGORIES = [
         title: 'JENERATÖR & GÜÇ',
         subtitle: 'Enerji ve Şantiye Desteği',
         icon: 'lightning-bolt',
-        image: 'https://images.unsplash.com/photo-1563294025-b77827e85746?q=80&w=800&auto=format&fit=crop',
+        image: require('../../assets/rental/cover_rental_generator_v1_1767276003359.png'),
         items: [
             { name: 'Dizel Jeneratör', type: 'Kesintisiz Güç', image: require('../../assets/rental/rental_power_generator_diesel_v1_1767229065030.png') },
             { name: 'Mobil Kompresör', type: 'Basınçlı Hava', image: require('../../assets/rental/rental_power_compressor_mobile_v1_1767229078639.png') },
             { name: 'Işık Kulesi', type: 'Gece Çalışmaları', image: require('../../assets/rental/rental_power_lighttower_v1_1767229094938.png') },
-            { name: 'Konteyner', type: 'Ofis ve Barınma' },
+            { name: 'Konteyner', type: 'Ofis ve Barınma', image: 'https://images.unsplash.com/photo-1495904786722-d2b5a1955543?q=80&w=800&auto=format&fit=crop' },
         ]
     },
 ];
@@ -151,6 +151,7 @@ const MOCK_ITEM_SUPPLIERS = [
 
 
 export default function RentalScreen() {
+    // Force Refresh
     const navigation = useNavigation();
     // Premium Rental Screen UI
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -377,17 +378,19 @@ export default function RentalScreen() {
                                         activeOpacity={0.9}
                                     >
                                         <ImageBackground
-                                            source={{ uri: cat.image }}
+                                            source={typeof cat.image === 'number' ? cat.image : { uri: cat.image }}
                                             style={styles.gridImage}
                                             imageStyle={{ borderRadius: 16 }}
                                         >
-                                            <LinearGradient colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.9)']} style={StyleSheet.absoluteFill} />
+                                            <LinearGradient colors={['transparent', 'rgba(0,0,0,0.9)']} style={StyleSheet.absoluteFill} />
+                                            <View style={styles.gridIconBadge}>
+                                                <MaterialCommunityIcons name={cat.icon} size={20} color="#D4AF37" />
+                                            </View>
                                             <View style={styles.gridContent}>
-                                                <View style={styles.gridIconBadge}>
-                                                    <MaterialCommunityIcons name={cat.icon} size={20} color="#D4AF37" />
+                                                <View style={{ flex: 1, paddingRight: 4 }}>
+                                                    <Text style={styles.gridTitle} numberOfLines={2}>{cat.title}</Text>
                                                 </View>
-                                                <Text style={styles.gridTitle} numberOfLines={2}>{cat.title}</Text>
-                                                <Text style={styles.gridSub}>{cat.items.length} Model</Text>
+                                                <MaterialCommunityIcons name="chevron-right" size={20} color="#D4AF37" />
                                             </View>
                                         </ImageBackground>
                                         <View style={styles.gridBorder} />
@@ -772,9 +775,9 @@ const styles = StyleSheet.create({
     sectionHeader: { color: '#D4AF37', fontSize: 13, fontWeight: '900', marginBottom: 16, letterSpacing: 1 },
     gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
     gridCard: { width: '48%', height: 160, marginBottom: 16, borderRadius: 16, overflow: 'hidden' },
-    gridImage: { flex: 1, justifyContent: 'flex-end', padding: 12 },
-    gridContent: { zIndex: 2 },
-    gridIconBadge: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+    gridImage: { flex: 1, justifyContent: 'flex-end' },
+    gridContent: { zIndex: 2, flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', padding: 12, paddingBottom: 12 },
+    gridIconBadge: { position: 'absolute', top: 0, right: 0, width: 36, height: 36, borderBottomLeftRadius: 16, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' },
     gridTitle: { color: '#fff', fontSize: 14, fontWeight: 'bold', marginBottom: 2, textShadowColor: 'rgba(0,0,0,0.8)', textShadowRadius: 3 },
     gridSub: { color: '#bbb', fontSize: 11 },
     gridBorder: { ...StyleSheet.absoluteFillObject, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
