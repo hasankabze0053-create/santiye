@@ -22,10 +22,10 @@ const RENTAL_CATEGORIES = [
         icon: 'tower-beach',
         image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=800&auto=format&fit=crop',
         items: [
-            { name: 'Mobil Vinç (Lastikli)', type: 'Şehir İçi / Ağır Tonaj' },
-            { name: 'Kule Vinç (Sabit)', type: 'Yüksek Yapılar İçin' },
-            { name: 'Hiyap Vinç (Kamyon Üstü)', type: 'Nakliye ve Montaj' },
-            { name: 'Paletli Vinç', type: 'Zorlu Zeminler' },
+            { name: 'Mobil Vinç (Lastikli)', type: 'Şehir İçi / Ağır Tonaj', image: require('../../assets/rental/rental_crane_mobile_v1_1767228684034.png') },
+            { name: 'Kule Vinç (Sabit)', type: 'Yüksek Yapılar İçin', image: require('../../assets/rental/rental_crane_tower_v1_1767228696248.png') },
+            { name: 'Hiyap Vinç (Kamyon Üstü)', type: 'Nakliye ve Montaj', image: require('../../assets/rental/rental_crane_hiab_v1_1767228708978.png') },
+            { name: 'Paletli Vinç', type: 'Zorlu Zeminler', image: require('../../assets/rental/rental_crane_crawler_v1_1767228723658.png') },
         ]
     },
     {
@@ -35,11 +35,11 @@ const RENTAL_CATEGORIES = [
         icon: 'excavator',
         image: 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?q=80&w=800&auto=format&fit=crop',
         items: [
-            { name: 'Paletli Ekskavatör', type: 'Genel Hafriyat' },
-            { name: 'Lastikli Ekskavatör', type: 'Mobil Kazı İşleri' },
-            { name: 'Beko Loder (JCB)', type: 'Kanal ve Altyapı' },
-            { name: 'Mini Ekskavatör', type: 'Peyzaj ve Dar Alan' },
-            { name: 'Yıkım Ekskavatörü', type: 'Uzun Bomlu (High Reach)' },
+            { name: 'Paletli Ekskavatör', type: 'Genel Hafriyat', image: require('../../assets/rental/rental_earth_excavator_crawler_v1_1767228784937.png') },
+            { name: 'Lastikli Ekskavatör', type: 'Mobil Kazı İşleri', image: require('../../assets/rental/rental_earth_excavator_wheeled_v1_1767228798846.png') },
+            { name: 'Beko Loder (JCB)', type: 'Kanal ve Altyapı', image: require('../../assets/rental/rental_earth_backhoe_v1_1767228815249.png') },
+            { name: 'Mini Ekskavatör', type: 'Peyzaj ve Dar Alan', image: require('../../assets/rental/rental_earth_excavator_mini_v1_1767228829549.png') },
+            { name: 'Yıkım Ekskavatörü', type: 'Uzun Bomlu (High Reach)', image: require('../../assets/rental/rental_earth_excavator_demolition_v1_1767228843857.png') },
         ]
     },
     {
@@ -49,11 +49,11 @@ const RENTAL_CATEGORIES = [
         icon: 'ladder',
         image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=800&auto=format&fit=crop',
         items: [
-            { name: 'Makaslı Platform (Akülü)', type: 'İç Mekan / Sessiz' },
-            { name: 'Makaslı Platform (Dizel)', type: 'Dış Mekan / Zorlu Zemin' },
-            { name: 'Eklemli Platform', type: 'Yanal Erişim' },
-            { name: 'Örümcek Platform', type: 'Hassas Zeminler' },
-            { name: 'Sepetli Vinç', type: 'Araç Üstü Erişim' },
+            { name: 'Makaslı Platform (Akülü)', type: 'İç Mekan / Sessiz', image: require('../../assets/rental/rental_platform_scissor_electric_v1_1767228882412.png') },
+            { name: 'Makaslı Platform (Dizel)', type: 'Dış Mekan / Zorlu Zemin', image: require('../../assets/rental/rental_platform_scissor_diesel_v1_1767228896600.png') },
+            { name: 'Eklemli Platform', type: 'Yanal Erişim', image: require('../../assets/rental/rental_platform_articulated_v1_1767228911062.png') },
+            { name: 'Örümcek Platform', type: 'Hassas Zeminler', image: require('../../assets/rental/rental_platform_spider_v1_1767228926171.png') },
+            { name: 'Sepetli Vinç', type: 'Araç Üstü Erişim', image: require('../../assets/rental/rental_platform_bucket_v1_1767228941002.png') },
         ]
     },
     {
@@ -63,10 +63,10 @@ const RENTAL_CATEGORIES = [
         icon: 'bulldozer',
         image: 'https://images.unsplash.com/photo-1518659106066-5e044146a894?q=80&w=800&auto=format&fit=crop',
         items: [
-            { name: 'Loder (Lastikli)', type: 'Seri Yükleme' },
-            { name: 'Telehandler (Manitou)', type: 'Teleskopik Yükleyici' },
-            { name: 'Bobcat (Mini Yükleyici)', type: 'Dar Alan / Seri' },
-            { name: 'Forklift', type: 'Paletli Malzeme' },
+            { name: 'Loder (Lastikli)', type: 'Seri Yükleme', image: require('../../assets/rental/rental_loader_wheel_v1_1767228986639.png') },
+            { name: 'Telehandler (Manitou)', type: 'Teleskopik Yükleyici', image: require('../../assets/rental/rental_loader_telehandler_v1_1767229001070.png') },
+            { name: 'Bobcat (Mini Yükleyici)', type: 'Dar Alan / Seri', image: require('../../assets/rental/rental_loader_bobcat_v1_1767229015783.png') },
+            { name: 'Forklift', type: 'Paletli Malzeme', image: require('../../assets/rental/rental_loader_forklift_v1_1767229029915.png') },
         ]
     },
     {
@@ -76,9 +76,9 @@ const RENTAL_CATEGORIES = [
         icon: 'lightning-bolt',
         image: 'https://images.unsplash.com/photo-1563294025-b77827e85746?q=80&w=800&auto=format&fit=crop',
         items: [
-            { name: 'Dizel Jeneratör', type: 'Kesintisiz Güç' },
-            { name: 'Mobil Kompresör', type: 'Basınçlı Hava' },
-            { name: 'Işık Kulesi', type: 'Gece Çalışmaları' },
+            { name: 'Dizel Jeneratör', type: 'Kesintisiz Güç', image: require('../../assets/rental/rental_power_generator_diesel_v1_1767229065030.png') },
+            { name: 'Mobil Kompresör', type: 'Basınçlı Hava', image: require('../../assets/rental/rental_power_compressor_mobile_v1_1767229078639.png') },
+            { name: 'Işık Kulesi', type: 'Gece Çalışmaları', image: require('../../assets/rental/rental_power_lighttower_v1_1767229094938.png') },
             { name: 'Konteyner', type: 'Ofis ve Barınma' },
         ]
     },
@@ -263,7 +263,7 @@ export default function RentalScreen() {
                         style={styles.headerBtn}
                         onPress={() => navigation.navigate('CorporateDashboard')}
                     >
-                        <MaterialCommunityIcons name="briefcase-check" size={28} color="#FFD700" />
+                        <MaterialCommunityIcons name="briefcase-check" size={28} color="#D4AF37" />
                     </TouchableOpacity>
                 </View>
 
@@ -322,11 +322,11 @@ export default function RentalScreen() {
                                     colors={activeTab === 'periodic' ? ['#2A2A2A', '#1A1A1A'] : ['#1A1A1A', '#111']}
                                     style={styles.typeCardGradient}
                                 >
-                                    <View style={[styles.typeIconCircle, activeTab === 'periodic' && { backgroundColor: '#FFD700' }]}>
-                                        <MaterialCommunityIcons name="clock-time-four" size={24} color={activeTab === 'periodic' ? '#000' : '#FFD700'} />
+                                    <View style={[styles.typeIconCircle, activeTab === 'periodic' && { backgroundColor: '#D4AF37' }]}>
+                                        <MaterialCommunityIcons name="clock-time-four" size={24} color={activeTab === 'periodic' ? '#000' : '#D4AF37'} />
                                     </View>
                                     <View>
-                                        <Text style={[styles.typeCardTitle, activeTab === 'periodic' && { color: '#FFD700' }]}>SÜRELİ KİRALAMA</Text>
+                                        <Text style={[styles.typeCardTitle, activeTab === 'periodic' && { color: '#D4AF37' }]}>SÜRELİ KİRALAMA</Text>
                                         <Text style={styles.typeCardSub}>Saatlik / Günlük</Text>
                                     </View>
                                 </LinearGradient>
@@ -342,10 +342,10 @@ export default function RentalScreen() {
                                     style={styles.typeCardGradient}
                                 >
                                     <View style={[styles.typeIconCircle, activeTab === 'project' && { backgroundColor: '#1A1A1A', borderColor: '#333' }]}>
-                                        <MaterialCommunityIcons name="domain" size={24} color={activeTab === 'project' ? '#F5F5F5' : '#FFD700'} />
+                                        <MaterialCommunityIcons name="domain" size={24} color={activeTab === 'project' ? '#F5F5F5' : '#D4AF37'} />
                                     </View>
                                     <View>
-                                        <Text style={[styles.typeCardTitle, activeTab === 'project' ? { color: '#000' } : { color: '#FFD700' }]}>KURUMSAL KİRALAMA</Text>
+                                        <Text style={[styles.typeCardTitle, activeTab === 'project' ? { color: '#000' } : { color: '#D4AF37' }]}>KURUMSAL KİRALAMA</Text>
                                         <Text style={[styles.typeCardSub, activeTab === 'project' && { color: '#444' }]}>Filo ve Proje Çözümleri</Text>
                                     </View>
                                 </LinearGradient>
@@ -362,7 +362,7 @@ export default function RentalScreen() {
                                 onPress={() => setSearchVisible(true)}
                                 activeOpacity={0.8}
                             >
-                                <MaterialCommunityIcons name="magnify" size={24} color="#FFD700" />
+                                <MaterialCommunityIcons name="magnify" size={24} color="#D4AF37" />
                                 <Text style={styles.searchText}>Makine Parkurunda Ara...</Text>
                             </TouchableOpacity>
 
@@ -384,7 +384,7 @@ export default function RentalScreen() {
                                             <LinearGradient colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.9)']} style={StyleSheet.absoluteFill} />
                                             <View style={styles.gridContent}>
                                                 <View style={styles.gridIconBadge}>
-                                                    <MaterialCommunityIcons name={cat.icon} size={20} color="#FFD700" />
+                                                    <MaterialCommunityIcons name={cat.icon} size={20} color="#D4AF37" />
                                                 </View>
                                                 <Text style={styles.gridTitle} numberOfLines={2}>{cat.title}</Text>
                                                 <Text style={styles.gridSub}>{cat.items.length} Model</Text>
@@ -402,7 +402,7 @@ export default function RentalScreen() {
                         <View style={{ padding: 20 }}>
                             {/* Original Project Header Layout */}
                             <View style={{ marginBottom: 24, paddingHorizontal: 4 }}>
-                                <Text style={{ fontSize: 24, fontWeight: '900', color: '#FFD700', marginBottom: 8 }}>KURUMSAL FİLO YÖNETİMİ</Text>
+                                <Text style={{ fontSize: 24, fontWeight: '900', color: '#D4AF37', marginBottom: 8 }}>KURUMSAL FİLO YÖNETİMİ</Text>
                                 <Text style={{ fontSize: 14, color: '#ccc', lineHeight: 20 }}>
                                     Büyük ölçekli şantiyeler ve projeler için uzun vadeli makine kiralama, yedek parça ve yerinde servis çözümleri teklifi alın.
                                 </Text>
@@ -439,7 +439,7 @@ export default function RentalScreen() {
                                             placeholderTextColor="#666"
                                         />
                                         <TouchableOpacity style={styles.gpsButton}>
-                                            <MaterialCommunityIcons name="crosshairs-gps" size={24} color="#FFD700" />
+                                            <MaterialCommunityIcons name="crosshairs-gps" size={24} color="#D4AF37" />
                                         </TouchableOpacity>
                                     </View>
                                 </View>
@@ -449,7 +449,7 @@ export default function RentalScreen() {
                                     <Text style={styles.label}>Fotoğraf Ekle (Opsiyonel)</Text>
                                     <View style={styles.galleryContainer}>
                                         <TouchableOpacity style={styles.addPhotoBtn} onPress={handleAddPhoto}>
-                                            <Ionicons name="camera" size={32} color="#FFD700" />
+                                            <Ionicons name="camera" size={32} color="#D4AF37" />
                                             <Text style={styles.addPhotoText}>Fotoğraf Ekle</Text>
                                         </TouchableOpacity>
                                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -473,7 +473,7 @@ export default function RentalScreen() {
                                         <View key={m.id} style={styles.machineCard}>
                                             <View style={styles.machineInfo}>
                                                 <View style={styles.machineIconBox}>
-                                                    <MaterialCommunityIcons name={m.icon} size={20} color="#FFD700" />
+                                                    <MaterialCommunityIcons name={m.icon} size={20} color="#D4AF37" />
                                                 </View>
                                                 <Text style={styles.machineName} numberOfLines={1}>{m.name}</Text>
                                             </View>
@@ -502,7 +502,7 @@ export default function RentalScreen() {
 
                                 {/* 5. Submit Button */}
                                 <TouchableOpacity style={styles.submitBtn} onPress={() => Alert.alert('Başarılı', 'Proje talebiniz alındı. Uzman ekibimiz en kısa sürede size ulaşacaktır.')}>
-                                    <LinearGradient colors={['#FFD700', '#FFA500']} style={styles.submitGradient}>
+                                    <LinearGradient colors={['#D4AF37', '#FFA500']} style={styles.submitGradient}>
                                         <Text style={styles.submitBtnText}>TEKLİF İSTE</Text>
                                     </LinearGradient>
                                 </TouchableOpacity>
@@ -524,7 +524,7 @@ export default function RentalScreen() {
                                     <View key={idx} style={styles.cardContainer}>
                                         <TouchableOpacity activeOpacity={0.9} onPress={() => togglePricing(idx)}>
                                             <LinearGradient
-                                                colors={['#D0D0D0', '#777777']} // Premium Darker Silver Gradient
+                                                colors={['#2C2C2C', '#1A1A1A']} // Lighter Dark Gradient for Separation
                                                 style={styles.itemCard}
                                                 start={{ x: 0, y: 0 }}
                                                 end={{ x: 1, y: 1 }}
@@ -532,7 +532,11 @@ export default function RentalScreen() {
                                                 <View style={styles.itemInfo}>
                                                     {/* Machine Image (Thumbnail) */}
                                                     <View style={styles.itemImageBox}>
-                                                        <Image source={{ uri: item.image || selectedCategory.image }} style={styles.itemImage} resizeMode="cover" />
+                                                        <Image
+                                                            source={typeof item.image === 'number' ? item.image : { uri: item.image || selectedCategory.image }}
+                                                            style={styles.itemImage}
+                                                            resizeMode="cover"
+                                                        />
                                                     </View>
                                                     <View style={{ flex: 1, paddingRight: 8 }}>
                                                         <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
@@ -543,7 +547,7 @@ export default function RentalScreen() {
                                                 {/* Price Info Button */}
                                                 <View style={styles.priceInfoBtn}>
                                                     <Text style={styles.priceInfoText}>FİYATLAR</Text>
-                                                    <MaterialCommunityIcons name={isExpanded ? "chevron-up" : "chevron-down"} size={18} color="#FFD700" />
+                                                    <MaterialCommunityIcons name={isExpanded ? "chevron-up" : "chevron-down"} size={18} color="#D4AF37" />
                                                 </View>
                                             </LinearGradient>
                                         </TouchableOpacity>
@@ -555,7 +559,7 @@ export default function RentalScreen() {
                                                 {MOCK_ITEM_SUPPLIERS.map((supplier) => (
                                                     <LinearGradient
                                                         key={supplier.id}
-                                                        colors={['#D0D0D0', '#777777']} // Premium Darker Silver Gradient
+                                                        colors={['#1A1A1A', '#000000']} // Obsidian Gradient
                                                         style={styles.supplierCard}
                                                         start={{ x: 0, y: 0 }}
                                                         end={{ x: 1, y: 1 }}
@@ -563,11 +567,11 @@ export default function RentalScreen() {
                                                         {/* Supplier Header */}
                                                         <View style={styles.supplierHeader}>
                                                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                                <MaterialCommunityIcons name={supplier.logo} size={18} color="#000" style={{ marginRight: 6 }} />
+                                                                <MaterialCommunityIcons name={supplier.logo} size={18} color="#D4AF37" style={{ marginRight: 6 }} />
                                                                 <Text style={styles.supplierName}>{supplier.name}</Text>
                                                             </View>
                                                             {supplier.verified && (
-                                                                <MaterialCommunityIcons name="check-decagram" size={16} color="#000" />
+                                                                <MaterialCommunityIcons name="check-decagram" size={16} color="#D4AF37" />
                                                             )}
                                                         </View>
 
@@ -634,7 +638,7 @@ export default function RentalScreen() {
                                 </View>
 
                                 <View style={styles.searchInputContainer}>
-                                    <Ionicons name="search" size={20} color="#FFD700" style={{ marginRight: 10 }} />
+                                    <Ionicons name="search" size={20} color="#D4AF37" style={{ marginRight: 10 }} />
                                     <TextInput
                                         style={styles.searchInput}
                                         placeholder="Makine adı veya kategori..."
@@ -663,7 +667,7 @@ export default function RentalScreen() {
                                     renderItem={({ item }) => (
                                         <View style={styles.searchResultItem}>
                                             <View style={styles.itemIconBox}>
-                                                <MaterialCommunityIcons name={item.categoryIcon} size={24} color="#FFD700" />
+                                                <MaterialCommunityIcons name={item.categoryIcon} size={24} color="#D4AF37" />
                                             </View>
                                             <View style={{ flex: 1 }}>
                                                 <Text style={styles.itemName}>{item.name}</Text>
@@ -706,7 +710,7 @@ export default function RentalScreen() {
                                 {PROPOSAL_CATEGORIES.map(cat => (
                                     <View key={cat.id} style={styles.modalCategory}>
                                         <View style={styles.modalCatHeader}>
-                                            <MaterialCommunityIcons name={cat.icon} size={20} color="#FFD700" style={{ marginRight: 8 }} />
+                                            <MaterialCommunityIcons name={cat.icon} size={20} color="#D4AF37" style={{ marginRight: 8 }} />
                                             <Text style={styles.modalCatTitle}>{cat.title}</Text>
                                         </View>
                                         <View style={styles.modalItemsRow}>
@@ -736,7 +740,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#000' },
     scrollContent: { paddingBottom: 100 },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 10 },
-    headerTitle: { color: '#FFD700', fontSize: 13, fontWeight: '900', letterSpacing: 2 },
+    headerTitle: { color: '#D4AF37', fontSize: 13, fontWeight: '900', letterSpacing: 2 },
     headerSubtitle: { color: '#fff', fontSize: 11, fontWeight: '300' },
     headerBtn: { padding: 5 },
 
@@ -744,18 +748,18 @@ const styles = StyleSheet.create({
     showcaseContainer: { height: 220, marginBottom: 20 },
     showcaseCard: { width: width, height: 220 },
     showcaseImage: { width: '100%', height: '100%', justifyContent: 'flex-end', padding: 20 },
-    showcaseTag: { position: 'absolute', top: 20, right: 20, backgroundColor: '#FFD700', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+    showcaseTag: { position: 'absolute', top: 20, right: 20, backgroundColor: '#D4AF37', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
     showcaseTagText: { fontSize: 10, fontWeight: 'bold', color: '#000' },
     showcaseTextContent: { marginBottom: 20 },
     showcaseTitle: { color: '#fff', fontSize: 24, fontWeight: '900', marginBottom: 4, textShadowColor: 'rgba(0,0,0,0.8)', textShadowRadius: 5 },
     showcaseSubtitle: { color: '#ddd', fontSize: 13, textShadowColor: 'rgba(0,0,0,0.8)', textShadowRadius: 5 },
     pagination: { flexDirection: 'row', position: 'absolute', bottom: 10, alignSelf: 'center' },
-    dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFD700', marginHorizontal: 4 },
+    dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#D4AF37', marginHorizontal: 4 },
 
     // TYPE SELECTOR
     typeSelectorContainer: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 24 },
     typeCard: { width: '48%', height: 90, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#333' },
-    typeCardActive: { borderColor: '#FFD700', transform: [{ scale: 1.02 }] },
+    typeCardActive: { borderColor: '#D4AF37', transform: [{ scale: 1.02 }] },
     typeCardGradient: { flex: 1, justifyContent: 'center', padding: 12 },
     typeIconCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#333', justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
     typeCardTitle: { color: '#fff', fontSize: 11, fontWeight: 'bold' },
@@ -765,7 +769,7 @@ const styles = StyleSheet.create({
     gridSection: { paddingHorizontal: 16 },
     searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', height: 48, borderRadius: 12, paddingHorizontal: 12, marginBottom: 20, borderWidth: 1, borderColor: '#333' },
     searchText: { color: '#666', marginLeft: 10, fontSize: 14 },
-    sectionHeader: { color: '#FFD700', fontSize: 13, fontWeight: '900', marginBottom: 16, letterSpacing: 1 },
+    sectionHeader: { color: '#D4AF37', fontSize: 13, fontWeight: '900', marginBottom: 16, letterSpacing: 1 },
     gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
     gridCard: { width: '48%', height: 160, marginBottom: 16, borderRadius: 16, overflow: 'hidden' },
     gridImage: { flex: 1, justifyContent: 'flex-end', padding: 12 },
@@ -783,14 +787,16 @@ const styles = StyleSheet.create({
 
     cardContainer: { marginBottom: 16 },
     // Silver Gradient Look for Item Card
+    // Detail View Item Card (Dark Theme)
     itemCard: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: 0,
-        borderRadius: 12, // Reduced for elegance
-        borderWidth: 0, // Removed border for cleaner look
-        height: 110, // Updated to match Market Screen
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#D4AF37', // Gold Border
+        height: 110,
         overflow: 'hidden',
         // Shadow for depth
         shadowColor: "#000",
@@ -800,33 +806,32 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     itemInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-    itemImageBox: { width: 110, height: 110 }, // Updated to match card height
+    itemImageBox: { width: 110, height: 110 },
     itemImage: { width: '100%', height: '100%' },
-    itemName: { color: '#000', fontSize: 15, fontWeight: '800', marginBottom: 2, marginLeft: 12 }, // Black text for silver bg
-    itemType: { color: '#444', fontSize: 12, marginLeft: 12, fontWeight: '500' }, // Dark grey text
-    priceInfoBtn: { alignItems: 'center', justifyContent: 'center', backgroundColor: '#000', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, marginRight: 12 }, // Updated padding
-    priceInfoText: { color: '#FFD700', fontSize: 13, fontWeight: 'bold' }, // Updated font size
+    itemName: { color: '#FFF', fontSize: 15, fontWeight: '800', marginBottom: 2, marginLeft: 12 }, // White Text
+    itemType: { color: '#BBB', fontSize: 12, marginLeft: 12, fontWeight: '500' }, // Light Grey Text
+    priceInfoBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#000', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, marginRight: 12 }, // Black Button
+    priceInfoText: { color: '#D4AF37', fontSize: 13, fontWeight: 'bold', marginRight: 4 }, // Gold Text
 
     // ACCORDION
-    accordionContent: { backgroundColor: '#1A1A1A', marginTop: 4, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#333' },
-    accordionTitle: { color: '#FFD700', fontSize: 14, fontWeight: 'bold', marginBottom: 12 },
+    accordionContent: { backgroundColor: '#111', marginTop: 4, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#333' },
+    accordionTitle: { color: '#D4AF37', fontSize: 14, fontWeight: 'bold', marginBottom: 12 },
 
-    // Supplier Card
-    // Supplier Card - Updated for Silver Theme
-    supplierCard: { marginBottom: 16, borderRadius: 12, padding: 12, overflow: 'hidden' }, // BG handled by Gradient
-    supplierHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, borderBottomWidth: 1, borderBottomColor: '#999', paddingBottom: 8 },
-    supplierName: { color: '#000', fontSize: 14, fontWeight: 'bold' },
+    // Supplier Card (Dark Theme)
+    supplierCard: { marginBottom: 16, borderRadius: 12, padding: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#333' },
+    supplierHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, borderBottomWidth: 1, borderBottomColor: '#333', paddingBottom: 8 },
+    supplierName: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
     priceGrid: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
     priceColumn: { alignItems: 'center', flex: 1 },
-    priceSeparator: { width: 1, backgroundColor: '#999', height: '80%' },
-    priceLabel: { color: '#333', fontSize: 12, fontWeight: 'bold', marginBottom: 4 },
-    priceValue: { color: '#000', fontSize: 14, fontWeight: '900' },
-    selectSupplierBtn: { backgroundColor: '#000', borderRadius: 8, paddingVertical: 10, alignItems: 'center', marginTop: 4 },
-    selectSupplierText: { color: '#FFD700', fontSize: 12, fontWeight: 'bold' },
+    priceSeparator: { width: 1, backgroundColor: '#333', height: '80%' },
+    priceLabel: { color: '#888', fontSize: 12, fontWeight: 'bold', marginBottom: 4 },
+    priceValue: { color: '#D4AF37', fontSize: 14, fontWeight: '900' },
+    selectSupplierBtn: { backgroundColor: '#D4AF37', borderRadius: 8, paddingVertical: 10, alignItems: 'center', marginTop: 4 },
+    selectSupplierText: { color: '#000', fontSize: 12, fontWeight: 'bold' },
 
     // STICKY FOOTER
     stickyFooter: { position: 'absolute', bottom: 20, left: 16, right: 16, alignItems: 'center' },
-    quickOfferBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFD700', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 30, shadowColor: '#FFD700', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
+    quickOfferBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#D4AF37', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 30, shadowColor: '#D4AF37', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
     quickOfferText: { color: '#000', fontWeight: 'bold', fontSize: 14, marginRight: 8 },
 
     // PROJECT FORM STYLES
@@ -854,7 +859,7 @@ const styles = StyleSheet.create({
     qtyContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#222', borderRadius: 8, padding: 4, marginRight: 12 },
     qtyBtn: { width: 24, height: 24, justifyContent: 'center', alignItems: 'center', backgroundColor: '#333', borderRadius: 6 },
     qtyText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-    qtyValue: { color: '#FFD700', fontSize: 14, fontWeight: 'bold', marginHorizontal: 10 },
+    qtyValue: { color: '#D4AF37', fontSize: 14, fontWeight: 'bold', marginHorizontal: 10 },
     removeMachineBtn: { padding: 4 },
     addMachineBtn: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', padding: 16, borderWidth: 1, borderColor: '#333', borderStyle: 'dashed', borderRadius: 12, marginTop: 10 },
     addMachineText: { color: '#ccc', marginLeft: 8, fontWeight: '500' },
@@ -872,12 +877,12 @@ const styles = StyleSheet.create({
     searchInput: { flex: 1, color: '#fff', fontSize: 14 },
     searchResultItem: { flexDirection: 'row', alignItems: 'center', padding: 12, borderBottomWidth: 1, borderBottomColor: '#333' },
     itemIconBox: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#333', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-    rentButton: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#FFD700', justifyContent: 'center', alignItems: 'center' },
+    rentButton: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#D4AF37', justifyContent: 'center', alignItems: 'center' },
 
     // Machine Selection Modal Specific
     modalCategory: { marginBottom: 24 },
     modalCatHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-    modalCatTitle: { color: '#FFD700', fontSize: 14, fontWeight: 'bold' },
+    modalCatTitle: { color: '#D4AF37', fontSize: 14, fontWeight: 'bold' },
     modalItemsRow: { flexDirection: 'row', flexWrap: 'wrap' },
     modalItemBadge: { backgroundColor: '#333', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, marginRight: 8, marginBottom: 8, borderWidth: 1, borderColor: '#444' },
     modalItemText: { color: '#fff', fontSize: 12 },

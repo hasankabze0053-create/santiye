@@ -187,13 +187,13 @@ export default function MarketScreen() {
                         </Text>
                     </View>
                     <TouchableOpacity style={styles.headerBtn}>
-                        <MaterialCommunityIcons name="account-circle-outline" size={28} color="#FFD700" />
+                        <MaterialCommunityIcons name="account-circle-outline" size={28} color="#D4AF37" />
                     </TouchableOpacity>
                 </View>
 
                 {/* SEARCH BAR (In-Flow) */}
                 <View style={styles.searchContainer}>
-                    <Ionicons name="search" size={20} color="#FFD700" style={{ marginRight: 8 }} />
+                    <Ionicons name="search" size={20} color="#D4AF37" style={{ marginRight: 8 }} />
                     <TextInput
                         placeholder="Malzeme, Firma veya Konum Ara..."
                         placeholderTextColor="#666"
@@ -280,7 +280,7 @@ export default function MarketScreen() {
                                         <ImageBackground source={{ uri: cat.image }} style={styles.gridImage} imageStyle={{ borderRadius: 16 }}>
                                             <LinearGradient colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.85)']} style={StyleSheet.absoluteFill} />
                                             <View style={styles.gridContent}>
-                                                <MaterialCommunityIcons name={cat.icon} size={24} color="#FFD700" style={{ marginBottom: 4 }} />
+                                                <MaterialCommunityIcons name={cat.icon} size={24} color="#D4AF37" style={{ marginBottom: 4 }} />
                                                 <Text style={styles.gridTitle}>{cat.title}</Text>
                                             </View>
                                         </ImageBackground>
@@ -312,7 +312,7 @@ export default function MarketScreen() {
                                         <ImageBackground source={{ uri: sub.image }} style={styles.gridImage} imageStyle={{ borderRadius: 16 }}>
                                             <LinearGradient colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.85)']} style={StyleSheet.absoluteFill} />
                                             <View style={styles.gridContent}>
-                                                <MaterialCommunityIcons name={sub.icon} size={24} color="#FFD700" style={{ marginBottom: 4 }} />
+                                                <MaterialCommunityIcons name={sub.icon} size={24} color="#D4AF37" style={{ marginBottom: 4 }} />
                                                 <Text style={styles.gridTitle}>{sub.name}</Text>
                                                 <View style={styles.gridBadge}>
                                                     <Text style={styles.gridBadgeText}>
@@ -362,8 +362,8 @@ export default function MarketScreen() {
                             {filteredItems.map((item, idx) => {
                                 const isExpanded = expandedItemIndex === idx;
                                 return (
-                                    <View key={idx} style={[styles.productCard, isExpanded && { height: 'auto', borderColor: '#FFD700', borderWidth: 1 }]}>
-                                        <LinearGradient colors={['#D0D0D0', '#777777']} style={styles.productMainRow} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                                    <View key={idx} style={[styles.productCard, isExpanded && { height: 'auto', borderColor: '#D4AF37', borderWidth: 1 }]}>
+                                        <LinearGradient colors={['#2C2C2C', '#1A1A1A']} style={styles.productMainRow} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
                                             <View style={styles.productImageContainer}>
                                                 <ImageBackground source={{ uri: selectedCategory.image }} style={styles.productImage}>
                                                     <LinearGradient colors={['transparent', 'rgba(0,0,0,0.3)']} style={StyleSheet.absoluteFill} />
@@ -379,23 +379,23 @@ export default function MarketScreen() {
                                                     <Text style={styles.productName}>{item.name}</Text>
                                                     <Text style={styles.productSpec}>{item.spec}</Text>
                                                     {isExpanded && item.options && (
-                                                        <Text style={{ fontSize: 11, color: '#444', marginTop: 4 }}>
+                                                        <Text style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
                                                             Seçim: {Object.values(selectedOptions).join(', ')}
                                                         </Text>
                                                     )}
                                                 </View>
 
                                                 <TouchableOpacity
-                                                    style={[styles.priceExpandBtn, isExpanded && { backgroundColor: '#333' }]}
+                                                    style={[styles.priceExpandBtn, isExpanded && { backgroundColor: '#000' }]} // Keep Black
                                                     onPress={() => toggleExpand(idx, filteredItems)}
                                                 >
-                                                    <Text style={[styles.priceExpandText, isExpanded && { color: '#FFD700' }]}>
+                                                    <Text style={[styles.priceExpandText, isExpanded && { color: '#D4AF37' }]}>
                                                         {isExpanded ? 'KAPAT' : 'FİYAT'}
                                                     </Text>
                                                     <MaterialCommunityIcons
                                                         name={isExpanded ? "chevron-up" : "chevron-down"}
                                                         size={20}
-                                                        color={isExpanded ? "#FFD700" : "#FFD700"}
+                                                        color="#D4AF37"
                                                         style={{ marginLeft: 4 }}
                                                     />
                                                 </TouchableOpacity>
@@ -403,7 +403,7 @@ export default function MarketScreen() {
                                         </LinearGradient>
 
                                         {isExpanded && (
-                                            <LinearGradient colors={['#D0D0D0', '#777777']} style={[styles.supplierListContainer, { backgroundColor: 'transparent' }]}>
+                                            <LinearGradient colors={['#1A1A1A', '#000000']} style={[styles.supplierListContainer, { backgroundColor: 'transparent' }]}>
 
                                                 {/* Variants Selection */}
                                                 {renderVariationSelectors(item)}
@@ -421,7 +421,7 @@ export default function MarketScreen() {
                                                                     <Text style={[styles.supplierNameText, { textDecorationLine: 'underline' }]}>{supplier.name}</Text>
                                                                 </TouchableOpacity>
                                                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                                    <Ionicons name="star" size={12} color="#FFD700" />
+                                                                    <Ionicons name="star" size={12} color="#D4AF37" />
                                                                     <Text style={styles.supplierRating}>{supplier.rating}</Text>
                                                                 </View>
                                                             </View>
@@ -429,7 +429,7 @@ export default function MarketScreen() {
 
                                                         <View style={{ alignItems: 'flex-end', gap: 6 }}>
                                                             <View style={{ alignItems: 'flex-end' }}>
-                                                                <Text style={{ color: '#666', fontSize: 10, fontWeight: 'bold' }}>BİRİM FİYAT</Text>
+                                                                <Text style={{ color: '#888', fontSize: 10, fontWeight: 'bold' }}>BİRİM FİYAT</Text>
                                                                 <Text style={styles.supplierPrice}>{supplier.price}</Text>
                                                             </View>
                                                             <TouchableOpacity style={styles.addToCartBtnSmall} onPress={() => handleAddToCart(item)}>
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     // Header
     // Header (Standardized)
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, marginBottom: 10 },
-    headerTitle: { color: '#FFD700', fontSize: 12, fontWeight: '900', letterSpacing: 2 },
+    headerTitle: { color: '#D4AF37', fontSize: 12, fontWeight: '900', letterSpacing: 2 },
     headerSubtitle: { color: '#fff', fontSize: 16, fontWeight: '300', marginTop: 4 },
     headerBtn: { padding: 5 },
 
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
     heroSlider: { marginTop: 10 },
     heroCard: { width: width, height: 240 },
     heroImage: { width: '100%', height: '100%', justifyContent: 'flex-end', padding: 20 },
-    heroTag: { position: 'absolute', top: 50, left: 20, backgroundColor: '#FFD700', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, zIndex: 10 },
+    heroTag: { position: 'absolute', top: 50, left: 20, backgroundColor: '#D4AF37', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, zIndex: 10 },
     heroTagText: { fontSize: 10, fontWeight: 'bold', color: '#000' },
     heroContent: { marginBottom: 20 },
     heroTitle: { color: '#fff', fontSize: 24, fontWeight: '900', marginBottom: 4, textShadowColor: 'rgba(0,0,0,0.8)', textShadowRadius: 5 },
@@ -489,73 +489,73 @@ const styles = StyleSheet.create({
 
     // Pagination
     pagination: { flexDirection: 'row', position: 'absolute', bottom: 10, alignSelf: 'center' },
-    dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFD700', marginHorizontal: 4 },
+    dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#D4AF37', marginHorizontal: 4 },
 
     // Bulk Action
-    bulkActionBar: { marginHorizontal: 16, marginBottom: 24, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#FFD700', backgroundColor: '#141414' },
+    bulkActionBar: { marginHorizontal: 16, marginBottom: 24, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#D4AF37', backgroundColor: '#141414' },
     bulkContainer: { flexDirection: 'row', alignItems: 'center', padding: 20 },
-    bulkIconCircle: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#FFD700', alignItems: 'center', justifyContent: 'center', marginRight: 16, borderWidth: 4, borderColor: 'rgba(255, 215, 0, 0.3)' },
-    bulkTitle: { fontSize: 16, fontWeight: '900', color: '#FFD700', letterSpacing: 0.5 },
+    bulkIconCircle: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#D4AF37', alignItems: 'center', justifyContent: 'center', marginRight: 16, borderWidth: 4, borderColor: 'rgba(255, 215, 0, 0.3)' },
+    bulkTitle: { fontSize: 16, fontWeight: '900', color: '#D4AF37', letterSpacing: 0.5 },
     bulkSubtitle: { fontSize: 13, color: '#888', marginTop: 4, fontWeight: '400' },
     // bulkIconBox removed
 
     // Grid
     sectionHeader: { paddingHorizontal: 16, marginBottom: 12 },
-    sectionTitle: { color: '#FFD700', fontSize: 13, fontWeight: 'bold', letterSpacing: 1 },
+    sectionTitle: { color: '#D4AF37', fontSize: 13, fontWeight: 'bold', letterSpacing: 1 },
     gridContainer: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12 },
     gridCard: { width: '50%', padding: 6, height: 160, marginBottom: 4 },
     gridImage: { width: '100%', height: '100%', justifyContent: 'flex-end', padding: 12, borderWidth: 1, borderColor: '#333', borderRadius: 16, overflow: 'hidden' },
     gridContent: { alignItems: 'flex-start' },
     gridTitle: { color: '#fff', fontSize: 14, fontWeight: 'bold', marginBottom: 8, textShadowColor: 'rgba(0,0,0,0.9)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3, lineHeight: 18 },
-    gridBadge: { backgroundColor: 'rgba(255,215,0,0.25)', alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#FFD700' },
-    gridBadgeText: { color: '#FFD700', fontSize: 10, fontWeight: 'bold' },
+    gridBadge: { backgroundColor: 'rgba(255,215,0,0.25)', alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#D4AF37' },
+    gridBadgeText: { color: '#D4AF37', fontSize: 10, fontWeight: 'bold' },
 
     // Product Card (Redesigned List View)
     detailContainer: { padding: 16 },
     categoryHeader: { marginBottom: 20 },
-    categoryTitle: { color: '#FFD700', fontSize: 22, fontWeight: '900', marginBottom: 4 },
+    categoryTitle: { color: '#D4AF37', fontSize: 22, fontWeight: '900', marginBottom: 4 },
     categorySubtitle: { color: '#888', fontSize: 14 },
     // Product Card (Expandable List View)
-    productCard: { borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#ccc', overflow: 'hidden' },
+    productCard: { borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#333', overflow: 'hidden' }, // Dark Border
     productMainRow: { flexDirection: 'row', height: 110 },
     productImageContainer: { width: 110, height: '100%', backgroundColor: '#222' },
     productImage: { width: '100%', height: '100%' },
     productInfo: { flex: 1, padding: 12, justifyContent: 'space-between' },
-    productName: { color: '#000', fontSize: 15, fontWeight: 'bold', marginBottom: 2 },
-    productSpec: { color: '#444', fontSize: 13, fontWeight: '500' },
+    productName: { color: '#FFF', fontSize: 15, fontWeight: 'bold', marginBottom: 2 }, // White Text
+    productSpec: { color: '#BBB', fontSize: 13, fontWeight: '500' }, // Light Grey Text
 
     // Price & Expand Button
-    priceExpandBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#000', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, alignSelf: 'flex-end' },
-    priceExpandText: { fontSize: 13, fontWeight: 'bold', color: '#FFD700' },
+    priceExpandBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#000', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, alignSelf: 'flex-end' }, // Black Button
+    priceExpandText: { fontSize: 13, fontWeight: 'bold', color: '#D4AF37' }, // Gold Text
 
-    // Expanded Supplier List (NEW: White Design)
-    supplierListContainer: { backgroundColor: '#FFFFFF', padding: 16, borderTopWidth: 1, borderTopColor: '#eee' }, // White BG
-    supplierListHeader: { color: '#000', fontSize: 12, fontWeight: '900', marginBottom: 16, letterSpacing: 1 }, // Black Header
-    supplierRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottomWidth: 1, borderBottomColor: '#f0f0f0', paddingBottom: 10 },
+    // Expanded Supplier List (NEW: Dark Theme)
+    supplierListContainer: { backgroundColor: '#111', padding: 16, borderTopWidth: 1, borderTopColor: '#333' }, // Dark BG
+    supplierListHeader: { color: '#D4AF37', fontSize: 12, fontWeight: '900', marginBottom: 16, letterSpacing: 1 }, // Gold Header
+    supplierRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottomWidth: 1, borderBottomColor: '#333', paddingBottom: 10 },
     supplierInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
     supplierAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#333', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-    supplierInitials: { color: '#FFD700', fontWeight: 'bold', fontSize: 14 },
-    supplierNameText: { color: '#000', fontSize: 14, fontWeight: 'bold', marginBottom: 2 }, // Black Name
-    supplierRating: { color: '#666', fontSize: 12, marginLeft: 4 }, // Grey Rating
-    supplierPrice: { color: '#000', fontSize: 18, fontWeight: '900' }, // Price Black
-    addToCartBtnSmall: { backgroundColor: '#FFD700', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, marginTop: 4 },
+    supplierInitials: { color: '#D4AF37', fontWeight: 'bold', fontSize: 14 },
+    supplierNameText: { color: '#FFF', fontSize: 14, fontWeight: 'bold', marginBottom: 2 }, // White Name
+    supplierRating: { color: '#888', fontSize: 12, marginLeft: 4 }, // Grey Rating
+    supplierPrice: { color: '#D4AF37', fontSize: 18, fontWeight: '900' }, // Price Gold
+    addToCartBtnSmall: { backgroundColor: '#D4AF37', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, marginTop: 4 },
     addToCartText: { color: '#000', fontSize: 11, fontWeight: 'bold' },
 
     // Options (New)
-    optionsContainer: { marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
+    optionsContainer: { marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#333' },
     optionRow: { marginBottom: 12 },
-    optionLabel: { color: '#000', fontSize: 13, fontWeight: 'bold', marginBottom: 6 },
-    optionChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, backgroundColor: '#f0f0f0', marginRight: 8, borderWidth: 1, borderColor: '#ddd' },
-    optionChipActive: { backgroundColor: '#333', borderColor: '#333' },
-    optionChipText: { color: '#666', fontSize: 12, fontWeight: '500' },
-    optionChipTextActive: { color: '#FFD700', fontWeight: 'bold' },
+    optionLabel: { color: '#FFF', fontSize: 13, fontWeight: 'bold', marginBottom: 6 }, // White Label
+    optionChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, backgroundColor: '#333', marginRight: 8, borderWidth: 1, borderColor: '#444' }, // Dark Chip
+    optionChipActive: { backgroundColor: '#D4AF37', borderColor: '#D4AF37' },
+    optionChipText: { color: '#ccc', fontSize: 12, fontWeight: '500' },
+    optionChipTextActive: { color: '#000', fontWeight: 'bold' },
 
     // Floating Map Button
-    mapFab: { position: 'absolute', bottom: 30, right: 20, width: 56, height: 56, borderRadius: 28, backgroundColor: '#FFD700', alignItems: 'center', justifyContent: 'center', shadowColor: '#FFD700', shadowOffset: { height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
+    mapFab: { position: 'absolute', bottom: 30, right: 20, width: 56, height: 56, borderRadius: 28, backgroundColor: '#D4AF37', alignItems: 'center', justifyContent: 'center', shadowColor: '#D4AF37', shadowOffset: { height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
 
     // Filter Chips
     filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#333', marginRight: 10, borderWidth: 1, borderColor: '#444' },
-    filterChipActive: { backgroundColor: '#FFD700', borderColor: '#FFD700' },
+    filterChipActive: { backgroundColor: '#D4AF37', borderColor: '#D4AF37' },
     filterChipText: { color: '#ccc', fontSize: 13, fontWeight: '500' },
     filterChipTextActive: { color: '#000', fontWeight: 'bold' },
 });

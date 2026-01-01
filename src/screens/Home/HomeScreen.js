@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+﻿import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import { Dimensions, FlatList, Image, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -44,7 +44,6 @@ const MARKET_OPTS = {
 };
 
 // Real Photography for Categories
-// Real Photography for Categories
 const CATEGORIES = [
     {
         id: 2,
@@ -64,14 +63,14 @@ const CATEGORIES = [
         id: 4,
         title: 'TADİLAT',
         subtitle: 'Boya & Tamirat',
-        image: require('../../assets/categories/cat_renovation_v4.png'),
+        image: require('../../assets/categories/cat_renovation_v9.png'),
         route: 'Tadilat'
     },
     {
         id: 5,
-        title: 'MÜHENDİSLİK',
-        subtitle: 'Proje & Danışman',
-        image: require('../../assets/categories/cat_engineering_v4.png'),
+        title: 'TEKNİK OFİS',
+        subtitle: 'Mühendis & Mimar',
+        image: require('../../assets/categories/cat_engineering_v10.png'),
         route: 'Mühendislik'
     },
     {
@@ -143,13 +142,18 @@ export default function HomeScreen({ navigation }) {
             onPress={() => openSelectionModal(categoryKey)}
         >
             <View style={styles.tickerIconBox}>
-                {item.trend === 'up' && <Ionicons name="caret-up" size={10} color="#4ADE80" />}
-                {item.trend === 'down' && <Ionicons name="caret-down" size={10} color="#F87171" />}
-                {item.trend === 'neutral' && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#D4AF37' }} />}
+                <Ionicons
+                    name={item.trend === 'down' ? 'arrow-down' : item.trend === 'up' ? 'arrow-up' : 'remove'}
+                    size={18}
+                    color="#000"
+                />
             </View>
             <View>
-                <Text style={styles.tickerLabel}>{item.label}  <Ionicons name="chevron-down" size={8} color="#D4AF37" /></Text>
-                <Text style={[styles.tickerValue, item.trend === 'up' ? { color: '#4ADE80' } : item.trend === 'down' ? { color: '#F87171' } : { color: '#fff' }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={styles.tickerLabel}>{item.label} </Text>
+                    <Ionicons name="chevron-down" size={8} color="#666" />
+                </View>
+                <Text style={[styles.tickerValue, { color: '#fff' }]}>
                     {item.value}
                 </Text>
             </View>
@@ -160,46 +164,38 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
 
-            {/* Background: Gunmetal / Dark Silver Theme */}
-            <LinearGradient
-                colors={['#666666', '#222222']}
-                style={StyleSheet.absoluteFillObject}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-            />
+            {/* Background Gradient Removed to show Deep Black */}
 
             <SafeAreaView style={{ flex: 1 }}>
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
-                    {/* HERO HEADER - LUXURY COCKPIT STYLE */}
+                    {/* HERO HEADER - REF_IMAGE_MATCH */}
                     <View style={styles.headerContainer}>
-                        {/* Dashboard Card Container */}
+                        <View style={styles.headerLeft}>
+                            <Text style={styles.subGreeting}>ŞANTİYE PRO v2.0</Text>
+                            <Text style={styles.mainGreeting}>{greeting},</Text>
+                            <Text style={styles.chiefName}>ŞEF <Text style={{ fontSize: 32 }}>👷🏼</Text></Text>
+                        </View>
+                        <TouchableOpacity style={styles.profileBtn}>
+                            <Image
+                                source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop' }}
+                                style={styles.profileImg}
+                            />
+                            <View style={styles.onlineDot} />
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* METALLIC TICKER BAND */}
+                    <View style={styles.tickerContainer}>
                         <LinearGradient
-                            colors={['rgba(30,30,30,0.95)', 'rgba(10,10,10,0.95)']}
+                            colors={['#2c3e50', '#000000', '#2c3e50']}
                             start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={styles.dashboardCard}
+                            end={{ x: 1, y: 0 }} // Horizontal gradient for brushed metal look
+                            style={styles.tickerBand}
                         >
-                            {/* Top Section: Greeting & Profile */}
-                            <View style={styles.dashboardTop}>
-                                <View>
-                                    <Text style={styles.subGreeting}>ŞANTİYE PRO v2.0</Text>
-                                    <Text style={styles.mainGreeting}>{greeting},</Text>
-                                    <Text style={styles.chiefName}>ŞEF <Text style={{ fontSize: 24 }}>👷🏼</Text></Text>
-                                </View>
-                                <TouchableOpacity style={styles.profileBtn}>
-                                    <Image
-                                        source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop' }}
-                                        style={styles.profileImg}
-                                    />
-                                    <View style={styles.onlineDot} />
-                                </TouchableOpacity>
-                            </View>
+                            {/* Top/Bottom Gold Borders */}
+                            <View style={styles.goldBorderTop} />
 
-                            {/* Divider with Gold Accent */}
-                            <View style={styles.dashboardDivider} />
-
-                            {/* Bottom Section: Integrated Ticker */}
                             <ScrollView
                                 horizontal
                                 showsHorizontalScrollIndicator={false}
@@ -209,36 +205,37 @@ export default function HomeScreen({ navigation }) {
                                 <View style={styles.tickerSeparator} />
                                 {renderTickerItem(selectedValues.concrete, 'concrete')}
                                 <View style={styles.tickerSeparator} />
+                                {renderTickerItem(selectedValues.currency, 'currency')}
+                                <View style={styles.tickerSeparator} />
                                 {/* Static Weather Item */}
                                 <View style={styles.tickerItem}>
-                                    <View style={[styles.tickerIconBox, { backgroundColor: 'transparent', borderWidth: 0 }]}>
-                                        <Ionicons name="sunny" size={14} color="#D4AF37" />
+                                    <View style={styles.tickerIconBox}>
+                                        <Ionicons name="sunny" size={14} color="#000" />
                                     </View>
                                     <View>
-                                        <Text style={[styles.tickerLabel, { color: '#888' }]}>İSTANBUL</Text>
-                                        <Text style={[styles.tickerValue, { color: '#fff' }]}>18°C</Text>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                            <Text style={styles.tickerLabel}>İSTANBUL</Text>
+                                            <Ionicons name="caret-up" size={10} color="#4ADE80" style={{ marginLeft: 4 }} />
+                                        </View>
+                                        <Text style={styles.tickerValue}>18°C</Text>
                                     </View>
                                 </View>
                             </ScrollView>
 
-                            {/* Glossy Overlay for Premium Feel */}
-                            <LinearGradient
-                                colors={['rgba(255,255,255,0.03)', 'transparent']}
-                                style={StyleSheet.absoluteFillObject}
-                                pointerEvents="none"
-                            />
+                            <View style={styles.goldBorderBottom} />
+                            <View style={styles.goldBorderBottom} />
                         </LinearGradient>
                     </View>
 
-                    {/* IMMERSIVE SHOWROOM GRID (Full Image + Gradient Overlay) */}
+                    {/* GRID CATEGORIES - SPLIT VIEW METALLIC */}
                     <View style={styles.gridContainer}>
                         {CATEGORIES.map((cat, index) => (
                             <TouchableOpacity
                                 key={cat.id}
                                 style={styles.cardWrapper}
                                 onPress={() => {
-                                    if (cat.title === 'KİRALA') {
-                                        navigation.navigate('Kiralama');
+                                    if (cat.title === 'KİRALAMA') {
+                                        navigation.navigate('RentalStack');
                                     } else {
                                         navigation.navigate(cat.route);
                                     }
@@ -247,29 +244,30 @@ export default function HomeScreen({ navigation }) {
                             >
                                 <View style={styles.cardContainer}>
                                     {/* Full Height Image */}
-                                    <Image source={cat.image} style={styles.cardImageFull} />
+                                    <View style={styles.cardImageContainer}>
+                                        <Image source={cat.image} style={styles.cardImageFull} />
+                                    </View>
 
-                                    {/* Cinematic Gradient Overlay */}
+                                    {/* Overlay Gradient Footer */}
                                     <LinearGradient
-                                        colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.95)']}
-                                        locations={[0, 0.4, 1]}
-                                        style={styles.cardOverlay}
+                                        colors={['transparent', 'rgba(0,0,0,0.95)']}
+                                        style={styles.cardFooter}
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 0, y: 1 }}
                                     >
-                                        <View style={styles.footerContent}>
-                                            <View style={styles.titleRow}>
-                                                <View style={styles.indicator} />
+                                        <View style={styles.cardTextContent}>
+                                            <View style={styles.verticalGoldLine} />
+                                            <View>
                                                 <Text style={styles.cardTitle}>{cat.title}</Text>
+                                                <Text style={styles.cardSubtitle}>{cat.subtitle}</Text>
                                             </View>
-                                            <Text style={styles.cardSubtitle}>{cat.subtitle.toUpperCase()}</Text>
                                         </View>
-                                        <View style={styles.actionBtn}>
-                                            <Ionicons name="arrow-forward" size={16} color="#000" />
-                                        </View>
+                                        <Ionicons name="chevron-forward" size={18} color="#D4AF37" />
                                     </LinearGradient>
-
-                                    {/* Premium Border Touch */}
-                                    <View style={styles.cardBorder} />
                                 </View>
+
+                                {/* Glossy Border Overlay */}
+                                <View style={styles.cardBorder} />
                             </TouchableOpacity>
                         ))}
                     </View>
@@ -287,7 +285,7 @@ export default function HomeScreen({ navigation }) {
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>
-                                {activeCategory ? MARKET_OPTS[activeCategory].title : 'SEÇİM YAPIN'}
+                                {activeCategory ? MARKET_OPTS[activeCategory].title : 'SEÃ‡Ä°M YAPIN'}
                             </Text>
                             <TouchableOpacity onPress={() => setModalVisible(false)}>
                                 <Ionicons name="close-circle" size={28} color="#666" />
@@ -321,154 +319,123 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#0f0f0f' }, // Dark Antracite Background
+    container: { flex: 1, backgroundColor: '#000000' }, // Deep Black Background (Premium)
+    scrollContent: { paddingBottom: 120 },
 
-    // Header Styles
-    headerContainer: { padding: 20, paddingBottom: 10 },
-    dashboardCard: {
-        borderRadius: 24,
-        padding: 2, // Inner border space via gradient if needed, or just padding
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        overflow: 'hidden',
-        // Shadow
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.4,
-        shadowRadius: 10,
-        elevation: 10,
-    },
-    dashboardTop: {
+    // HEADER STYLES
+    headerContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 20,
-        paddingBottom: 15,
+        alignItems: 'flex-start',
+        paddingHorizontal: 24,
+        paddingTop: 20,
+        paddingBottom: 24,
     },
-    subGreeting: { color: '#D4AF37', fontSize: 11, letterSpacing: 3, fontWeight: '800', opacity: 0.9, marginBottom: 4 },
-    mainGreeting: { color: '#e0e0e0', fontSize: 16, letterSpacing: 1, fontWeight: '400' },
-    chiefName: { color: '#ffffff', fontSize: 32, letterSpacing: -0.5, fontWeight: '900', marginTop: 2 },
-
+    subGreeting: { color: '#D4AF37', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4, opacity: 0.8 },
+    mainGreeting: { color: '#ffffff', fontSize: 24, fontWeight: '800', letterSpacing: 0.5 },
+    chiefName: { color: '#ffffff', fontSize: 36, fontWeight: '900', lineHeight: 42 },
     profileBtn: {
-        width: 54, height: 54, borderRadius: 27,
-        borderWidth: 2, borderColor: 'rgba(212, 175, 55, 0.3)',
-        padding: 2,
-    },
-    profileImg: { width: '100%', height: '100%', borderRadius: 25 },
-    onlineDot: {
-        position: 'absolute', bottom: 0, right: 0,
-        width: 14, height: 14, borderRadius: 7, backgroundColor: COLORS.success,
-        borderWidth: 2, borderColor: '#1a1a1a'
-    },
-
-    dashboardDivider: {
-        height: 1,
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        marginHorizontal: 20,
-    },
-
-    // Integrated Ticker Styles
-    tickerScroll: {
-        paddingHorizontal: 20,
-        paddingVertical: 14,
-        alignItems: 'center',
-    },
-    tickerSeparator: {
-        width: 1,
-        height: 20,
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        marginHorizontal: 16,
-    },
-    tickerItem: { flexDirection: 'row', alignItems: 'center' },
-    tickerIconBox: {
-        width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.05)',
-        alignItems: 'center', justifyContent: 'center', marginRight: 10,
-        borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)'
-    },
-    tickerLabel: { color: '#888', fontSize: 10, fontWeight: '700', letterSpacing: 0.5 },
-    tickerValue: { color: '#fff', fontSize: 13, fontWeight: '800' },
-
-    // Grid Styles
-
-    // Grid Styles
-    scrollContent: { paddingBottom: 120 },
-    gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 15 },
-
-    // Card Styles (Immersive Showroom)
-    cardWrapper: { width: '48%', marginBottom: 16 },
-    cardContainer: {
-        height: 220, // Taller for cinematic feel
-        backgroundColor: '#1E1E1E',
-        borderRadius: 20,
+        width: 50, height: 50, borderRadius: 16, // Squircle
+        borderWidth: 1, borderColor: '#333',
         overflow: 'hidden',
-        position: 'relative',
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.5,
+        backgroundColor: '#111',
+    },
+    profileImg: { width: '100%', height: '100%' },
+    onlineDot: {
+        position: 'absolute', top: 4, right: 4,
+        width: 8, height: 8, borderRadius: 4, backgroundColor: '#4ADE80',
+        borderWidth: 1, borderColor: '#000'
+    },
+
+    // METALLIC TICKER BAND
+    tickerContainer: {
+        marginHorizontal: 16,
+        marginBottom: 24,
+        height: 60, // Slightly more compact
+        borderRadius: 30, // Pill/Lozenge shape (Height / 2)
+        overflow: 'hidden',
+        borderWidth: 1.5, // Distinct border
+        borderColor: '#D4AF37', // Gold Border
+        // Shadow
+        shadowColor: "#D4AF37",
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.3, // Glow effect
         shadowRadius: 10,
-        elevation: 12,
+        elevation: 8,
     },
-    cardImageFull: {
-        width: '100%',
-        height: '100%',
-        resizeMode: 'cover',
+    tickerBand: {
+        height: '100%', // Fill container
+        justifyContent: 'center',
+        position: 'relative',
     },
-    cardOverlay: {
+    goldBorderTop: { position: 'absolute', top: 0, left: 0, right: 0, height: 1, backgroundColor: 'rgba(212, 175, 55, 0.4)' },
+    goldBorderBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 1, backgroundColor: 'rgba(212, 175, 55, 0.4)' },
+    tickerScroll: { paddingHorizontal: 24, alignItems: 'center' },
+    tickerSeparator: { width: 40 }, // Spacer
+    tickerItem: { flexDirection: 'row', alignItems: 'center', marginRight: 0 },
+    tickerIconBox: {
+        width: 28, height: 28, borderRadius: 14,
+        backgroundColor: '#D4AF37', // Gold Circle Background
+        alignItems: 'center', justifyContent: 'center',
+        marginRight: 10,
+    },
+    tickerLabel: { color: '#bbb', fontSize: 10, fontWeight: '600', letterSpacing: 0.5, marginBottom: 2 },
+    tickerValue: { color: '#fff', fontSize: 15, fontWeight: 'bold' },
+
+    // GRID CARDS
+    gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingHorizontal: 16 },
+    cardWrapper: { width: (width - 48) / 2, marginBottom: 16, borderRadius: 16 }, // Gap handling
+    cardContainer: {
+        height: 180, // Taller structure
+        borderRadius: 16,
+        overflow: 'hidden',
+        backgroundColor: '#111',
+        // Ghost Border
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.15)', // Premium light border
+        // Shadow for depth
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.5,
+        shadowRadius: 5,
+        elevation: 8,
+    },
+    cardImageContainer: {
+        ...StyleSheet.absoluteFillObject, // Fill the entire card
+        backgroundColor: '#000',
+    },
+    cardImageFull: { width: '100%', height: '100%', resizeMode: 'cover' },
+
+    // Overlay Gradient Footer
+    cardFooter: {
         position: 'absolute',
-        bottom: 0, left: 0, right: 0,
-        height: '50%', // Fade covers bottom half
-        justifyContent: 'flex-end',
-        padding: 16,
-        paddingBottom: 16,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: '45%', // Gradient covers bottom 45%
         flexDirection: 'row',
-        alignItems: 'flex-end',
-        justifyContent: 'space-between'
+        alignItems: 'flex-end', // Align items to bottom
+        justifyContent: 'space-between',
+        paddingHorizontal: 12,
+        paddingBottom: 16, // Padding from bottom edge
     },
+    cardTextContent: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+    verticalGoldLine: { width: 3, height: 24, backgroundColor: '#D4AF37', marginRight: 10, borderRadius: 2 },
+    cardTitle: { color: '#D4AF37', fontSize: 13, fontWeight: '900', letterSpacing: 0.5 },
+    cardSubtitle: { color: '#ffffff', fontSize: 10, fontWeight: '400', opacity: 0.9, marginTop: 2 },
+
     cardBorder: {
         ...StyleSheet.absoluteFillObject,
+        borderRadius: 16,
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        borderRadius: 20,
-        zIndex: 10
-    },
-
-    // Content inside Overlay
-    footerContent: { flex: 1, marginRight: 8 },
-    titleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
-    indicator: {
-        width: 2, height: 12, backgroundColor: '#D4AF37', marginRight: 8
-    },
-    cardTitle: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '900',
-        letterSpacing: 0.5,
-        textShadowColor: 'rgba(0, 0, 0, 0.75)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 3
-    },
-    cardSubtitle: {
-        color: '#D4AF37', // Gold subtitle for contrast
-        fontSize: 10,
-        fontWeight: '700',
-        letterSpacing: 1, // Cinematic tracking
-        marginLeft: 10
-    },
-    actionBtn: {
-        width: 32, height: 32, borderRadius: 16,
-        backgroundColor: '#D4AF37', // Gold Button
-        alignItems: 'center', justifyContent: 'center',
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
-        elevation: 5
+        borderColor: 'rgba(255,255,255,0.08)',
+        pointerEvents: 'none',
     },
 
     // Modal Styles
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.8)', // Darker overlay
+        backgroundColor: 'rgba(0,0,0,0.8)',
         justifyContent: 'flex-end',
     },
     modalContent: {
@@ -512,23 +479,4 @@ const styles = StyleSheet.create({
         height: 1,
         backgroundColor: 'rgba(255,255,255,0.1)',
     },
-
-    // FULL SCREEN MODAL STYLES
-    fsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20 },
-    fsBackBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.1)' },
-    fsTitle: { color: '#fff', fontSize: 16, fontWeight: '900', letterSpacing: 1 },
-
-    fsContainer: { flex: 1, padding: 20, justifyContent: 'center', gap: 20 },
-
-    fsCardContainer: { height: 180, borderRadius: 24, overflow: 'hidden', position: 'relative', marginBottom: 20 },
-    fsCardGradient: { flex: 1, flexDirection: 'row', alignItems: 'center', padding: 24, gap: 15 },
-    fsGlowBorder: { ...StyleSheet.absoluteFillObject, borderWidth: 1, borderRadius: 24, opacity: 0.5 },
-
-    fsIconCircle: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(212, 175, 55, 0.1)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#D4AF37' },
-
-    fsCardContent: { flex: 1 },
-    fsCardTitle: { color: '#D4AF37', fontSize: 18, fontWeight: '900', marginBottom: 8, letterSpacing: 0.5 },
-    fsCardSub: { color: '#ccc', fontSize: 13, lineHeight: 18, fontWeight: '500' },
-
-    fsArrowBox: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(212, 175, 55, 0.1)', alignItems: 'center', justifyContent: 'center' },
 });
