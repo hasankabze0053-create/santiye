@@ -334,39 +334,38 @@ export default function RentalScreen() {
                     {viewMode === 'list' && (
                         <View style={styles.typeSelectorContainer}>
                             <TouchableOpacity
-                                style={[styles.typeCard, activeTab === 'periodic' && styles.typeCardActive]}
-                                onPress={() => setActiveTab('periodic')}
-                                activeOpacity={0.9}
+                                style={[styles.typeCard, styles.typeCardActive]}
+                                activeOpacity={1}
                             >
                                 <LinearGradient
-                                    colors={activeTab === 'periodic' ? ['#2A2A2A', '#1A1A1A'] : ['#1A1A1A', '#111']}
+                                    colors={['#2A2A2A', '#1A1A1A']}
                                     style={styles.typeCardGradient}
                                 >
-                                    <View style={[styles.typeIconCircle, activeTab === 'periodic' && { backgroundColor: '#D4AF37' }]}>
-                                        <MaterialCommunityIcons name="clock-time-four" size={24} color={activeTab === 'periodic' ? '#000' : '#D4AF37'} />
+                                    <View style={[styles.typeIconCircle, { backgroundColor: '#D4AF37' }]}>
+                                        <MaterialCommunityIcons name="clock-time-four" size={24} color="#000" />
                                     </View>
                                     <View>
-                                        <Text style={[styles.typeCardTitle, activeTab === 'periodic' && { color: '#D4AF37' }]}>SÜRELİ KİRALAMA</Text>
+                                        <Text style={[styles.typeCardTitle, { color: '#D4AF37' }]}>SÜRELİ KİRALAMA</Text>
                                         <Text style={styles.typeCardSub}>Saatlik / Günlük</Text>
                                     </View>
                                 </LinearGradient>
                             </TouchableOpacity>
 
                             <TouchableOpacity
-                                style={[styles.typeCard, activeTab === 'project' && { borderColor: '#B0B0B0' }]} // Silver Border
-                                onPress={() => setActiveTab('project')}
+                                style={styles.typeCard}
+                                onPress={() => navigation.navigate('ProjectProposal')}
                                 activeOpacity={0.9}
                             >
                                 <LinearGradient
-                                    colors={activeTab === 'project' ? ['#F5F5F5', '#B0B0B0'] : ['#1A1A1A', '#111']} // Silver Gradient
+                                    colors={['#1A1A1A', '#111']}
                                     style={styles.typeCardGradient}
                                 >
-                                    <View style={[styles.typeIconCircle, activeTab === 'project' && { backgroundColor: '#1A1A1A', borderColor: '#333' }]}>
-                                        <MaterialCommunityIcons name="domain" size={24} color={activeTab === 'project' ? '#F5F5F5' : '#D4AF37'} />
+                                    <View style={styles.typeIconCircle}>
+                                        <MaterialCommunityIcons name="domain" size={24} color="#D4AF37" />
                                     </View>
                                     <View>
-                                        <Text style={[styles.typeCardTitle, activeTab === 'project' ? { color: '#000' } : { color: '#D4AF37' }]}>KURUMSAL KİRALAMA</Text>
-                                        <Text style={[styles.typeCardSub, activeTab === 'project' && { color: '#444' }]}>Filo ve Proje Çözümleri</Text>
+                                        <Text style={[styles.typeCardTitle, { color: '#D4AF37' }]}>PROJE BAZLI KİRALAMA</Text>
+                                        <Text style={styles.typeCardSub}>Uzun Dönem / Yıkım / Proje</Text>
                                     </View>
                                 </LinearGradient>
                             </TouchableOpacity>
@@ -374,7 +373,7 @@ export default function RentalScreen() {
                     )}
 
                     {/* MAIN CONTENT AREA */}
-                    {viewMode === 'list' && activeTab === 'periodic' && (
+                    {viewMode === 'list' && (
                         <View style={styles.gridSection}>
                             {/* SEARCH BAR (Transparent) */}
                             <TouchableOpacity
@@ -421,118 +420,7 @@ export default function RentalScreen() {
                         </View>
                     )}
 
-                    {/* PROJECT FORM (Restored) */}
-                    {viewMode === 'list' && activeTab === 'project' && (
-                        <View style={{ padding: 20 }}>
-                            {/* Original Project Header Layout */}
-                            <View style={{ marginBottom: 24, paddingHorizontal: 4 }}>
-                                <Text style={{ fontSize: 24, fontWeight: '900', color: '#D4AF37', marginBottom: 8 }}>KURUMSAL FİLO YÖNETİMİ</Text>
-                                <Text style={{ fontSize: 14, color: '#ccc', lineHeight: 20 }}>
-                                    Büyük ölçekli şantiyeler ve projeler için uzun vadeli makine kiralama, yedek parça ve yerinde servis çözümleri teklifi alın.
-                                </Text>
-                            </View>
 
-                            <View style={styles.section}>
-                                <Text style={styles.sectionSub}>Aşağıdaki formu doldurarak kurumsal teklif isteyin.</Text>
-
-                                {/* 1. Description */}
-                                <View style={{ marginBottom: 20 }}>
-                                    <Text style={styles.label}>Proje / Şantiye Detayı</Text>
-                                    <View style={styles.textAreaContainer}>
-                                        <TextInput
-                                            style={styles.textArea}
-                                            multiline
-                                            placeholder="Proje süresi, zemin durumu ve özel gereksinimler..."
-                                            placeholderTextColor="#666"
-                                            value={description}
-                                            onChangeText={setDescription}
-                                        />
-                                    </View>
-                                </View>
-
-                                {/* 2. Location */}
-                                <View style={{ marginBottom: 20 }}>
-                                    <Text style={styles.label}>Proje Konumu</Text>
-                                    <View style={styles.locationInputContainer}>
-                                        <MaterialCommunityIcons name="map-marker" size={24} color="#666" style={styles.locationIcon} />
-                                        <TextInput
-                                            style={styles.locationInput}
-                                            value={address}
-                                            onChangeText={setAddress}
-                                            placeholder="Adres giriniz"
-                                            placeholderTextColor="#666"
-                                        />
-                                        <TouchableOpacity style={styles.gpsButton}>
-                                            <MaterialCommunityIcons name="crosshairs-gps" size={24} color="#D4AF37" />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-
-                                {/* 3. Photos */}
-                                <View style={{ marginBottom: 20 }}>
-                                    <Text style={styles.label}>Fotoğraf Ekle (Opsiyonel)</Text>
-                                    <View style={styles.galleryContainer}>
-                                        <TouchableOpacity style={styles.addPhotoBtn} onPress={handleAddPhoto}>
-                                            <Ionicons name="camera" size={32} color="#D4AF37" />
-                                            <Text style={styles.addPhotoText}>Fotoğraf Ekle</Text>
-                                        </TouchableOpacity>
-                                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                            {photos.map(p => (
-                                                <View key={p.id} style={styles.photoContainer}>
-                                                    <Image source={{ uri: p.uri }} style={styles.photo} contentFit="cover" />
-                                                    <TouchableOpacity style={styles.deleteBtn} onPress={() => handleRemovePhoto(p.id)}>
-                                                        <Ionicons name="close" size={14} color="#fff" />
-                                                    </TouchableOpacity>
-                                                </View>
-                                            ))}
-                                        </ScrollView>
-                                    </View>
-                                </View>
-
-                                {/* 4. Machine Selection */}
-                                <View style={{ marginBottom: 20 }}>
-                                    <Text style={styles.label}>İhtiyaç Duyulan Makineler</Text>
-
-                                    {selectedMachines.map(m => (
-                                        <View key={m.id} style={styles.machineCard}>
-                                            <View style={styles.machineInfo}>
-                                                <View style={styles.machineIconBox}>
-                                                    <MaterialCommunityIcons name={m.icon} size={20} color="#D4AF37" />
-                                                </View>
-                                                <Text style={styles.machineName} numberOfLines={1}>{m.name}</Text>
-                                            </View>
-                                            <View style={styles.machineActions}>
-                                                <View style={styles.qtyContainer}>
-                                                    <TouchableOpacity style={styles.qtyBtn} onPress={() => handleUpdateQuantity(m.id, -1)}>
-                                                        <Text style={styles.qtyText}>-</Text>
-                                                    </TouchableOpacity>
-                                                    <Text style={styles.qtyValue}>{m.quantity}</Text>
-                                                    <TouchableOpacity style={styles.qtyBtn} onPress={() => handleUpdateQuantity(m.id, 1)}>
-                                                        <Text style={styles.qtyText}>+</Text>
-                                                    </TouchableOpacity>
-                                                </View>
-                                                <TouchableOpacity style={styles.removeMachineBtn} onPress={() => handleRemoveMachine(m.id)}>
-                                                    <Ionicons name="trash-outline" size={20} color="#CF3335" />
-                                                </TouchableOpacity>
-                                            </View>
-                                        </View>
-                                    ))}
-
-                                    <TouchableOpacity style={styles.addMachineBtn} onPress={() => setMachineModalVisible(true)}>
-                                        <Ionicons name="add-circle-outline" size={24} color="#ccc" />
-                                        <Text style={styles.addMachineText}>Makine Seç ve Ekle</Text>
-                                    </TouchableOpacity>
-                                </View>
-
-                                {/* 5. Submit Button */}
-                                <TouchableOpacity style={styles.submitBtn} onPress={() => Alert.alert('Başarılı', 'Proje talebiniz alındı. Uzman ekibimiz en kısa sürede size ulaşacaktır.')}>
-                                    <LinearGradient colors={['#D4AF37', '#FFA500']} style={styles.submitGradient}>
-                                        <Text style={styles.submitBtnText}>TEKLİF İSTE</Text>
-                                    </LinearGradient>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    )}
 
                     {/* DETAIL VIEW (Updated with Multi-Supplier) */}
                     {viewMode === 'detail' && selectedCategory && (

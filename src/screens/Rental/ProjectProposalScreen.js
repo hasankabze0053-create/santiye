@@ -1,25 +1,27 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
-import {
-    Dimensions,
-    Image,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
-} from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Animated, Dimensions, Image, ImageBackground, Keyboard, Modal, PanResponder, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+// ... existing code ...
 
-const { width } = Dimensions.get('window');
+const handleSubmit = () => {
+    if (!durationValues.type) {
+        Alert.alert("Eksik Bilgi", "Lütfen projenin tahmini süresini seçiniz.");
+        return;
+    }
+    if (!locationValues.locationSet) {
+        Alert.alert("Eksik Bilgi", "Lütfen proje konumunu haritadan seçip onaylayınız.");
+        return;
+    }
+    setStep(5);
+};
 
-// Reused Category Data for Selection Modal
+const { width, height } = Dimensions.get('window');
+
+// CAT DATA FOR MACHINE SELECTION
 const PROPOSAL_CATEGORIES = [
     {
         id: '1', title: 'KULE VE DİKEY KALDIRMA', icon: 'tower-beach',
@@ -47,42 +49,168 @@ const PROPOSAL_CATEGORIES = [
     },
 ];
 
-export default function ProjectProposalScreen({ navigation }) {
-    const [photos, setPhotos] = useState([]); // Array of photo objects
-    const [address, setAddress] = useState('Bağdat Cad. No:15, Kadıköy'); // Mock GPS default
-    const [description, setDescription] = useState('');
+const PROJECT_DURATION_OPTIONS = [
+    { id: 'short_term', title: 'Kısa Dönemli / Özel', icon: 'hammer-wrench', sub: 'Yıkım, Montaj vb. (4-5 Gün)', basePrice: 50000, operatorPrice: 10000 },
+    { id: 'mid_term', title: '6-12 Ay', icon: 'calendar-clock', sub: 'Orta vadeli projeler', basePrice: 500000, operatorPrice: 100000 },
+    { id: 'long_term', title: '1 Yıl +', icon: 'calendar-multiselect', sub: 'Uzun soluklu şantiyeler', basePrice: 1200000, operatorPrice: 200000 },
+    { id: 'indefinite', title: 'Belirsiz Süre', icon: 'infinity', sub: 'Proje bitimine kadar açık sözleşme', basePrice: 100000, operatorPrice: 20000 },
+];
 
-    // Mock Photo Add
-    const handleAddPhoto = () => {
-        // In real app: Open ImagePicker
-        const newPhoto = {
-            id: Date.now(),
-            uri: 'https://via.placeholder.com/150/FFD700/000000?text=Foto'
-        };
-        setPhotos([...photos, newPhoto]);
+const PROJECT_TYPES = [
+    { id: 'demolition', title: 'Bina Yıkımı', icon: 'wall' },
+    { id: 'excavation', title: 'Hafriyat Alımı', icon: 'dump-truck' },
+    { id: 'housing', title: 'Konut / Rezidans', icon: 'home-city' },
+    { id: 'infrastructure', title: 'Altyapı / Yol', icon: 'road-variant' },
+    { id: 'industrial', title: 'Endüstriyel Tesis', icon: 'factory' },
+    { id: 'other', title: 'Diğer', icon: 'dots-horizontal' },
+];
+
+export default function ProjectProposalScreen() {
+    const navigation = useNavigation();
+    const route = useRoute();
+    const { category } = route.params || {};
+
+    const [step, setStep] = useState(1);
+
+    // Selections
+    const [durationValues, setDurationValues] = useState({
+        type: null,
+        startDate: new Date(),
+    });
+
+    // Location State
+    const [locationValues, setLocationValues] = useState({
+        locationSet: false,
+        address: "Konum Seçilmedi",
+    });
+    const [searchText, setSearchText] = useState("");
+    const [isSearching, setIsSearching] = useState(false);
+
+    // Project Details
+    const [projectType, setProjectType] = useState(null);
+    const [description, setDescription] = useState("");
+    const [machineNeeds, setMachineNeeds] = useState("");
+
+
+    // --- NEW FEATURES ---
+    const [photos, setPhotos] = useState([]);
+    const [selectedMachines, setSelectedMachines] = useState([]);
+    const [machineModalVisible, setMachineModalVisible] = useState(false);
+
+    // Price Calculation State (Mock)
+    const [estimatedPrice, setEstimatedPrice] = useState(0);
+
+    // Animations
+    const fadeAnimStep2 = useRef(new Animated.Value(0)).current;
+    const fadeAnimStep3 = useRef(new Animated.Value(0)).current;
+    const fadeAnimSummary = useRef(new Animated.Value(0)).current;
+
+    // Map Animations
+    const mapPan = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
+    const mapScale = useRef(new Animated.Value(1)).current;
+
+    const panResponder = useRef(
+        PanResponder.create({
+            onStartShouldSetPanResponder: () => true,
+            onMoveShouldSetPanResponder: () => true,
+            onPanResponderGrant: () => {
+                mapPan.setOffset({ x: mapPan.x._value, y: mapPan.y._value });
+                mapPan.setValue({ x: 0, y: 0 });
+            },
+            onPanResponderMove: Animated.event([null, { dx: mapPan.x, dy: mapPan.y }], { useNativeDriver: false }),
+            onPanResponderRelease: () => { mapPan.flattenOffset(); }
+        })
+    ).current;
+
+    useEffect(() => {
+        if (!durationValues.type) return;
+        const option = PROJECT_DURATION_OPTIONS.find(d => d.id === durationValues.type);
+        // Basic calc + machine count multiplier
+        let base = option ? option.basePrice : 0;
+        let machineExtra = selectedMachines.reduce((acc, m) => acc + (m.quantity * 5000), 0);
+        setEstimatedPrice(base + machineExtra);
+    }, [durationValues.type, selectedMachines]);
+
+    const formatCurrency = (amount) => {
+        return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " ₺ (Tahmini)";
+    };
+
+    // --- HANDLERS ---
+
+    const handleDurationSelect = (type) => {
+        setDurationValues(prev => ({ ...prev, type }));
+        if (step < 2) {
+            setStep(2);
+            Animated.timing(fadeAnimStep2, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+        }
+    };
+
+    const handleSearchSubmit = () => {
+        if (searchText.length > 2) {
+            setIsSearching(true);
+            Keyboard.dismiss();
+            setTimeout(() => {
+                setIsSearching(false);
+                const mockAddress = `${searchText} Mevkii, Şantiye Alanı No:1`;
+                setLocationValues(prev => ({ ...prev, address: mockAddress }));
+            }, 1000);
+        }
+    };
+
+    const handleGPS = () => {
+        setIsSearching(true);
+        setTimeout(() => {
+            setIsSearching(false);
+            const gpsAddress = "Mevcut Konum (40.99, 29.02)";
+            setLocationValues(prev => ({ ...prev, address: gpsAddress }));
+            setSearchText("Mevcut Konum");
+        }, 1200);
+    };
+
+    const handleLocationConfirm = () => {
+        if (!locationValues.locationSet) {
+            setLocationValues(prev => ({ ...prev, locationSet: true, address: prev.address === "Konum Seçilmedi" ? "İstanbul Geneli Şantiye Sahası" : prev.address }));
+        }
+        if (step < 3) {
+            setStep(3);
+            Animated.timing(fadeAnimStep3, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+        }
+    };
+
+    const handleProjectTypeSelect = (id) => {
+        setProjectType(id);
+    };
+
+    const handleAddPhoto = async () => {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+            alert('Kamera kullanımı için izin gerekiyor.');
+            return;
+        }
+
+        let result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.5,
+        });
+
+        if (!result.canceled) {
+            const newPhoto = { id: Date.now(), uri: result.assets[0].uri };
+            setPhotos([...photos, newPhoto]);
+        }
     };
 
     const handleRemovePhoto = (id) => {
         setPhotos(photos.filter(p => p.id !== id));
     };
 
-    // --- MACHINE SELECTION LOGIC ---
-    const [selectedMachines, setSelectedMachines] = useState([]);
-    const [machineModalVisible, setMachineModalVisible] = useState(false);
-
     const handleAddMachine = (machineName, categoryIcon) => {
         const existing = selectedMachines.find(m => m.name === machineName);
         if (existing) {
-            // Already exists, increment quantity
             handleUpdateQuantity(existing.id, 1);
         } else {
-            // Add new
-            const newMachine = {
-                id: Date.now().toString(),
-                name: machineName,
-                icon: categoryIcon,
-                quantity: 1
-            };
+            const newMachine = { id: Date.now().toString(), name: machineName, icon: categoryIcon, quantity: 1 };
             setSelectedMachines([...selectedMachines, newMachine]);
         }
         setMachineModalVisible(false);
@@ -102,177 +230,324 @@ export default function ProjectProposalScreen({ navigation }) {
         setSelectedMachines(prev => prev.filter(m => m.id !== id));
     };
 
-    return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" />
+    const handleNextToSummary = () => {
+        if (step < 4) {
+            setStep(4);
+            Animated.timing(fadeAnimSummary, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+        }
+    };
 
-            {/* Header */}
-            <SafeAreaView style={styles.headerContainer}>
-                <View style={styles.headerContent}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                        <Ionicons name="chevron-back" size={28} color="#fff" />
+    const handleSubmit = () => {
+        setStep(5);
+    };
+
+
+    // --- RENDERS ---
+
+    const renderStep1 = () => (
+        <View style={styles.stepContainer}>
+            <Text style={styles.questionTitle}>1. Projenin tahmini süresi nedir?</Text>
+            {PROJECT_DURATION_OPTIONS.map((opt) => {
+                const isSelected = durationValues.type === opt.id;
+                return (
+                    <TouchableOpacity
+                        key={opt.id}
+                        style={[styles.optionRow, isSelected && styles.optionRowSelected, step > 1 && !isSelected && { opacity: 0.5 }]}
+                        onPress={() => handleDurationSelect(opt.id)}
+                        activeOpacity={0.8}
+                    >
+                        <View style={[styles.iconBox, isSelected && styles.iconBoxSelected]}>
+                            <MaterialCommunityIcons name={opt.icon} size={24} color={isSelected ? '#000' : '#D4AF37'} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text style={[styles.optionTitle, isSelected && styles.optionTitleSelected]}>{opt.title}</Text>
+                            <Text style={styles.optionSub}>{opt.sub}</Text>
+                        </View>
+                        {isSelected && <MaterialCommunityIcons name="check-circle" size={24} color="#D4AF37" />}
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>PROJE DETAYLARI</Text>
-                    <View style={{ width: 40 }} />
+                );
+            })}
+        </View>
+    );
+
+    const renderStep2 = () => {
+        return (
+            <View style={styles.stepContainer}>
+                <Text style={styles.questionTitle}>2. Proje hangi konumda?</Text>
+
+                <View style={[styles.mapContainer, locationValues.locationSet && { borderColor: '#D4AF37' }]}>
+                    <View style={styles.mapMask} {...panResponder.panHandlers}>
+                        <Animated.View style={[styles.pannableLayer, { transform: [{ translateX: mapPan.x }, { translateY: mapPan.y }, { scale: mapScale }] }]}>
+                            <ImageBackground source={require('../../assets/map_bg.png')} style={{ width: '100%', height: '100%' }} imageStyle={{ opacity: 0.5 }}>
+                                <View style={styles.mapDarkOverlay} />
+                            </ImageBackground>
+                        </Animated.View>
+                    </View>
+
+                    <View style={styles.searchBarFloating}>
+                        <MaterialCommunityIcons name="magnify" size={20} color="#666" />
+                        <TextInput
+                            style={styles.searchInput}
+                            placeholder="İl, İlçe veya Proje Adı..."
+                            placeholderTextColor="#999"
+                            value={searchText}
+                            onChangeText={setSearchText}
+                            onSubmitEditing={handleSearchSubmit}
+                            blurOnSubmit={true}
+                            returnKeyType="search"
+                        />
+                        {isSearching && <ActivityIndicator size="small" color="#D4AF37" style={{ marginLeft: 8 }} />}
+                    </View>
+
+                    <View style={styles.centerPinContainer} pointerEvents="none">
+                        <MaterialCommunityIcons name="map-marker-radius" size={54} color="#D4AF37" style={styles.pinShadow} />
+                    </View>
+
+                    <TouchableOpacity style={styles.gpsButton} onPress={handleGPS}>
+                        <MaterialCommunityIcons name="crosshairs-gps" size={24} color="#000" />
+                    </TouchableOpacity>
+
+                    <View style={styles.mapBottomBar}>
+                        <View style={styles.addressContainer}>
+                            <Text style={styles.addressLabel}>Proje Konumu:</Text>
+                            <Text style={styles.addressText} numberOfLines={2}>{locationValues.address}</Text>
+                        </View>
+                        <TouchableOpacity style={styles.confirmLocationBtn} onPress={handleLocationConfirm}>
+                            <Text style={styles.confirmLocationText}>{locationValues.locationSet ? "GÜNCELLE" : "KONUMU ONAYLA"}</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </SafeAreaView>
+            </View>
+        );
+    };
 
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={{ flex: 1 }}
-            >
-                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+    const renderStep3 = () => {
+        return (
+            <View style={styles.stepContainer}>
+                <Text style={styles.questionTitle}>3. Proje Detayları ve Ekipman</Text>
 
-                    {/* SECTION 1: FIELD PHOTOS (Horizontal Gallery) */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>1. Saha Görselleri</Text>
-                        <Text style={styles.sectionSub}>Detaylı teklif için farklı açılardan çekin</Text>
+                <Text style={styles.subLabel}>Proje Tipi</Text>
+                <View style={styles.gridContainer}>
+                    {PROJECT_TYPES.map((pt, index) => {
+                        const isSelected = projectType === pt.id;
+                        // 2 column layout: Last 2 items are the last row
+                        const isLastRow = index >= PROJECT_TYPES.length - 2;
 
-                        <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={styles.galleryContainer}
-                        >
-                            {/* ADD PHOTO BUTTON */}
-                            <TouchableOpacity style={styles.addPhotoBtn} onPress={handleAddPhoto}>
-                                <MaterialCommunityIcons name="camera-plus" size={32} color="#FFD700" />
-                                <Text style={styles.addPhotoText}>EKLE</Text>
+                        return (
+                            <TouchableOpacity
+                                key={pt.id}
+                                style={[
+                                    styles.gridItem,
+                                    isSelected && styles.gridItemSelected,
+                                    isLastRow && { marginBottom: 0 }
+                                ]}
+                                onPress={() => handleProjectTypeSelect(pt.id)}
+                            >
+                                <MaterialCommunityIcons name={pt.icon} size={32} color={isSelected ? '#000' : '#D4AF37'} style={{ marginBottom: 6 }} />
+                                <Text style={[styles.gridItemText, isSelected && { color: '#000' }]}>{pt.title}</Text>
                             </TouchableOpacity>
+                        );
+                    })}
+                </View>
 
-                            {/* PHOTOS LIST */}
-                            {photos.map((photo) => (
-                                <View key={photo.id} style={styles.photoContainer}>
-                                    <Image source={{ uri: photo.uri }} style={styles.photo} />
-                                    <TouchableOpacity
-                                        style={styles.deleteBtn}
-                                        onPress={() => handleRemovePhoto(photo.id)}
-                                    >
-                                        <Ionicons name="close" size={14} color="#fff" />
-                                    </TouchableOpacity>
+                {/* DESCRIPTION Section */}
+                <Text style={[styles.subLabel, { marginTop: 8 }]}>Proje Açıklaması / Notlar (Opsiyonel)</Text>
+                <TextInput
+                    style={styles.textArea}
+                    multiline
+                    placeholder="Projenizle ilgili detayları buraya yazabilirsiniz..."
+                    placeholderTextColor="#666"
+                    value={description}
+                    onChangeText={setDescription}
+                />
 
-                                    {/* Mock Progress Ring (Static for demo) */}
-                                    {/* <View style={styles.progressRing} /> */}
-                                </View>
-                            ))}
-                        </ScrollView>
-                    </View>
+                {/* PHOTOS section (Optional) */}
+                <View style={styles.dividerSmall} />
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={styles.subLabel}>Saha Fotoğrafları (Opsiyonel)</Text>
+                    <TouchableOpacity style={styles.actionButton} onPress={handleAddPhoto}>
+                        <MaterialCommunityIcons name="camera" size={18} color="#000" style={{ marginRight: 6 }} />
+                        <Text style={styles.actionButtonText}>Fotoğraf Ekle</Text>
+                    </TouchableOpacity>
+                </View>
+                {photos.length > 0 && (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+                        {photos.map(p => (
+                            <View key={p.id} style={{ marginRight: 8, position: 'relative' }}>
+                                <Image source={{ uri: p.uri }} style={{ width: 80, height: 80, borderRadius: 8, backgroundColor: '#333' }} />
+                                <TouchableOpacity style={styles.deleteBtn} onPress={() => handleRemovePhoto(p.id)}>
+                                    <Ionicons name="close" size={14} color="#fff" />
+                                </TouchableOpacity>
+                            </View>
+                        ))}
+                    </ScrollView>
+                )}
 
-                    {/* SECTION 2: LOCATION */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>2. Proje Konumu</Text>
+                {/* MACHINES Section (Optional) */}
+                <View style={styles.dividerSmall} />
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={styles.subLabel}>Makine Tercihleri (Opsiyonel)</Text>
+                    <TouchableOpacity style={styles.actionButton} onPress={() => setMachineModalVisible(true)}>
+                        <MaterialCommunityIcons name="excavator" size={18} color="#000" style={{ marginRight: 6 }} />
+                        <Text style={styles.actionButtonText}>Makine Ekle</Text>
+                    </TouchableOpacity>
+                </View>
 
-                        <View style={styles.locationInputContainer}>
-                            {/* Pin Icon */}
-                            <MaterialCommunityIcons name="map-marker" size={24} color="#FFD700" style={styles.locationIcon} />
 
-                            {/* Input */}
-                            <TextInput
-                                style={styles.locationInput}
-                                value={address}
-                                onChangeText={setAddress}
-                                placeholder="Adres giriniz..."
-                                placeholderTextColor="#666"
-                            />
 
-                            {/* GPS Button */}
-                            <TouchableOpacity style={styles.gpsButton} onPress={() => setAddress('Mevcut Konum Bulundu...')}>
-                                <MaterialCommunityIcons name="crosshairs-gps" size={24} color="#FFD700" />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-                    {/* SECTION 3: DESCRIPTION */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>3. Yapılacak İş / Notlar</Text>
-                        <View style={styles.textAreaContainer}>
-                            <TextInput
-                                style={styles.textArea}
-                                placeholder="Eski fabrika binası yıkımı. Giriş kapısı dar, yüksek tonajlı vinç sığmayabilir..."
-                                placeholderTextColor="#666"
-                                multiline
-                                textAlignVertical="top"
-                                value={description}
-                                onChangeText={setDescription}
-                            />
-                        </View>
-                    </View>
-
-                    {/* SECTION 4: MACHINE PREFERENCES (NEW) */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>4. Makine Tercihleriniz (Opsiyonel)</Text>
-                        <Text style={styles.sectionSub}>Aklınızda belirli bir model var mı?</Text>
-
-                        {/* Selected Machines List */}
-                        {selectedMachines.map(machine => (
-                            <View key={machine.id} style={styles.machineCard}>
-                                <View style={styles.machineInfo}>
-                                    <View style={styles.machineIconBox}>
-                                        <MaterialCommunityIcons name={machine.icon} size={24} color="#FFD700" />
-                                    </View>
-                                    <Text style={styles.machineName}>{machine.name}</Text>
-                                </View>
-
-                                <View style={styles.machineActions}>
-                                    {/* Quantity Selector */}
-                                    <View style={styles.qtyContainer}>
-                                        <TouchableOpacity onPress={() => handleUpdateQuantity(machine.id, -1)} style={styles.qtyBtn}>
-                                            <Text style={styles.qtyText}>-</Text>
-                                        </TouchableOpacity>
-                                        <Text style={styles.qtyValue}>{machine.quantity}</Text>
-                                        <TouchableOpacity onPress={() => handleUpdateQuantity(machine.id, 1)} style={styles.qtyBtn}>
-                                            <Text style={styles.qtyText}>+</Text>
-                                        </TouchableOpacity>
-                                    </View>
-
-                                    {/* Remove Button */}
-                                    <TouchableOpacity onPress={() => handleRemoveMachine(machine.id)} style={styles.removeMachineBtn}>
-                                        <Ionicons name="trash-outline" size={20} color="#CF3335" />
-                                    </TouchableOpacity>
+                {selectedMachines.length > 0 ? (
+                    <View style={{ marginTop: 8 }}>
+                        {selectedMachines.map(m => (
+                            <View key={m.id} style={styles.machineRow}>
+                                <Text style={{ color: '#ccc', flex: 1 }}>{m.name}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <TouchableOpacity onPress={() => handleUpdateQuantity(m.id, -1)}><MaterialCommunityIcons name="minus" color="#666" size={20} /></TouchableOpacity>
+                                    <Text style={{ color: '#D4AF37', marginHorizontal: 8, fontWeight: 'bold' }}>{m.quantity}</Text>
+                                    <TouchableOpacity onPress={() => handleUpdateQuantity(m.id, 1)}><MaterialCommunityIcons name="plus" color="#D4AF37" size={20} /></TouchableOpacity>
+                                    <TouchableOpacity onPress={() => handleRemoveMachine(m.id)} style={{ marginLeft: 12 }}><MaterialCommunityIcons name="trash-can" color="#CF3335" size={20} /></TouchableOpacity>
                                 </View>
                             </View>
                         ))}
+                    </View>
+                ) : (
+                    <Text style={{ color: '#666', fontSize: 12, marginTop: 4, fontStyle: 'italic' }}>Henüz makine seçilmedi.</Text>
+                )}
 
-                        {/* Add Machine Button */}
-                        <TouchableOpacity
-                            style={styles.addMachineBtn}
-                            onPress={() => setMachineModalVisible(true)}
-                        >
-                            <Ionicons name="add" size={24} color="#FFD700" />
-                            <Text style={styles.addMachineText}>Başka Makine / Ekipman Ekle</Text>
-                        </TouchableOpacity>
+                <View style={{ height: 20 }} />
+                {/* DEVAM ET button removed */}
+
+            </View>
+        );
+    };
+
+    const renderSummary = () => {
+        // Removed step check: if (step < 4 || step === 5) return null;
+        if (step === 5) return null;
+
+        const durationOpt = PROJECT_DURATION_OPTIONS.find(d => d.id === durationValues.type);
+        const typeOpt = PROJECT_TYPES.find(t => t.id === projectType);
+
+        return (
+            <Animated.View style={[styles.summaryContainer, { opacity: 1 }]}>
+                {/* Removed fadeAnimSummary for now as it's static */}
+                <View style={styles.receiptHeader}>
+                    {[...Array(6)].map((_, i) => <View key={i} style={styles.receiptHole} />)}
+                </View>
+
+                <View style={styles.receiptBody}>
+                    <Text style={styles.receiptTitle}>PROJE ÖZETİ</Text>
+
+                    <View style={styles.receiptRow}>
+                        <Text style={styles.receiptLabel}>Süre:</Text>
+                        <Text style={styles.receiptValue}>{durationOpt?.title || 'Seçilmedi'}</Text>
+                    </View>
+                    <View style={styles.receiptRow}>
+                        <Text style={styles.receiptLabel}>Proje Tipi:</Text>
+                        <Text style={styles.receiptValue}>{typeOpt?.title || 'Belirtilmedi'}</Text>
+                    </View>
+                    {description ? (
+                        <View style={styles.receiptRow}>
+                            <Text style={styles.receiptLabel}>Not:</Text>
+                            <Text style={styles.receiptValue} numberOfLines={3}>{description}</Text>
+                        </View>
+                    ) : null}
+                    <View style={styles.receiptRow}>
+                        <Text style={styles.receiptLabel}>Konum:</Text>
+                        <Text style={styles.receiptValue} numberOfLines={1}>{locationValues.address}</Text>
+                    </View>
+                    <View style={styles.receiptRow}>
+                        <Text style={styles.receiptLabel}>Ekipman:</Text>
+                        <Text style={styles.receiptValue}>{selectedMachines.length > 0 ? `${selectedMachines.length} Çeşit` : 'Seçilmedi'}</Text>
+                    </View>
+                    {photos.length > 0 && (
+                        <View style={styles.receiptRow}>
+                            <Text style={styles.receiptLabel}>Görsel:</Text>
+                            <Text style={styles.receiptValue}>{photos.length} Adet</Text>
+                        </View>
+                    )}
+
+                    <View style={styles.divider} />
+                    <View style={styles.totalRow}>
+                        <Text style={styles.totalLabel}>Tahmini Bütçe:</Text>
+                        <Text style={styles.totalValue}>{formatCurrency(estimatedPrice)}</Text>
+                    </View>
+                </View>
+
+                <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
+                    <Text style={styles.submitBtnText}>TEKLİF TALEBİ OLUŞTUR</Text>
+                    <MaterialCommunityIcons name="rocket-launch" size={20} color="#000" style={{ marginLeft: 8 }} />
+                </TouchableOpacity>
+                <View style={{ height: 50 }} />
+            </Animated.View>
+        );
+    };
+
+    const renderSuccess = () => {
+        if (step !== 5) return null;
+        return (
+            <View style={styles.successContainer}>
+                <View style={styles.successContent}>
+                    <MaterialCommunityIcons name="clipboard-check-outline" size={100} color="#D4AF37" />
+                    <Text style={styles.successTitle}>PROJE KAYDEDİLDİ</Text>
+                    <Text style={styles.successText}>
+                        Proje talebiniz kurumsal satış ekibimize iletilmiştir.
+                        {"\n\n"}
+                        Özel proje danışmanımız en kısa sürede sizinle iletişime geçecektir.
+                    </Text>
+
+                    <TouchableOpacity
+                        style={styles.exitBtn}
+                        onPress={() => navigation.navigate('MainTabs', { screen: 'Ana Sayfa' })}
+                    >
+                        <Text style={styles.exitBtnText}>ANA MENÜYE DÖN</Text>
+                        <MaterialCommunityIcons name="home" size={24} color="#000" style={{ marginLeft: 8 }} />
+                    </TouchableOpacity>
+                </View>
+            </View>
+        );
+    };
+
+    return (
+        <View style={styles.container}>
+            <LinearGradient colors={['#000', '#111']} style={styles.gradient}>
+                <SafeAreaView style={{ flex: 1 }}>
+                    <View style={styles.header}>
+                        {step !== 5 && (
+                            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                                <Ionicons name="arrow-back" size={24} color="#fff" />
+                            </TouchableOpacity>
+                        )}
+                        <Text style={styles.headerTitle}>{step === 5 ? 'BAŞARILI' : 'PROJE SİHİRBAZI'}</Text>
+                        <View style={{ width: 24 }} />
                     </View>
 
-                    {/* MACHINE SELECTION MODAL */}
-                    <Modal
-                        visible={machineModalVisible}
-                        animationType="slide"
-                        transparent={true}
-                        onRequestClose={() => setMachineModalVisible(false)}
-                    >
+                    {step === 5 ? renderSuccess() : (
+                        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                            {/* Always render all steps and summary */}
+                            {renderStep1()}
+                            {renderStep2()}
+                            {renderStep3()}
+                            {renderSummary()}
+                        </ScrollView>
+                    )}
+
+
+                    {/* MACHINE MODAL */}
+                    <Modal visible={machineModalVisible} animationType="slide" transparent={true} onRequestClose={() => setMachineModalVisible(false)}>
                         <View style={styles.modalOverlay}>
                             <View style={styles.modalContent}>
                                 <View style={styles.modalHeader}>
-                                    <Text style={styles.modalTitle}>Makine Seç</Text>
-                                    <TouchableOpacity onPress={() => setMachineModalVisible(false)}>
-                                        <Ionicons name="close" size={24} color="#fff" />
-                                    </TouchableOpacity>
+                                    <Text style={styles.modalTitle}>Makine Seçin</Text>
+                                    <TouchableOpacity onPress={() => setMachineModalVisible(false)}><Ionicons name="close" size={24} color="#fff" /></TouchableOpacity>
                                 </View>
-
-                                <ScrollView showsVerticalScrollIndicator={false}>
+                                <ScrollView>
                                     {PROPOSAL_CATEGORIES.map(cat => (
-                                        <View key={cat.id} style={styles.modalCategory}>
-                                            <View style={styles.modalCatHeader}>
-                                                <MaterialCommunityIcons name={cat.icon} size={20} color="#FFD700" style={{ marginRight: 8 }} />
-                                                <Text style={styles.modalCatTitle}>{cat.title}</Text>
-                                            </View>
-                                            <View style={styles.modalItemsRow}>
+                                        <View key={cat.id} style={{ marginBottom: 20 }}>
+                                            <Text style={{ color: '#D4AF37', fontWeight: 'bold', marginBottom: 10 }}>{cat.title}</Text>
+                                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                                                 {cat.items.map((item, idx) => (
-                                                    <TouchableOpacity
-                                                        key={idx}
-                                                        style={styles.modalItemBadge}
-                                                        onPress={() => handleAddMachine(item, cat.icon)}
-                                                    >
-                                                        <Text style={styles.modalItemText}>{item}</Text>
+                                                    <TouchableOpacity key={idx} style={styles.modalBadge} onPress={() => handleAddMachine(item, cat.icon)}>
+                                                        <Text style={{ color: '#ccc', fontSize: 12 }}>{item}</Text>
                                                     </TouchableOpacity>
                                                 ))}
                                             </View>
@@ -283,322 +558,107 @@ export default function ProjectProposalScreen({ navigation }) {
                         </View>
                     </Modal>
 
-                </ScrollView>
-            </KeyboardAvoidingView>
-
-            {/* FOOTER BUTTON */}
-            <View style={styles.footer}>
-                <TouchableOpacity style={styles.submitBtn}>
-                    <LinearGradient
-                        colors={['#FFD700', '#FFC000']} // Gold Gradient
-                        style={styles.submitGradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                    >
-                        <Text style={styles.submitText}>PROJENİZ İÇİN TEKLİF ALIN</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
-            </View>
+                </SafeAreaView>
+            </LinearGradient>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#000',
-    },
-    headerContainer: {
-        backgroundColor: '#111',
-        borderBottomWidth: 1,
-        borderBottomColor: '#222',
-    },
-    headerContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-    },
-    backBtn: {
-        padding: 4,
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#fff',
-        letterSpacing: 1,
-    },
-    scrollContent: {
-        padding: 20,
-        paddingBottom: 120, // Space for footer
-    },
-    section: {
-        marginBottom: 32,
-    },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#FFD700',
-        marginBottom: 4,
-    },
-    sectionSub: {
-        fontSize: 12,
-        color: '#888',
-        marginBottom: 16,
-    },
+    container: { flex: 1, backgroundColor: '#000' },
+    gradient: { flex: 1 },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#222' },
+    headerTitle: { color: '#D4AF37', fontSize: 16, fontWeight: 'bold', letterSpacing: 1 },
+    backBtn: { padding: 4 },
+    scrollContent: { padding: 20, paddingBottom: 100 },
+    stepContainer: { marginBottom: 30 },
+    questionTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 20 },
+    subLabel: { color: '#D4AF37', fontSize: 14, fontWeight: 'bold', marginBottom: 8, marginTop: 6 },
 
-    // Gallery Styles
-    galleryContainer: {
-        alignItems: 'center',
-        paddingVertical: 4,
-    },
-    addPhotoBtn: {
-        width: 100,
-        height: 100,
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: '#FFD700',
-        borderStyle: 'dashed',
-        backgroundColor: 'rgba(255, 215, 0, 0.05)',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 16,
-    },
-    addPhotoText: {
-        color: '#FFD700',
-        fontSize: 12,
-        fontWeight: 'bold',
-        marginTop: 4,
-    },
-    photoContainer: {
-        width: 100,
-        height: 100,
-        borderRadius: 12,
-        marginRight: 12,
-        position: 'relative',
-    },
-    photo: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 12,
-        backgroundColor: '#222',
-    },
-    deleteBtn: {
-        position: 'absolute',
-        top: -6,
-        right: -6,
-        backgroundColor: '#CF3335',
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: '#fff',
-    },
+    // Option Rows
+    optionRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1A1A1A', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#333' },
+    optionRowSelected: { borderColor: '#D4AF37', backgroundColor: '#222' },
+    iconBox: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#333', justifyContent: 'center', alignItems: 'center', marginRight: 16 },
+    iconBoxSelected: { backgroundColor: '#D4AF37' },
+    optionTitle: { color: '#ccc', fontSize: 15, fontWeight: 'bold', marginBottom: 2 },
+    optionTitleSelected: { color: '#fff' },
+    optionSub: { color: '#666', fontSize: 12 },
 
-    // Location Styles
-    locationInputContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#1E1E1E',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#333',
-        height: 56,
-        paddingHorizontal: 12,
-    },
-    locationIcon: {
-        marginRight: 12,
-    },
-    locationInput: {
-        flex: 1,
-        color: '#fff',
-        fontSize: 15,
-        height: '100%',
-    },
-    gpsButton: {
-        padding: 8,
-    },
+    // Map
+    mapContainer: { height: 320, borderRadius: 16, overflow: 'hidden', marginBottom: 16, borderWidth: 1, borderColor: '#333' },
+    mapMask: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
+    pannableLayer: { width: '250%', height: '250%' },
+    mapDarkOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.45)' },
+    searchBarFloating: { position: 'absolute', top: 20, left: 20, right: 20, backgroundColor: '#fff', borderRadius: 8, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10 },
+    searchInput: { flex: 1, marginLeft: 10, fontSize: 14, color: '#000' },
+    centerPinContainer: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 40, justifyContent: 'center', alignItems: 'center', zIndex: 10 },
+    pinShadow: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.6, shadowRadius: 6, elevation: 6 },
+    gpsButton: { position: 'absolute', right: 20, bottom: 100, backgroundColor: '#D4AF37', width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
+    mapBottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(20,20,20,0.95)', padding: 16, borderTopWidth: 1, borderTopColor: '#333' },
+    addressContainer: { marginBottom: 12 },
+    addressLabel: { color: '#666', fontSize: 11, marginBottom: 2 },
+    addressText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+    confirmLocationBtn: { backgroundColor: '#D4AF37', borderRadius: 8, paddingVertical: 12, alignItems: 'center' },
+    confirmLocationText: { color: '#000', fontWeight: 'bold', fontSize: 14 },
 
-    // Description Styles
-    textAreaContainer: {
-        backgroundColor: '#1E1E1E',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#333',
-        height: 120,
-        padding: 12,
-    },
+    // Grid
+    gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+    gridItem: { width: '48%', aspectRatio: 1.55, backgroundColor: '#1A1A1A', borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: '#333', padding: 8 },
+    gridItemSelected: { backgroundColor: '#D4AF37', borderColor: '#FFD700' },
+    gridItemText: { color: '#ccc', fontWeight: 'bold', fontSize: 13, textAlign: 'center', marginTop: 4, minHeight: 34, textAlignVertical: 'top' },
+    dividerSmall: { height: 1, backgroundColor: '#333', marginVertical: 10 },  // Reduced from 16
+    deleteBtn: { position: 'absolute', top: -5, right: -5, backgroundColor: '#CF3335', width: 20, height: 20, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+
+    // Machine Row
+    machineRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1A1A1A', padding: 12, borderRadius: 8, marginBottom: 8, borderWidth: 1, borderColor: '#333' },
+    continueBtn: { flexDirection: 'row', backgroundColor: '#D4AF37', borderRadius: 12, paddingVertical: 16, alignItems: 'center', justifyContent: 'center', marginTop: 20 },
+    continueBtnText: { color: '#000', fontWeight: 'bold', fontSize: 16, marginRight: 8 },
+
+    // Action Button
+    actionButton: { flexDirection: 'row', backgroundColor: '#D4AF37', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, alignItems: 'center' },
+    actionButtonText: { color: '#000', fontSize: 13, fontWeight: 'bold' },
+
+    // Modal
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
+    modalContent: { backgroundColor: '#111', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, height: '70%' },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+    modalTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+    modalBadge: { backgroundColor: '#222', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: '#333' },
+
+    // Receipt
+    summaryContainer: { marginTop: 20 },
+    receiptHeader: { flexDirection: 'row', justifyContent: 'space-between', height: 10, overflow: 'hidden', marginHorizontal: 10 },
+    receiptHole: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#000', marginTop: -12 },
+    receiptBody: { backgroundColor: '#FFF', borderRadius: 0, marginHorizontal: 10, padding: 20, paddingTop: 30 },
+    receiptTitle: { fontSize: 16, fontWeight: '900', textAlign: 'center', marginBottom: 20, letterSpacing: 2 },
+    receiptRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+    receiptLabel: { color: '#666', fontSize: 13, fontWeight: 'bold' },
+    receiptValue: { color: '#000', fontSize: 13, fontWeight: '600', maxWidth: '70%', textAlign: 'right' },
+    divider: { height: 1, backgroundColor: '#ddd', marginVertical: 16, borderStyle: 'dashed', borderWidth: 1, borderColor: '#ccc' },
+    totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    totalLabel: { fontSize: 14, fontWeight: 'bold', color: '#000' },
+    totalValue: { fontSize: 16, fontWeight: '900', color: '#D4AF37' },
+    submitBtn: { flexDirection: 'row', backgroundColor: '#D4AF37', marginHorizontal: 10, marginTop: -4, borderBottomLeftRadius: 12, borderBottomRightRadius: 12, paddingVertical: 18, justifyContent: 'center', alignItems: 'center', shadowColor: "#D4AF37", shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.3, shadowRadius: 10 },
+    submitBtnText: { color: '#000', fontSize: 16, fontWeight: '900', letterSpacing: 1 },
+
+    // Success
+    successContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+    successContent: { width: '100%', alignItems: 'center', backgroundColor: '#111', padding: 30, borderRadius: 20, borderWidth: 1, borderColor: '#333' },
+    successTitle: { fontSize: 24, fontWeight: '900', color: '#FFF', marginTop: 20, marginBottom: 10, letterSpacing: 1 },
+    successText: { fontSize: 15, color: '#ccc', textAlign: 'center', marginBottom: 40, lineHeight: 22 },
+    exitBtn: { flexDirection: 'row', backgroundColor: '#D4AF37', paddingHorizontal: 30, paddingVertical: 15, borderRadius: 12, alignItems: 'center' },
+    exitBtnText: { color: '#000', fontWeight: 'bold', fontSize: 16 },
+
+    // Text Area
     textArea: {
-        flex: 1,
-        color: '#fff',
-        fontSize: 15,
-        lineHeight: 22,
-    },
-
-    // Machine Selection Styles
-    machineCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        backgroundColor: '#1E1E1E',
+        backgroundColor: '#1A1A1A',
         borderRadius: 12,
         padding: 12,
-        marginBottom: 10,
-        borderWidth: 1,
-        borderColor: '#333'
-    },
-    machineInfo: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-    },
-    machineIconBox: {
-        width: 36,
-        height: 36,
-        borderRadius: 8,
-        backgroundColor: 'rgba(255, 215, 0, 0.1)',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 12,
-    },
-    machineName: {
         color: '#fff',
-        fontSize: 14,
-        fontWeight: 'bold',
-        width: '60%' // Prevent overlap
-    },
-    machineActions: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    qtyContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(255, 215, 0, 0.1)',
-        borderRadius: 8,
-        height: 32,
-        marginRight: 10,
-    },
-    qtyBtn: {
-        width: 28,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    qtyText: {
-        color: '#FFD700',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    qtyValue: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: 'bold',
-        marginHorizontal: 4,
-    },
-    removeMachineBtn: {
-        padding: 4,
-    },
-    addMachineBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.3)',
-        borderStyle: 'dashed',
-        borderRadius: 12,
-        height: 50,
-        backgroundColor: 'rgba(255,255,255,0.05)',
-    },
-    addMachineText: {
-        color: '#ccc',
-        marginLeft: 8,
-        fontSize: 14,
-    },
-
-    // Modal Styles
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        justifyContent: 'flex-end',
-    },
-    modalContent: {
-        backgroundColor: '#111',
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        padding: 20,
-        height: '70%',
-    },
-    modalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 20
-    },
-    modalTitle: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    modalCategory: {
-        marginBottom: 20,
-    },
-    modalCatHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    modalCatTitle: {
-        color: '#FFD700',
-        fontSize: 14,
-        fontWeight: 'bold',
-    },
-    modalItemsRow: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
-    },
-    modalItemBadge: {
-        backgroundColor: '#222',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 8,
+        minHeight: 150, // Increased from 100
+        textAlignVertical: 'top',
         borderWidth: 1,
         borderColor: '#333',
-    },
-    modalItemText: {
-        color: '#ccc',
-        fontSize: 13,
-    },
-
-    // Footer
-    footer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: '#000',
-        padding: 20,
-        paddingBottom: Platform.OS === 'ios' ? 34 : 20,
-        borderTopWidth: 1,
-        borderTopColor: '#222',
-    },
-    submitBtn: {
-        height: 56,
-        borderRadius: 28,
-        overflow: 'hidden',
-    },
-    submitGradient: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    submitText: {
-        fontSize: 16,
-        fontWeight: '900',
-        color: '#000',
-        letterSpacing: 0.5,
+        fontSize: 14
     },
 });
