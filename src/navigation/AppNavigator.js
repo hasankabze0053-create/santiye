@@ -10,6 +10,7 @@ import ProjectIdentityScreen from '../screens/Cost/ProjectIdentityScreen';
 import SimpleCostScreen from '../screens/Cost/SimpleCostScreen';
 import SmartSketchScreen from '../screens/Cost/SmartSketchScreen';
 import EngineeringScreen from '../screens/Engineering/EngineeringScreen';
+import OnlineDiscoveryScreen from '../screens/Engineering/OnlineDiscoveryScreen';
 import HomeScreen from '../screens/Home/HomeScreen';
 import LawScreen from '../screens/Law/LawScreen';
 import LawyerDashboardScreen from '../screens/Law/LawyerDashboardScreen';
@@ -77,6 +78,7 @@ export default function AppNavigator() {
             <Stack.Screen name="Tadilat" component={RenovationScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Mühendislik" component={EngineeringScreen} options={{ headerShown: false }} />
             <Stack.Screen name="AI_Galeri" component={AiArchitectScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="OnlineDiscovery" component={OnlineDiscoveryScreen} options={{ headerShown: false }} />
 
             {/* New Modules */}
             <Stack.Screen name="Hukuk" component={LawScreen} options={{ headerShown: false, title: 'Hukuki Destek' }} />

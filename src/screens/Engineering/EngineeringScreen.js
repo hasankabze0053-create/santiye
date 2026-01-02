@@ -84,6 +84,10 @@ export default function EngineeringScreen() {
 
     // Mock Handle Tool - In reality this could open the Wizard or just Navigate
     const handleQuickTool = (toolId) => {
+        if (toolId === 'ONLINE_KESIF') {
+            navigation.navigate('OnlineDiscovery');
+            return;
+        }
         Alert.alert("Hızlı İşlem", `${toolId} modülü başlatılıyor...`);
         // Here we can re-integrate the Wizard Logic later if needed, 
         // essentially triggering the Wizard Step 1 for the selected category.

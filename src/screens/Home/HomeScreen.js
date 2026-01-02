@@ -1,4 +1,4 @@
-﻿import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
@@ -105,6 +105,26 @@ const CATEGORIES = [
 
 export default function HomeScreen({ navigation }) {
     const [greeting, setGreeting] = useState('İYİ GÜNLER');
+
+    // Hanging Sign Animation
+    const swingVal = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        const swing = Animated.loop(
+            Animated.sequence([
+                Animated.timing(swingVal, { toValue: 1, duration: 2500, easing: Easing.inOut(Easing.cubic), useNativeDriver: true }),
+                Animated.timing(swingVal, { toValue: -1, duration: 2500, easing: Easing.inOut(Easing.cubic), useNativeDriver: true }),
+                Animated.timing(swingVal, { toValue: 0, duration: 2500, easing: Easing.inOut(Easing.cubic), useNativeDriver: true })
+            ])
+        );
+        swing.start();
+        return () => swing.stop();
+    }, []);
+
+    const swingRotate = swingVal.interpolate({
+        inputRange: [-1, 1],
+        outputRange: ['-5deg', '5deg'] // Gentle sway
+    });
 
     // State for interactive ticker
     const [selectedValues, setSelectedValues] = useState({
@@ -227,19 +247,46 @@ export default function HomeScreen({ navigation }) {
                     {/* HERO HEADER - REF_IMAGE_MATCH */}
                     <View style={styles.headerContainer}>
                         <View style={styles.headerLeft}>
-                            <Text style={styles.subGreeting}>ŞANTİYE PRO v2.0</Text>
                             <Text style={styles.mainGreeting}>{greeting},</Text>
                             <Text style={styles.chiefName}>ŞEF <Text style={{ fontSize: 32 }}>👷🏼</Text></Text>
                         </View>
-                        <TouchableOpacity style={styles.profileBtn}>
-                            <Image
-                                source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop' }}
-                                style={styles.profileImg}
-                                contentFit="cover"
-                                transition={500}
-                            />
-                            <View style={styles.onlineDot} />
-                        </TouchableOpacity>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <View style={{ alignItems: 'center', marginRight: 15, zIndex: 10 }}>
+                                {/* Steel Cable - Fixed from top */}
+                                <View style={{
+                                    position: 'absolute',
+                                    top: -1000, // Goes way up
+                                    bottom: '95%', // Ends just above the hook
+                                    width: 1.5,
+                                    backgroundColor: 'rgba(255,255,255,0.3)', // Steel look
+                                }} />
+
+                                {/* Swinging Sign Container */}
+                                <Animated.View style={{
+                                    transform: [{ rotate: swingRotate }],
+                                    alignItems: 'center'
+                                }}>
+                                    {/* Yellow Hook */}
+                                    <View style={styles.signHook}>
+                                        <View style={styles.hookLoop} />
+                                    </View>
+
+                                    {/* The Badge */}
+                                    <View style={styles.hangingBadge}>
+                                        <Text style={styles.brandUnified}>CEPTEŞEF</Text>
+                                        <View style={styles.verifiedIcon}>
+                                            <Ionicons name="checkmark" size={10} color="#000" />
+                                        </View>
+                                    </View>
+                                </Animated.View>
+                            </View>
+                            <TouchableOpacity style={styles.profileBtn}>
+                                <View style={styles.initialsContainer}>
+                                    <Text style={styles.initialsText}>CŞ</Text>
+                                </View>
+                                <View style={styles.onlineDot} />
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
                     {/* METALLIC TICKER BAND */}
@@ -455,7 +502,49 @@ const styles = StyleSheet.create({
         paddingTop: 20,
         paddingBottom: 24,
     },
-    subGreeting: { color: '#D4AF37', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4, opacity: 0.8 },
+    hangingBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        backgroundColor: '#000', // Black Box
+        borderRadius: 12,
+        borderWidth: 1.5,
+        borderColor: '#D4AF37', // Gold Border
+        // Shadow
+        shadowColor: "#D4AF37",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 6,
+    },
+    signHook: {
+        width: 14,
+        height: 14,
+        borderWidth: 2,
+        borderColor: '#F1C40F', // Yellow Hook
+        borderRadius: 7,
+        marginBottom: -4, // Overlap slightly with badge
+        zIndex: 1,
+    },
+    hookLoop: {
+        position: 'absolute', top: -10, left: 5, width: 2, height: 12, backgroundColor: '#bdc3c7'
+    },
+    brandUnified: {
+        color: '#D4AF37', // Gold
+        fontSize: 16, // Large and confident
+        fontWeight: '900',
+        letterSpacing: 0.5,
+    },
+    verifiedIcon: {
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+        backgroundColor: '#D4AF37',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginLeft: 8,
+    },
     mainGreeting: { color: '#ffffff', fontSize: 24, fontWeight: '800', letterSpacing: 0.5 },
     chiefName: { color: '#ffffff', fontSize: 36, fontWeight: '900', lineHeight: 42 },
     profileBtn: {
@@ -464,7 +553,19 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         backgroundColor: '#111',
     },
-    profileImg: { width: '100%', height: '100%' },
+    initialsContainer: {
+        width: '100%',
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#1a1a1a', // Slightly lighter than #111
+    },
+    initialsText: {
+        color: '#D4AF37', // Gold
+        fontSize: 20, // Nice and visible
+        fontWeight: 'bold',
+        letterSpacing: 0.5,
+    },
     onlineDot: {
         position: 'absolute', top: 4, right: 4,
         width: 8, height: 8, borderRadius: 4, backgroundColor: '#4ADE80',

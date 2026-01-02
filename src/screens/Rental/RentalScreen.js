@@ -10,7 +10,7 @@ const { width } = Dimensions.get('window');
 
 // --- HERO SLIDER DATA ---
 const SHOWCASE_SLIDES = [
-    { id: 1, title: 'Haftanın Fırsat Aracı', subtitle: 'JCB 3CX Beko Loder - İstanbul', image: 'https://images.unsplash.com/photo-1579623862660-3162b7571343?q=80&w=800&auto=format&fit=crop', tag: '%20 İNDİRİM' },
+    { id: 1, title: 'Ücretsiz Yıkım Fırsatı', subtitle: 'Kentsel Dönüşüm & Enkaz Karşılığı', image: require('../../assets/rental/demolition_showcase.png'), tag: 'FIRSAT' },
     { id: 2, title: 'Yeni Filo Eklendi', subtitle: 'Manitou Telehandler Serisi', image: 'https://images.unsplash.com/photo-1519003300449-424ad9e12435?q=80&w=800&auto=format&fit=crop', tag: 'YENİ' },
     { id: 3, title: 'Proje Taşımacılığı', subtitle: 'Lowbed ve Ağır Nakliye', image: 'https://images.unsplash.com/photo-1605218456194-54d6af4b74aa?q=80&w=800&auto=format&fit=crop', tag: 'LOJİSTİK' },
 ];
@@ -302,7 +302,7 @@ export default function RentalScreen() {
                                 {SHOWCASE_SLIDES.map((slide) => (
                                     <View key={slide.id} style={styles.showcaseCard}>
                                         <View style={styles.showcaseImage}>
-                                            <Image source={{ uri: slide.image }} style={StyleSheet.absoluteFill} contentFit="cover" transition={500} />
+                                            <Image source={typeof slide.image === 'string' ? { uri: slide.image } : slide.image} style={StyleSheet.absoluteFill} contentFit="cover" transition={500} />
                                             <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={StyleSheet.absoluteFill} />
                                             <View style={styles.showcaseTag}>
                                                 <Text style={styles.showcaseTagText}>{slide.tag}</Text>

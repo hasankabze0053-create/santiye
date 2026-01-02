@@ -10,7 +10,7 @@ const { width } = Dimensions.get('window');
 
 // --- HERO SLIDER DATA ---
 const MARKET_SHOWCASE = [
-    { id: '1', title: 'HAFTANIN İNDİRİMLİ DEMİRİ', subtitle: 'Krom Çelik A.Ş. - Ton Fiyatında Şok İndirim', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=800', tag: '%15 İNDİRİM' },
+    { id: '1', title: '', subtitle: '', image: require('../../assets/market/concrete_showcase.png'), tag: 'EN İYİ FİYAT' },
     { id: '2', title: 'TUĞLA KAMPANYASI', subtitle: 'Yüksek kaliteli yığma tuğla toplu alımda avantaj', image: 'https://images.unsplash.com/photo-1588011930968-748435e16ee9?q=80&w=800', tag: 'KARGO BEDAVA' },
     { id: '3', title: 'YALITIM ÇÖZÜMLERİ', subtitle: 'Kışa hazırlık için mantolama paketlerinde fırsat', image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=800', tag: 'YENİ SEZON' },
 ];
@@ -206,7 +206,7 @@ const MARKET_CATEGORIES = [
         title: 'KAPI & PENCERE',
         subtitle: 'Çelik Kapı, PVC, Doğrama',
         icon: 'door',
-        image: require('../../assets/carbon_bg.png'),
+        image: require('../../assets/market/kapi_pencere.png'),
         subcategories: [
             { id: '10.1', name: 'Kapılar', icon: 'door-closed' },
             { id: '10.2', name: 'Pencere & Aksesuar', icon: 'window-closed-variant' },
@@ -225,7 +225,7 @@ const MARKET_CATEGORIES = [
         title: 'İŞ GÜVENLİĞİ & SAHA',
         subtitle: 'Baret, Yelek, El Arabası',
         icon: 'hard-hat',
-        image: require('../../assets/carbon_bg.png'),
+        image: require('../../assets/market/is_guvenligi.png'),
         subcategories: [
             { id: '11.1', name: 'Kişisel Koruyucu (KKD)', icon: 'account-hard-hat' },
             { id: '11.2', name: 'Saha Ekipmanı', icon: 'cone' }
@@ -242,7 +242,7 @@ const MARKET_CATEGORIES = [
         title: 'PEYZAJ & BAHÇE',
         subtitle: 'Kilit Taşı, Çit, Sulama',
         icon: 'pine-tree',
-        image: require('../../assets/carbon_bg.png'),
+        image: require('../../assets/market/peyzaj_bahce.png'),
         subcategories: [
             { id: '12.1', name: 'Zemin Düzenleme', icon: 'road-variant' },
             { id: '12.2', name: 'Bahçe Ekipmanı', icon: 'sprinkler' }, // proxy
@@ -410,13 +410,15 @@ export default function MarketScreen() { // Force Refresh
                                     {MARKET_SHOWCASE.map((item) => (
                                         <View key={item.id} style={styles.heroCard}>
                                             <View style={styles.heroImage}>
-                                                <Image source={{ uri: item.image }} style={StyleSheet.absoluteFill} contentFit="cover" transition={500} />
+                                                <Image source={typeof item.image === 'string' ? { uri: item.image } : item.image} style={StyleSheet.absoluteFill} contentFit="cover" transition={500} />
                                                 <LinearGradient colors={['transparent', 'rgba(0,0,0,0.9)']} style={StyleSheet.absoluteFill} />
                                                 <View style={styles.heroTag}><Text style={styles.heroTagText}>{item.tag}</Text></View>
-                                                <View style={styles.heroContent}>
-                                                    <Text style={styles.heroTitle}>{item.title}</Text>
-                                                    <Text style={styles.heroSubtitle}>{item.subtitle}</Text>
-                                                </View>
+                                                {item.title ? (
+                                                    <View style={styles.heroContent}>
+                                                        <Text style={styles.heroTitle}>{item.title}</Text>
+                                                        <Text style={styles.heroSubtitle}>{item.subtitle}</Text>
+                                                    </View>
+                                                ) : null}
                                             </View>
                                         </View>
                                     ))}
@@ -469,13 +471,7 @@ export default function MarketScreen() { // Force Refresh
                                         <View style={styles.gridImage}>
                                             <Image source={cat.image} style={StyleSheet.absoluteFill} contentFit="cover" transition={500} />
 
-                                            {/* ARTIFACT CORRECTION PATCHES (Hiding baked-in white boxes) */}
-                                            {/* Top Right Patch */}
-                                            <LinearGradient
-                                                colors={['rgba(0,0,0,1)', 'rgba(0,0,0,0)']}
-                                                start={{ x: 1, y: 0 }} end={{ x: 0, y: 1 }}
-                                                style={{ position: 'absolute', top: 0, right: 0, width: 80, height: 80 }}
-                                            />
+
                                             {/* Bottom Left Patch (Integrated with main gradient) */}
                                             <LinearGradient
                                                 colors={['transparent', '#000000']}
