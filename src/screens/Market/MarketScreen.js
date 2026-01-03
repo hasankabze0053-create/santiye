@@ -444,7 +444,7 @@ export default function MarketScreen() { // Force Refresh
                                         <MaterialCommunityIcons name="clipboard-list-outline" size={32} color="#000" />
                                     </View>
                                     <View style={{ flex: 1 }}>
-                                        <Text style={styles.bulkTitle}>TOPLU MALZEME TALEBİ</Text>
+                                        <Text style={styles.bulkTitle}>TEKLİF TOPLA</Text>
                                         <Text style={styles.bulkSubtitle}>Liste oluşturun, tüm firmalardan teklif alın.</Text>
                                     </View>
                                 </View>

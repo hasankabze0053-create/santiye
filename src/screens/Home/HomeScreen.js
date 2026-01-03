@@ -13,32 +13,32 @@ const MARKET_OPTS = {
         title: 'DEMİR ÇEŞİTLERİ',
         icon: 'cube',
         items: [
-            { label: 'DEMİR Ø8', value: '₺25.40', trend: 'up' },
-            { label: 'DEMİR Ø10', value: '₺24.80', trend: 'neutral' },
-            { label: 'DEMİR Ø12', value: '₺24.50', trend: 'down' },
-            { label: 'DEMİR Ø14', value: '₺24.30', trend: 'down' },
-            { label: 'DEMİR Ø16', value: '₺24.30', trend: 'down' },
+            { label: 'DEMİR Ø8', value: '₺32.40', trend: 'up' },
+            { label: 'DEMİR Ø10', value: '₺31.80', trend: 'neutral' },
+            { label: 'DEMİR Ø12', value: '₺31.50', trend: 'down' },
+            { label: 'DEMİR Ø14', value: '₺31.30', trend: 'down' },
+            { label: 'DEMİR Ø16', value: '₺31.30', trend: 'down' },
         ]
     },
     concrete: {
         title: 'HAZIR BETON',
         icon: 'business',
         items: [
-            { label: 'BETON C25', value: '₺2.000', trend: 'up' },
-            { label: 'BETON C30', value: '₺2.100', trend: 'up' },
-            { label: 'BETON C35', value: '₺2.250', trend: 'up' },
-            { label: 'BETON C40', value: '₺2.400', trend: 'up' },
-            { label: 'BETON C50', value: '₺2.650', trend: 'up' },
+            { label: 'BETON C25', value: '₺3.200', trend: 'up' },
+            { label: 'BETON C30', value: '₺3.450', trend: 'up' },
+            { label: 'BETON C35', value: '₺3.700', trend: 'up' },
+            { label: 'BETON C40', value: '₺3.950', trend: 'up' },
+            { label: 'BETON C50', value: '₺4.400', trend: 'up' },
         ]
     },
     currency: {
         title: 'DÖVİZ & EMTİA',
         icon: 'cash',
         items: [
-            { label: 'USD/TL', value: '32.45', trend: 'up' },
-            { label: 'EUR/TL', value: '35.12', trend: 'up' },
-            { label: 'ALTIN (Gr)', value: '₺2.450', trend: 'down' },
-            { label: 'BRENT P.', value: '$82.40', trend: 'neutral' },
+            { label: 'USD/TL', value: '43.03', trend: 'up' },
+            { label: 'EUR/TL', value: '50.47', trend: 'up' },
+            { label: 'ALTIN (Gr)', value: '₺5.975', trend: 'up' },
+            { label: 'BRENT P.', value: '$72.00', trend: 'down' }, // Adjusted to ~$72 as per general trends if not exact
         ]
     }
 };
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'flex-start',
         paddingHorizontal: 24,
-        paddingTop: 20,
+        paddingTop: 40, // Increased to fix top alignment after removing text
         paddingBottom: 24,
     },
     hangingBadge: {
