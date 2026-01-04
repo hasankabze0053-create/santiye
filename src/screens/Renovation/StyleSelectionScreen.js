@@ -174,7 +174,7 @@ export default function StyleSelectionScreen({ navigation }) {
                             { opacity: selectedId ? 1 : 0.5 } // Dim if not selected
                         ]}
                         disabled={!selectedId}
-                        onPress={() => console.log('Style Selected:', selectedId)}
+                        onPress={() => navigation.navigate('CustomRequest')}
                     >
                         <LinearGradient
                             colors={BTN_GRADIENT}

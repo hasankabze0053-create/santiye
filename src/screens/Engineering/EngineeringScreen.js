@@ -147,12 +147,12 @@ export default function EngineeringScreen() {
 
                         <View style={styles.gridContainer}>
 
-                            {/* 1. ONLINE KEŞİF (Green Blinking) - Swapped */}
+                            {/* 1. SORU & CEVAP (Green Blinking) - Updated */}
                             <GreenHighlightCard style={styles.gridItem} onPress={() => handleQuickTool('ONLINE_KESIF')}>
                                 <View style={styles.iconBox}>
-                                    <BlinkingIcon name="video-wireless-outline" size={32} color={SUCCESS_GREEN} />
+                                    <BlinkingIcon name="message-text-clock-outline" size={32} color={SUCCESS_GREEN} />
                                 </View>
-                                <Text style={[styles.gridTitle, { color: '#FFF', fontWeight: 'bold' }]}>📹 ONLINE{'\n'}KEŞİF</Text>
+                                <Text style={[styles.gridTitle, { color: '#FFF', fontWeight: 'bold' }]}>💬 SORU & CEVAP</Text>
                             </GreenHighlightCard>
 
                             {/* 2. RUHSAT & RESMİ (Gold) */}
