@@ -23,7 +23,9 @@ import MarketScreen from '../screens/Market/MarketScreen';
 import SellerDashboardScreen from '../screens/Market/SellerDashboardScreen';
 import SellerStoreScreen from '../screens/Market/SellerStoreScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
+import RenovationProjectSelectionScreen from '../screens/Renovation/RenovationProjectSelectionScreen';
 import RenovationScreen from '../screens/Renovation/RenovationScreen';
+import StyleSelectionScreen from '../screens/Renovation/StyleSelectionScreen';
 import CorporateDashboardScreen from '../screens/Rental/CorporateDashboardScreen';
 import ProjectProposalScreen from '../screens/Rental/ProjectProposalScreen';
 import RentalProposalScreen from '../screens/Rental/RentalProposalScreen';
@@ -76,6 +78,8 @@ export default function AppNavigator() {
 
             {/* Other Modules pushed on top */}
             <Stack.Screen name="Tadilat" component={RenovationScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="RenovationProjectSelection" component={RenovationProjectSelectionScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="StyleSelection" component={StyleSelectionScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Mühendislik" component={EngineeringScreen} options={{ headerShown: false }} />
             <Stack.Screen name="AI_Galeri" component={AiArchitectScreen} options={{ headerShown: false }} />
             <Stack.Screen name="OnlineDiscovery" component={OnlineDiscoveryScreen} options={{ headerShown: false }} />

@@ -7,8 +7,8 @@ const { width } = Dimensions.get('window');
 
 const TABS = [
     { name: 'Ana Sayfa', icon: 'home', type: 'Ionicons' },
-    { name: 'Kiralama', icon: 'excavator', type: 'MaterialCommunityIcons' },
-    { name: 'Market', icon: 'store', type: 'MaterialCommunityIcons' },
+    { name: 'Kiralama', icon: 'information-circle', type: 'Ionicons' },
+    { name: 'Market', icon: 'chatbox-ellipses', type: 'Ionicons' },
     { name: 'Profil', icon: 'person', type: 'Ionicons' },
 ];
 

@@ -75,6 +75,10 @@ export default function RenovationScreen({ navigation }) {
     const scrollX = useRef(new Animated.Value(0)).current;
 
     const handleServicePress = (service) => {
+        if (service.id === 'turnkey') {
+            navigation.navigate('RenovationProjectSelection');
+            return;
+        }
         Alert.alert(service.title, "Hizmet detayları yakında eklenecek.");
     };
 
