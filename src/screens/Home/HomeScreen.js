@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
@@ -84,7 +84,7 @@ const CATEGORIES = [
         id: 7,
         title: 'NAKLİYE',
         subtitle: 'Lojistik Çözüm',
-        image: require('../../assets/categories/cat_logistics_v8.png'),
+        image: require('../../assets/categories/cat_logistics_v11.png'),
         route: 'Nakliye'
     },
     {
@@ -246,11 +246,8 @@ export default function HomeScreen({ navigation }) {
 
                     {/* HERO HEADER - REF_IMAGE_MATCH */}
                     <View style={styles.headerContainer}>
-                        <View style={styles.headerLeft}>
-                            <Text style={styles.mainGreeting}>{greeting},</Text>
-                            <Text style={styles.chiefName}>ŞEF <Text style={{ fontSize: 32 }}>👷🏼</Text></Text>
-                        </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View style={{ width: 10 }} /> {/* Spacer to replace headerLeft */}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'space-between' }}>
                             <View style={{ alignItems: 'center', marginRight: 15, zIndex: 10 }}>
                                 {/* Steel Cable - Fixed from top */}
                                 <View style={{
@@ -266,16 +263,30 @@ export default function HomeScreen({ navigation }) {
                                     transform: [{ rotate: swingRotate }],
                                     alignItems: 'center'
                                 }}>
-                                    {/* Yellow Hook */}
-                                    <Image
-                                        source={require('../../assets/ceptesef_logo_new.png')}
-                                        style={{
-                                            width: 150,
-                                            height: 80,
-                                            resizeMode: 'contain',
-                                            marginTop: -5 // Adjust based on visual fit
-                                        }}
-                                    />
+                                    {/* Crane Hook Icon */}
+                                    <View style={{ alignItems: 'center', marginBottom: -10, zIndex: 10 }}>
+                                        <MaterialCommunityIcons name="hook" size={32} color="#F1C40F" />
+                                    </View>
+
+                                    {/* Text Logo with Emoji */}
+                                    <Text style={{ fontSize: 30, fontWeight: '900', letterSpacing: -1, lineHeight: 34 }}>
+                                        <Text style={{ color: '#ffffff' }}>Cepte</Text>
+                                        <Text style={{ color: '#D4AF37' }}>Şef</Text>
+                                        <Text style={{ fontSize: 24 }}> 👷🏼</Text>
+                                    </Text>
+
+                                    {/* Bricks Construction */}
+                                    <View style={{ flexDirection: 'row', marginTop: -2, marginLeft: 20 }}>
+                                        {/* Top Row */}
+                                        <View style={{ width: 12, height: 6, backgroundColor: '#D4AF37', marginRight: 2, marginBottom: 2 }} />
+                                        <View style={{ width: 12, height: 6, backgroundColor: '#D4AF37', marginBottom: 2 }} />
+                                    </View>
+                                    <View style={{ flexDirection: 'row', marginTop: -2, marginLeft: 14 }}>
+                                        {/* Bottom Row */}
+                                        <View style={{ width: 12, height: 6, backgroundColor: '#D4AF37', marginRight: 2 }} />
+                                        <View style={{ width: 12, height: 6, backgroundColor: '#D4AF37', marginRight: 2 }} />
+                                        <View style={{ width: 12, height: 6, backgroundColor: '#D4AF37' }} />
+                                    </View>
                                 </Animated.View>
                             </View>
                             <TouchableOpacity style={styles.profileBtn}>
