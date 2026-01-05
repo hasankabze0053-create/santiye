@@ -44,9 +44,9 @@ const DISTRICTS = {
 };
 
 const PRESETS = [
-    { label: 'Ekonomik', value: 15000, color: '#8C7B75' }, // Dull Bronze Text
-    { label: 'Standart', value: 25000, color: '#FFD700' },   // Modern -> Standart
-    { label: 'Lüks', value: 40000, color: '#FFD700' }
+    { label: 'Ekonomik', value: 29000, color: '#8C7B75' }, // Dull Bronze Text
+    { label: 'Standart', value: 35000, color: '#FFD700' },   // Modern -> Standart
+    { label: 'Lüks', value: 47000, color: '#FFD700' }
 ];
 
 // --- COMPONENTS ---
@@ -291,7 +291,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                                 <Ionicons name="arrow-back" size={24} color="#fff" />
                             </TouchableOpacity>
                             <View style={styles.headerTitleContainer}>
-                                <Text style={styles.headerTitle}>HIZLI HESAPLAMA</Text>
+                                <Text style={styles.headerTitle}>KONUT İNŞAATI</Text>
                             </View>
                             <View style={styles.currencyToggle}>
                                 <Text style={[styles.currencyLabel, !isUSD && styles.activeCurrency]}>₺</Text>
@@ -378,8 +378,74 @@ export default function SimpleCostScreen({ navigation, route }) {
                             {/* Ruler Slider */}
                             <View style={styles.sliderContainer}>
                                 <RulerTrack />
+                                {/* Custom Thin & Shiny Track */}
+                                <View style={{
+                                    ...StyleSheet.absoluteFillObject,
+                                    justifyContent: 'center',
+                                    paddingHorizontal: 10, // Match slider thumb separation
+                                    zIndex: 5,
+                                }}>
+                                    <View style={{
+                                        width: '100%',
+                                        height: 2,
+                                        backgroundColor: 'rgba(255,255,255,0.1)',
+                                        borderRadius: 1,
+                                    }}>
+                                        {/* Filled Track Gradient Simulation */}
+                                        <View style={{
+                                            width: `${((parseFloat(area) - 10) / (5000 - 10)) * 100}%`,
+                                            height: '100%',
+                                            backgroundColor: '#FFD700',
+                                            borderRadius: 1,
+                                            shadowColor: "#FFD700",
+                                            shadowOffset: { width: 0, height: 0 },
+                                            shadowOpacity: 1,
+                                            shadowRadius: 8,
+                                            elevation: 10,
+                                        }} />
+                                    </View>
+                                </View>
+
+                                {/* Custom Premium Thumb (Ghost Follower) */}
+                                <View style={{
+                                    ...StyleSheet.absoluteFillObject,
+                                    zIndex: 6,
+                                    justifyContent: 'center',
+                                    paddingHorizontal: 10, // Match track padding
+                                    pointerEvents: 'none',
+                                }}>
+                                    <View style={{
+                                        position: 'absolute',
+                                        left: `${((parseFloat(area) - 10) / (5000 - 10)) * 100}%`,
+                                        marginLeft: 10 - 14,
+                                        width: 28,
+                                        height: 28,
+                                        borderRadius: 14,
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        shadowColor: "#FFD700",
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: 0.5,
+                                        shadowRadius: 10,
+                                        elevation: 10,
+                                    }}>
+                                        <LinearGradient
+                                            colors={['#996515', '#FFD700', '#FDB931']} // Reverted to Gradient
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                borderRadius: 14,
+                                                borderWidth: 1,
+                                                borderColor: 'rgba(255,255,255,0.4)',
+                                            }}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                        />
+                                    </View>
+                                </View>
+
                                 <Slider
-                                    style={{ width: '100%', height: 40, zIndex: 10 }}
+                                    style={{ width: '100%', height: '100%', zIndex: 10 }}
                                     minimumValue={10}
                                     maximumValue={5000}
                                     step={10}
@@ -387,9 +453,9 @@ export default function SimpleCostScreen({ navigation, route }) {
                                     onValueChange={(val) => setArea(val.toString())}
                                     onSlidingStart={() => setIsSliding(true)}
                                     onSlidingComplete={() => setIsSliding(false)}
-                                    minimumTrackTintColor="#FFD700"
-                                    maximumTrackTintColor="rgba(255,255,255,0.1)"
-                                    thumbTintColor="#FFD700"
+                                    minimumTrackTintColor="transparent"
+                                    maximumTrackTintColor="transparent"
+                                    thumbTintColor="transparent" // Hide native thumb
                                 />
                             </View>
 
@@ -495,7 +561,8 @@ export default function SimpleCostScreen({ navigation, route }) {
 
                         {/* Result Section */}
                         <View style={styles.resultContainer}>
-                            <Text style={styles.resultLabel}>TAHMİNİ MALİYET</Text>
+                            <Text style={styles.resultLabelSmall}>TAHMİNİ</Text>
+                            <Text style={styles.resultLabel}>ANAHTAR TESLİM KONUT MALİYETİ</Text>
                             <Animated.Text style={[styles.resultValue, { opacity: fadeResult, color: '#FFD700' }]}>
                                 {formatCurrency(result)}
                             </Animated.Text>
@@ -504,19 +571,19 @@ export default function SimpleCostScreen({ navigation, route }) {
                         <TouchableOpacity
                             style={styles.saveButton}
                             activeOpacity={0.9}
-                            onPress={() => navigation.navigate('DetailedCost', {
+                            onPress={() => navigation.navigate('ConstructionOffer', {
                                 location: { city, district: district }, // Pass current location
                                 initialArea: area // Pass current area
                             })}
                         >
                             <LinearGradient
-                                colors={['#FFD700', '#FFAB00', '#B8860B']}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
+                                colors={['#D6A023', '#D6A023']} // Reverted to Matte Gold
+                                start={{ x: 0, y: 0.5 }}
+                                end={{ x: 1, y: 0.5 }}
                                 style={styles.saveButtonGradient}
                             >
-                                <Text style={styles.saveButtonText}>DETAYLI RAPOR AL</Text>
-                                <Ionicons name="document-text-outline" size={22} color="#000" />
+                                <Text style={styles.saveButtonText}>İNŞAAT FİRMALARINDAN TEKLİF AL</Text>
+                                <Ionicons name="arrow-forward" size={22} color="#000" />
                             </LinearGradient>
                         </TouchableOpacity>
 
@@ -774,17 +841,24 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(255,255,255,0.05)',
     },
     resultContainer: {
-        marginTop: 24,
+        marginTop: 10,
         alignItems: 'center',
-        padding: 24,
+        padding: 10,
     },
     resultLabel: {
         color: '#8E8E93',
         fontSize: 13,
-        letterSpacing: 2,
-        marginBottom: 8,
+        letterSpacing: 1,
+        marginBottom: 4,
         fontWeight: '700',
         textTransform: 'uppercase',
+    },
+    resultLabelSmall: {
+        color: '#666',
+        fontSize: 10,
+        fontWeight: '600',
+        marginBottom: 2,
+        letterSpacing: 1,
     },
     resultValue: {
         color: '#fff',
@@ -796,7 +870,7 @@ const styles = StyleSheet.create({
         textShadowRadius: 20,
     },
     saveButton: {
-        marginTop: 24,
+        marginTop: 10,
         marginBottom: 40,
         shadowColor: "#FFD700",
         shadowOffset: { width: 0, height: 10 },
@@ -808,10 +882,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 16,
+        paddingVertical: 18,
         paddingHorizontal: 24,
-        borderRadius: 16,
+        borderRadius: 30, // Pill shape
         gap: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.2)', // Inner highlight attempt
     },
     saveButtonText: {
         color: '#000',

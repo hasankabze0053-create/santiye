@@ -10,7 +10,7 @@ const { width } = Dimensions.get('window');
 
 // --- MOCK DATA FOR LOGISTICS ---
 const LOGISTICS_SLIDES = [
-    { id: 1, title: 'Boş Dönüş Fırsatı', subtitle: 'İstanbul > Ankara - Yarı Fiyatına!', image: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=800&auto=format&fit=crop', tag: 'FIRSAT' },
+    { id: 1, title: 'BOŞ DÖNÜŞ FIRSATI', subtitle: 'İstanbul > Ankara - %50 Fiyat Avantajı', image: require('../../assets/logistics/slider_opportunity.png'), tag: 'FIRSAT' },
     { id: 2, title: 'Parsiyel Taşıma', subtitle: 'Parça Yükleriniz İçin Ekonomik', image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=800&auto=format&fit=crop', tag: 'EKONOMİK' },
     { id: 3, title: 'Evden Eve Nakliyat', subtitle: 'Sigortalı ve Ambalajlı Taşıma', image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=800&auto=format&fit=crop', tag: 'GÜVENLİ' },
 ];
@@ -21,7 +21,7 @@ const LOGISTICS_CATEGORIES = [
         title: 'KAMYON & TIR',
         subtitle: 'Ağır Yük Taşımacılığı',
         icon: 'truck',
-        image: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=800&auto=format&fit=crop',
+        image: require('../../assets/logistics/opt_truck.png'),
         items: [
             { name: '10 Teker Kamyon', type: '15 Ton Kapasite', image: 'https://images.unsplash.com/photo-1547053282-3d719543e26b?q=80&w=800&auto=format&fit=crop' },
             { name: 'Kırkayak Kamyon', type: '20 Ton Kapasite', image: 'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?q=80&w=800&auto=format&fit=crop' },
@@ -34,7 +34,7 @@ const LOGISTICS_CATEGORIES = [
         title: 'PANELVAN & KAMYONET',
         subtitle: 'Şehir İçi Dağıtım',
         icon: 'truck-fast',
-        image: 'https://images.unsplash.com/photo-1566576912902-1dcd1f38e68e?q=80&w=800&auto=format&fit=crop',
+        image: require('../../assets/logistics/opt_van.png'),
         items: [
             { name: 'Panelvan', type: '3.5 Ton Altı', image: 'https://images.unsplash.com/photo-1566576912902-1dcd1f38e68e?q=80&w=800&auto=format&fit=crop' },
             { name: 'Kamyonet (Açık)', type: 'Şantiye Tedarik', image: 'https://images.unsplash.com/photo-1507560461415-998cd15dd0db?q=80&w=800&auto=format&fit=crop' },
@@ -46,7 +46,7 @@ const LOGISTICS_CATEGORIES = [
         title: 'ÖZEL TAŞIMACILIK',
         subtitle: 'Lowbed ve Vinçli',
         icon: 'tow-truck',
-        image: 'https://images.unsplash.com/photo-1588267202395-5cb2b50428b6?q=80&w=800&auto=format&fit=crop',
+        image: require('../../assets/logistics/opt_tow.png'),
         items: [
             { name: 'Lowbed', type: 'İş Makinesi Taşıma', image: 'https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?q=80&w=800&auto=format&fit=crop' },
             { name: 'Vinçli Kamyon', type: 'Kendinden Yüklemeli', image: 'https://images.unsplash.com/photo-1581094288338-2314dddb7ece?q=80&w=800&auto=format&fit=crop' },
@@ -57,7 +57,7 @@ const LOGISTICS_CATEGORIES = [
         title: 'EVDEN EVE',
         subtitle: 'Bireysel Nakliyat',
         icon: 'home-city',
-        image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=800&auto=format&fit=crop',
+        image: require('../../assets/logistics/opt_moving.png'),
         items: [
             { name: '1+1 Taşıma', type: 'Ekonomik Paket', image: 'https://images.unsplash.com/photo-1600585152220-90363fe7e115?q=80&w=800&auto=format&fit=crop' },
             { name: '2+1 Taşıma', type: 'Standart Paket', image: 'https://images.unsplash.com/photo-1600585153490-76fb20a32601?q=80&w=800&auto=format&fit=crop' },
@@ -141,17 +141,27 @@ export default function LogisticsScreen() {
                             >
                                 {LOGISTICS_SLIDES.map((slide) => (
                                     <View key={slide.id} style={styles.showcaseCard}>
-                                        <View style={styles.showcaseImage}>
-                                            <Image source={{ uri: slide.image }} style={StyleSheet.absoluteFill} contentFit="cover" transition={500} />
-                                            <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={StyleSheet.absoluteFill} />
-                                            <View style={styles.showcaseTag}>
-                                                <Text style={styles.showcaseTagText}>{slide.tag}</Text>
+                                        <TouchableOpacity
+                                            activeOpacity={0.9}
+                                            style={{ flex: 1 }}
+                                            onPress={() => {
+                                                if (slide.id === 1) {
+                                                    navigation.navigate('EmptyReturnOpportunities');
+                                                }
+                                            }}
+                                        >
+                                            <View style={styles.showcaseImage}>
+                                                <Image source={typeof slide.image === 'string' ? { uri: slide.image } : slide.image} style={StyleSheet.absoluteFill} contentFit="cover" transition={500} />
+                                                <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={StyleSheet.absoluteFill} />
+                                                <View style={styles.showcaseTag}>
+                                                    <Text style={styles.showcaseTagText}>{slide.tag}</Text>
+                                                </View>
+                                                <View style={styles.showcaseTextContent}>
+                                                    <Text style={styles.showcaseTitle}>{slide.title}</Text>
+                                                    <Text style={styles.showcaseSubtitle}>{slide.subtitle}</Text>
+                                                </View>
                                             </View>
-                                            <View style={styles.showcaseTextContent}>
-                                                <Text style={styles.showcaseTitle}>{slide.title}</Text>
-                                                <Text style={styles.showcaseSubtitle}>{slide.subtitle}</Text>
-                                            </View>
-                                        </View>
+                                        </TouchableOpacity>
                                     </View>
                                 ))}
                             </Animated.ScrollView>
@@ -225,7 +235,7 @@ export default function LogisticsScreen() {
                                 {LOGISTICS_CATEGORIES.map((cat) => (
                                     <TouchableOpacity key={cat.id} style={styles.gridCard} onPress={() => handleCategorySelect(cat)} activeOpacity={0.9}>
                                         <View style={styles.gridImage}>
-                                            <Image source={{ uri: cat.image }} style={StyleSheet.absoluteFill} contentFit="cover" transition={500} />
+                                            <Image source={cat.image} style={StyleSheet.absoluteFill} contentFit="cover" transition={500} />
                                             <LinearGradient colors={['transparent', 'rgba(0,0,0,0.9)']} style={StyleSheet.absoluteFill} />
                                             <View style={styles.gridIconBadge}>
                                                 <MaterialCommunityIcons name={cat.icon} size={20} color="#D4AF37" />
@@ -263,7 +273,7 @@ export default function LogisticsScreen() {
                     {viewMode === 'detail' && selectedCategory && (
                         <View style={styles.detailContainer}>
                             <View style={styles.detailHeader}>
-                                <Image source={{ uri: selectedCategory.image }} style={styles.detailHeaderImage} contentFit="cover" transition={500} />
+                                <Image source={selectedCategory.image} style={styles.detailHeaderImage} contentFit="cover" transition={500} />
                                 <LinearGradient colors={['transparent', '#000']} style={StyleSheet.absoluteFill} />
                                 <Text style={styles.detailCategoryTitle}>{selectedCategory.title}</Text>
                             </View>

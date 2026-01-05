@@ -2,13 +2,18 @@ import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { Alert, Dimensions, FlatList, KeyboardAvoidingView, Platform, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Dimensions, FlatList, InputAccessoryView, Keyboard, Platform, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
 // --- CONSTANTS ---
-const GOLD_MAIN = '#FFD700';
-const GOLD_DARK = '#FF9100';
+
+// ... (rest of styles)
+
+// --- CONSTANTS ---
+// --- CONSTANTS ---
+const GOLD_MAIN = '#C69C3A'; // Deep Premium Gold
+const GOLD_DARK = '#8C6C1D';
 const SUCCESS_GREEN = '#10B981';
 
 // --- DATA ---
@@ -85,17 +90,7 @@ export default function OnlineDiscoveryScreen() {
     };
 
     const handleFinish = (categoryTitle) => {
-        Alert.alert(
-            "Başarılı",
-            `Sorunuz "${categoryTitle}" uzmanlarımıza iletildi.`,
-            [{
-                text: "Tamam", onPress: () => {
-                    setMessageText('');
-                    setSelectedCategory(null);
-                    setViewState('INBOX');
-                }
-            }]
-        );
+        setViewState('SUCCESS');
     };
 
     // --- RENDERERS ---
@@ -108,6 +103,7 @@ export default function OnlineDiscoveryScreen() {
             case 'INBOX': subtitle = "Sorularım"; break;
             case 'INPUT': subtitle = "Sorunu Anlat"; break;
             case 'CATEGORY': subtitle = "Uzman Seçimi"; break;
+            case 'SUCCESS': subtitle = "İşlem Tamamlandı"; break;
         }
 
         return (
@@ -197,30 +193,33 @@ export default function OnlineDiscoveryScreen() {
             />
 
             {/* FLOATING ACTION BUTTON (With Text) */}
-            <TouchableOpacity style={styles.fabButton} onPress={handleNewQuestion} activeOpacity={0.8}>
-                <Ionicons name="chatbubbles-outline" size={24} color="#000" />
-                <Text style={styles.fabText}>Sohbet Başlat</Text>
-            </TouchableOpacity>
+            <View style={styles.fabContainer}>
+                <TouchableOpacity
+                    style={styles.fabButton}
+                    onPress={() => setViewState('INPUT')}
+                    activeOpacity={0.8}
+                >
+                    <Ionicons name="add" size={28} color="#000" />
+                    <Text style={styles.fabText}>Yeni Talep Oluştur</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 
     // 2. INPUT VIEW (Refined)
     const renderInput = () => (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={{ flex: 1 }}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
-        >
+        <View style={{ flex: 1 }}>
             <View style={styles.contentContainer}>
                 <Text style={styles.stepTitle}>Neyle ilgili destek almak istiyorsunuz?</Text>
 
                 {/* Subject Line Input */}
                 <TextInput
                     style={styles.subjectInput}
-                    placeholder="Konu Başlığı (Örn: Kolon Çatlağı, Ruhsat Başvurusu)"
-                    placeholderTextColor="#666"
+                    placeholder="Konu Başlığı (Örn: Kolon Çatlağı...)"
+                    placeholderTextColor="#AAAAAA"
                     value={titleText}
                     onChangeText={setTitleText}
+                    inputAccessoryViewID="doneToolbar"
                 />
 
                 {/* Main Description Input */}
@@ -229,9 +228,10 @@ export default function OnlineDiscoveryScreen() {
                         style={styles.msgInput}
                         multiline
                         placeholder="Sorunu detaylandırın: Yapı türü, binanın yaşı, hasarın konumu vb..."
-                        placeholderTextColor="#666"
+                        placeholderTextColor="#AAAAAA"
                         value={messageText}
                         onChangeText={setMessageText}
+                        inputAccessoryViewID="doneToolbar"
                     />
                 </View>
 
@@ -264,54 +264,132 @@ export default function OnlineDiscoveryScreen() {
                         <Text style={styles.tipText}>Varsa projenin ilgili paftasını ekleyin.</Text>
                     </View>
                 </View>
+            </View>
 
-                <View style={{ flex: 1 }} />
-
-                <TouchableOpacity style={styles.bigButton} onPress={handleToCategory}>
-                    <Text style={styles.bigButtonText}>İLERİ</Text>
-                    <Ionicons name="chevron-forward" size={20} color="#000" style={{ marginLeft: 8 }} />
+            {/* Sticky Bottom Button */}
+            <View style={styles.bottomLayout}>
+                <TouchableOpacity style={styles.goldFullButton} onPress={handleToCategory}>
+                    <Text style={styles.goldMediumButtonText}>Uzman Seçimine Geç</Text>
+                    <Ionicons name="chevron-forward" size={24} color="#000" style={{ marginLeft: 10 }} />
                 </TouchableOpacity>
             </View>
-        </KeyboardAvoidingView>
+
+
+        </View>
     );
 
-    // 3. CATEGORY VIEW
+    // 3. CATEGORY VIEW (Redesigned with Selection Logic)
     const renderCategory = () => (
-        <View style={styles.contentContainer}>
-            <Text style={styles.stepTitle}>Bu soru en çok hangi alanla ilgili?</Text>
-            <FlatList
-                data={EXPERT_CATEGORIES_UPDATED}
-                keyExtractor={item => item.id}
-                numColumns={2}
-                columnWrapperStyle={{ justifyContent: 'space-between' }}
-                contentContainerStyle={{ paddingBottom: 150 }}
-                renderItem={({ item }) => (
-                    <TouchableOpacity
-                        style={styles.expertCard}
-                        onPress={() => handleFinish(item.title)}
-                        activeOpacity={0.8}
-                    >
-                        <LinearGradient
-                            colors={['#1a1a1a', '#111']}
-                            style={styles.expertCardGradient}
+        <View style={{ flex: 1 }}>
+            <View style={styles.contentContainer}>
+                <View style={{ marginBottom: 25 }}>
+                    <Text style={styles.stepTitle}>İlgili Uzmanlık Alanı</Text>
+                    <Text style={styles.stepSubtitle}>Sorunuzun en hızlı çözümü için doğru departmanı seçin.</Text>
+                </View>
+
+                <FlatList
+                    data={EXPERT_CATEGORIES_UPDATED}
+                    keyExtractor={item => item.id}
+                    numColumns={2}
+                    columnWrapperStyle={{ justifyContent: 'space-between' }}
+                    contentContainerStyle={{ paddingBottom: 100 }}
+                    renderItem={({ item }) => {
+                        const isSelected = selectedCategory === item.title;
+                        return (
+                            <TouchableOpacity
+                                style={[
+                                    styles.expertBox,
+                                    isSelected && { borderColor: GOLD_MAIN, backgroundColor: 'rgba(255,215,0,0.05)' }
+                                ]}
+                                onPress={() => setSelectedCategory(item.title)}
+                                activeOpacity={0.8}
+                            >
+                                <View style={styles.expertHeader}>
+                                    <FontAwesome5
+                                        name={item.icon}
+                                        size={24}
+                                        color={isSelected ? GOLD_MAIN : '#CCC'}
+                                    />
+                                    {isSelected && <Ionicons name="checkmark-circle" size={18} color={GOLD_MAIN} />}
+                                </View>
+
+                                <Text style={[styles.expertBoxTitle, isSelected && { color: GOLD_MAIN }]}>
+                                    {item.title}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    }}
+                    ListFooterComponent={
+                        <TouchableOpacity
+                            style={[
+                                styles.conciergeCard,
+                                selectedCategory === "Genel Destek" && { borderColor: GOLD_MAIN, backgroundColor: 'rgba(255,215,0,0.05)' }
+                            ]}
+                            onPress={() => setSelectedCategory("Genel Destek")}
+                            activeOpacity={0.9}
                         >
-                            <View style={styles.iconCircle}>
-                                <FontAwesome5 name={item.icon} size={24} color={GOLD_MAIN} />
+                            <View style={styles.conciergeIconBox}>
+                                <FontAwesome5 name="question" size={24} color="#000" />
                             </View>
-                            <Text style={styles.expertTitle}>{item.title}</Text>
-                            <Text style={styles.expertSub}>{item.sub}</Text>
-                        </LinearGradient>
-                    </TouchableOpacity>
-                )}
-                ListFooterComponent={
-                    <TouchableOpacity
-                        style={styles.unsureButton}
-                        onPress={() => handleFinish("Genel Destek")}
-                    >
-                        <Text style={styles.unsureText}>🤔 EMİN DEĞİLİM (Yönlendirmeyi Biz Yapalım)</Text>
-                    </TouchableOpacity>
-                }
-            />
+                            <View style={{ flex: 1 }}>
+                                <Text style={[styles.conciergeTitle, selectedCategory === "Genel Destek" && { color: GOLD_MAIN }]}>
+                                    Talebi Biz Yönlendirelim
+                                </Text>
+                                <Text style={styles.conciergeSub}>Konu hakkında emin değilseniz teknik ekibimiz incelesin.</Text>
+                            </View>
+                        </TouchableOpacity>
+                    }
+                />
+            </View>
+
+            {/* Sticky Bottom Button */}
+            <View style={styles.bottomLayout}>
+                <TouchableOpacity
+                    style={[styles.goldFullButton, !selectedCategory && { opacity: 0.5 }]}
+                    onPress={() => selectedCategory && handleFinish(selectedCategory)}
+                    disabled={!selectedCategory}
+                >
+                    <Text style={styles.goldFullButtonText}>Onayla ve Gönder</Text>
+                    <Ionicons name="checkmark-sharp" size={24} color="#000" style={{ marginLeft: 10 }} />
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+
+
+
+    // 4. SUCCESS VIEW (New Premium)
+    const renderSuccess = () => (
+        <View style={styles.contentContainer}>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <View style={{
+                    width: 100, height: 100, borderRadius: 50, backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                    justifyContent: 'center', alignItems: 'center', marginBottom: 30,
+                    borderWidth: 2, borderColor: GOLD_MAIN
+                }}>
+                    <Ionicons name="checkmark" size={60} color={GOLD_MAIN} />
+                </View>
+
+                <Text style={{ color: '#fff', fontSize: 24, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' }}>
+                    Talep Alındı
+                </Text>
+
+                <Text style={{ color: '#CCC', fontSize: 16, textAlign: 'center', lineHeight: 24, paddingHorizontal: 20 }}>
+                    Talebiniz ilgili uzmana yönlendirilmiştir.{'\n'}En kısa sürede tarafınıza dönüş yapılacaktır.
+                </Text>
+            </View>
+
+            <TouchableOpacity
+                style={styles.goldFullButton}
+                onPress={() => {
+                    setMessageText('');
+                    setTitleText('');
+                    setSelectedCategory(null);
+                    setViewState('INBOX');
+                }}
+            >
+                <Text style={styles.goldFullButtonText}>Sorularıma Dön</Text>
+            </TouchableOpacity>
         </View>
     );
 
@@ -319,10 +397,10 @@ export default function OnlineDiscoveryScreen() {
         <View style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#000" />
             {/* Technical Background Pattern Simulation */}
-            <View style={styles.gridBackground}>
+            <View style={styles.gridBackground} >
                 <View style={styles.gridLineHorizontal} />
                 <View style={styles.gridLineVertical} />
-            </View>
+            </View >
             <LinearGradient colors={['rgba(0,0,0,0.8)', '#000']} style={StyleSheet.absoluteFillObject} />
 
             <SafeAreaView style={{ flex: 1 }}>
@@ -330,8 +408,21 @@ export default function OnlineDiscoveryScreen() {
                 {viewState === 'INBOX' && renderInbox()}
                 {viewState === 'INPUT' && renderInput()}
                 {viewState === 'CATEGORY' && renderCategory()}
+                {viewState === 'SUCCESS' && renderSuccess()}
             </SafeAreaView>
-        </View>
+
+            {/* Keyboard Accessory View (Global for this screen) */}
+            {Platform.OS === 'ios' && (
+                <InputAccessoryView nativeID="doneToolbar">
+                    <View style={styles.keyboardToolbar}>
+                        <View style={{ flex: 1 }} />
+                        <TouchableOpacity onPress={() => Keyboard.dismiss()} style={styles.doneButton}>
+                            <Text style={styles.doneButtonText}>Bitti</Text>
+                        </TouchableOpacity>
+                    </View>
+                </InputAccessoryView>
+            )}
+        </View >
     );
 }
 
@@ -391,44 +482,82 @@ const styles = StyleSheet.create({
 
     // INPUT & REST (Refined)
     subjectInput: {
-        backgroundColor: '#1a1a1a', borderRadius: 12, padding: 15,
-        color: '#fff', fontSize: 15, fontWeight: 'bold', marginBottom: 12,
-        borderWidth: 1, borderColor: '#333'
+        backgroundColor: '#1a1a1a', borderRadius: 18, paddingHorizontal: 20, height: 60,
+        color: '#fff', fontSize: 16, fontWeight: 'bold', marginBottom: 20,
+        borderWidth: 1.5, borderColor: '#333',
+        shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3
     },
     inputWrapper: {
-        backgroundColor: '#1a1a1a', borderTopLeftRadius: 12, borderTopRightRadius: 12,
-        padding: 15, minHeight: 150, borderWidth: 1, borderColor: '#333', borderBottomWidth: 0
+        backgroundColor: '#1a1a1a', borderTopLeftRadius: 18, borderTopRightRadius: 18,
+        padding: 20, minHeight: 280, borderWidth: 1, borderColor: '#333', borderBottomWidth: 0
     },
-    msgInput: { color: '#fff', fontSize: 16, textAlignVertical: 'top', flex: 1, lineHeight: 24 },
+    msgInput: { color: '#fff', fontSize: 18, textAlignVertical: 'top', flex: 1, lineHeight: 28 },
 
     // Action Bar (Toolbar)
     actionBar: {
         flexDirection: 'row', alignItems: 'center',
-        backgroundColor: '#222', borderBottomLeftRadius: 12, borderBottomRightRadius: 12,
-        paddingHorizontal: 10, paddingVertical: 8,
-        borderWidth: 1, borderColor: '#333', borderTopWidth: 0, marginBottom: 20
+        backgroundColor: '#222', borderBottomLeftRadius: 18, borderBottomRightRadius: 18,
+        paddingHorizontal: 20, paddingVertical: 15,
+        borderWidth: 1, borderColor: '#333', borderTopWidth: 0, marginBottom: 25
     },
-    actionBtn: { padding: 8, marginRight: 5, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.05)' },
+    actionBtn: { padding: 8, marginRight: 25, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.05)' },
 
     // Smart Tips
     smartTipsContainer: { opacity: 0.8, marginBottom: 20 },
     tipRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
     tipText: { color: '#888', fontSize: 12 },
 
-    // CATEGORY (Reused)
-    expertCard: { width: '48%', height: 150, marginBottom: 15, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: '#333' },
-    expertCardGradient: { flex: 1, padding: 15, justifyContent: 'center', alignItems: 'center' },
-    iconCircle: { width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(255, 215, 0, 0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 15 },
-    expertTitle: { color: '#fff', fontWeight: 'bold', fontSize: 13, textAlign: 'center', marginBottom: 6 },
-    expertSub: { color: '#666', fontSize: 11, textAlign: 'center', lineHeight: 14, paddingHorizontal: 2 },
-    unsureButton: { marginTop: 10, padding: 16, backgroundColor: '#222', borderRadius: 16, borderWidth: 1, borderColor: '#444', borderStyle: 'dashed', alignItems: 'center' },
-    unsureText: { color: '#aaa', fontSize: 14, fontWeight: '600' },
+    // CATEGORY (Redesigned)
+    stepSubtitle: { color: '#888', fontSize: 13, marginTop: -15, marginBottom: 20 },
 
-    // GLOBAL BUTTON
+    expertBox: {
+        width: '48%', backgroundColor: '#1a1a1a', borderRadius: 16, padding: 16,
+        marginBottom: 15, borderWidth: 1, borderColor: '#333',
+        minHeight: 120, justifyContent: 'space-between'
+    },
+    expertHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
+    expertBoxTitle: { color: '#fff', fontSize: 13, fontWeight: 'bold' },
+
+    // Concierge Card
+    conciergeCard: {
+        flexDirection: 'row', alignItems: 'center',
+        backgroundColor: '#151515', borderRadius: 16, padding: 16, marginTop: 10,
+        borderWidth: 1, borderColor: '#333'
+    },
+    conciergeIconBox: {
+        width: 44, height: 44, borderRadius: 22, backgroundColor: GOLD_MAIN,
+        alignItems: 'center', justifyContent: 'center', marginRight: 15
+    },
+    conciergeTitle: { color: '#fff', fontSize: 15, fontWeight: 'bold' },
+    conciergeSub: { color: '#CCC', fontSize: 11, marginTop: 2, paddingRight: 10 },
+
+    // Bottom Sticky Layout
+    bottomLayout: {
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        backgroundColor: '#000', padding: 20, paddingBottom: 30,
+        borderTopWidth: 1, borderTopColor: '#222'
+    },
+    goldFullButton: {
+        backgroundColor: GOLD_MAIN, borderRadius: 25, height: 60,
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+        shadowColor: GOLD_MAIN, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 10
+    },
+    goldFullButtonText: { color: '#000', fontSize: 18, fontWeight: '900', letterSpacing: 0.5 },
+    goldMediumButtonText: { color: '#000', fontSize: 16, fontWeight: 'bold' },
+
+    // GLOBAL BUTTON (Keep if used elsewhere, currently Step 2 uses bigButton not this one)
     bigButton: {
         backgroundColor: GOLD_MAIN, flexDirection: 'row', height: 56, borderRadius: 18,
         alignItems: 'center', justifyContent: 'center',
         shadowColor: GOLD_MAIN, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 6
     },
-    bigButtonText: { color: '#000', fontWeight: '900', fontSize: 16, letterSpacing: 0.5 },
+    bigButtonText: { color: '#000', fontWeight: '600', fontSize: 15, letterSpacing: 0.5 },
+
+    // Keyboard Toolbar
+    keyboardToolbar: {
+        width: width, height: 45, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end',
+        backgroundColor: '#1a1a1a', borderTopWidth: 1, borderTopColor: '#333', paddingHorizontal: 15
+    },
+    doneButton: { padding: 5 },
+    doneButtonText: { color: GOLD_MAIN, fontSize: 16, fontWeight: 'bold' },
 });

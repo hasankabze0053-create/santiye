@@ -3,6 +3,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 // Screens
 import AiArchitectScreen from '../screens/AI/AiArchitectScreen';
+import ConstructionOfferScreen from '../screens/Cost/ConstructionOfferScreen'; // New Import
+import ConstructionSuccessScreen from '../screens/Cost/ConstructionSuccessScreen'; // Success Screen
 import DetailedCostScreen from '../screens/Cost/DetailedCostScreen';
 import MaliyetScreen from '../screens/Cost/MaliyetScreen';
 import PosCostScreen from '../screens/Cost/PosCostScreen';
@@ -16,6 +18,7 @@ import LawScreen from '../screens/Law/LawScreen';
 import LawyerDashboardScreen from '../screens/Law/LawyerDashboardScreen';
 import CarrierDashboardScreen from '../screens/Logistics/CarrierDashboardScreen';
 import CreateTransportScreen from '../screens/Logistics/CreateTransportScreen';
+import EmptyReturnScreen from '../screens/Logistics/EmptyReturnScreen';
 import LogisticsScreen from '../screens/Logistics/LogisticsScreen';
 import TransportModeSelectionScreen from '../screens/Logistics/TransportModeSelectionScreen';
 import BulkRequestScreen from '../screens/Market/BulkRequestScreen';
@@ -93,12 +96,15 @@ export default function AppNavigator() {
             <Stack.Screen name="CreateTransport" component={CreateTransportScreen} options={{ headerShown: false }} />
             <Stack.Screen name="TransportSelection" component={TransportModeSelectionScreen} options={{ headerShown: false, presentation: 'transparentModal' }} />
             <Stack.Screen name="Nakliye" component={LogisticsScreen} options={{ headerShown: false, title: 'Nakliye & Lojistik' }} />
+            <Stack.Screen name="EmptyReturnOpportunities" component={EmptyReturnScreen} options={{ headerShown: false }} />
             <Stack.Screen name="KentselDonusum" component={UrbanTransformationScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Maliyet" component={MaliyetScreen} options={{ headerShown: false, title: 'Yaklaşık Maliyet' }} />
             <Stack.Screen name="SimpleCost" component={SimpleCostScreen} options={{ headerShown: false, title: 'Hızlı Hesaplama' }} />
             <Stack.Screen name="ProjectIdentity" component={ProjectIdentityScreen} options={{ headerShown: false }} />
             <Stack.Screen name="SmartSketch" component={SmartSketchScreen} options={{ headerShown: false }} />
             <Stack.Screen name="DetailedCost" component={DetailedCostScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="ConstructionOffer" component={ConstructionOfferScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="ConstructionSuccess" component={ConstructionSuccessScreen} options={{ headerShown: false }} />
             <Stack.Screen name="PosCost" component={PosCostScreen} options={{ headerShown: false, title: 'Poz No Hesap' }} />
             <Stack.Screen name="ProjectProposal" component={ProjectProposalScreen} options={{ headerShown: false }} />
             {/* New Smart Wizard */}

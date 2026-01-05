@@ -84,14 +84,14 @@ const CATEGORIES = [
         id: 7,
         title: 'NAKLİYE',
         subtitle: 'Lojistik Çözüm',
-        image: require('../../assets/categories/cat_logistics_v5.png'),
+        image: require('../../assets/categories/cat_logistics_v8.png'),
         route: 'Nakliye'
     },
     {
         id: 8,
-        title: 'YERİNDE DÖNÜŞÜM',
+        title: 'KENTSEL DÖNÜŞÜM',
         subtitle: 'Devlet Destekli',
-        image: require('../../assets/categories/cat_transformation_v4.png'),
+        image: require('../../assets/categories/cat_yerindedonusum_v3.png'),
         route: 'KentselDonusum'
     },
     {
@@ -267,17 +267,15 @@ export default function HomeScreen({ navigation }) {
                                     alignItems: 'center'
                                 }}>
                                     {/* Yellow Hook */}
-                                    <View style={styles.signHook}>
-                                        <View style={styles.hookLoop} />
-                                    </View>
-
-                                    {/* The Badge */}
-                                    <View style={styles.hangingBadge}>
-                                        <Text style={styles.brandUnified}>CEPTEŞEF</Text>
-                                        <View style={styles.verifiedIcon}>
-                                            <Ionicons name="checkmark" size={10} color="#000" />
-                                        </View>
-                                    </View>
+                                    <Image
+                                        source={require('../../assets/ceptesef_logo_new.png')}
+                                        style={{
+                                            width: 150,
+                                            height: 80,
+                                            resizeMode: 'contain',
+                                            marginTop: -5 // Adjust based on visual fit
+                                        }}
+                                    />
                                 </Animated.View>
                             </View>
                             <TouchableOpacity style={styles.profileBtn}>
@@ -407,7 +405,7 @@ export default function HomeScreen({ navigation }) {
                                         <View style={styles.cardTextContent}>
                                             <View style={styles.verticalGoldLine} />
                                             <View>
-                                                <Text style={styles.cardTitle}>{cat.title}</Text>
+                                                <Text style={[styles.cardTitle, cat.id === 8 && { fontSize: 10 }]}>{cat.title}</Text>
                                                 <Text style={styles.cardSubtitle}>{cat.subtitle}</Text>
                                             </View>
                                         </View>
