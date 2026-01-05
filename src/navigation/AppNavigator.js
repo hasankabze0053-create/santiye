@@ -23,6 +23,7 @@ import LogisticsScreen from '../screens/Logistics/LogisticsScreen';
 import TransportModeSelectionScreen from '../screens/Logistics/TransportModeSelectionScreen';
 import BulkRequestScreen from '../screens/Market/BulkRequestScreen';
 import MarketScreen from '../screens/Market/MarketScreen';
+import MarketSuccessScreen from '../screens/Market/MarketSuccessScreen';
 import SellerDashboardScreen from '../screens/Market/SellerDashboardScreen';
 import SellerStoreScreen from '../screens/Market/SellerStoreScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
@@ -80,6 +81,7 @@ export default function AppNavigator() {
             <Stack.Screen name="RentalStack" component={RentalScreen} options={{ headerShown: false }} />
             <Stack.Screen name="MarketStack" component={MarketScreen} options={{ headerShown: false }} />
             <Stack.Screen name="BulkRequest" component={BulkRequestScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="MarketSuccess" component={MarketSuccessScreen} options={{ headerShown: false }} />
 
             {/* Other Modules pushed on top */}
             <Stack.Screen name="Tadilat" component={RenovationScreen} options={{ headerShown: false }} />

@@ -234,19 +234,14 @@ export default function HomeScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
-
-            {/* Background Gradient Removed to show Deep Black */}
-
             <SafeAreaView style={{ flex: 1 }}>
                 <ScrollView
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.scrollContent}
                     keyboardShouldPersistTaps="always"
                 >
-
-                    {/* HERO HEADER - REF_IMAGE_MATCH */}
                     <View style={styles.headerContainer}>
-                        <View style={{ width: 10 }} /> {/* Spacer to replace headerLeft */}
+                        <View style={{ width: 10 }} />
                         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'space-between' }}>
                             <View style={{ alignItems: 'center', marginRight: 15, zIndex: 10 }}>
                                 {/* Steel Cable - Fixed from top */}

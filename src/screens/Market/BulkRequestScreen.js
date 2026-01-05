@@ -98,11 +98,8 @@ export default function BulkRequestScreen() {
     };
 
     const handleSubmit = () => {
-        Alert.alert(
-            "Talebiniz Alındı! 🚀",
-            "Talebiniz operasyon merkezimize iletildi. En kısa sürede en uygun tedarikçilerden fiyatlar toplanıp size sunulacaktır.",
-            [{ text: "Tamam", onPress: () => navigation.navigate('Market') }]
-        );
+        // Navigate to new Success Screen instead of Alert
+        navigation.navigate('MarketSuccess');
     };
 
     // --- RENDER HELPERS ---

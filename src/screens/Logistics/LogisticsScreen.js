@@ -11,7 +11,7 @@ const { width } = Dimensions.get('window');
 // --- MOCK DATA FOR LOGISTICS ---
 const LOGISTICS_SLIDES = [
     { id: 1, title: 'BOŞ DÖNÜŞ FIRSATI', subtitle: 'İstanbul > Ankara - %50 Fiyat Avantajı', image: require('../../assets/logistics/slider_opportunity.png'), tag: 'FIRSAT' },
-    { id: 2, title: 'Parsiyel Taşıma', subtitle: 'Parça Yükleriniz İçin Ekonomik', image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=800&auto=format&fit=crop', tag: 'EKONOMİK' },
+    { id: 2, title: 'Parsiyel Taşıma', subtitle: 'Parça Yükleriniz İçin Ekonomik', image: require('../../assets/categories/cat_logistics_v11.png'), tag: 'EKONOMİK' },
     { id: 3, title: 'Evden Eve Nakliyat', subtitle: 'Sigortalı ve Ambalajlı Taşıma', image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=800&auto=format&fit=crop', tag: 'GÜVENLİ' },
 ];
 
