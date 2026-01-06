@@ -733,31 +733,34 @@ footer {
     }
 }
 
-/* Play Button Overlay */
+/* Play Button Overlay (FLEX POSITIONING) */
+.video-row {
+    gap: 30px !important;
+    /* Tighten gap to fit button */
+}
+
 .video-play-btn {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    /* Perfectly centered */
+    position: relative;
+    /* Relative to flow */
     width: 70px;
-    /* Slightly larger */
     height: 70px;
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 215, 0, 0.6);
-    /* Gold border */
     backdrop-filter: blur(6px);
     display: flex;
+    flex-shrink: 0;
+    /* Don't shrink */
     align-items: center;
     justify-content: center;
     color: #ffd700;
     font-size: 28px;
     z-index: 20;
-    /* High z-index to be on top */
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
     animation: pulseGlow 2s infinite;
-    pointer-events: none;
+    cursor: pointer;
+    margin: 0 10px;
+    /* Spacing */
 }
 
 @keyframes pulseGlow {
@@ -774,18 +777,20 @@ footer {
     }
 }
 
-0% {
-    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4);
+@media (max-width: 900px) {
+    .video-row {
+        gap: 20px !important;
+        flex-direction: column !important;
+        /* Stack on mobile */
+    }
+
+    .video-play-btn {
+        margin: 20px 0;
+        /* Add vertical space */
+    }
 }
 
-70% {
-    box-shadow: 0 0 0 15px rgba(212, 175, 55, 0);
-}
 
-100% {
-    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
-}
-}
 
 @media (max-width: 991px) {
     .video-indicator {
