@@ -1,0 +1,728 @@
+:root {
+    --gold: #D4AF37;
+    --gold-light: #F1C40F;
+    --black: #050505;
+    --dark-grey: #121212;
+    --text-grey: #a0a0a0;
+    --white: #ffffff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Outfit', sans-serif;
+}
+
+body {
+    background-color: var(--black);
+    color: var(--white);
+    overflow-x: hidden;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* HERO SECTION - COMPACT */
+.hero {
+    height: auto;
+    padding: 80px 0 60px 0;
+    display: flex;
+    align-items: center;
+    position: relative;
+    /* FIXED GRADIENT: Uniform Black Bottom to match Showcase */
+    background: linear-gradient(to bottom, #1a1a1a 0%, #000 100%);
+    margin-bottom: -1px;
+    /* Negative margin to overlap and hide any sub-pixel gap */
+}
+
+.hero-content {
+    text-align: center;
+    margin-bottom: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* HANGING SIGN BRANDING */
+/* BRANDING (Clean & Static) */
+.hanging-sign-container {
+    padding-top: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Text Styling */
+.sign-text {
+    font-size: 64px;
+    /* Increased from 36px */
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -1px;
+    text-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    position: relative;
+    z-index: 2;
+}
+
+.sign-text .white {
+    color: #ffffff;
+}
+
+.sign-text .gold {
+    color: #D4AF37;
+}
+
+.sign-text .worker-emoji {
+    font-size: 28px;
+    transform: translateY(-2px);
+}
+
+/* 4 Bricks Pile */
+.bricks-pile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 2px;
+    /* Shifted down slightly */
+    padding-right: 0;
+}
+
+.brick-row {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 2px;
+}
+
+.brick-row.centered {
+    justify-content: center;
+    width: 30px;
+    /* Helper to center the single brick */
+}
+
+.brick {
+    width: 14px;
+    height: 7px;
+    background-color: #D4AF37;
+    border-radius: 1px;
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Clean up white-brick if present */
+.sign-text .gold {
+    color: #D4AF37;
+    /* Exact match with bricks */
+}
+
+.brick-row {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 2px;
+}
+
+.brick-row.ml-14 {
+    margin-left: 0;
+    /* Centered look for pile */
+    gap: 2px;
+}
+
+.brick {
+    width: 14px;
+    height: 7px;
+    background-color: #D4AF37;
+    border-radius: 1px;
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.headline {
+    font-size: 52px;
+    line-height: 1.1;
+    margin-bottom: 15px;
+    font-weight: 800;
+}
+
+.headline span {
+    color: var(--gold);
+}
+
+.sub-headline {
+    font-size: 18px;
+    color: var(--text-grey);
+    margin-bottom: 30px;
+}
+
+.cta-group {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn {
+    padding: 12px 25px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.btn-gold {
+    background: var(--gold);
+    color: #000;
+}
+
+.btn-gold:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
+}
+
+.btn-outline {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-outline:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+}
+
+/* Hide hero visual phone in compact mode if desired, or keep small */
+.hero-visual {
+    display: none;
+}
+
+/* APP SHOWCASE TABS */
+.app-showcase {
+    background: #000;
+    padding-bottom: 80px;
+}
+
+.tabs-header {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 50px;
+    flex-wrap: wrap;
+    border-bottom: none;
+    /* Removing border for seamless look */
+    padding-bottom: 20px;
+}
+
+.tab-btn {
+    background: transparent;
+    border: 1px solid #444;
+    /* Slightly lighter border */
+    padding: 12px 24px;
+    border-radius: 30px;
+    color: #cccccc;
+    /* Much lighter grey for readability */
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tab-btn i {
+    font-size: 14px;
+}
+
+.tab-btn:hover {
+    color: #fff;
+    border-color: #555;
+    background: #111;
+}
+
+.tab-btn.active {
+    background: var(--gold);
+    color: #000;
+    border-color: var(--gold);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+}
+
+/* TAB CONTENT */
+.tab-pane {
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.showcase-row {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+    justify-content: center;
+}
+
+/* Text Column */
+.text-col {
+    flex: 1;
+    max-width: 500px;
+}
+
+.text-col h2 {
+    font-size: 36px;
+    margin-bottom: 15px;
+}
+
+.text-col h2 span {
+    color: var(--gold);
+}
+
+.text-col p {
+    color: var(--text-grey);
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+/* Mini Gallery Grid */
+.mini-gallery {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    /* 3'ten 2'ye düşürüldü - Daha büyük resimler */
+    gap: 15px;
+}
+
+.mini-gallery {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.gallery-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #333;
+    background: #000;
+    cursor: pointer;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+}
+
+.gallery-item:hover img {
+    transform: scale(1.1);
+}
+
+.gallery-caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+    color: #fff;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+}
+
+.gallery-item:hover .gallery-caption {
+    transform: translateY(0);
+}
+
+.gallery-caption h4 {
+    font-size: 14px;
+    color: var(--gold);
+    margin-bottom: 4px;
+}
+
+.gallery-caption p {
+    font-size: 11px;
+    color: #ddd;
+    margin: 0;
+    line-height: 1.3;
+}
+
+/* Phone Mockup */
+.phone-mockup.small {
+    width: 250px;
+    height: 500px;
+    background: #000;
+    border-radius: 30px;
+    border: 6px solid #050505;
+    /* Black border */
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.phone-mockup.small .notch {
+    display: none;
+    /* Çentik kapatıldı - Ekranı kapatmaması için */
+}
+
+.screen-content {
+    width: 100%;
+    height: 100%;
+    background: #111;
+}
+
+.screen-content img,
+.screen-content video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Market Specific Layout */
+.market-showcase,
+.app-showcase-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-top: 40px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.market-showcase .phone-mockup.small,
+.app-showcase-grid .phone-mockup.small {
+    /* Ensure consistent size */
+    flex-shrink: 0;
+}
+
+/* Feature List (Legacy - Removed) */
+.feature-list {
+    display: none;
+}
+
+/* FOOTER */
+footer {
+    padding: 40px 0;
+    text-align: center;
+    border-top: 1px solid #222;
+    margin-top: 50px;
+}
+
+.footer-content p {
+    color: #555;
+    font-size: 14px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+    .showcase-row {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .text-col {
+        order: -1;
+    }
+
+    .tabs-header {
+        gap: 10px;
+    }
+
+    .tab-btn {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}
+
+/* INTERACTIVE SHOWCASE Tabs */
+.app-showcase {
+    /* Smooth Gradient: Black fading softly into Metallic Silver (No hard line) */
+    background: linear-gradient(to bottom, #000 0%, #999999 250px, #999999 100%) !important;
+    color: #ffffff;
+    padding-bottom: 60px;
+}
+
+/* ZIG-ZAG SHOWCASE LAYOUT */
+.zig-zag-container {
+    display: flex;
+    flex-direction: column;
+    gap: 100px;
+    padding: 60px 0;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.zig-zag-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 60px;
+}
+
+
+
+/* Text Side Styling */
+.text-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.text-side h3 {
+    font-size: 48px;
+    /* Larger Headline */
+    font-weight: 800;
+    color: var(--gold);
+    /* Gold Heading */
+    margin-bottom: 20px;
+    line-height: 1.1;
+}
+
+.text-side .highlight-gold {
+    color: var(--gold);
+    font-size: 52px;
+}
+
+.text-side p {
+    font-size: 18px;
+    color: #ffffff;
+    /* White Text */
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+/* Icon Box */
+.icon-box {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: rgba(212, 175, 55, 0.1);
+    /* Low opacity gold */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.icon-box i {
+    font-size: 24px;
+    color: var(--gold);
+}
+
+/* Media Side Styling */
+.media-side {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+/* Mockup Variations */
+.phone-mockup-large {
+    width: 320px;
+    height: 650px;
+    background: #000;
+    border-radius: 40px;
+    border: 8px solid #050505;
+    /* Black border to seamless blend */
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+}
+
+.phone-mockup-floating {
+    width: 280px;
+    height: 580px;
+    background: #000;
+    border-radius: 35px;
+    border: 6px solid #050505;
+    /* Black border */
+    /* Gunmetal grey border */
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    transition: transform 0.3s ease;
+}
+
+.phone-mockup-floating:hover {
+    transform: translateY(-10px);
+    /* Hover float effect */
+}
+
+/* Glow Effect */
+.glow-effect::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.2) 0%, rgba(0, 0, 0, 0) 70%);
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+
+    .zig-zag-row,
+    .zig-zag-row.row-reverse {
+        flex-direction: column;
+        text-align: center;
+        gap: 40px;
+    }
+
+    .text-side {
+        align-items: center;
+    }
+
+    .phone-mockup-large {
+        width: 280px;
+        height: 580px;
+    }
+}
+
+/* =========================================
+   EMERGENCY FIXES - ZIG ZAG LAYOUT REFINEMENT
+   ========================================= */
+
+/* 1. IMAGE ZOOM FIX (CRITICAL) */
+.screen-img,
+.screen-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain !important;
+    /* Forces image to fit fully */
+    object-position: center !important;
+    background: #000;
+}
+
+/* 2. LAYOUT & SPACING FIX */
+.zig-zag-container {
+    gap: 0 !important;
+    padding: 60px 0;
+    position: relative;
+    overflow: visible;
+    /* Ensure content is seen */
+}
+
+/* Connector Line */
+/* Connector Line REMOVED */
+.zig-zag-container::before {
+    display: none;
+}
+
+.zig-zag-row {
+    padding: 60px 0 !important;
+    gap: 40px !important;
+    position: relative;
+    z-index: 1;
+}
+
+/* 3. TYPOGRAPHY HIERARCHY */
+/* 3. TYPOGRAPHY HIERARCHY */
+.text-side h3 {
+    font-size: 48px !important;
+    /* Increased Size */
+    font-weight: 800;
+    color: #D4AF37 !important;
+    /* Gold */
+    line-height: 1.1;
+    margin-bottom: 25px !important;
+}
+
+.text-side .highlight-gold {
+    font-size: 54px !important;
+    line-height: 1.05;
+    color: #D4AF37 !important;
+}
+
+.text-side p {
+    font-size: 18px !important;
+    color: #ffffff !important;
+    /* White Text */
+    opacity: 1 !important;
+}
+
+/* 4. BADGES & CTA */
+.badges {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.store-badge {
+    height: 48px;
+    width: auto;
+    cursor: pointer;
+    transition: transform 0.2s;
+    background: rgba(255, 255, 255, 0.1);
+    /* Slight backing to ensure visibility */
+    border-radius: 8px;
+}
+
+.store-badge:hover {
+    transform: scale(1.05);
+}
+
+/* 4. TEXT LEGIBILITY BACKGROUND */
+.text-side {
+    background: rgba(0, 0, 0, 0.85);
+    padding: 30px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
+}
+
+/* Mobile Adjustments for Fixes */
+@media (max-width: 900px) {
+    .zig-zag-container::before {
+        display: none !important;
+    }
+
+    .zig-zag-row {
+        padding: 40px 0 !important;
+    }
+
+    .text-side {
+        background: transparent;
+        border: none;
+        backdrop-filter: none;
+        padding: 0;
+    }
+
+    .text-side h3 {
+        font-size: 28px !important;
+    }
+
+    .text-side .highlight-gold {
+        font-size: 38px !important;
+    }
+}
