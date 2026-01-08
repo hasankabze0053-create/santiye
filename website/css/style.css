@@ -650,8 +650,8 @@ footer {
 /* 3. TYPOGRAPHY HIERARCHY */
 /* 3. TYPOGRAPHY HIERARCHY */
 .text-side h3 {
-    font-size: 34px !important;
-    /* Reduced by ~15% from 40px */
+    font-size: 29px !important;
+    /* Reduced by ~15% from 34px */
     font-weight: 800;
     color: #D4AF37 !important;
     line-height: 1.2;
@@ -662,7 +662,7 @@ footer {
 }
 
 .text-side .highlight-gold {
-    font-size: 44px !important;
+    font-size: 37px !important;
     line-height: 1.1;
     color: #D4AF37 !important;
     letter-spacing: 0.5px;
