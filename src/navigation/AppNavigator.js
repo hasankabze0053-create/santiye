@@ -15,10 +15,14 @@ import EngineeringScreen from '../screens/Engineering/EngineeringScreen';
 import OnlineDiscoveryScreen from '../screens/Engineering/OnlineDiscoveryScreen';
 import HomeScreen from '../screens/Home/HomeScreen';
 import LawScreen from '../screens/Law/LawScreen';
+import LawSuccessScreen from '../screens/Law/LawSuccessScreen'; // New Import
 import LawyerDashboardScreen from '../screens/Law/LawyerDashboardScreen';
 import CarrierDashboardScreen from '../screens/Logistics/CarrierDashboardScreen';
 import CreateTransportScreen from '../screens/Logistics/CreateTransportScreen';
+import EmptyReturnCheckoutScreen from '../screens/Logistics/EmptyReturnCheckoutScreen';
+import EmptyReturnDetailScreen from '../screens/Logistics/EmptyReturnDetailScreen'; // New Import
 import EmptyReturnScreen from '../screens/Logistics/EmptyReturnScreen';
+import EmptyReturnSuccessScreen from '../screens/Logistics/EmptyReturnSuccessScreen';
 import LogisticsScreen from '../screens/Logistics/LogisticsScreen';
 import TransportModeSelectionScreen from '../screens/Logistics/TransportModeSelectionScreen';
 import BulkRequestScreen from '../screens/Market/BulkRequestScreen';
@@ -95,10 +99,14 @@ export default function AppNavigator() {
 
             {/* New Modules */}
             <Stack.Screen name="Hukuk" component={LawScreen} options={{ headerShown: false, title: 'Hukuki Destek' }} />
+            <Stack.Screen name="LawSuccess" component={LawSuccessScreen} options={{ headerShown: false }} />
             <Stack.Screen name="CreateTransport" component={CreateTransportScreen} options={{ headerShown: false }} />
             <Stack.Screen name="TransportSelection" component={TransportModeSelectionScreen} options={{ headerShown: false, presentation: 'transparentModal' }} />
             <Stack.Screen name="Nakliye" component={LogisticsScreen} options={{ headerShown: false, title: 'Nakliye & Lojistik' }} />
             <Stack.Screen name="EmptyReturnOpportunities" component={EmptyReturnScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="EmptyReturnDetail" component={EmptyReturnDetailScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="EmptyReturnCheckout" component={EmptyReturnCheckoutScreen} options={{ headerShown: false, presentation: 'modal' }} />
+            <Stack.Screen name="EmptyReturnSuccess" component={EmptyReturnSuccessScreen} options={{ headerShown: false }} />
             <Stack.Screen name="KentselDonusum" component={UrbanTransformationScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Maliyet" component={MaliyetScreen} options={{ headerShown: false, title: 'Yaklaşık Maliyet' }} />
             <Stack.Screen name="SimpleCost" component={SimpleCostScreen} options={{ headerShown: false, title: 'Hızlı Hesaplama' }} />

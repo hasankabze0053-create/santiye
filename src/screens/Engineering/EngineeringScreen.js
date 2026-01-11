@@ -9,7 +9,7 @@ const { width } = Dimensions.get('window');
 
 // --- CONSTANTS ---
 const GOLD_DARK = '#FF9100';      // Deep Amber
-const GOLD_MAIN = '#FFD700';      // Safety Yellow / Standard Gold
+const GOLD_MAIN = '#D4AF37';      // Safety Yellow / Standard Gold
 const GOLD_LIGHT = '#FFE57F';     // Light Amber
 const DANGER_RED = '#EF4444';     // Emergency Red
 const SUCCESS_GREEN = '#10B981';  // Emerald Green
@@ -133,12 +133,7 @@ export default function EngineeringScreen() {
                                 style={styles.headerIconBtn}
                                 onPress={() => navigation.navigate('ProviderDashboard')}
                             >
-                                <LinearGradient
-                                    colors={[GOLD_LIGHT, GOLD_MAIN]}
-                                    style={styles.iconGradient}
-                                >
-                                    <FontAwesome5 name="briefcase" size={20} color="#000" />
-                                </LinearGradient>
+                                <MaterialCommunityIcons name="ruler-square" size={24} color={GOLD_MAIN} />
                             </TouchableOpacity>
                         </View>
 
@@ -284,8 +279,21 @@ const styles = StyleSheet.create({
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30, paddingHorizontal: 20, marginTop: 20 },
     headerTitle: { color: '#fff', fontSize: 18, fontWeight: '300', letterSpacing: 2 },
     headerSubtitle: { color: GOLD_MAIN, fontSize: 18, fontWeight: '900', letterSpacing: 2 },
-    headerIconBtn: { borderRadius: 12, overflow: 'hidden' },
-    iconGradient: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+    headerIconBtn: {
+        width: 44,
+        height: 44,
+        borderRadius: 12,
+        backgroundColor: '#1A1A1A',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#D4AF37',
+        shadowColor: "#D4AF37",
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 3,
+    },
 
     sectionHeader: { color: '#666', fontSize: 11, fontWeight: 'bold', letterSpacing: 1.5, marginBottom: 15, marginTop: 10, paddingHorizontal: 20 },
 

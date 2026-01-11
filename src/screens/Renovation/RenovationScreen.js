@@ -107,8 +107,8 @@ export default function RenovationScreen({ navigation }) {
                         <Text style={styles.headerSubtitle}>Yaşam Alanınızı Yeniden Keşfedin</Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                        <TouchableOpacity style={styles.adminBtn} onPress={() => navigation.navigate('ProviderDashboard')}>
-                            <MaterialCommunityIcons name="store-cog" size={22} color="#D4AF37" />
+                        <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate('ProviderDashboard')}>
+                            <MaterialCommunityIcons name="hammer-wrench" size={24} color="#D4AF37" />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -314,15 +314,20 @@ const styles = StyleSheet.create({
     // Grid
     sectionContainer: { paddingHorizontal: 20, marginBottom: 30 },
 
-    adminBtn: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+    headerIconBtn: {
+        width: 44,
+        height: 44,
+        borderRadius: 12,
         backgroundColor: '#1A1A1A',
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: '#333'
+        borderColor: '#D4AF37',
+        shadowColor: "#D4AF37",
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 3,
     },
     sectionTitle: { color: '#666', fontSize: 12, fontWeight: 'bold', letterSpacing: 1, marginLeft: 0, marginBottom: 15 },
     gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },

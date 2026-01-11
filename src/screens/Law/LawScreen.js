@@ -9,7 +9,7 @@ const { width } = Dimensions.get('window');
 
 // --- CONSTANTS ---
 const GOLD_DARK = '#FF9100';      // Deep Amber
-const GOLD_MAIN = '#FFD700';      // Safety Yellow / Standard Gold
+const GOLD_MAIN = '#D4AF37';      // Safety Yellow / Standard Gold
 const GOLD_LIGHT = '#FFE57F';     // Light Amber
 const DANGER_RED = '#EF4444';     // Emergency Red
 const SUCCESS_GREEN = '#10B981';  // Emerald Green
@@ -71,7 +71,7 @@ const LAW_WIZARD_CONFIG = {
                 id: 'subject',
                 type: 'radio',
                 question: 'Konu nedir?',
-                options: ['Sözleşme İnceletmek İstiyorum (Yeni İş)', 'Hakedişimi Alamıyorum / Eksik Aldım', 'Taşeron Sözleşmeye Uymadı / İşi Bıraktı']
+                options: ['Sözleşme İnceletmek İstiyorum', 'Hakedişimi Alamıyorum / Eksik Aldım', 'Taşeron Sözleşmeye Uymadı / İşi Bıraktı']
             },
             {
                 id: 'file',
@@ -173,6 +173,18 @@ const LAW_WIZARD_CONFIG = {
 const WizardModal = ({ visible, onClose, config }) => {
     const [step, setStep] = useState(0);
     const [answers, setAnswers] = useState({});
+    const [note, setNote] = useState('');
+    const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+    const modalScrollRef = useRef(null);
+
+    useEffect(() => {
+        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+        const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+        };
+    }, []);
 
     if (!visible || !config) return null;
 
@@ -185,10 +197,16 @@ const WizardModal = ({ visible, onClose, config }) => {
 
     const handleNext = () => {
         if (isLastStep) {
-            Alert.alert("Başarılı", "Talebiniz uzman avukata iletildi. En kısa sürede dönüş yapılacaktır.");
             onClose();
             setStep(0);
             setAnswers({});
+            setNote('');
+            // Navigate to Success Screen
+            // Note: need to access navigation from parent or pass it down. 
+            // Since WizardModal is inside LawScreen, we can pass a callback
+            if (config.onComplete) {
+                config.onComplete();
+            }
         } else {
             setStep(step + 1);
         }
@@ -198,7 +216,8 @@ const WizardModal = ({ visible, onClose, config }) => {
         <ReactModal visible={visible} transparent animationType="slide">
             <View style={styles.modalOverlay}>
                 <BlurView intensity={50} tint="dark" style={StyleSheet.absoluteFill} />
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContent}>
+                {/* Disable auto-avoiding to prevent button jump, handle scroll manually */}
+                <View style={styles.modalContent}>
 
                     {/* Header */}
                     <View style={styles.modalHeader}>
@@ -216,7 +235,10 @@ const WizardModal = ({ visible, onClose, config }) => {
                     </View>
 
                     {/* Step Content */}
-                    <ScrollView contentContainerStyle={styles.stepContainer}>
+                    <ScrollView
+                        ref={modalScrollRef}
+                        contentContainerStyle={[styles.stepContainer, { paddingBottom: 300 }]} // Add padding for keyboard
+                    >
                         <Text style={styles.questionText}>{currentStep.question}</Text>
 
                         {currentStep.type === 'radio' && (
@@ -235,17 +257,38 @@ const WizardModal = ({ visible, onClose, config }) => {
                         )}
 
                         {currentStep.type === 'file' && (
-                            <View style={styles.fileUploadContainer}>
-                                <TouchableOpacity style={styles.uploadBtn}>
-                                    <FontAwesome5 name="file-upload" size={32} color={GOLD_MAIN} />
-                                    <Text style={styles.uploadText}>Dosya Seçin veya Fotoğraf Çekin</Text>
-                                </TouchableOpacity>
-                                <Text style={styles.fileNote}>PDF, JPG, PNG (Max 10MB)</Text>
+                            <View>
+                                <View style={styles.fileUploadContainer}>
+                                    <TouchableOpacity style={styles.uploadBtn}>
+                                        <FontAwesome5 name="file-upload" size={32} color={GOLD_MAIN} />
+                                        <Text style={styles.uploadText}>Dosya Seçin veya Fotoğraf Çekin</Text>
+                                    </TouchableOpacity>
+                                    <Text style={styles.fileNote}>PDF, JPG, PNG (Max 10MB)</Text>
+                                </View>
+
+                                <View style={{ marginTop: 15 }}>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Text style={styles.inputLabel}>Açıklama / Notlar</Text>
+                                    </View>
+                                    <TextInput
+                                        style={styles.noteInput}
+                                        placeholder="Örn: 5. maddedeki cezai şart oranını kontrol eder misiniz?"
+                                        placeholderTextColor="#666"
+                                        multiline
+                                        value={note}
+                                        onChangeText={setNote}
+                                        inputAccessoryViewID="NoteInputDone"
+                                        onFocus={() => {
+                                            // Instant scroll to bottom
+                                            modalScrollRef.current?.scrollToEnd({ animated: true });
+                                        }}
+                                    />
+                                </View>
                             </View>
                         )}
                     </ScrollView>
 
-                    {/* Trigger Button */}
+                    {/* Trigger Button - Always visible */}
                     <TouchableOpacity
                         style={[styles.nextBtn, (!answers[currentStep.id] && currentStep.type === 'radio') && styles.disabledBtn]}
                         onPress={handleNext}
@@ -255,8 +298,22 @@ const WizardModal = ({ visible, onClose, config }) => {
                         <Ionicons name={isLastStep ? "checkmark-done" : "arrow-forward"} size={20} color="#000" />
                     </TouchableOpacity>
 
-                </KeyboardAvoidingView>
+                </View>
+
+                {/* Keyboard Spacer for TextInput visibility */}
+                {isKeyboardVisible && <View style={{ height: Platform.OS === 'ios' ? 220 : 0 }} />}
             </View>
+
+            {/* Keyboard Done Button for iOS */}
+            {Platform.OS === 'ios' && (
+                <InputAccessoryView nativeID="NoteInputDone">
+                    <View style={styles.accessory}>
+                        <TouchableOpacity onPress={Keyboard.dismiss} style={styles.accessoryBtn}>
+                            <Text style={styles.accessoryText}>Bitti</Text>
+                        </TouchableOpacity>
+                    </View>
+                </InputAccessoryView>
+            )}
         </ReactModal>
     );
 };
@@ -332,12 +389,7 @@ export default function LawScreen() {
                                 style={styles.headerIconBtn}
                                 onPress={() => navigation.navigate('LawyerDashboard')}
                             >
-                                <LinearGradient
-                                    colors={[GOLD_LIGHT, GOLD_MAIN]}
-                                    style={styles.iconGradient}
-                                >
-                                    <MaterialCommunityIcons name="scale-balance" size={22} color="#000" />
-                                </LinearGradient>
+                                <MaterialCommunityIcons name="scale-balance" size={24} color={GOLD_MAIN} />
                             </TouchableOpacity>
                         </View>
 
@@ -522,7 +574,13 @@ export default function LawScreen() {
             <WizardModal
                 visible={wizardVisible}
                 onClose={() => setWizardVisible(false)}
-                config={LAW_WIZARD_CONFIG[selectedWizardTool]}
+                config={{
+                    ...LAW_WIZARD_CONFIG[selectedWizardTool],
+                    onComplete: () => {
+                        setWizardVisible(false);
+                        navigation.navigate('LawSuccess');
+                    }
+                }}
             />
         </View >
     );
@@ -535,8 +593,21 @@ const styles = StyleSheet.create({
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30, paddingHorizontal: 20, marginTop: 20 },
     headerTitle: { color: '#fff', fontSize: 18, fontWeight: '300', letterSpacing: 2 },
     headerSubtitle: { color: GOLD_MAIN, fontSize: 18, fontWeight: '900', letterSpacing: 2 },
-    headerIconBtn: { borderRadius: 12, overflow: 'hidden' },
-    iconGradient: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+    headerIconBtn: {
+        width: 44,
+        height: 44,
+        borderRadius: 12,
+        backgroundColor: '#1A1A1A',
+        borderWidth: 1,
+        borderColor: GOLD_MAIN,
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: GOLD_MAIN,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 3
+    },
 
     sectionHeader: { color: '#666', fontSize: 11, fontWeight: 'bold', letterSpacing: 1.5, marginBottom: 15, marginTop: 10, paddingHorizontal: 20 },
 
@@ -592,7 +663,7 @@ const styles = StyleSheet.create({
 
     // Wizard Modal Styles
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
-    modalContent: { height: '85%', backgroundColor: '#111', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 20 },
+    modalContent: { height: '92%', backgroundColor: '#111', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 20, paddingBottom: 100 },
     modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
     modalTitle: { color: GOLD_MAIN, fontSize: 20, fontWeight: 'bold', letterSpacing: 1 },
     closeBtn: { padding: 5 },
@@ -606,17 +677,29 @@ const styles = StyleSheet.create({
     questionText: { color: '#fff', fontSize: 18, fontWeight: '600', marginBottom: 20, lineHeight: 28 },
 
     optionsContainer: { gap: 12 },
-    optionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: 12, backgroundColor: '#222', borderWidth: 1, borderColor: '#333' },
+    optionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: 16, backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#333', marginBottom: 8 },
     optionBtnActive: { borderColor: GOLD_MAIN, backgroundColor: 'rgba(255, 215, 0, 0.1)' },
     optionText: { color: '#ccc', fontSize: 16 },
     optionTextActive: { color: GOLD_MAIN, fontWeight: 'bold' },
 
-    fileUploadContainer: { alignItems: 'center', justifyContent: 'center', padding: 40, borderWidth: 2, borderColor: '#333', borderStyle: 'dashed', borderRadius: 20, marginTop: 20 },
+    fileUploadContainer: { alignItems: 'center', justifyContent: 'center', padding: 15, borderWidth: 2, borderColor: '#333', borderStyle: 'dashed', borderRadius: 20, marginTop: 10 },
     uploadBtn: { alignItems: 'center', gap: 10 },
     uploadText: { color: '#fff', fontSize: 14, fontWeight: 'bold', marginTop: 10 },
     fileNote: { color: '#666', fontSize: 12, marginTop: 15 },
 
-    nextBtn: { backgroundColor: GOLD_MAIN, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, borderRadius: 16, gap: 10, marginTop: 20 },
+    nextBtn: { backgroundColor: GOLD_MAIN, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 56, borderRadius: 28, gap: 10, marginTop: 20, marginBottom: 60, shadowColor: GOLD_MAIN, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 },
     disabledBtn: { backgroundColor: '#333', opacity: 0.5 },
-    nextBtnText: { color: '#000', fontSize: 16, fontWeight: 'bold' }
+    nextBtnText: { color: '#000', fontSize: 16, fontWeight: 'bold' },
+
+    inputLabel: { color: '#888', fontSize: 12, fontWeight: 'bold', marginLeft: 4, marginBottom: 8 },
+    noteInput: {
+        backgroundColor: '#1A1A1A',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: GOLD_MAIN,
+        color: '#fff',
+        padding: 15,
+        minHeight: 180, // Enlarged height
+        textAlignVertical: 'top'
+    }
 });

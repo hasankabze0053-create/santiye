@@ -122,8 +122,8 @@ export default function LogisticsScreen() {
                         <Text style={styles.headerTitle}>NAKLİYE & LOJİSTİK</Text>
                         <Text style={styles.headerSubtitle}>Güvenilir Taşıma Ağı</Text>
                     </View>
-                    <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.navigate('CarrierDashboard')}>
-                        <MaterialCommunityIcons name="truck-check" size={28} color="#D4AF37" />
+                    <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate('CarrierDashboard')}>
+                        <MaterialCommunityIcons name="truck-check" size={24} color="#D4AF37" />
                     </TouchableOpacity>
                 </View>
 
@@ -360,6 +360,21 @@ const styles = StyleSheet.create({
     headerTitle: { color: '#D4AF37', fontSize: 13, fontWeight: '900', letterSpacing: 2 },
     headerSubtitle: { color: '#fff', fontSize: 11, fontWeight: '300' },
     headerBtn: { padding: 5 },
+    headerIconBtn: {
+        width: 44,
+        height: 44,
+        borderRadius: 12,
+        backgroundColor: '#1A1A1A',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#D4AF37',
+        shadowColor: "#D4AF37",
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 3,
+    },
     scrollContent: { paddingBottom: 100 },
 
     // HERO SLIDER

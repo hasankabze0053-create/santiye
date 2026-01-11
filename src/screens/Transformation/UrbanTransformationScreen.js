@@ -1,7 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { Alert, Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -45,7 +45,42 @@ const TRANSFORMATION_STEPS = [
     }
 ];
 
+// --- YARISI BİZDEN KAMPANYASI DATASI ---
+const YARISI_BIZDEN_FAQ = [
+    { q: '1-Kimler faydalanabilir?', a: 'İstanbul’un 39 ilçesinde riskli yapı sahiplerinin tümü kampanyadan faydalanabilir.' },
+    { q: '2-Proje ön şartları nelerdir?', a: 'Yeni projedeki yapı (otopark ve sığınak hariç), eski yapının bir buçuk katı büyüklüğünü geçmemeli.' },
+    { q: '3-“Ev/iş yerimin riskli olup olmadığını nasıl öğrenebilirim?”', a: 'Bakanlığa bağlı lisanslı kuruluşlara karot örneği baktırılarak risk durumu tespit edilir.' },
+    { q: '4-Yarısı Bizden’e nasıl başvuru yapılır?', a: 'e-Devlet başvurusuna gerek duyulmaz. Kat irtifakı kurulduktan sonra hak sahibi tespiti yaptırmak üzere ilçe belediyesine başvurur. Bakanlıkça belirlenen randevu gününde hak sahibi ile hibe taahhütnamesi ve kredi sözleşmesi imzalanır.' },
+    { q: '5-TOKİ ve Emlak Konut inşaat desteği veriyor mu?', a: 'Bina yerine alan/ada bazlı site benzeri büyük dönüşümlerde tam uzlaşma sağlanması halinde Kentsel Dönüşüm Başkanlığı, TOKİ ve Emlak Konut iş birliği ile destek sağlanır.' },
+    { q: '6-Alan bazlı büyük dönüşümde hangi kolaylıklar sağlanır?', a: '875 bin TL’lik hibe, TOKİ ya da Emlak Konut ile de inşa desteği verilir.' },
+    { q: '7-Alan bazlı dönüşümde geri ödeme nasıl yapılır?', a: 'Hibe tutarı bina maliyetinden düşürülür arta kalan borç ise uzun vadeli uygun ödeme koşullarıyla taksitlendirilir.' },
+    { q: '8-Yüklenici firma ile dönüşümde her konut/iş yeri için ne kadar destek verilir?', a: 'Hak sahibinin bir konutu için 875 bin TL hibe ve 875 bin TL kredi, hak sahibinin bir dükkanı için 437 bin 500 TL hibe ve 437 bin 500 TL kredi.' },
+    { q: '9-İlk konut/iş yeri için Yarısı Bizden desteği alan vatandaşlar diğer ev/ iş yerleri için de kampanyadan faydalanabilir mi?', a: 'Hak sahipleri bir konut için verilen 1 milyon 875 bin TL’lik desteğin ardından diğer her bir konutu için 1 milyon 750 bin TL kredi imkanından faydalanabilir. Bir iş yeri için 1 milyon TL dönüşüm desteğini alan hak sahibi diğer her bir dükkanı için ise 875 bin TL kredi desteğinden yararlanabilir.' },
+    { q: '10-Ödeme hak sahibine mi yükleniciye mi yapılır?', a: 'Bina bazlı dönüşümde ödemeler hak sahipleri adına yükleniciye yapılır.' },
+    { q: '11-Ödeme ne zaman ve nasıl yapılır?', a: 'İş başlayınca yüzde 30, taşıyıcı sistemin bitiminde yüzde 30, sıva aşamasında yüzde 30, yapı kullanım izin belgesi alındığında yüzde 10 oranında ödemeler yapılır.' },
+    { q: '12-Tahliye/taşınma desteği ne kadar?', a: 'Tahliye desteği tek seferde 125 bin TL olarak ödenir.' },
+    { q: '13-Tahliye desteğinden kiracılar da faydalanabilir mi?', a: 'Daire/iş yerinde oturan kiracıysa kiracıya, değilse ev sahibine ödenir.' },
+    { q: '14-Otopark ve sığınak yapınca hak kaybı olur mu?', a: 'Otopark ve sığınak alanları inşaat alanı metrekaresinin dışında tutulur.' },
+    { q: '15-Kredi geri ödemeleri ne zaman başlar?', a: 'Yapı ruhsatının alınmasından 2 yıl sonra başlar. 10 yıla kadar vade uygulanır. Ödemenin başladığı ilk yıl faiz uygulanmaz. Sonraki yıllar Tüketici Fiyat Endeksi (TÜFE) oranının yarısı kadar güncelleme yapılır.' },
+    { q: '16-Kredi için gelir şartı aranır mı?', a: 'Hak sahiplerine kredi verilirken gelir ve kredi puanına bakılmaz.' }
+];
+
+// Expanded Faq Item Component
+const FaqItem = ({ item }) => {
+    const [expanded, setExpanded] = useState(false);
+    return (
+        <TouchableOpacity style={styles.faqItem} onPress={() => setExpanded(!expanded)} activeOpacity={0.8}>
+            <View style={styles.faqHeader}>
+                <Text style={styles.faqQuestion}>{item.q}</Text>
+                <MaterialCommunityIcons name={expanded ? "chevron-up" : "chevron-down"} size={24} color="#FFD700" />
+            </View>
+            {expanded && <Text style={styles.faqAnswer}>{item.a}</Text>}
+        </TouchableOpacity>
+    );
+};
+
 export default function UrbanTransformationScreen({ navigation }) {
+    console.log("Urban Transformation Screen Loaded - Update Check");
     const [selectedStep, setSelectedStep] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
 
@@ -60,6 +95,20 @@ export default function UrbanTransformationScreen({ navigation }) {
     };
 
     const [selectedItem, setSelectedItem] = useState(null);
+    const [consultantQuery, setConsultantQuery] = useState('');
+
+    const handleConsultantSubmit = () => {
+        if (!consultantQuery.trim()) {
+            Alert.alert("Eksik Bilgi", "Lütfen sorunuzu yazın.");
+            return;
+        }
+        Alert.alert("İletildi", "Sorunuz uzmanlarımıza iletildi. En kısa sürede dönüş sağlanacaktır.");
+        setConsultantQuery('');
+    };
+
+    const handleGetQuotes = () => {
+        Alert.alert("Teklif Talebi", "Bölgenizdeki lisanslı müteahhit firmalara talebiniz iletiliyor.");
+    };
 
     return (
         <View style={styles.container}>
@@ -115,6 +164,38 @@ export default function UrbanTransformationScreen({ navigation }) {
                         </View>
                     </View>
 
+                    {/* 1. SECTION: SMART CONSULTANT Q&A */}
+                    <Text style={styles.sectionTitle}>KENTSEL DÖNÜŞÜM UZMANINA SOR</Text>
+                    <View style={styles.consultantContainer}>
+                        <TextInput
+                            style={styles.consultantInput}
+                            placeholder="Aklınıza takılan soruları buraya yazın..."
+                            placeholderTextColor="#666"
+                            multiline
+                            value={consultantQuery}
+                            onChangeText={setConsultantQuery}
+                        />
+                        <TouchableOpacity style={styles.consultantBtn} onPress={handleConsultantSubmit}>
+                            <Text style={styles.consultantBtnText}>SOR</Text>
+                            <Ionicons name="send" size={16} color="#000" />
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* 2. SECTION: CONSTRUCTION QUOTES */}
+                    <TouchableOpacity style={styles.quoteCard} activeOpacity={0.9} onPress={handleGetQuotes}>
+                        <LinearGradient
+                            colors={['#FFD700', '#FF9100']}
+                            style={styles.quoteGradient}
+                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                        >
+                            <View>
+                                <Text style={styles.quoteTitle}>İNŞAAT FİRMALARINDAN TEKLİF AL</Text>
+                                <Text style={styles.quoteSubtitle}>Lisanslı firmalardan en iyi teklifleri topla.</Text>
+                            </View>
+                            <MaterialCommunityIcons name="briefcase-search" size={32} color="#000" />
+                        </LinearGradient>
+                    </TouchableOpacity>
+
                     {/* Steps List */}
                     <Text style={styles.sectionTitle}>DÖNÜŞÜM SÜRECİ ADIMLARI</Text>
 
@@ -147,7 +228,20 @@ export default function UrbanTransformationScreen({ navigation }) {
                         </TouchableOpacity>
                     ))}
 
-                    <View style={{ height: 40 }} />
+                    {/* 3. SECTION: YARISI BİZDEN CAMPAIGN DETAILS */}
+                    <View style={styles.campaignSection}>
+                        <View style={styles.campaignHeaderBox}>
+                            <MaterialCommunityIcons name="handshake" size={28} color="#FFD700" />
+                            <Text style={styles.campaignTitle}>İSTANBUL İÇİN YARISI BİZDEN KAMPANYASI</Text>
+                        </View>
+                        <Text style={styles.campaignSubtitle}>Sıkça Sorulan Sorular ve Detaylar</Text>
+
+                        <View style={styles.faqContainer}>
+                            {YARISI_BIZDEN_FAQ.map((item, index) => (
+                                <FaqItem key={index} item={item} />
+                            ))}
+                        </View>
+                    </View>
                 </ScrollView>
             </SafeAreaView>
 
@@ -232,5 +326,29 @@ const styles = StyleSheet.create({
     infoBox: { flexDirection: 'row', backgroundColor: 'rgba(255, 215, 0, 0.1)', padding: 15, borderRadius: 12, alignItems: 'center', gap: 12, marginBottom: 20 },
     infoText: { color: '#FFD700', flex: 1, fontSize: 13 },
     applyBtn: { backgroundColor: '#FFD700', padding: 16, borderRadius: 12, alignItems: 'center' },
-    applyBtnText: { color: '#000', fontSize: 16, fontWeight: 'bold' }
+    applyBtn: { backgroundColor: '#FFD700', padding: 16, borderRadius: 12, alignItems: 'center' },
+    applyBtnText: { color: '#000', fontSize: 16, fontWeight: 'bold' },
+
+    // Consultant Styles
+    consultantContainer: { flexDirection: 'row', backgroundColor: '#111', borderRadius: 12, padding: 5, marginBottom: 25, borderWidth: 1, borderColor: '#333' },
+    consultantInput: { flex: 1, color: '#fff', padding: 15, fontSize: 14, minHeight: 50 },
+    consultantBtn: { backgroundColor: '#FFD700', borderRadius: 8, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', gap: 6, margin: 5 },
+    consultantBtnText: { color: '#000', fontWeight: 'bold', fontSize: 13 },
+
+    // Quote Card Styles
+    quoteCard: { borderRadius: 16, overflow: 'hidden', marginBottom: 30, height: 90 },
+    quoteGradient: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20 },
+    quoteTitle: { color: '#000', fontSize: 15, fontWeight: '900', marginBottom: 2 },
+    quoteSubtitle: { color: '#222', fontSize: 12, fontWeight: '500' },
+
+    // Campaign & FAQ Styles
+    campaignSection: { marginTop: 10, paddingBottom: 20 },
+    campaignHeaderBox: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 5 },
+    campaignTitle: { color: '#FFD700', fontSize: 16, fontWeight: '900', flex: 1, lineHeight: 22 },
+    campaignSubtitle: { color: '#666', fontSize: 12, marginBottom: 20, marginLeft: 38 },
+    faqContainer: { gap: 10 },
+    faqItem: { backgroundColor: '#161616', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#222' },
+    faqHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
+    faqQuestion: { color: '#fff', fontSize: 13, fontWeight: 'bold', flex: 1, lineHeight: 20 },
+    faqAnswer: { color: '#aaa', fontSize: 13, marginTop: 10, lineHeight: 20, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#222' }
 });

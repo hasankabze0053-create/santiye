@@ -371,8 +371,8 @@ export default function MarketScreen() { // Force Refresh
                         </Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                        <TouchableOpacity style={styles.adminBtn} onPress={() => navigation.navigate('SellerDashboard')}>
-                            <MaterialCommunityIcons name="store-cog" size={22} color="#D4AF37" />
+                        <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate('SellerDashboard')}>
+                            <MaterialCommunityIcons name="storefront-outline" size={24} color="#D4AF37" />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -675,6 +675,21 @@ const styles = StyleSheet.create({
     headerTitle: { color: '#D4AF37', fontSize: 12, fontWeight: '900', letterSpacing: 2 },
     headerSubtitle: { color: '#fff', fontSize: 16, fontWeight: '300', marginTop: 4 },
     headerBtn: { padding: 5 },
+    headerIconBtn: {
+        width: 44,
+        height: 44,
+        borderRadius: 12,
+        backgroundColor: '#1A1A1A',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#D4AF37',
+        shadowColor: "#D4AF37",
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 3,
+    },
 
     // Search Bar
     searchContainer: {

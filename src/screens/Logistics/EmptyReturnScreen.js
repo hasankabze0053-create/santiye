@@ -57,7 +57,9 @@ const OPPORTUNITIES = [
         oldPrice: '4.000 ₺',
         price: '1.800 ₺',
         isHot: false,
+        isHot: false,
         isCorporate: true,
+        corporateType: 'Kurumsal',
         urgencyColor: '#D4AF37' // Gold/Normal
     },
     {
@@ -88,6 +90,14 @@ export default function EmptyReturnScreen({ navigation }) {
     const [toCity, setToCity] = useState('Türkiye - Tümü');
 
     const renderItem = ({ item }) => {
+        // Calculate discount for glow effect logic if needed (mock logic here based on item prop or manual check)
+        // For existing mock data, let's assume items with > 40% discount get a special flag or we calculate it.
+        // Simple logic: If oldPrice/Price diff is high. parsed:
+        const oldP = parseInt(item.oldPrice?.replace(/\./g, '').replace(' ₺', '') || '0');
+        const newP = parseInt(item.price?.replace(/\./g, '').replace(' ₺', '') || '0');
+        const discountRate = oldP > 0 ? (oldP - newP) / oldP : 0;
+        const shouldGlow = discountRate > 0.40;
+
         if (item.type === 'alert') {
             return (
                 <View style={styles.alertCard}>
@@ -122,10 +132,6 @@ export default function EmptyReturnScreen({ navigation }) {
                     {/* Left: Image & Capacity */}
                     <View style={styles.leftSection}>
                         <Image source={item.image} style={styles.vehicleImage} contentFit="cover" />
-                        <View style={styles.capacityBadge}>
-                            <MaterialCommunityIcons name="weight" size={10} color="#000" />
-                            <Text style={styles.capacityText}>{item.capacity}</Text>
-                        </View>
                         {item.isCorporate && (
                             <View style={styles.corpBadge}>
                                 <MaterialCommunityIcons name="check-decagram" size={12} color="#fff" />
@@ -137,8 +143,10 @@ export default function EmptyReturnScreen({ navigation }) {
                     <View style={styles.centerSection}>
                         <View style={styles.routeRow}>
                             <Text style={styles.cityText}>{item.from}</Text>
-                            <MaterialCommunityIcons name="arrow-right" size={14} color="#666" style={{ marginHorizontal: 4 }} />
+                            <MaterialCommunityIcons name="chevron-down" size={12} color="#888" style={{ marginLeft: 2 }} />
+                            <MaterialCommunityIcons name="arrow-right-thick" size={16} color="#FFD700" style={{ marginHorizontal: 8 }} />
                             <Text style={styles.cityText}>{item.to}</Text>
+                            <MaterialCommunityIcons name="chevron-down" size={12} color="#888" style={{ marginLeft: 2 }} />
                         </View>
                         <Text style={styles.districtText}>{item.fromDistrict} {'>'} {item.toDistrict}</Text>
 
@@ -146,25 +154,24 @@ export default function EmptyReturnScreen({ navigation }) {
                             {item.isHot && <MaterialCommunityIcons name="fire" size={14} color={item.urgencyColor} style={{ marginRight: 4 }} />}
                             <Text style={[styles.dateText, { color: item.urgencyColor }]}>{item.date}</Text>
                         </View>
-
-                        <View style={styles.driverRow}>
-                            <MaterialCommunityIcons name="star" size={12} color="#FFD700" />
-                            <Text style={styles.ratingText}>{item.driverRating}</Text>
-                            <Text style={styles.driverLabel}>• Güvenilir Üye</Text>
-                        </View>
                     </View>
 
                     {/* Right: Price & Button */}
                     <View style={styles.rightSection}>
-                        <Text style={styles.oldPrice}>{item.oldPrice}</Text>
-                        <Text style={styles.newPrice}>{item.price}</Text>
-                        <TouchableOpacity style={styles.actionBtn}>
-                            <Text style={styles.actionBtnText}>İNCELE</Text>
+                        <View style={shouldGlow ? styles.glowingPriceContainer : null}>
+                            <Text style={styles.oldPrice}>{item.oldPrice}</Text>
+                            <Text style={styles.newPrice}>{item.price}</Text>
+                        </View>
+                        <TouchableOpacity
+                            style={[styles.actionBtn, shouldGlow && styles.glowingActionBtn]}
+                            onPress={() => navigation.navigate('EmptyReturnDetail', { item })}
+                        >
+                            <Text style={styles.actionBtnText}>FIRSATI GÖR</Text>
                             <MaterialCommunityIcons name="chevron-right" size={12} color="#000" />
                         </TouchableOpacity>
                     </View>
                 </LinearGradient>
-            </TouchableOpacity>
+            </TouchableOpacity >
         );
     };
 
@@ -188,19 +195,25 @@ export default function EmptyReturnScreen({ navigation }) {
                 <View style={styles.filterContainer}>
                     <View style={[styles.blurContainer, { backgroundColor: 'rgba(30,30,30,0.95)' }]}>
                         <View style={styles.filterRow}>
-                            <View style={styles.inputGroup}>
+                            <TouchableOpacity style={styles.inputGroup}>
                                 <Text style={styles.label}>Çıkış</Text>
-                                <Text style={styles.inputValue} numberOfLines={1}>{fromCity}</Text>
-                            </View>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Text style={styles.inputValue} numberOfLines={1}>{fromCity}</Text>
+                                    <MaterialCommunityIcons name="chevron-down" size={14} color="#D4AF37" style={{ marginLeft: 4 }} />
+                                </View>
+                            </TouchableOpacity>
 
                             <View style={styles.arrowContainer}>
-                                <MaterialCommunityIcons name="arrow-right-thin" size={24} color="#D4AF37" />
+                                <MaterialCommunityIcons name="arrow-right-thick" size={24} color="#FFD700" />
                             </View>
 
-                            <View style={styles.inputGroup}>
+                            <TouchableOpacity style={styles.inputGroup}>
                                 <Text style={styles.label}>Varış</Text>
-                                <Text style={styles.inputValue} numberOfLines={1}>{toCity}</Text>
-                            </View>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Text style={styles.inputValue} numberOfLines={1}>{toCity}</Text>
+                                    <MaterialCommunityIcons name="chevron-down" size={14} color="#D4AF37" style={{ marginLeft: 4 }} />
+                                </View>
+                            </TouchableOpacity>
                         </View>
                         <View style={styles.dateRow}>
                             <MaterialCommunityIcons name="calendar-clock" size={14} color="#888" />
@@ -232,7 +245,7 @@ const styles = StyleSheet.create({
 
     // Sticky Filter
     filterContainer: { paddingHorizontal: 16, marginBottom: 16, zIndex: 10 },
-    blurContainer: { borderRadius: 16, overflow: 'hidden', padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+    blurContainer: { borderRadius: 16, overflow: 'hidden', padding: 12, backgroundColor: '#2C2C2E', borderWidth: 1, borderColor: '#3A3A3C' },
     filterRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
     inputGroup: { flex: 1 },
     label: { color: '#666', fontSize: 10, fontWeight: '600', marginBottom: 2, textTransform: 'uppercase' },
@@ -260,7 +273,7 @@ const styles = StyleSheet.create({
     centerSection: { flex: 1, justifyContent: 'center', paddingVertical: 4 },
     routeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
     cityText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-    districtText: { color: '#888', fontSize: 11, marginBottom: 8 },
+    districtText: { color: '#BBB', fontSize: 11, marginBottom: 8 },
     timeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
     dateText: { fontSize: 11, fontWeight: '600' },
     driverRow: { flexDirection: 'row', alignItems: 'center' },
@@ -271,16 +284,32 @@ const styles = StyleSheet.create({
     rightSection: { alignItems: 'flex-end', justifyContent: 'space-between', height: '100%', paddingVertical: 4 },
     oldPrice: { color: '#666', fontSize: 11, textDecorationLine: 'line-through' },
     newPrice: { color: '#D4AF37', fontSize: 16, fontWeight: 'bold' },
+    glowingPriceContainer: {
+        shadowColor: "#D4AF37",
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.8,
+        shadowRadius: 10,
+        elevation: 5,
+    },
     actionBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#D4AF37', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, marginTop: 4 },
+    glowingActionBtn: {
+        shadowColor: "#D4AF37",
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.6,
+        shadowRadius: 8,
+        elevation: 5,
+    },
     actionBtnText: { color: '#000', fontSize: 10, fontWeight: '700', marginRight: 2 },
 
     // Alert Card
-    alertCard: { marginTop: 8, marginBottom: 24, borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#333' },
+    alertCard: { marginTop: 8, marginBottom: 24, borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#D4AF37', borderStyle: 'dashed' },
     alertGradient: { flexDirection: 'row', alignItems: 'center', padding: 16 },
     alertIconBox: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(212, 175, 55, 0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
     alertContent: { flex: 1 },
     alertTitle: { color: '#fff', fontSize: 14, fontWeight: '700', marginBottom: 2 },
-    alertText: { color: '#888', fontSize: 11, lineHeight: 16 },
+    alertText: { color: '#BBB', fontSize: 11, lineHeight: 16 },
     alarmBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#D4AF37', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, marginLeft: 8 },
     alarmBtnText: { color: '#000', fontSize: 10, fontWeight: '800' }
 });
+
+
