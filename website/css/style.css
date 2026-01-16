@@ -197,9 +197,145 @@ body {
     color: var(--gold);
 }
 
+/* PREMIUM VIDEO BUTTON */
+.btn-premium-video {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    /* Gold border */
+    color: var(--gold);
+    min-width: 240px;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    transition: all 0.4s ease;
+}
+
+.btn-premium-video i {
+    font-size: 20px;
+    background: var(--gold);
+    color: #000;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-right: 8px;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.6);
+    transition: all 0.4s ease;
+}
+
+.btn-premium-video:hover {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.1));
+    border-color: var(--gold);
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+    transform: translateY(-3px);
+    letter-spacing: 1px;
+}
+
+.btn-premium-video:hover i {
+    transform: scale(1.1) rotate(10deg);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.8);
+    background: #fff;
+}
+
 /* Hide hero visual phone in compact mode if desired, or keep small */
 .hero-visual {
     display: none;
+}
+
+/* VIDEO MODAL STYLES */
+.video-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+}
+
+.video-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.video-modal-content {
+    width: 90%;
+    max-width: 1000px;
+    aspect-ratio: 16/9;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 0 50px rgba(212, 175, 55, 0.2);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    background: #000;
+    transform: scale(0.9);
+    transition: transform 0.4s ease;
+    position: relative;
+}
+
+.video-modal-overlay.active .video-modal-content {
+    transform: scale(1);
+}
+
+.video-modal-content video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 16px;
+    padding: 12px 24px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 10001;
+    font-weight: 500;
+    backdrop-filter: blur(5px);
+}
+
+.modal-close-btn:hover {
+    background: rgba(212, 175, 55, 0.2);
+    border-color: var(--gold);
+    color: var(--gold);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Responsive Modal */
+@media (max-width: 768px) {
+    .video-modal-content {
+        width: 95%;
+        aspect-ratio: 9/16;
+        /* Portrait for mobile if needed, or keeping landscape */
+        max-height: 80vh;
+    }
+
+    .modal-close-btn {
+        top: 20px;
+        right: 20px;
+        padding: 10px 20px;
+        font-size: 14px;
+    }
 }
 
 /* APP SHOWCASE TABS */

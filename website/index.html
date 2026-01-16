@@ -37,6 +37,15 @@
                 </div>
                 <h2 class="headline">İnşaat Alanında <span>Premium</span> Çözüm Ortağınız</h2>
                 <p class="sub-headline">CepteŞef, inşaat alanında uçtan uca bir mobil uygulamadır.</p>
+                <!-- Video Button Row -->
+                <!-- Video Button Row -->
+                <div style="margin-bottom: 30px;">
+                    <a href="#" onclick="openVideoModal(event)" class="btn btn-premium-video">
+                        <i class="fa-solid fa-play"></i> Tanıtım Videosu
+                    </a>
+                </div>
+
+                <!-- Store Buttons Row -->
                 <div class="cta-group">
                     <a href="#" class="btn btn-gold"><i class="fa-brands fa-apple"></i> App Store</a>
                     <a href="#" class="btn btn-outline"><i class="fa-brands fa-google-play"></i> Google Play</a>
@@ -1048,7 +1057,8 @@
                         <div class="media-side">
                             <div class="phone-mockup-simple">
                                 <div class="notch"></div>
-                                <img src="assets/img_transformation_consultant.jpg" alt="Kentsel Dönüşüm Danışmanı" class="screen-img">
+                                <img src="assets/img_transformation_consultant.jpg" alt="Kentsel Dönüşüm Danışmanı"
+                                    class="screen-img">
                             </div>
                         </div>
                         <div class="text-side">
@@ -1079,6 +1089,52 @@
     </footer>
 
     <script src="js/script.js"></script>
+    <!-- VIDEO MODAL OVERLAY -->
+    <div id="videoModal" class="video-modal-overlay">
+        <button class="modal-close-btn" onclick="closeVideoModal()">
+            <i class="fa-solid fa-arrow-left"></i> Geri Dön
+        </button>
+        <div class="video-modal-content">
+            <video id="promoVideo" controls playsinline>
+                <source src="assets/intro.mp4" type="video/mp4">
+                Tarayıcınız video etiketini desteklemiyor.
+            </video>
+        </div>
+    </div>
+
+    <!-- VIDEO MODAL SCRIPT -->
+    <script>
+        const modal = document.getElementById('videoModal');
+        const video = document.getElementById('promoVideo');
+
+        function openVideoModal(e) {
+            if (e) e.preventDefault();
+            modal.classList.add('active');
+            video.play();
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+
+        function closeVideoModal() {
+            modal.classList.remove('active');
+            video.pause();
+            video.currentTime = 0; // Reset video
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+
+        // Close on outside click (optional)
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) {
+                closeVideoModal();
+            }
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                closeVideoModal();
+            }
+        });
+    </script>
 </body>
 
 </html>
