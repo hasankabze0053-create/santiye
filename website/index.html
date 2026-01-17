@@ -40,7 +40,7 @@
                 <!-- Video Button Row -->
                 <!-- Video Button Row -->
                 <div style="margin-bottom: 30px;">
-                    <a href="#" onclick="openVideoModal(event)" class="btn btn-premium-video">
+                    <a href="#" id="btnPromoVideo" class="btn btn-premium-video">
                         <i class="fa-solid fa-play"></i> Tanıtım Videosu
                     </a>
                 </div>
@@ -1104,35 +1104,46 @@
 
     <!-- VIDEO MODAL SCRIPT -->
     <script>
-        const modal = document.getElementById('videoModal');
-        const video = document.getElementById('promoVideo');
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById('videoModal');
+            const video = document.getElementById('promoVideo');
+            const btnOpen = document.getElementById('btnPromoVideo');
+            const btnClose = document.querySelector('.modal-close-btn');
 
-        function openVideoModal(e) {
-            if (e) e.preventDefault();
-            modal.classList.add('active');
-            video.play();
-            document.body.style.overflow = 'hidden'; // Prevent scrolling
-        }
-
-        function closeVideoModal() {
-            modal.classList.remove('active');
-            video.pause();
-            video.currentTime = 0; // Reset video
-            document.body.style.overflow = ''; // Restore scrolling
-        }
-
-        // Close on outside click (optional)
-        modal.addEventListener('click', function (e) {
-            if (e.target === modal) {
-                closeVideoModal();
+            if (btnOpen) {
+                btnOpen.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    modal.classList.add('active');
+                    video.play().catch(err => console.log("Video play error (likely no source):", err));
+                    document.body.style.overflow = 'hidden';
+                });
             }
-        });
 
-        // Close on Escape key
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && modal.classList.contains('active')) {
-                closeVideoModal();
+            // Close Logic
+            function closeModal() {
+                modal.classList.remove('active');
+                video.pause();
+                video.currentTime = 0;
+                document.body.style.overflow = '';
             }
+
+            if (btnClose) {
+                btnClose.addEventListener('click', closeModal);
+            }
+
+            // Close on outside click
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+
+            // Close on Escape key
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && modal.classList.contains('active')) {
+                    closeModal();
+                }
+            });
         });
     </script>
 </body>
