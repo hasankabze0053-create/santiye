@@ -3,7 +3,8 @@ import { useNavigation } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Dimensions, InputAccessoryView, Keyboard, KeyboardAvoidingView, Platform, Modal as ReactModal, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Dimensions, InputAccessoryView, Keyboard, KeyboardAvoidingView, Platform, Modal as ReactModal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 

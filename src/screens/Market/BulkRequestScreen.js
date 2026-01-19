@@ -1,8 +1,8 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
-import { Alert, Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function BulkRequestScreen() {
@@ -195,6 +195,10 @@ export default function BulkRequestScreen() {
                                                 placeholderTextColor="#666"
                                                 value={item.name}
                                                 onChangeText={(t) => updateItem(item.id, 'name', t)}
+                                                onFocus={() => setFocusedInputType('text')}
+                                                onBlur={() => setFocusedInputType(null)}
+                                                returnKeyType="done"
+                                                onSubmitEditing={Keyboard.dismiss}
                                             />
                                             <View style={{ flexDirection: 'row', marginTop: 8, gap: 8 }}>
                                                 <TextInput
@@ -204,6 +208,8 @@ export default function BulkRequestScreen() {
                                                     keyboardType="numeric"
                                                     value={item.quantity}
                                                     onChangeText={(t) => updateItem(item.id, 'quantity', t)}
+                                                    onFocus={() => setFocusedInputType('numeric')}
+                                                    onBlur={() => setFocusedInputType(null)}
                                                 />
                                                 <TouchableOpacity
                                                     style={styles.unitBox}
@@ -236,6 +242,8 @@ export default function BulkRequestScreen() {
                                         placeholderTextColor="#555"
                                         value={rfqData.fastText}
                                         onChangeText={(t) => setRfqData({ ...rfqData, fastText: t })}
+                                        onFocus={() => setFocusedInputType('multiline')}
+                                        onBlur={() => setFocusedInputType(null)}
                                     />
                                     <TouchableOpacity style={styles.cameraBtn} onPress={() => Alert.alert("Kamera", "Fotoğraf modülü açılacak")}>
                                         <MaterialCommunityIcons name="camera" size={24} color="#000" />
@@ -245,103 +253,108 @@ export default function BulkRequestScreen() {
                             </View>
                         )}
                     </View>
-                )}
+                )
+                }
 
                 {/* STEP 2: LOGISTICS */}
-                {wizardStep === 2 && (
-                    <View>
-                        <Text style={styles.stepTitle}>Lojistik & Teslimat</Text>
-                        <Text style={styles.stepDescription}>Nereye ve ne zaman lazım?</Text>
+                {
+                    wizardStep === 2 && (
+                        <View>
+                            <Text style={styles.stepTitle}>Lojistik & Teslimat</Text>
+                            <Text style={styles.stepDescription}>Nereye ve ne zaman lazım?</Text>
 
-                        {/* Location */}
-                        <View style={styles.formGroup}>
-                            <Text style={styles.label}>ŞANTİYE KONUMU</Text>
-                            <TouchableOpacity style={styles.locationBtn}>
-                                <MaterialCommunityIcons name="map-marker" size={20} color="#D4AF37" />
-                                <TextInput
-                                    style={[styles.inputNoBorder, { flex: 1 }]}
-                                    placeholder="Adres veya Konum Seçin"
-                                    placeholderTextColor="#666"
-                                    value={rfqData.location}
-                                    onChangeText={(t) => setRfqData({ ...rfqData, location: t })}
-                                />
-                                <MaterialCommunityIcons name="crosshairs-gps" size={20} color="#666" />
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* Date */}
-                        <View style={styles.formGroup}>
-                            <Text style={styles.label}>TESLİMAT ZAMANI</Text>
-                            <View style={{ flexDirection: 'row', gap: 10 }}>
-                                <TouchableOpacity
-                                    style={[styles.optionBtn, rfqData.deliveryType === 'immediate' && styles.optionBtnActive]}
-                                    onPress={() => setRfqData({ ...rfqData, deliveryType: 'immediate' })}
-                                >
-                                    <MaterialCommunityIcons name="lightning-bolt" size={20} color={rfqData.deliveryType === 'immediate' ? '#000' : '#888'} />
-                                    <Text style={[styles.optionText, rfqData.deliveryType === 'immediate' && styles.optionTextActive]}>Hemen / Acil</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={[styles.optionBtn, rfqData.deliveryType === 'date' && styles.optionBtnActive]}
-                                    onPress={() => setRfqData({ ...rfqData, deliveryType: 'date' })}
-                                >
-                                    <MaterialCommunityIcons name="calendar" size={20} color={rfqData.deliveryType === 'date' ? '#000' : '#888'} />
-                                    <Text style={[styles.optionText, rfqData.deliveryType === 'date' && styles.optionTextActive]}>Tarih Seç</Text>
+                            {/* Location */}
+                            <View style={styles.formGroup}>
+                                <Text style={styles.label}>ŞANTİYE KONUMU</Text>
+                                <TouchableOpacity style={styles.locationBtn}>
+                                    <MaterialCommunityIcons name="map-marker" size={20} color="#D4AF37" />
+                                    <TextInput
+                                        style={[styles.inputNoBorder, { flex: 1 }]}
+                                        placeholder="Adres veya Konum Seçin"
+                                        placeholderTextColor="#666"
+                                        value={rfqData.location}
+                                        onChangeText={(t) => setRfqData({ ...rfqData, location: t })}
+                                    />
+                                    <MaterialCommunityIcons name="crosshairs-gps" size={20} color="#666" />
                                 </TouchableOpacity>
                             </View>
-                        </View>
 
-                        {/* Notes */}
-                        <View style={styles.formGroup}>
-                            <Text style={styles.label}>ÖZEL NOTLAR / GEREKSİNİMLER</Text>
-                            <TextInput
-                                style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
-                                placeholder="Örn: 42m pompa gerekli, transmikser sahaya girebilir..."
-                                placeholderTextColor="#666"
-                                multiline
-                                value={rfqData.notes}
-                                onChangeText={(t) => setRfqData({ ...rfqData, notes: t })}
-                            />
+                            {/* Date */}
+                            <View style={styles.formGroup}>
+                                <Text style={styles.label}>TESLİMAT ZAMANI</Text>
+                                <View style={{ flexDirection: 'row', gap: 10 }}>
+                                    <TouchableOpacity
+                                        style={[styles.optionBtn, rfqData.deliveryType === 'immediate' && styles.optionBtnActive]}
+                                        onPress={() => setRfqData({ ...rfqData, deliveryType: 'immediate' })}
+                                    >
+                                        <MaterialCommunityIcons name="lightning-bolt" size={20} color={rfqData.deliveryType === 'immediate' ? '#000' : '#888'} />
+                                        <Text style={[styles.optionText, rfqData.deliveryType === 'immediate' && styles.optionTextActive]}>Hemen / Acil</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={[styles.optionBtn, rfqData.deliveryType === 'date' && styles.optionBtnActive]}
+                                        onPress={() => setRfqData({ ...rfqData, deliveryType: 'date' })}
+                                    >
+                                        <MaterialCommunityIcons name="calendar" size={20} color={rfqData.deliveryType === 'date' ? '#000' : '#888'} />
+                                        <Text style={[styles.optionText, rfqData.deliveryType === 'date' && styles.optionTextActive]}>Tarih Seç</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            {/* Notes */}
+                            <View style={styles.formGroup}>
+                                <Text style={styles.label}>ÖZEL NOTLAR / GEREKSİNİMLER</Text>
+                                <TextInput
+                                    style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
+                                    placeholder="Örn: 42m pompa gerekli, transmikser sahaya girebilir..."
+                                    placeholderTextColor="#666"
+                                    multiline
+                                    value={rfqData.notes}
+                                    onChangeText={(t) => setRfqData({ ...rfqData, notes: t })}
+                                />
+                            </View>
                         </View>
-                    </View>
-                )}
+                    )
+                }
 
                 {/* STEP 3: PAYMENT */}
-                {wizardStep === 3 && (
-                    <View>
-                        <Text style={styles.stepTitle}>Ödeme Yöntemi</Text>
-                        <Text style={styles.stepDescription}>Size özel vadelendirme için seçiniz.</Text>
+                {
+                    wizardStep === 3 && (
+                        <View>
+                            <Text style={styles.stepTitle}>Ödeme Yöntemi</Text>
+                            <Text style={styles.stepDescription}>Size özel vadelendirme için seçiniz.</Text>
 
-                        {['cash', 'credit_card', 'check_30', 'check_60'].map((method) => {
-                            const isSelected = rfqData.paymentMethod === method;
-                            let title = "", icon = "", subtitle = "";
+                            {['cash', 'credit_card', 'check_30', 'check_60'].map((method) => {
+                                const isSelected = rfqData.paymentMethod === method;
+                                let title = "", icon = "", subtitle = "";
 
-                            switch (method) {
-                                case 'cash': title = "Nakit / Havale"; icon = "cash-multiple"; subtitle = "%2-5 Ekstra İskonto"; break;
-                                case 'credit_card': title = "Kredi Kartı"; icon = "credit-card"; subtitle = "Taksit İmkanı"; break;
-                                case 'check_30': title = "30 Gün Vade / Çek"; icon = "file-document-outline"; subtitle = "Standart Vade"; break;
-                                case 'check_60': title = "60+ Gün Vade"; icon = "calendar-clock"; subtitle = "Finansman Farkı Olabilir"; break;
-                            }
+                                switch (method) {
+                                    case 'cash': title = "Nakit / Havale"; icon = "cash-multiple"; subtitle = "%2-5 Ekstra İskonto"; break;
+                                    case 'credit_card': title = "Kredi Kartı"; icon = "credit-card"; subtitle = "Taksit İmkanı"; break;
+                                    case 'check_30': title = "30 Gün Vade / Çek"; icon = "file-document-outline"; subtitle = "Standart Vade"; break;
+                                    case 'check_60': title = "60+ Gün Vade"; icon = "calendar-clock"; subtitle = "Finansman Farkı Olabilir"; break;
+                                }
 
-                            return (
-                                <TouchableOpacity
-                                    key={method}
-                                    style={[styles.paymentCard, isSelected && styles.paymentCardActive]}
-                                    onPress={() => setRfqData({ ...rfqData, paymentMethod: method })}
-                                >
-                                    <View style={[styles.paymentIconBox, isSelected && styles.paymentIconBoxActive]}>
-                                        <MaterialCommunityIcons name={icon} size={24} color={isSelected ? '#000' : '#888'} />
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={[styles.paymentTitle, isSelected && styles.paymentTitleActive]}>{title}</Text>
-                                        <Text style={styles.paymentSubtitle}>{subtitle}</Text>
-                                    </View>
-                                    {isSelected && <MaterialCommunityIcons name="check-circle" size={24} color="#D4AF37" />}
-                                </TouchableOpacity>
-                            )
-                        })}
-                    </View>
-                )}
-            </ScrollView>
+                                return (
+                                    <TouchableOpacity
+                                        key={method}
+                                        style={[styles.paymentCard, isSelected && styles.paymentCardActive]}
+                                        onPress={() => setRfqData({ ...rfqData, paymentMethod: method })}
+                                    >
+                                        <View style={[styles.paymentIconBox, isSelected && styles.paymentIconBoxActive]}>
+                                            <MaterialCommunityIcons name={icon} size={24} color={isSelected ? '#000' : '#888'} />
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={[styles.paymentTitle, isSelected && styles.paymentTitleActive]}>{title}</Text>
+                                            <Text style={styles.paymentSubtitle}>{subtitle}</Text>
+                                        </View>
+                                        {isSelected && <MaterialCommunityIcons name="check-circle" size={24} color="#D4AF37" />}
+                                    </TouchableOpacity>
+                                )
+                            })}
+                        </View>
+                    )
+                }
+            </ScrollView >
         );
     };
 
@@ -375,41 +388,73 @@ export default function BulkRequestScreen() {
         </Modal>
     );
 
+    // --- KEYBOARD LISTENER ---
+    const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
+    const [focusedInputType, setFocusedInputType] = useState(null);
+
+    useEffect(() => {
+        const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+        const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+        const showSubscription = Keyboard.addListener(showEvent, (e) => {
+            setKeyboardVisible(true);
+            setKeyboardHeight(e.endCoordinates.height);
+        });
+        const hideSubscription = Keyboard.addListener(hideEvent, () => {
+            setKeyboardVisible(false);
+            setKeyboardHeight(0);
+        });
+
+        return () => {
+            showSubscription.remove();
+            hideSubscription.remove();
+        };
+    }, []);
+
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
             <LinearGradient colors={['#000000', '#121212']} style={StyleSheet.absoluteFillObject} />
 
             <SafeAreaView style={{ flex: 1 }}>
+                {/* Header - Fixed at Top */}
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
+                        <Ionicons name="arrow-back" size={24} color="#FFF" />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>TEKLİF TOPLA</Text>
+                    <View style={{ width: 40 }} />
+                </View>
+
+                {/* Progress - Fixed below Header */}
+                {renderStepIndicator()}
+
+                {/* Content - Scrollable & Keyboard Aware */}
                 <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
                     style={{ flex: 1 }}
-                    keyboardVerticalOffset={Platform.OS === 'android' ? 0 : 0}
+                    keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
                 >
-                    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                        <View style={{ flex: 1 }}>
-                            {/* Header */}
-                            <View style={styles.header}>
-                                <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
-                                    <Ionicons name="arrow-back" size={24} color="#FFF" />
-                                </TouchableOpacity>
-                                <Text style={styles.headerTitle}>TEKLİF TOPLA</Text>
-                                <View style={{ width: 40 }} />
-                            </View>
-
-                            {/* Progress */}
-                            {renderStepIndicator()}
-
-                            {/* Dynamic Content */}
-                            <View style={styles.contentArea}>
-                                {renderContent()}
-                            </View>
-
-                            {/* Footer Actions */}
-                            {renderActionButtons()}
+                    <View style={{ flex: 1 }}>
+                        {/* Dynamic Content */}
+                        <View style={styles.contentArea}>
+                            {renderContent()}
                         </View>
-                    </TouchableWithoutFeedback>
+                    </View>
                 </KeyboardAvoidingView>
+
+                {/* Custom Keyboard Dismiss Button (Visible only when keyboard is open AND input is numeric OR multiline) */}
+                {isKeyboardVisible && (focusedInputType === 'numeric' || focusedInputType === 'multiline') && (
+                    <View style={[styles.keyboardAccessoryBar, { bottom: keyboardHeight }]}>
+                        <TouchableOpacity onPress={Keyboard.dismiss} style={styles.accessoryBtn}>
+                            <Text style={styles.accessoryBtnText}>BİTTİ</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+
+                {/* Footer Actions - Fixed at Bottom (Behind Keyboard) */}
+                {!isKeyboardVisible && renderActionButtons()}
 
                 {/* Unit Selection Modal */}
                 {renderUnitModal()}
@@ -420,6 +465,31 @@ export default function BulkRequestScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#000' },
+    // Input Accessory
+    keyboardAccessoryBar: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: '#1A1A1A',
+        borderTopWidth: 1,
+        borderTopColor: '#333',
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        padding: 12,
+        zIndex: 100
+    },
+    accessoryBtn: {
+        backgroundColor: '#D4AF37',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 8
+    },
+    accessoryBtnText: {
+        color: '#000',
+        fontWeight: 'bold',
+        fontSize: 14
+    },
     // Header - Fixed padding/alignment
     header: {
         flexDirection: 'row',

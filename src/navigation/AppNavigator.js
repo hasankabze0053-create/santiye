@@ -1,10 +1,19 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Platform, useColorScheme } from 'react-native';
 
 // Screens
+import HomeScreen from '../screens/Home/HomeScreen';
+import MarketScreen from '../screens/Market/MarketScreen';
+import { InboxScreen, RequestsScreen } from '../screens/Profile/OperationsScreens';
+import ProfileScreen from '../screens/Profile/ProfileScreen';
+import RentalScreen from '../screens/Rental/RentalScreen';
+
+// Secondary Screens (Stack)
 import AiArchitectScreen from '../screens/AI/AiArchitectScreen';
-import ConstructionOfferScreen from '../screens/Cost/ConstructionOfferScreen'; // New Import
-import ConstructionSuccessScreen from '../screens/Cost/ConstructionSuccessScreen'; // Success Screen
+import ConstructionOfferScreen from '../screens/Cost/ConstructionOfferScreen';
+import ConstructionSuccessScreen from '../screens/Cost/ConstructionSuccessScreen';
 import DetailedCostScreen from '../screens/Cost/DetailedCostScreen';
 import MaliyetScreen from '../screens/Cost/MaliyetScreen';
 import PosCostScreen from '../screens/Cost/PosCostScreen';
@@ -13,121 +22,208 @@ import SimpleCostScreen from '../screens/Cost/SimpleCostScreen';
 import SmartSketchScreen from '../screens/Cost/SmartSketchScreen';
 import EngineeringScreen from '../screens/Engineering/EngineeringScreen';
 import OnlineDiscoveryScreen from '../screens/Engineering/OnlineDiscoveryScreen';
-import HomeScreen from '../screens/Home/HomeScreen';
 import LawScreen from '../screens/Law/LawScreen';
-import LawSuccessScreen from '../screens/Law/LawSuccessScreen'; // New Import
+import LawSuccessScreen from '../screens/Law/LawSuccessScreen';
 import LawyerDashboardScreen from '../screens/Law/LawyerDashboardScreen';
 import CarrierDashboardScreen from '../screens/Logistics/CarrierDashboardScreen';
 import CreateTransportScreen from '../screens/Logistics/CreateTransportScreen';
 import EmptyReturnCheckoutScreen from '../screens/Logistics/EmptyReturnCheckoutScreen';
-import EmptyReturnDetailScreen from '../screens/Logistics/EmptyReturnDetailScreen'; // New Import
+import EmptyReturnDetailScreen from '../screens/Logistics/EmptyReturnDetailScreen';
 import EmptyReturnScreen from '../screens/Logistics/EmptyReturnScreen';
 import EmptyReturnSuccessScreen from '../screens/Logistics/EmptyReturnSuccessScreen';
 import LogisticsScreen from '../screens/Logistics/LogisticsScreen';
 import TransportModeSelectionScreen from '../screens/Logistics/TransportModeSelectionScreen';
 import BulkRequestScreen from '../screens/Market/BulkRequestScreen';
-import MarketScreen from '../screens/Market/MarketScreen';
 import MarketSuccessScreen from '../screens/Market/MarketSuccessScreen';
 import SellerDashboardScreen from '../screens/Market/SellerDashboardScreen';
 import SellerStoreScreen from '../screens/Market/SellerStoreScreen';
-import ProfileScreen from '../screens/Profile/ProfileScreen';
 import CustomRequestScreen from '../screens/Renovation/CustomRequestScreen';
 import RenovationProjectSelectionScreen from '../screens/Renovation/RenovationProjectSelectionScreen';
 import RenovationScreen from '../screens/Renovation/RenovationScreen';
 import RenovationSuccessScreen from '../screens/Renovation/RenovationSuccessScreen';
 import StyleSelectionScreen from '../screens/Renovation/StyleSelectionScreen';
-import CorporateDashboardScreen from '../screens/Rental/CorporateDashboardScreen';
 import ProjectProposalScreen from '../screens/Rental/ProjectProposalScreen';
 import RentalProposalScreen from '../screens/Rental/RentalProposalScreen';
-import RentalScreen from '../screens/Rental/RentalScreen';
+import CustomSplashScreen from '../screens/Splash/CustomSplashScreen';
 import UrbanTransformationScreen from '../screens/Transformation/UrbanTransformationScreen';
 
-// Provider Screens
-import ProviderDashboardScreen from '../screens/Provider/ProviderDashboardScreen';
-import ProviderWizardScreen from '../screens/Provider/ProviderWizardScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-import FloatingTabBar from '../components/FloatingTabBar';
-
-// ... (Imports remain same)
-
-// --- Tab Navigator ---
+// --- PREMIUM BOTTOM TAB NAVIGATOR ---
 function BottomTabNavigator() {
+    const colorScheme = useColorScheme();
+    const isDarkMode = colorScheme === 'dark' || true; // Force Dark Mode for now context or remove true
+
+    // Theme Colors
+    const theme = {
+        barBg: isDarkMode ? '#000000' : '#FFFFFF',
+        active: isDarkMode ? '#FDCB58' : '#121212',
+        inactive: isDarkMode ? '#636366' : '#8E8E93',
+        border: isDarkMode ? '#1C1C1E' : '#E5E5EA',
+    };
+
     return (
         <Tab.Navigator
-            tabBar={props => <FloatingTabBar {...props} />}
             screenOptions={{
                 headerShown: false,
-                tabBarStyle: { position: 'absolute' }, // Required for transparency
-                tabBarHideOnKeyboard: true,
+                tabBarStyle: {
+                    backgroundColor: theme.barBg,
+                    borderTopColor: theme.border,
+                    borderTopWidth: 0.5,
+                    height: Platform.OS === 'ios' ? 95 : 70, // Taller premium look
+                    paddingTop: 10,
+                    paddingBottom: Platform.OS === 'ios' ? 30 : 10,
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    elevation: 0,
+                },
+                tabBarLabelStyle: {
+                    fontSize: 11,
+                    fontWeight: '600',
+                    marginTop: 4,
+                },
+                tabBarActiveTintColor: theme.active,
+                tabBarInactiveTintColor: theme.inactive,
             }}
         >
-            <Tab.Screen name="Ana Sayfa" component={HomeScreen} />
-            <Tab.Screen name="Kiralama" component={RentalScreen} />
-            <Tab.Screen name="Market" component={MarketScreen} />
-            <Tab.Screen name="Profil" component={ProfileScreen} />
+            {/* 1. ANA SAYFA */}
+            <Tab.Screen
+                name="Ana Sayfa"
+                component={HomeScreen}
+                options={{
+                    tabBarIcon: ({ color, focused }) => (
+                        <MaterialCommunityIcons
+                            name={focused ? "home-variant" : "home-variant-outline"}
+                            size={28}
+                            color={color}
+                        />
+                    ),
+                }}
+            />
+
+            {/* 2. TALEPLERİM */}
+            <Tab.Screen
+                name="Requests"
+                component={RequestsScreen}
+                options={{
+                    tabBarLabel: 'Taleplerim',
+                    tabBarIcon: ({ color, focused }) => (
+                        <MaterialCommunityIcons
+                            name={focused ? "clipboard-list" : "clipboard-list-outline"}
+                            size={28}
+                            color={color}
+                        />
+                    ),
+                }}
+            />
+
+            {/* 3. GELEN KUTUSU */}
+            <Tab.Screen
+                name="Inbox"
+                component={InboxScreen}
+                options={{
+                    tabBarLabel: 'Gelen Kutusu',
+                    tabBarBadge: 3,
+                    tabBarBadgeStyle: {
+                        backgroundColor: '#FF3B30',
+                        color: 'white',
+                        fontSize: 10,
+                        fontWeight: 'bold',
+                    },
+                    tabBarIcon: ({ color, focused }) => (
+                        <MaterialCommunityIcons
+                            name={focused ? "message-text" : "message-text-outline"}
+                            size={28}
+                            color={color}
+                        />
+                    ),
+                }}
+            />
+
+            {/* 4. PROFİL */}
+            <Tab.Screen
+                name="Profil"
+                component={ProfileScreen}
+                options={{
+                    tabBarLabel: 'Profil',
+                    tabBarIcon: ({ color, focused }) => (
+                        <MaterialCommunityIcons
+                            name={focused ? "account" : "account-outline"}
+                            size={28}
+                            color={color}
+                        />
+                    ),
+                }}
+            />
         </Tab.Navigator>
     );
 }
 
-import CustomSplashScreen from '../screens/Splash/CustomSplashScreen';
-
-// --- Main Stack (Root) ---
+// --- MAIN STACK NAVIGATOR ---
 export default function AppNavigator() {
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Splash">
+            {/* Splash */}
             <Stack.Screen name="Splash" component={CustomSplashScreen} />
+
             {/* Main Tabs */}
             <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
 
-            {/* Stack Versions of Tab Screens (For Dashboard Navigation) */}
-            <Stack.Screen name="RentalStack" component={RentalScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="MarketStack" component={MarketScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="BulkRequest" component={BulkRequestScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="MarketSuccess" component={MarketSuccessScreen} options={{ headerShown: false }} />
+            {/* --- Modules & Detail Screens --- */}
 
-            {/* Other Modules pushed on top */}
-            <Stack.Screen name="Tadilat" component={RenovationScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="RenovationProjectSelection" component={RenovationProjectSelectionScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="StyleSelection" component={StyleSelectionScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="CustomRequest" component={CustomRequestScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="RenovationSuccess" component={RenovationSuccessScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="Mühendislik" component={EngineeringScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="AI_Galeri" component={AiArchitectScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="OnlineDiscovery" component={OnlineDiscoveryScreen} options={{ headerShown: false }} />
+            {/* Rental & Market (Stacks for nested nav if needed) */}
+            <Stack.Screen name="RentalStack" component={RentalScreen} />
+            <Stack.Screen name="MarketStack" component={MarketScreen} />
+            <Stack.Screen name="BulkRequest" component={BulkRequestScreen} />
+            <Stack.Screen name="MarketSuccess" component={MarketSuccessScreen} />
 
-            {/* New Modules */}
-            <Stack.Screen name="Hukuk" component={LawScreen} options={{ headerShown: false, title: 'Hukuki Destek' }} />
-            <Stack.Screen name="LawSuccess" component={LawSuccessScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="CreateTransport" component={CreateTransportScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="TransportSelection" component={TransportModeSelectionScreen} options={{ headerShown: false, presentation: 'transparentModal' }} />
-            <Stack.Screen name="Nakliye" component={LogisticsScreen} options={{ headerShown: false, title: 'Nakliye & Lojistik' }} />
-            <Stack.Screen name="EmptyReturnOpportunities" component={EmptyReturnScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="EmptyReturnDetail" component={EmptyReturnDetailScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="EmptyReturnCheckout" component={EmptyReturnCheckoutScreen} options={{ headerShown: false, presentation: 'modal' }} />
-            <Stack.Screen name="EmptyReturnSuccess" component={EmptyReturnSuccessScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="KentselDonusum" component={UrbanTransformationScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="Maliyet" component={MaliyetScreen} options={{ headerShown: false, title: 'Yaklaşık Maliyet' }} />
-            <Stack.Screen name="SimpleCost" component={SimpleCostScreen} options={{ headerShown: false, title: 'Hızlı Hesaplama' }} />
-            <Stack.Screen name="ProjectIdentity" component={ProjectIdentityScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="SmartSketch" component={SmartSketchScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="DetailedCost" component={DetailedCostScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="ConstructionOffer" component={ConstructionOfferScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="ConstructionSuccess" component={ConstructionSuccessScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="PosCost" component={PosCostScreen} options={{ headerShown: false, title: 'Poz No Hesap' }} />
-            <Stack.Screen name="ProjectProposal" component={ProjectProposalScreen} options={{ headerShown: false }} />
-            {/* New Smart Wizard */}
-            <Stack.Screen name="RentalProposal" component={RentalProposalScreen} options={{ headerShown: false }} />
+            {/* Renovation */}
+            <Stack.Screen name="Tadilat" component={RenovationScreen} />
+            <Stack.Screen name="RenovationProjectSelection" component={RenovationProjectSelectionScreen} />
+            <Stack.Screen name="StyleSelection" component={StyleSelectionScreen} />
+            <Stack.Screen name="CustomRequest" component={CustomRequestScreen} />
+            <Stack.Screen name="RenovationSuccess" component={RenovationSuccessScreen} />
 
-            {/* Provider Flow */}
-            <Stack.Screen name="ProviderWizard" component={ProviderWizardScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="ProviderDashboard" component={ProviderDashboardScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="SellerDashboard" component={SellerDashboardScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="SellerStore" component={SellerStoreScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="CorporateDashboard" component={CorporateDashboardScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="LawyerDashboard" component={LawyerDashboardScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="CarrierDashboard" component={CarrierDashboardScreen} options={{ headerShown: false }} />
+            {/* Engineering & AI */}
+            <Stack.Screen name="Mühendislik" component={EngineeringScreen} />
+            <Stack.Screen name="OnlineDiscovery" component={OnlineDiscoveryScreen} />
+            <Stack.Screen name="AI_Galeri" component={AiArchitectScreen} />
+
+            {/* Law */}
+            <Stack.Screen name="Hukuk" component={LawScreen} options={{ title: 'Hukuki Destek' }} />
+            <Stack.Screen name="LawSuccess" component={LawSuccessScreen} />
+
+            {/* Logistics */}
+            <Stack.Screen name="Nakliye" component={LogisticsScreen} options={{ title: 'Nakliye & Lojistik' }} />
+            <Stack.Screen name="CreateTransport" component={CreateTransportScreen} />
+            <Stack.Screen name="TransportSelection" component={TransportModeSelectionScreen} options={{ presentation: 'transparentModal' }} />
+            <Stack.Screen name="EmptyReturnOpportunities" component={EmptyReturnScreen} />
+            <Stack.Screen name="EmptyReturnDetail" component={EmptyReturnDetailScreen} />
+            <Stack.Screen name="EmptyReturnCheckout" component={EmptyReturnCheckoutScreen} options={{ presentation: 'modal' }} />
+            <Stack.Screen name="EmptyReturnSuccess" component={EmptyReturnSuccessScreen} />
+
+            {/* Cost & Projects */}
+            <Stack.Screen name="Maliyet" component={MaliyetScreen} options={{ title: 'Yaklaşık Maliyet' }} />
+            <Stack.Screen name="SimpleCost" component={SimpleCostScreen} options={{ title: 'Hızlı Hesaplama' }} />
+            <Stack.Screen name="ProjectIdentity" component={ProjectIdentityScreen} />
+            <Stack.Screen name="SmartSketch" component={SmartSketchScreen} />
+            <Stack.Screen name="DetailedCost" component={DetailedCostScreen} />
+            <Stack.Screen name="ConstructionOffer" component={ConstructionOfferScreen} />
+            <Stack.Screen name="ConstructionSuccess" component={ConstructionSuccessScreen} />
+            <Stack.Screen name="PosCost" component={PosCostScreen} options={{ title: 'Poz No Hesap' }} />
+
+            {/* Transformation & Proposals */}
+            <Stack.Screen name="KentselDonusum" component={UrbanTransformationScreen} />
+            <Stack.Screen name="ProjectProposal" component={ProjectProposalScreen} />
+            <Stack.Screen name="RentalProposal" component={RentalProposalScreen} />
+
+            <Stack.Screen name="SellerDashboard" component={SellerDashboardScreen} />
+            <Stack.Screen name="SellerStore" component={SellerStoreScreen} />
+            <Stack.Screen name="LawyerDashboard" component={LawyerDashboardScreen} />
+            <Stack.Screen name="CarrierDashboard" component={CarrierDashboardScreen} />
         </Stack.Navigator>
     );
 }

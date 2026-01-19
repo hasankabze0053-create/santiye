@@ -1,70 +1,267 @@
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '../../constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
+import {
+    Image,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Switch,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
+
+const PROFILE_IMAGE = "https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-1.2.1&auto=format&fit=crop&w=687&q=80";
 
 export default function ProfileScreen() {
     const navigation = useNavigation();
+    const [isDarkMode, setIsDarkMode] = useState(true);
+
+    // Dynamic Theme System
+    const theme = {
+        background: isDarkMode ? '#000000' : '#F2F2F7',
+        card: isDarkMode ? '#1C1C1E' : '#FFFFFF',
+        text: isDarkMode ? '#FFFFFF' : '#121212',
+        subText: isDarkMode ? '#8E8E93' : '#636366',
+        icon: isDarkMode ? '#FDCB58' : '#121212', // Gold in Dark, Black in Light for clarity
+        border: isDarkMode ? '#333333' : '#E5E5EA',
+        placeholder: isDarkMode ? '#2C2C2E' : '#FFFFFF',
+        shadow: isDarkMode ? '#000' : '#ccc',
+    };
+
+    // The Corporate Card ALWAYS keeps this Dark/Gold scheme
+    const corporateTheme = {
+        background: ['#1C1C1E', '#111111'],
+        border: '#FDCB58',
+        text: '#FFFFFF',
+        subText: '#CCCCCC',
+        icon: '#FDCB58'
+    };
+
+    const QuickActionButton = ({ icon, label, badge }) => (
+        <TouchableOpacity
+            style={[styles.quickActionBtn, {
+                backgroundColor: theme.card,
+                borderColor: theme.border,
+                borderWidth: isDarkMode ? 1 : 0, // No border in light mode, just shadow
+                shadowColor: theme.shadow,
+            }]}
+            activeOpacity={0.8}
+        >
+            <View style={styles.quickActionIconBox}>
+                <MaterialCommunityIcons name={icon} size={28} color={theme.icon} />
+                {badge && <View style={styles.badge} />}
+            </View>
+            <Text style={[styles.quickActionText, { color: theme.text }]}>{label}</Text>
+        </TouchableOpacity>
+    );
+
+    const MenuItem = ({ icon, label, isDestructive, hasSwitch, switchValue, onSwitchChange }) => (
+        <TouchableOpacity
+            style={[styles.menuItem, { backgroundColor: theme.card, borderBottomColor: theme.border }]}
+            activeOpacity={hasSwitch ? 1 : 0.7}
+        >
+            <View style={[styles.menuIconContainer, { backgroundColor: isDestructive ? 'rgba(255, 59, 48, 0.1)' : (isDarkMode ? '#2C2C2E' : '#F2F2F7') }]}>
+                <Ionicons
+                    name={icon}
+                    size={20}
+                    color={isDestructive ? '#FF3B30' : theme.icon}
+                />
+            </View>
+            <Text style={[styles.menuText, { color: isDestructive ? '#FF3B30' : theme.text }]}>{label}</Text>
+
+            {hasSwitch ? (
+                <Switch
+                    trackColor={{ false: "#767577", true: "#FDCB58" }}
+                    thumbColor={switchValue ? "#fff" : "#f4f3f4"}
+                    ios_backgroundColor="#3e3e3e"
+                    onValueChange={onSwitchChange}
+                    value={switchValue}
+                />
+            ) : (
+                <Ionicons name="chevron-forward" size={20} color={theme.subText} />
+            )}
+        </TouchableOpacity>
+    );
 
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <View style={styles.avatar}>
-                    <Text style={{ fontSize: 24 }}>👤</Text>
-                </View>
-                <Text style={styles.name}>Kral Kullanıcı</Text>
-                <Text style={styles.role}>Müteahhit</Text>
-            </View>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+            <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Şantiye Günlüğü (Timeline)</Text>
-                <View style={styles.timelineItem}>
-                    <View style={styles.dot} />
-                    <View style={styles.content}>
-                        <Text style={styles.date}>Bugün, 09:41</Text>
-                        <Text style={styles.desc}>500 torba çimento teslim alındı.</Text>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+
+                {/* 1. Header (Individual) */}
+                <View style={styles.header}>
+                    <View style={styles.profileRow}>
+                        <Image source={{ uri: PROFILE_IMAGE }} style={styles.avatar} />
+                        <View style={styles.profileInfo}>
+                            <Text style={[styles.userName, { color: theme.text }]}>Ahmet Yılmaz</Text>
+                            <Text style={[styles.userType, { color: theme.subText }]}>Bireysel Kullanıcı</Text>
+                        </View>
+                        <TouchableOpacity style={[styles.editButton, { backgroundColor: isDarkMode ? '#333' : '#E5E5EA' }]}>
+                            <MaterialCommunityIcons name="pencil" size={20} color={theme.text} />
+                        </TouchableOpacity>
                     </View>
                 </View>
-                <View style={styles.timelineItem}>
-                    <View style={styles.dot} />
-                    <View style={styles.content}>
-                        <Text style={styles.date}>Dün, 14:20</Text>
-                        <Text style={styles.desc}>Banyo tadilatı için usta keşfe geldi.</Text>
+
+                {/* 2. CORPORATE ACTION CARD (Always Dark Premium) */}
+                <View style={styles.sectionContainer}>
+                    <TouchableOpacity activeOpacity={0.9}>
+                        <LinearGradient
+                            colors={corporateTheme.background}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={[styles.corporateCard, { borderColor: corporateTheme.border }]}
+                        >
+                            <View style={styles.corporateContent}>
+                                <View style={styles.corporateIconCircle}>
+                                    <MaterialCommunityIcons name="domain" size={28} color={corporateTheme.icon} />
+                                </View>
+                                <View style={styles.corporateTextContainer}>
+                                    <Text style={[styles.corporateTitle, { color: corporateTheme.text }]}>Kurumsal Üyelik</Text>
+                                    <Text style={[styles.corporateSubtitle, { color: corporateTheme.subText }]}>
+                                        Firma profilini yönet veya teklif al.
+                                    </Text>
+                                </View>
+                                <View style={styles.corporateArrow}>
+                                    <Text style={styles.manageText}>YÖNET</Text>
+                                    <Ionicons name="chevron-forward" size={16} color={corporateTheme.icon} />
+                                </View>
+                            </View>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </View>
+
+                {/* 3. Quick Actions */}
+                <View style={styles.sectionContainer}>
+                    <View style={styles.quickActionsRow}>
+                        <QuickActionButton icon="clipboard-list-outline" label="Taleplerim" />
+                        <QuickActionButton icon="message-text-outline" label="Gelen Kutusu" badge />
+                        <QuickActionButton icon="wallet-outline" label="Cüzdanım" />
                     </View>
                 </View>
+
+                {/* 4. Settings List */}
+                <View style={styles.sectionContainer}>
+                    <Text style={[styles.sectionHeader, { color: theme.subText }]}>HESAP VE AYARLAR</Text>
+                    <View style={[styles.menuContainer, { backgroundColor: theme.card }]}>
+                        <MenuItem icon="person-outline" label="Hesap Bilgileri" />
+                        <MenuItem
+                            icon={isDarkMode ? "moon" : "sunny"}
+                            label={isDarkMode ? "Karanlık Mod" : "Aydınlık Mod"}
+                            hasSwitch
+                            switchValue={isDarkMode}
+                            onSwitchChange={() => setIsDarkMode(!isDarkMode)}
+                        />
+                        <MenuItem icon="notifications-outline" label="Bildirim Ayarları" />
+                        <MenuItem icon="shield-checkmark-outline" label="Gizlilik ve Güvenlik" />
+                    </View>
+                </View>
+
+                {/* 5. Support List */}
+                <View style={styles.sectionContainer}>
+                    <Text style={[styles.sectionHeader, { color: theme.subText }]}>DESTEK</Text>
+                    <View style={[styles.menuContainer, { backgroundColor: theme.card }]}>
+                        <MenuItem icon="help-circle-outline" label="Yardım Merkezi" />
+                        <MenuItem icon="chatbubble-ellipses-outline" label="Bize Ulaşın" />
+                        <MenuItem icon="log-out-outline" label="Çıkış Yap" isDestructive />
+                    </View>
+                </View>
+
+            </ScrollView>
+
+            {/* Visual Bottom Navigation Bar (Mockup) */}
+            <View style={[styles.bottomBar, { backgroundColor: theme.card, borderTopColor: theme.border }]}>
+                <TouchableOpacity style={styles.tabItem}>
+                    <MaterialCommunityIcons name="home-variant-outline" size={26} color={theme.subText} />
+                    <Text style={[styles.tabLabel, { color: theme.subText }]}>Ana Sayfa</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.tabItem}>
+                    <MaterialCommunityIcons name="clipboard-list-outline" size={26} color={theme.subText} />
+                    <Text style={[styles.tabLabel, { color: theme.subText }]}>Taleplerim</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.tabItem}>
+                    <View>
+                        <MaterialCommunityIcons name="bell-outline" size={26} color={theme.subText} />
+                        <View style={styles.tabBadge} />
+                    </View>
+                    <Text style={[styles.tabLabel, { color: theme.subText }]}>Gelenler</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.tabItem}>
+                    <MaterialCommunityIcons name="account" size={26} color={theme.icon} />
+                    <Text style={[styles.tabLabel, { color: theme.icon, fontWeight: 'bold' }]}>Profil</Text>
+                </TouchableOpacity>
             </View>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.gray },
-    header: { alignItems: 'center', padding: 30, backgroundColor: COLORS.white },
-    avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
-    name: { fontSize: 20, fontWeight: 'bold', color: COLORS.primary },
-    role: { color: 'gray' },
+    container: { flex: 1 },
+    scrollContent: { paddingBottom: 100 }, // Space for bottom bar
 
-    providerButton: {
-        marginTop: 20,
-        backgroundColor: '#0f172a', // Dark Navy
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        borderRadius: 25,
-        flexDirection: 'row',
+    // Header
+    header: { padding: 20, paddingTop: 10 },
+    profileRow: { flexDirection: 'row', alignItems: 'center' },
+    avatar: { width: 60, height: 60, borderRadius: 30, borderWidth: 2, borderColor: '#333' },
+    profileInfo: { flex: 1, marginLeft: 15 },
+    userName: { fontSize: 20, fontWeight: '700' },
+    userType: { fontSize: 13, marginTop: 2 },
+    editButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+
+    // Sections
+    sectionContainer: { marginTop: 4, marginBottom: 20, paddingHorizontal: 20 },
+    sectionHeader: { fontSize: 12, fontWeight: '600', marginBottom: 10, letterSpacing: 0.5 },
+
+    // Corporate Card
+    corporateCard: { borderRadius: 16, padding: 16, borderWidth: 1 },
+    corporateContent: { flexDirection: 'row', alignItems: 'center' },
+    corporateIconCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(253, 203, 88, 0.15)', alignItems: 'center', justifyContent: 'center' },
+    corporateTextContainer: { flex: 1, marginLeft: 12 },
+    corporateTitle: { fontSize: 16, fontWeight: '700' },
+    corporateSubtitle: { fontSize: 12, marginTop: 2 },
+    corporateArrow: { flexDirection: 'row', alignItems: 'center' },
+    manageText: { color: '#FDCB58', fontSize: 12, fontWeight: '700', marginRight: 2 },
+
+    // Quick Actions
+    quickActionsRow: { flexDirection: 'row', justifyContent: 'space-between' },
+    quickActionBtn: {
+        width: '31%',
+        paddingVertical: 16,
+        borderRadius: 16,
         alignItems: 'center',
-        elevation: 5,
-        shadowColor: '#000',
+        justifyContent: 'center',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.05,
         shadowRadius: 4,
+        elevation: 2,
     },
-    providerButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+    quickActionIconBox: { marginBottom: 8, position: 'relative' },
+    quickActionText: { fontSize: 12, fontWeight: '600' },
+    badge: { position: 'absolute', top: -2, right: -2, width: 8, height: 8, borderRadius: 4, backgroundColor: '#FF3B30' },
 
-    section: { padding: 20 },
-    sectionTitle: { fontSize: 18, fontWeight: 'bold', color: COLORS.primary, marginBottom: 20 },
-    timelineItem: { flexDirection: 'row', marginBottom: 20, paddingLeft: 10 },
-    dot: { width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.accent, marginTop: 5, marginRight: 15 },
-    content: { flex: 1, backgroundColor: COLORS.white, padding: 15, borderRadius: 10 },
-    date: { color: 'gray', fontSize: 12, marginBottom: 5 },
-    desc: { color: COLORS.darkGray, fontWeight: '600' }
+    // Menus
+    menuContainer: { borderRadius: 16, overflow: 'hidden' },
+    menuItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 0.5 },
+    menuIconContainer: { width: 32, height: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+    menuText: { flex: 1, fontSize: 15, fontWeight: '500' },
+
+    // Bottom Bar (Visual Mockup)
+    bottomBar: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 85,
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        paddingTop: 12,
+        borderTopWidth: 1
+    },
+    tabItem: { alignItems: 'center' },
+    tabLabel: { fontSize: 10, marginTop: 4 },
+    tabBadge: { position: 'absolute', top: 0, right: 0, width: 8, height: 8, borderRadius: 4, backgroundColor: '#FF3B30', borderWidth: 1, borderColor: '#fff' }
 });

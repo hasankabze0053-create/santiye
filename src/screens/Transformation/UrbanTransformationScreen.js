@@ -11,7 +11,7 @@ const TRANSFORMATION_STEPS = [
         id: 1,
         title: 'RİSKLİ YAPI TESPİTİ',
         subtitle: 'Binanız Güvenli mi?',
-        icon: 'building-alert',
+        icon: 'home-alert',
         desc: 'Çevre, Şehircilik ve İklim Değişikliği Bakanlığı lisanslı kuruluşlarca binanızın deprem risk raporunun hazırlanması.',
         image: 'https://images.unsplash.com/photo-1590674899505-1c5c417b1bda?q=80&w=400&auto=format&fit=crop',
         action: 'Tespiti Başlat'
@@ -20,8 +20,8 @@ const TRANSFORMATION_STEPS = [
         id: 2,
         title: 'YARISI BİZDEN',
         subtitle: 'Devlet Destek Kampanyası',
-        icon: 'hand-holding-heart', // customized icon
-        desc: 'Hak sahiplerine 1.5 Milyon TL\'ye kadar destek! 700 Bin TL hibe, 700 Bin TL uygun kredi ve 100 Bin TL tahliye desteği.',
+        icon: 'hand-heart', // customized icon
+        desc: 'Hak sahiplerine 1.75 Milyon TL\'ye kadar destek! 875 Bin TL hibe, 875 Bin TL kredi ve 125 Bin TL tahliye desteği.',
         image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=400&auto=format&fit=crop',
         action: 'Başvuru Bilgisi'
     },
@@ -29,7 +29,7 @@ const TRANSFORMATION_STEPS = [
         id: 3,
         title: 'UZLAŞMA & PROTOKOL',
         subtitle: '3/2 Çoğunluk Kararı',
-        icon: 'file-signature',
+        icon: 'file-sign',
         desc: 'Kat malikleri ile müteahhit arasında SPK lisanslı değerleme raporlarına dayalı adil paylaşım ve sözleşme süreci.',
         image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=400&auto=format&fit=crop',
         action: 'Uzman Ata'
@@ -149,13 +149,13 @@ export default function UrbanTransformationScreen({ navigation }) {
                     {/* Stats Row */}
                     <View style={styles.statsRow}>
                         <View style={styles.statItem}>
-                            <Text style={styles.statValue}>1.5M₺</Text>
-                            <Text style={styles.statLabel}>Toplam Destek</Text>
+                            <Text style={styles.statValue}>875.000₺</Text>
+                            <Text style={styles.statLabel}>HİBE</Text>
                         </View>
                         <View style={styles.statDivider} />
                         <View style={styles.statItem}>
-                            <Text style={styles.statValue}>%0.79</Text>
-                            <Text style={styles.statLabel}>Kredi Oranı</Text>
+                            <Text style={styles.statValue}>875.000₺</Text>
+                            <Text style={styles.statLabel}>KREDİ</Text>
                         </View>
                         <View style={styles.statDivider} />
                         <View style={styles.statItem}>
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     infoBox: { flexDirection: 'row', backgroundColor: 'rgba(255, 215, 0, 0.1)', padding: 15, borderRadius: 12, alignItems: 'center', gap: 12, marginBottom: 20 },
     infoText: { color: '#FFD700', flex: 1, fontSize: 13 },
     applyBtn: { backgroundColor: '#FFD700', padding: 16, borderRadius: 12, alignItems: 'center' },
-    applyBtn: { backgroundColor: '#FFD700', padding: 16, borderRadius: 12, alignItems: 'center' },
+
     applyBtnText: { color: '#000', fontSize: 16, fontWeight: 'bold' },
 
     // Consultant Styles
