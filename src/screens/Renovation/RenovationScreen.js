@@ -7,7 +7,6 @@ import {
     Alert,
     Animated,
     Dimensions,
-    SafeAreaView,
     ScrollView,
     StatusBar,
     StyleSheet,
@@ -16,6 +15,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -107,7 +107,7 @@ export default function RenovationScreen({ navigation }) {
                         <Text style={styles.headerSubtitle}>Yaşam Alanınızı Yeniden Keşfedin</Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                        <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate('ProviderDashboard')}>
+                        <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate('RenovationProvider')}>
                             <MaterialCommunityIcons name="hammer-wrench" size={24} color="#D4AF37" />
                         </TouchableOpacity>
                     </View>

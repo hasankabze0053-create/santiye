@@ -132,7 +132,7 @@ export default function EngineeringScreen() {
                             </View>
                             <TouchableOpacity
                                 style={styles.headerIconBtn}
-                                onPress={() => navigation.navigate('ProviderDashboard')}
+                                onPress={() => navigation.navigate('TechnicalProvider')}
                             >
                                 <MaterialCommunityIcons name="ruler-square" size={24} color={GOLD_MAIN} />
                             </TouchableOpacity>

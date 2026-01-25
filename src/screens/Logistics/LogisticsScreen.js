@@ -122,7 +122,7 @@ export default function LogisticsScreen() {
                         <Text style={styles.headerTitle}>NAKLİYE & LOJİSTİK</Text>
                         <Text style={styles.headerSubtitle}>Güvenilir Taşıma Ağı</Text>
                     </View>
-                    <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate('CarrierDashboard')}>
+                    <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate('LogisticsProvider')}>
                         <MaterialCommunityIcons name="truck-check" size={24} color="#D4AF37" />
                     </TouchableOpacity>
                 </View>

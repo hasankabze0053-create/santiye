@@ -128,7 +128,11 @@ export default function UrbanTransformationScreen({ navigation }) {
                         <Text style={styles.headerTitle}>YERİNDE DÖNÜŞÜM</Text>
                         <Text style={styles.headerSubtitle}>GÜVENLİ GELECEK</Text>
                     </View>
-                    <View style={{ width: 40 }} />
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                        <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate('ContractorProvider')}>
+                            <MaterialCommunityIcons name="hard-hat" size={24} color="#D4AF37" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -350,5 +354,20 @@ const styles = StyleSheet.create({
     faqItem: { backgroundColor: '#161616', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#222' },
     faqHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
     faqQuestion: { color: '#fff', fontSize: 13, fontWeight: 'bold', flex: 1, lineHeight: 20 },
-    faqAnswer: { color: '#aaa', fontSize: 13, marginTop: 10, lineHeight: 20, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#222' }
+    faqAnswer: { color: '#aaa', fontSize: 13, marginTop: 10, lineHeight: 20, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#222' },
+    headerIconBtn: {
+        width: 44,
+        height: 44,
+        borderRadius: 12,
+        backgroundColor: '#1A1A1A',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#D4AF37',
+        shadowColor: "#D4AF37",
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 3,
+    }
 });

@@ -12,6 +12,7 @@ import RentalScreen from '../screens/Rental/RentalScreen';
 
 // Secondary Screens (Stack)
 import AiArchitectScreen from '../screens/AI/AiArchitectScreen';
+import AuthScreen from '../screens/Auth/AuthScreen'; // Import Authentication Screen
 import ConstructionOfferScreen from '../screens/Cost/ConstructionOfferScreen';
 import ConstructionSuccessScreen from '../screens/Cost/ConstructionSuccessScreen';
 import DetailedCostScreen from '../screens/Cost/DetailedCostScreen';
@@ -37,6 +38,14 @@ import BulkRequestScreen from '../screens/Market/BulkRequestScreen';
 import MarketSuccessScreen from '../screens/Market/MarketSuccessScreen';
 import SellerDashboardScreen from '../screens/Market/SellerDashboardScreen';
 import SellerStoreScreen from '../screens/Market/SellerStoreScreen';
+import ContractorProviderScreen from '../screens/Provider/ContractorProviderScreen';
+import LawProviderScreen from '../screens/Provider/LawProviderScreen';
+import LogisticsProviderScreen from '../screens/Provider/LogisticsProviderScreen';
+import MachineryProviderScreen from '../screens/Provider/MachineryProviderScreen';
+import MarketProviderScreen from '../screens/Provider/MarketProviderScreen';
+import ProviderDashboardScreen from '../screens/Provider/ProviderDashboardScreen';
+import RenovationProviderScreen from '../screens/Provider/RenovationProviderScreen';
+import TechnicalProviderScreen from '../screens/Provider/TechnicalProviderScreen';
 import CustomRequestScreen from '../screens/Renovation/CustomRequestScreen';
 import RenovationProjectSelectionScreen from '../screens/Renovation/RenovationProjectSelectionScreen';
 import RenovationScreen from '../screens/Renovation/RenovationScreen';
@@ -49,6 +58,19 @@ import UrbanTransformationScreen from '../screens/Transformation/UrbanTransforma
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+const ProfileStack = createNativeStackNavigator(); // Separate Stack for Profile Tab
+
+// Profile Stack Navigator (Auth -> Profile Flow)
+function ProfileStackNavigator() {
+    return (
+        <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
+            <ProfileStack.Screen name="Auth" component={AuthScreen} />
+            <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
+        </ProfileStack.Navigator>
+    );
+}
+
+// Force Refresh Comment
 
 // --- PREMIUM BOTTOM TAB NAVIGATOR ---
 function BottomTabNavigator() {
@@ -146,7 +168,7 @@ function BottomTabNavigator() {
             {/* 4. PROFİL */}
             <Tab.Screen
                 name="Profil"
-                component={ProfileScreen}
+                component={ProfileStackNavigator}
                 options={{
                     tabBarLabel: 'Profil',
                     tabBarIcon: ({ color, focused }) => (
@@ -224,6 +246,15 @@ export default function AppNavigator() {
             <Stack.Screen name="SellerStore" component={SellerStoreScreen} />
             <Stack.Screen name="LawyerDashboard" component={LawyerDashboardScreen} />
             <Stack.Screen name="CarrierDashboard" component={CarrierDashboardScreen} />
+            <Stack.Screen name="MarketProvider" component={MarketProviderScreen} />
+            <Stack.Screen name="MachineryProvider" component={MachineryProviderScreen} />
+            <Stack.Screen name="RenovationProvider" component={RenovationProviderScreen} />
+            <Stack.Screen name="LogisticsProvider" component={LogisticsProviderScreen} />
+            <Stack.Screen name="ContractorProvider" component={ContractorProviderScreen} />
+            <Stack.Screen name="LawProvider" component={LawProviderScreen} />
+            <Stack.Screen name="TechnicalProvider" component={TechnicalProviderScreen} />
+
+            <Stack.Screen name="ProviderDashboard" component={ProviderDashboardScreen} />
         </Stack.Navigator>
     );
 }

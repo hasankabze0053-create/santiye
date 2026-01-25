@@ -371,7 +371,7 @@ export default function MarketScreen() { // Force Refresh
                         </Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                        <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate('SellerDashboard')}>
+                        <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate('MarketProvider')}>
                             <MaterialCommunityIcons name="storefront-outline" size={24} color="#D4AF37" />
                         </TouchableOpacity>
                     </View>

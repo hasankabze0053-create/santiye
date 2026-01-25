@@ -280,7 +280,7 @@ export default function RentalScreen() {
                     </View>
                     <TouchableOpacity
                         style={styles.headerIconBtn}
-                        onPress={() => navigation.navigate('CorporateDashboard')}
+                        onPress={() => navigation.navigate('MachineryProvider')}
                     >
                         <MaterialCommunityIcons name="excavator" size={24} color="#D4AF37" />
                     </TouchableOpacity>

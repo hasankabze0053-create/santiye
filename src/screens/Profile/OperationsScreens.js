@@ -3,7 +3,6 @@ import { useState } from 'react';
 import {
     FlatList,
     Image,
-    SafeAreaView,
     StatusBar,
     StyleSheet,
     Text,
@@ -11,6 +10,7 @@ import {
     View,
     useColorScheme
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // --- MOCK DATA ---
 

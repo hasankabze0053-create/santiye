@@ -2,7 +2,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import {
-    SafeAreaView,
     ScrollView,
     StatusBar,
     StyleSheet,
@@ -11,6 +10,7 @@ import {
     View,
     useColorScheme
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function CorporateDashboardScreen() {
     const colorScheme = useColorScheme();

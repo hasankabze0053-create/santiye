@@ -388,7 +388,7 @@ export default function LawScreen() {
                             </View>
                             <TouchableOpacity
                                 style={styles.headerIconBtn}
-                                onPress={() => navigation.navigate('LawyerDashboard')}
+                                onPress={() => navigation.navigate('LawProvider')}
                             >
                                 <MaterialCommunityIcons name="scale-balance" size={24} color={GOLD_MAIN} />
                             </TouchableOpacity>
