@@ -40,25 +40,25 @@ const ORIGINAL_DATA = [
     {
         id: 'daire',
         title: 'DAİRE',
-        image: require('../../../assets/renovation/daire_warm.png'),
+        image: require('../../assets/renovation/daire_warm.png'),
         subtitle: 'MODERN ŞEHİR YAŞAMI'
     },
     {
         id: 'villa',
         title: 'VİLLA', // Fixed: VILLA -> VİLLA
-        image: require('../../../assets/renovation/villa_warm.png'),
+        image: require('../../assets/renovation/villa_warm.png'),
         subtitle: 'MÜSTAKİL KONFOR'
     },
     {
         id: 'ofis',
         title: 'OFİS',
-        image: require('../../../assets/renovation/ofis_warm.png'),
+        image: require('../../assets/renovation/ofis_warm.png'),
         subtitle: 'PROFESYONEL ALANLAR'
     },
     {
         id: 'magaza',
         title: 'MAĞAZA',
-        image: require('../../../assets/renovation/magaza_warm.png'),
+        image: require('../../assets/renovation/magaza_warm.png'),
         subtitle: 'TİCARİ VİTRİN VE BUTİK'
     }
 ];

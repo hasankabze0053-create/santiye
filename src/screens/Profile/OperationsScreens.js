@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     FlatList,
     Image,
@@ -11,6 +11,7 @@ import {
     useColorScheme
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MarketService } from '../../services/MarketService';
 
 // --- MOCK DATA ---
 
@@ -106,27 +107,53 @@ export const RequestsScreen = () => {
     const colorScheme = useColorScheme();
     const isDarkMode = colorScheme === 'dark' || true;
     const [activeTab, setActiveTab] = useState('Aktif');
-
+    const [requests, setRequests] = useState([]);
     const theme = getTheme(isDarkMode);
+
+    useEffect(() => {
+        loadRequests();
+    }, []);
+
+    const loadRequests = async () => {
+        const data = await MarketService.getUserRequests();
+        setRequests(data);
+    };
+
+    const filteredRequests = requests.filter(r => {
+        if (activeTab === 'Aktif') return r.status === 'OPEN';
+        return r.status !== 'OPEN';
+    });
 
     const renderItem = ({ item }) => (
         <View style={[styles.card, { backgroundColor: theme.card }]}>
             <View style={[styles.iconContainer, { backgroundColor: theme.iconBg }]}>
-                <MaterialCommunityIcons name={item.category === 'material' ? 'package-variant-closed' : 'truck-outline'} size={24} color={theme.accent} />
+                <MaterialCommunityIcons name="package-variant-closed" size={24} color={theme.accent} />
             </View>
             <View style={styles.cardContent}>
                 <Text style={[styles.cardTitle, { color: theme.text }]}>{item.title}</Text>
-                <Text style={[styles.cardSubtitle, { color: theme.subText }]}>{item.subtitle}</Text>
+                <Text style={[styles.cardSubtitle, { color: theme.subText }]}>
+                    {new Date(item.created_at).toLocaleDateString('tr-TR')}
+                </Text>
             </View>
-            <View style={[styles.statusBadge, { backgroundColor: item.statusState === 'action' ? theme.accent : theme.iconBg }]}>
-                <Text style={[styles.statusText, { color: item.statusState === 'action' ? '#000' : theme.subText }]}>{item.status}</Text>
+            <View style={[styles.statusBadge, { backgroundColor: item.bids && item.bids.length > 0 ? theme.accent : theme.iconBg }]}>
+                <Text style={[styles.statusText, { color: item.bids && item.bids.length > 0 ? '#000' : theme.subText }]}>
+                    {item.bids ? `${item.bids.length} Teklif` : 'Bekleniyor'}
+                </Text>
             </View>
         </View>
     );
 
     return (
         <ScreenLayout title="Taleplerim" theme={theme} activeTab={activeTab} setActiveTab={setActiveTab} tabs={['Aktif', 'Geçmiş']}>
-            <FlatList data={REQUESTS_DATA} renderItem={renderItem} keyExtractor={i => i.id} contentContainerStyle={styles.listContent} />
+            <FlatList
+                data={filteredRequests}
+                renderItem={renderItem}
+                keyExtractor={i => i.id}
+                contentContainerStyle={styles.listContent}
+                ListEmptyComponent={<Text style={{ color: theme.subText, textAlign: 'center', marginTop: 20 }}>Talep bulunamadı.</Text>}
+                onRefresh={loadRequests}
+                refreshing={false}
+            />
         </ScreenLayout>
     );
 };

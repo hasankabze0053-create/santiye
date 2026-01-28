@@ -39,32 +39,32 @@ const STYLES = [
     {
         id: 'modern',
         title: 'MODERN & MİNİMALİST',
-        image: require('../../../assets/renovation/style_modern.png')
+        image: require('../../assets/renovation/style_modern.png')
     },
     {
         id: 'classic',
         title: 'KLASİK & AVANGART',
-        image: require('../../../assets/renovation/style_classic.png')
+        image: require('../../assets/renovation/style_classic.png')
     },
     {
         id: 'loft',
         title: 'ENDÜSTRİYEL (LOFT)',
-        image: require('../../../assets/renovation/style_loft.png')
+        image: require('../../assets/renovation/style_loft.png')
     },
     {
         id: 'scandinavian',
         title: 'İSKANDİNAV',
-        image: require('../../../assets/renovation/style_scandinavian.png')
+        image: require('../../assets/renovation/style_scandinavian.png')
     },
     {
         id: 'boho',
         title: 'BOHEM',
-        image: require('../../../assets/renovation/style_boho.png')
+        image: require('../../assets/renovation/style_boho.png')
     },
     {
         id: 'other',
         title: 'DİĞER / ÖZEL',
-        image: require('../../../assets/renovation/style_other.png')
+        image: require('../../assets/renovation/style_other.png')
     }
 ];
 

@@ -13,6 +13,8 @@ import RentalScreen from '../screens/Rental/RentalScreen';
 // Secondary Screens (Stack)
 import AiArchitectScreen from '../screens/AI/AiArchitectScreen';
 import AuthScreen from '../screens/Auth/AuthScreen'; // Import Authentication Screen
+import CompanyRegistrationScreen from '../screens/Auth/CompanyRegistrationScreen';
+import OnboardingScreen from '../screens/Auth/OnboardingScreen';
 import ConstructionOfferScreen from '../screens/Cost/ConstructionOfferScreen';
 import ConstructionSuccessScreen from '../screens/Cost/ConstructionSuccessScreen';
 import DetailedCostScreen from '../screens/Cost/DetailedCostScreen';
@@ -35,6 +37,7 @@ import EmptyReturnSuccessScreen from '../screens/Logistics/EmptyReturnSuccessScr
 import LogisticsScreen from '../screens/Logistics/LogisticsScreen';
 import TransportModeSelectionScreen from '../screens/Logistics/TransportModeSelectionScreen';
 import BulkRequestScreen from '../screens/Market/BulkRequestScreen';
+import MarketRequestScreen from '../screens/Market/MarketRequestScreen';
 import MarketSuccessScreen from '../screens/Market/MarketSuccessScreen';
 import SellerDashboardScreen from '../screens/Market/SellerDashboardScreen';
 import SellerStoreScreen from '../screens/Market/SellerStoreScreen';
@@ -200,6 +203,7 @@ export default function AppNavigator() {
             <Stack.Screen name="RentalStack" component={RentalScreen} />
             <Stack.Screen name="MarketStack" component={MarketScreen} />
             <Stack.Screen name="BulkRequest" component={BulkRequestScreen} />
+            <Stack.Screen name="MarketRequest" component={MarketRequestScreen} />
             <Stack.Screen name="MarketSuccess" component={MarketSuccessScreen} />
 
             {/* Renovation */}
@@ -253,6 +257,10 @@ export default function AppNavigator() {
             <Stack.Screen name="ContractorProvider" component={ContractorProviderScreen} />
             <Stack.Screen name="LawProvider" component={LawProviderScreen} />
             <Stack.Screen name="TechnicalProvider" component={TechnicalProviderScreen} />
+
+            {/* Authentication & Onboarding (Root Level) */}
+            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+            <Stack.Screen name="CompanyRegistration" component={CompanyRegistrationScreen} />
 
             <Stack.Screen name="ProviderDashboard" component={ProviderDashboardScreen} />
         </Stack.Navigator>

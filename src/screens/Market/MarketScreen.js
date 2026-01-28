@@ -2,275 +2,59 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRef, useState } from 'react';
-import { Alert, Animated, Dimensions, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Animated, Dimensions, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MarketService } from '../../services/MarketService';
+import { getMarketImage } from '../../utils/marketAssets';
 
 const { width } = Dimensions.get('window');
-
-// --- HERO SLIDER DATA ---
-const MARKET_SHOWCASE = [
-    { id: '1', title: '', subtitle: '', image: require('../../assets/market/concrete_showcase.png'), tag: 'EN İYİ FİYAT' },
-    { id: '2', title: 'TUĞLA KAMPANYASI', subtitle: 'Yüksek kaliteli yığma tuğla toplu alımda avantaj', image: 'https://images.unsplash.com/photo-1588011930968-748435e16ee9?q=80&w=800', tag: 'KARGO BEDAVA' },
-    { id: '3', title: 'YALITIM ÇÖZÜMLERİ', subtitle: 'Kışa hazırlık için mantolama paketlerinde fırsat', image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=800', tag: 'YENİ SEZON' },
-];
-
-// 12 MAIN CATEGORIES - MEGA MARKET INVENTORY
-const MARKET_CATEGORIES = [
-    {
-        id: '1',
-        title: 'KABA YAPI & İNŞAAT',
-        subtitle: 'Demir, Çimento, Tuğla, Çatı',
-        icon: 'office-building',
-        image: require('../../assets/market/kaba_yapi.png'), // Generated
-        subcategories: [
-            { id: '1.1', name: 'Demir & Çelik', icon: 'grid' },
-            { id: '1.2', name: 'Çimento & Bağlayıcılar', icon: 'cup' },
-            { id: '1.3', name: 'Duvar Blokları & Tuğla', icon: 'wall' },
-            { id: '1.4', name: 'Agrega (Kum & Çakıl)', icon: 'truck-snowflake' } // using snowflake as sand proxy or truck
-        ],
-        items: [
-            { name: 'Nervürlü İnşaat Demiri Ø12', subcategory: 'Demir & Çelik', spec: 'Ton', price: '₺24.500', options: { type: ['Ø8', 'Ø10', 'Ø12', 'Ø16'], brand: ['İÇDAŞ', 'KARDEMİR'] } },
-            { name: 'Çelik Hasır Q188', subcategory: 'Demir & Çelik', spec: 'Adet', price: '₺1.450', options: { type: ['Q Tip', 'R Tip'] } },
-            { name: 'Portland Kompoze Çimento', subcategory: 'Çimento & Bağlayıcılar', spec: '50kg Torba', price: '₺195', options: { brand: ['Nuh', 'Akçansa', 'Limak'] } },
-            { name: 'Beyaz Çimento', subcategory: 'Çimento & Bağlayıcılar', spec: '25kg', price: '₺180', options: { brand: ['Çimsa'] } },
-            { name: 'Yığma Tuğla 13.5', subcategory: 'Duvar Blokları & Tuğla', spec: 'Adet', price: '₺6.50', options: { brand: ['Kılıçoğlu', 'Işıklar'] } },
-            { name: 'Gazbeton G2 Düz', subcategory: 'Duvar Blokları & Tuğla', spec: 'Adet', price: '₺75', options: { size: ['10cm', '15cm', '20cm'] } },
-            { name: 'Sıva Kumu (İnce)', subcategory: 'Agrega (Kum & Çakıl)', spec: 'Ton', price: '₺450', options: { origin: ['Şile', 'Kemerburgaz'] } },
-            { name: 'Mıcır 1 No', subcategory: 'Agrega (Kum & Çakıl)', spec: 'Ton', price: '₺420' }
-        ]
-    },
-    {
-        id: '2',
-        title: 'YALITIM & ÇATI',
-        subtitle: 'Mantolama, Su Yalıtımı, Çatı',
-        icon: 'shield-home',
-        image: require('../../assets/market/yalitim_cati.png'),
-        subcategories: [
-            { id: '2.1', name: 'Isı Yalıtımı (Mantolama)', icon: 'temperature-celsius' },
-            { id: '2.2', name: 'Su Yalıtımı', icon: 'water-off' },
-            { id: '2.3', name: 'Çatı Kaplamaları', icon: 'home-roof' }
-        ],
-        items: [
-            { name: 'Karbonlu EPS Levha (Gri)', subcategory: 'Isı Yalıtımı (Mantolama)', spec: 'Paket', price: '₺850', options: { thickness: ['3cm', '4cm', '5cm'] } },
-            { name: 'Folyolu Taşyünü Levha', subcategory: 'Isı Yalıtımı (Mantolama)', spec: 'Paket', price: '₺1.200', options: { density: ['50kg', '70kg'] } },
-            { name: 'Bitümlü Membran PP3000', subcategory: 'Su Yalıtımı', spec: 'Top (10m)', price: '₺950', options: { type: ['3mm', '4mm', 'Arduazlı'] } },
-            { name: 'Sürme İzolasyon (Çimento)', subcategory: 'Su Yalıtımı', spec: '25kg Set', price: '₺650' },
-            { name: 'Marsilya Kiremit', subcategory: 'Çatı Kaplamaları', spec: 'Adet', price: '₺18', options: { material: ['Toprak', 'Beton'] } },
-            { name: 'Onduline Levha', subcategory: 'Çatı Kaplamaları', spec: 'Adet', price: '₺320', options: { color: ['Kırmızı', 'Yeşil', 'Siyah'] } },
-            { name: 'OSB-3 Levha 11mm', subcategory: 'Çatı Kaplamaları', spec: 'Plaka', price: '₺450' }
-        ]
-    },
-    {
-        id: '3',
-        title: 'KURU YAPI & TAVAN',
-        subtitle: 'Alçıpan, Profil, Taşyünü Tavan',
-        icon: 'view-quilt',
-        image: require('../../assets/market/kuru_yapi.png'),
-        subcategories: [
-            { id: '3.1', name: 'Alçıpan Grubu', icon: 'layers' },
-            { id: '3.2', name: 'Toz Alçı Grubu', icon: 'shaker-outline' }, // Custom icon proxy
-            { id: '3.3', name: 'Profil & Aksesuar', icon: 'shape-outline' },
-            { id: '3.4', name: 'Tavan Plakaları', icon: 'view-grid' }
-        ],
-        items: [
-            { name: 'Standart Alçıpan (Beyaz)', subcategory: 'Alçıpan Grubu', spec: 'Plaka', price: '₺140', options: { type: ['Beyaz', 'Yeşil (Su)', 'Kırmızı (Yangın)'] } },
-            { name: 'Boardex Dış Cephe Levhası', subcategory: 'Alçıpan Grubu', spec: 'Plaka', price: '₺480' },
-            { name: 'Saten Perdah Alçısı', subcategory: 'Toz Alçı Grubu', spec: '25kg', price: '₺110' },
-            { name: 'Tavan U Profili', subcategory: 'Profil & Aksesuar', spec: '3m Boy', price: '₺45' },
-            { name: 'Duvar C Profili 75\'lik', subcategory: 'Profil & Aksesuar', spec: '3m Boy', price: '₺65' },
-            { name: 'Karolam Asma Tavan', subcategory: 'Tavan Plakaları', spec: 'Paket (m²)', price: '₺180', options: { pattern: ['Yıldızlı', 'Kırçıllı'] } }
-        ]
-    },
-    {
-        id: '4',
-        title: 'ZEMİN & DUVAR',
-        subtitle: 'Seramik, Parke, Doğal Taş',
-        icon: 'floor-plan',
-        image: require('../../assets/market/zemin_duvar.png'),
-        subcategories: [
-            { id: '4.1', name: 'Seramik & Porselen', icon: 'checkerboard' },
-            { id: '4.2', name: 'Doğal Taş & Mermer', icon: 'diamond-stone' },
-            { id: '4.3', name: 'Ahşap Zemin', icon: 'wood' } // custom icon proxy
-        ],
-        items: [
-            { name: '60x120 Granit Seramik', subcategory: 'Seramik & Porselen', spec: 'm²', price: '₺650', options: { finish: ['Mat', 'Parlak', 'Lappato'], color: ['Gri', 'Bej', 'Antrasit'] } },
-            { name: 'Duvar Fayansı 30x90', subcategory: 'Seramik & Porselen', spec: 'm²', price: '₺420', options: { pattern: ['Düz', 'Rölyefli'] } },
-            { name: 'Afyon Mermer Basamak', subcategory: 'Doğal Taş & Mermer', spec: 'Metretül', price: '₺950' },
-            { name: 'Patlatma Doğal Taş', subcategory: 'Doğal Taş & Mermer', spec: 'm²', price: '₺850' },
-            { name: 'Laminat Parke 8mm 32.Sınıf', subcategory: 'Ahşap Zemin', spec: 'm²', price: '₺380', options: { brand: ['Çamsan', 'AGT', 'Yıldız'] } },
-            { name: 'Süpürgelik 10cm', subcategory: 'Ahşap Zemin', spec: 'Metretül', price: '₺65', options: { color: ['Beyaz', 'Antrasit', 'Ahşap'] } }
-        ]
-    },
-    {
-        id: '5',
-        title: 'BOYA & KİMYASAL',
-        subtitle: 'Boya, Yapıştırıcı, Silikon',
-        icon: 'format-paint',
-        image: require('../../assets/market/boya_kimyasal.png'),
-        subcategories: [
-            { id: '5.1', name: 'Boyalar', icon: 'bucket-outline' },
-            { id: '5.2', name: 'Yapıştırıcılar', icon: 'sticker-plus-outline' },
-            { id: '5.3', name: 'Teknik Kimyasallar', icon: 'bottle-tonic-plus' }
-        ],
-        items: [
-            { name: 'Silikonlu İç Cephe Boyası', subcategory: 'Boyalar', spec: '15Lt', price: '₺2.200', options: { brand: ['Marshall', 'Filli', 'Jotun'] } },
-            { name: 'Dış Cephe Grenli Boya', subcategory: 'Boyalar', spec: '20kg', price: '₺2.400' },
-            { name: 'Seramik Yapıştırıcısı C2TE', subcategory: 'Yapıştırıcılar', spec: '25kg', price: '₺250', options: { brand: ['Kalekim', 'Weber', 'Yurtbay'] } },
-            { name: 'Poliüretan Köpük', subcategory: 'Teknik Kimyasallar', spec: 'Adet', price: '₺120' },
-            { name: 'Şeffaf Silikon', subcategory: 'Teknik Kimyasallar', spec: 'Adet', price: '₺85' }
-        ]
-    },
-    {
-        id: '6',
-        title: 'SIHHİ TESİSAT',
-        subtitle: 'Boru, Vitrifiye, Batarya',
-        icon: 'water',
-        image: require('../../assets/market/sihhi_tesisat.png'),
-        subcategories: [
-            { id: '6.1', name: 'Altyapı (Boru Grubu)', icon: 'pipe' },
-            { id: '6.2', name: 'Vitrifiye & Banyo', icon: 'toilet' },
-            { id: '6.3', name: 'Armatürler', icon: 'water-pump' }
-        ],
-        items: [
-            { name: 'PPRC Temiz Su Borusu Ø20', subcategory: 'Altyapı (Boru Grubu)', spec: '4m Boy', price: '₺45' },
-            { name: '100\'lük Pimaş Boru', subcategory: 'Altyapı (Boru Grubu)', spec: '3m Boy', price: '₺150', options: { type: ['3.2mm', '2.2mm'] } },
-            { name: 'Asma Klozet Seti', subcategory: 'Vitrifiye & Banyo', spec: 'Takım', price: '₺4.500', options: { brand: ['Vitra', 'Serel', 'Kale'] } },
-            { name: 'Gömme Rezervuar', subcategory: 'Vitrifiye & Banyo', spec: 'Set', price: '₺2.200' },
-            { name: 'Lavabo Bataryası', subcategory: 'Armatürler', spec: 'Adet', price: '₺1.200', options: { brand: ['Artema', 'ECA', 'GPD'] } },
-            { name: 'Krom Banyo Bataryası', subcategory: 'Armatürler', spec: 'Adet', price: '₺1.600' }
-        ]
-    },
-    {
-        id: '7',
-        title: 'ISITMA & DOĞALGAZ',
-        subtitle: 'Kombi, Radyatör, Klima',
-        icon: 'radiator',
-        image: require('../../assets/market/isitma_dogalgaz.png'),
-        subcategories: [
-            { id: '7.1', name: 'Isıtma Sistemleri', icon: 'fire' },
-            { id: '7.2', name: 'Doğalgaz Tesisatı', icon: 'gas-cylinder' },
-            { id: '7.3', name: 'İklimlendirme', icon: 'air-conditioner' }
-        ],
-        items: [
-            { name: 'Tam Yoğuşmalı Kombi 24kW', subcategory: 'Isıtma Sistemleri', spec: 'Adet', price: '₺22.000', options: { brand: ['Vaillant', 'DemirDöküm', 'ECA'] } },
-            { name: 'Panel Radyatör 600x1200', subcategory: 'Isıtma Sistemleri', spec: 'Adet', price: '₺3.200', options: { type: ['22 Tip (PKKP)'] } },
-            { name: 'Yerden Isıtma Borusu PEX-b', subcategory: 'Isıtma Sistemleri', spec: 'Top (160m)', price: '₺4.500' },
-            { name: 'Doğalgaz Flex 1/2"', subcategory: 'Doğalgaz Tesisatı', spec: 'Adet', price: '₺120' },
-            { name: 'Bakır Klima Borusu', subcategory: 'İklimlendirme', spec: 'Metre', price: '₺450' }
-        ]
-    },
-    {
-        id: '8',
-        title: 'ELEKTRİK & AKILLI EV',
-        subtitle: 'Kablo, Priz, Aydınlatma',
-        icon: 'lightning-bolt',
-        image: require('../../assets/market/elektrik.png'),
-        subcategories: [
-            { id: '8.1', name: 'Altyapı Kablo & Boru', icon: 'cable-data' },
-            { id: '8.2', name: 'Anahtar & Priz', icon: 'power-socket-eu' },
-            { id: '8.3', name: 'Aydınlatma', icon: 'lightbulb-on' },
-            { id: '8.4', name: 'Zayıf Akım & Güvenlik', icon: 'cctv' }
-        ],
-        items: [
-            { name: 'NYM (Antigron) Kablo 3x2.5', subcategory: 'Altyapı Kablo & Boru', spec: '100m Top', price: '₺3.800', options: { brand: ['Öznur', 'Hes', 'Siemens'] } },
-            { name: 'W Otomat Sigorta B16', subcategory: 'Altyapı Kablo & Boru', spec: 'Adet', price: '₺120', options: { brand: ['Siemens', 'Schneider', 'Legrand'] } },
-            { name: 'Topraklı Priz', subcategory: 'Anahtar & Priz', spec: 'Adet', price: '₺85', options: { color: ['Beyaz', 'Antrasit', 'Ahşap'] } },
-            { name: 'LED Panel 60x60 (Sıva Altı)', subcategory: 'Aydınlatma', spec: 'Adet', price: '₺450' },
-            { name: 'Akıllı Anahtar Modülü (WiFi)', subcategory: 'Zayıf Akım & Güvenlik', spec: 'Adet', price: '₺850' },
-            { name: 'Görüntülü Diyafon Seti', subcategory: 'Zayıf Akım & Güvenlik', spec: 'Daire Başı', price: '₺3.500' }
-        ]
-    },
-    {
-        id: '9',
-        title: 'HIRDAVAT & NALBURİYE',
-        subtitle: 'El Aletleri, Vida, Bağlantı',
-        icon: 'tools',
-        image: require('../../assets/market/hirdavat.png'),
-        subcategories: [
-            { id: '9.1', name: 'Elektrikli El Aletleri', icon: 'drill' }, // Proxy for power tool
-            { id: '9.2', name: 'Manuel El Aletleri', icon: 'hammer' },
-            { id: '9.3', name: 'Bağlantı Elemanları', icon: 'screw-flat-top' },
-            { id: '9.4', name: 'Mobilya Aksesuarları', icon: 'handle' } // Proxy for handle
-        ],
-        items: [
-            { name: 'Şarjlı Vidalama Seti 18V', subcategory: 'Elektrikli El Aletleri', spec: 'Set', price: '₺4.500', options: { brand: ['Bosch', 'Makita', 'Dewalt'] } },
-            { name: 'Kırıcı-Delici Hilti 3kg', subcategory: 'Elektrikli El Aletleri', spec: 'Adet', price: '₺6.200' },
-            { name: 'Profesyonel Pense', subcategory: 'Manuel El Aletleri', spec: 'Adet', price: '₺350', options: { brand: ['İzeltaş', 'Knipex'] } },
-            { name: 'Sunta Vidası 4x50', subcategory: 'Bağlantı Elemanları', spec: 'Kutu (500)', price: '₺180' },
-            { name: 'Frenli Menteşe', subcategory: 'Mobilya Aksesuarları', spec: 'Adet', price: '₺45' }
-        ]
-    },
-    {
-        id: '10',
-        title: 'KAPI & PENCERE',
-        subtitle: 'Çelik Kapı, PVC, Doğrama',
-        icon: 'door',
-        image: require('../../assets/market/kapi_pencere.png'),
-        subcategories: [
-            { id: '10.1', name: 'Kapılar', icon: 'door-closed' },
-            { id: '10.2', name: 'Pencere & Aksesuar', icon: 'window-closed-variant' },
-            { id: '10.3', name: 'Merdivenler', icon: 'stairs' }
-        ],
-        items: [
-            { name: 'Çelik Kapı (Lüks)', subcategory: 'Kapılar', spec: 'Adet', price: '₺12.000', options: { type: ['Ahşap Kaplama', 'Kompozit'] } },
-            { name: 'Amerikan Panel Kapı', subcategory: 'Kapılar', spec: 'Adet', price: '₺2.800' },
-            { name: 'PVC Pencere Kolu', subcategory: 'Pencere & Aksesuar', spec: 'Adet', price: '₺85' },
-            { name: 'Sineklik Pileli', subcategory: 'Pencere & Aksesuar', spec: 'm²', price: '₺650' },
-            { name: 'Alüminyum Akrobat Merdiven', subcategory: 'Merdivenler', spec: '4x4', price: '₺3.200' }
-        ]
-    },
-    {
-        id: '11',
-        title: 'İŞ GÜVENLİĞİ & SAHA',
-        subtitle: 'Baret, Yelek, El Arabası',
-        icon: 'hard-hat',
-        image: require('../../assets/market/is_guvenligi.png'),
-        subcategories: [
-            { id: '11.1', name: 'Kişisel Koruyucu (KKD)', icon: 'account-hard-hat' },
-            { id: '11.2', name: 'Saha Ekipmanı', icon: 'cone' }
-        ],
-        items: [
-            { name: 'Mühendis Bareti (Beyaz)', subcategory: 'Kişisel Koruyucu (KKD)', spec: 'Adet', price: '₺250', options: { brand: ['3M', 'Uvex'] } },
-            { name: 'Çelik Burunlu İş Ayakkabısı', subcategory: 'Kişisel Koruyucu (KKD)', spec: 'Çift', price: '₺850', options: { size: ['41', '42', '43', '44'] } },
-            { name: 'İnşaat El Arabası (Kalın Sac)', subcategory: 'Saha Ekipmanı', spec: 'Adet', price: '₺1.400' },
-            { name: 'İnşaat Filesi (Güvenlik Ağı)', subcategory: 'Saha Ekipmanı', spec: 'm²', price: '₺45' }
-        ]
-    },
-    {
-        id: '12',
-        title: 'PEYZAJ & BAHÇE',
-        subtitle: 'Kilit Taşı, Çit, Sulama',
-        icon: 'pine-tree',
-        image: require('../../assets/market/peyzaj_bahce.png'),
-        subcategories: [
-            { id: '12.1', name: 'Zemin Düzenleme', icon: 'road-variant' },
-            { id: '12.2', name: 'Bahçe Ekipmanı', icon: 'sprinkler' }, // proxy
-            { id: '12.3', name: 'Çit Sistemleri', icon: 'gate' }
-        ],
-        items: [
-            { name: 'Kilit Parke Taşı (8cm)', subcategory: 'Zemin Düzenleme', spec: 'm²', price: '₺180', options: { color: ['Gri', 'Kırmızı'] } },
-            { name: 'Bahçe Bordürü', subcategory: 'Zemin Düzenleme', spec: 'Adet', price: '₺45' },
-            { name: 'Hortum Makarası Seti', subcategory: 'Bahçe Ekipmanı', spec: 'Set', price: '₺1.200' },
-            { name: 'Panel Çit 150x250', subcategory: 'Çit Sistemleri', spec: 'Adet', price: '₺650' }
-        ]
-    }
-];
-
-export default function MarketScreen() { // Force Refresh
+export default function MarketScreen() {
     const navigation = useNavigation();
     const route = useRoute();
 
-    // Navigation State (Native Stack derived)
+    // Data State
+    const [marketCategories, setMarketCategories] = useState([]);
+    const [showcaseItems, setShowcaseItems] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Filter Logic
     const viewMode = route.params?.viewMode || 'list';
     const selectedCategory = route.params?.category || null;
-
-    // SubCategory is stateful because chips in Detail view allow switching it
     const [selectedSubCategory, setSelectedSubCategory] = useState(route.params?.subCategory || null);
 
-    const [expandedItemIndex, setExpandedItemIndex] = useState(null); // NEW: Track expanded item
+    const [expandedItemIndex, setExpandedItemIndex] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedOptions, setSelectedOptions] = useState({}); // New: Track selections for expanded item
+    const [selectedOptions, setSelectedOptions] = useState({});
+
+    // Load Data with Caching Strategy
+    useEffect(() => {
+        const loadData = async () => {
+            // 1. FAST: Try to load from local cache first
+            const localCats = await MarketService.getLocalCategories();
+            if (localCats) {
+                setMarketCategories(localCats);
+                setIsLoading(false); // Show content immediately
+            }
+
+            // 2. SLOW: Fetch fresh data from server
+            try {
+                const [remoteCats, showcase] = await Promise.all([
+                    MarketService.getRemoteCategories(),
+                    MarketService.getShowcaseItems()
+                ]);
+
+                // Update with fresh data
+                setMarketCategories(remoteCats);
+                setShowcaseItems(showcase);
+            } catch (error) {
+                console.error("Failed to load remote market data", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadData();
+    }, []);
 
     // Toggle Expand Helper with Default Options Initialization
     const toggleExpand = (index, filteredItems) => {
@@ -311,7 +95,7 @@ export default function MarketScreen() { // Force Refresh
     // Mock functions
     const handleAddToCart = (item) => Alert.alert("Sepete Eklendi", `${item.name} (${Object.values(selectedOptions).join(', ')}) sepete eklendi.`);
     const handleOpenMap = () => Alert.alert("Harita Görünümü", "Firma haritası yakında aktif olacak.");
-    const handleRfq = () => navigation.navigate('BulkRequest');
+    const handleRfq = () => navigation.navigate('MarketRequest');
 
     const handleBack = () => {
         navigation.goBack();
@@ -352,6 +136,15 @@ export default function MarketScreen() { // Force Refresh
     const filteredItems = selectedCategory && selectedSubCategory
         ? selectedCategory.items.filter(item => item.subcategory === selectedSubCategory)
         : [];
+
+    if (isLoading) {
+        return (
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                <StatusBar barStyle="light-content" />
+                <ActivityIndicator size="large" color="#D4AF37" />
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
@@ -407,10 +200,15 @@ export default function MarketScreen() { // Force Refresh
                                     style={styles.heroSlider}
                                     contentContainerStyle={{ paddingHorizontal: 0 }}
                                 >
-                                    {MARKET_SHOWCASE.map((item) => (
+                                    {showcaseItems.map((item) => (
                                         <View key={item.id} style={styles.heroCard}>
                                             <View style={styles.heroImage}>
-                                                <Image source={typeof item.image === 'string' ? { uri: item.image } : item.image} style={StyleSheet.absoluteFill} contentFit="cover" transition={500} />
+                                                <Image
+                                                    source={item.is_local ? getMarketImage(item.image_ref) : { uri: item.image_url }}
+                                                    style={StyleSheet.absoluteFill}
+                                                    contentFit="cover"
+                                                    transition={500}
+                                                />
                                                 <LinearGradient colors={['transparent', 'rgba(0,0,0,0.9)']} style={StyleSheet.absoluteFill} />
                                                 <View style={styles.heroTag}><Text style={styles.heroTagText}>{item.tag}</Text></View>
                                                 {item.title ? (
@@ -426,7 +224,7 @@ export default function MarketScreen() { // Force Refresh
 
                                 {/* Pagination Dots */}
                                 <View style={styles.pagination}>
-                                    {MARKET_SHOWCASE.map((_, i) => {
+                                    {showcaseItems.map((_, i) => {
                                         const opacity = scrollX.interpolate({
                                             inputRange: [(i - 1) * width, i * width, (i + 1) * width],
                                             outputRange: [0.3, 1, 0.3],
@@ -456,7 +254,7 @@ export default function MarketScreen() { // Force Refresh
                             </View>
 
                             <View style={styles.gridContainer}>
-                                {MARKET_CATEGORIES.map((cat) => (
+                                {marketCategories.map((cat) => (
                                     <TouchableOpacity
                                         key={cat.id}
                                         style={styles.gridCard}
@@ -469,7 +267,12 @@ export default function MarketScreen() { // Force Refresh
                                         activeOpacity={0.9}
                                     >
                                         <View style={styles.gridImage}>
-                                            <Image source={cat.image} style={StyleSheet.absoluteFill} contentFit="cover" transition={500} />
+                                            <Image
+                                                source={getMarketImage(cat.image_ref)}
+                                                style={StyleSheet.absoluteFill}
+                                                contentFit="cover"
+                                                transition={500}
+                                            />
 
 
                                             {/* Bottom Left Patch (Integrated with main gradient) */}

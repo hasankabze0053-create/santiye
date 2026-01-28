@@ -18,6 +18,7 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AuthService } from '../../services/AuthService';
 
 const { width } = Dimensions.get('window');
 
@@ -33,56 +34,105 @@ const INPUT_BORDER = 'rgba(212, 175, 55, 0.5)'; // Subtle Gold Border
 const TEXT_WHITE = '#FFFFFF';
 const TEXT_GREY = '#B3B3B3';
 
+// Custom Styled Input Component (Defined outside to prevent re-renders)
+const PremiumInput = ({ label, placeholder, value, onChangeText, isPassword, togglePass, secureTextEntry }) => (
+    <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>{label}</Text>
+        <View style={styles.inputContainer}>
+            <TextInput
+                style={styles.input}
+                placeholder={placeholder}
+                placeholderTextColor="#666"
+                value={value}
+                onChangeText={onChangeText}
+                secureTextEntry={secureTextEntry}
+                autoCapitalize="none"
+                selectionColor={GOLD_MAIN}
+            />
+            {isPassword && (
+                <TouchableOpacity onPress={togglePass} style={styles.eyeIcon}>
+                    <Ionicons name={!secureTextEntry ? "eye-off" : "eye"} size={20} color={TEXT_GREY} />
+                </TouchableOpacity>
+            )}
+        </View>
+    </View>
+);
+
 export default function AuthScreen() {
     const navigation = useNavigation();
     const [isLogin, setIsLogin] = useState(true);
+    const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const handleAuthAction = () => {
+    // --- AUTH ACTIONS ---
+    const handleAuthAction = async () => {
+        if (!email || !password) {
+            Alert.alert('Eksik Bilgi', 'Lütfen e-posta ve şifrenizi giriniz.');
+            return;
+        }
+
         setLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setLoading(false);
+        try {
             if (isLogin) {
-                navigation.replace('ProfileMain');
+                // LOGIN
+                const { user } = await AuthService.signIn(email, password);
+
+                // Get Profile to redirect correctly
+                const profile = await AuthService.getProfile(user.id);
+
+                // If no profile (rare), or individual -> Home
+                // If corporate && pending -> ProviderDashboard (locked view? or just dashboard)
+                if (!profile) {
+                    navigation.navigate('ProfileMain');
+                } else if (!profile.user_type || profile.user_type === 'individual') {
+                    navigation.navigate('MainTabs'); // Go to Home
+                } else {
+                    // Corporate
+                    navigation.navigate('ProviderDashboard'); // or MainTabs depending on design
+                }
+
             } else {
-                setIsLogin(true);
-                navigation.replace('ProfileMain');
+                // REGISTER
+                if (!fullName) {
+                    Alert.alert('Eksik Bilgi', 'Lütfen adınızı giriniz.');
+                    setLoading(false);
+                    return;
+                }
+
+                // Create Auth User
+                const { session, user } = await AuthService.signUp(email, password, fullName);
+
+                if (!session) {
+                    Alert.alert('Kayıt Başarılı', 'Lütfen e-posta adresinizi doğrulayın, ardından giriş yapın.');
+                    setIsLogin(true); // Switch to login mode
+                    return;
+                }
+
+                // Redirect to Onboarding
+                navigation.navigate('Onboarding');
             }
-        }, 1000);
+        } catch (error) {
+            Alert.alert('İşlem Başarısız', getFriendlyErrorMessage(error));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getFriendlyErrorMessage = (error) => {
+        const msg = error.message || error.toString();
+        if (msg.includes('rate limit')) return 'Çok fazla istek gönderdiniz. Lütfen e-postanızı kontrol edin veya biraz bekleyip tekrar deneyin.';
+        if (msg.includes('already registered')) return 'Bu e-posta adresi zaten kayıtlı. Lütfen Giriş Yap sekmesine geçiniz.';
+        if (msg.includes('Invalid login')) return 'Hatalı e-posta veya şifre.';
+        return msg;
     };
 
     const handleSocialLogin = (platform) => {
-        Alert.alert(platform, `${platform} ile giriş yapılıyor...`);
+        Alert.alert('Bilgi', `${platform} ile giriş şu anda bakım aşamasındadır. Lütfen e-posta ile devam ediniz.`);
     };
-
-    // Custom Styled Input Component
-    const PremiumInput = ({ label, placeholder, value, onChangeText, isPassword, togglePass, secureTextEntry }) => (
-        <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>{label}</Text>
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.input}
-                    placeholder={placeholder}
-                    placeholderTextColor="#666" // Darker placeholder for subtle look
-                    value={value}
-                    onChangeText={onChangeText}
-                    secureTextEntry={secureTextEntry}
-                    autoCapitalize="none"
-                    selectionColor={GOLD_MAIN}
-                />
-                {isPassword && (
-                    <TouchableOpacity onPress={togglePass} style={styles.eyeIcon}>
-                        <Ionicons name={!secureTextEntry ? "eye-off" : "eye"} size={20} color={TEXT_GREY} />
-                    </TouchableOpacity>
-                )}
-            </View>
-        </View>
-    );
 
     return (
         <View style={styles.container}>
@@ -116,6 +166,15 @@ export default function AuthScreen() {
 
                         {/* 3. FORM SECTION */}
                         <View style={styles.formSection}>
+
+                            {!isLogin && (
+                                <PremiumInput
+                                    label="Ad Soyad"
+                                    placeholder="Adınız ve Soyadınız"
+                                    value={fullName}
+                                    onChangeText={setFullName}
+                                />
+                            )}
 
                             <PremiumInput
                                 label="E-Posta"
@@ -170,7 +229,7 @@ export default function AuthScreen() {
                                     {loading ? (
                                         <ActivityIndicator color="#000" />
                                     ) : (
-                                        <Text style={styles.loginBtnText}>Giriş Yap</Text>
+                                        <Text style={styles.loginBtnText}>{isLogin ? 'Giriş Yap' : 'Kayıt Ol'}</Text>
                                     )}
                                 </LinearGradient>
                             </TouchableOpacity>
@@ -178,7 +237,8 @@ export default function AuthScreen() {
                             {/* Toggle Sign Up Text */}
                             <TouchableOpacity style={styles.footerToggle} onPress={() => setIsLogin(!isLogin)}>
                                 <Text style={styles.footerText}>
-                                    Hesabın yok mu? <Text style={styles.signUpText}>Kayıt Ol</Text>
+                                    {isLogin ? 'Hesabın yok mu? ' : 'Zaten hesabın var mı? '}
+                                    <Text style={styles.signUpText}>{isLogin ? 'Kayıt Ol' : 'Giriş Yap'}</Text>
                                 </Text>
                             </TouchableOpacity>
 
@@ -216,6 +276,8 @@ export default function AuthScreen() {
         </View>
     );
 }
+
+
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#111' },

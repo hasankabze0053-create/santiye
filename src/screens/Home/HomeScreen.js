@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Easing, FlatList, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MarketService } from '../../services/MarketService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -105,6 +106,7 @@ const CATEGORIES = [
 
 export default function HomeScreen({ navigation }) {
     const [greeting, setGreeting] = useState('İYİ GÜNLER');
+    const [marketCount, setMarketCount] = useState(0);
 
     // Hanging Sign Animation
     const swingVal = useRef(new Animated.Value(0)).current;
@@ -121,6 +123,16 @@ export default function HomeScreen({ navigation }) {
         return () => swing.stop();
     }, []);
 
+    useEffect(() => {
+        const loadMarketCount = async () => {
+            // Mock auth check or just safe call
+            const data = await MarketService.getUserRequests();
+            if (data) setMarketCount(data.length);
+        };
+        const unsubscribe = navigation.addListener('focus', loadMarketCount);
+        return unsubscribe;
+    }, [navigation]);
+
     const swingRotate = swingVal.interpolate({
         inputRange: [-1, 1],
         outputRange: ['-5deg', '5deg'] // Gentle sway
@@ -136,6 +148,7 @@ export default function HomeScreen({ navigation }) {
     // Modal State
     const [modalVisible, setModalVisible] = useState(false);
     const [activeCategory, setActiveCategory] = useState(null); // 'iron', 'concrete', 'currency'
+
 
     // Hybrid Auto-Scroll Logic
     // Native Animated Ticker Logic
@@ -382,47 +395,54 @@ export default function HomeScreen({ navigation }) {
 
                     {/* GRID CATEGORIES - SPLIT VIEW METALLIC */}
                     <View style={styles.gridContainer}>
-                        {CATEGORIES.map((cat, index) => (
-                            <TouchableOpacity
-                                key={cat.id}
-                                style={styles.cardWrapper}
-                                onPress={() => {
-                                    if (cat.title === 'KİRALAMA') {
-                                        navigation.navigate('RentalStack');
-                                    } else {
-                                        navigation.navigate(cat.route);
-                                    }
-                                }}
-                                activeOpacity={0.9}
-                            >
-                                <View style={styles.cardContainer}>
-                                    {/* Full Height Image */}
-                                    <View style={styles.cardImageContainer}>
-                                        <Image source={cat.image} style={styles.cardImageFull} contentFit="cover" transition={300} />
+                        {CATEGORIES.map((cat, index) => {
+                            let subtitle = cat.subtitle;
+                            if (cat.title === 'MARKET' && marketCount > 0) {
+                                subtitle = `${marketCount} Aktif Talep`;
+                            }
+
+                            return (
+                                <TouchableOpacity
+                                    key={cat.id}
+                                    style={styles.cardWrapper}
+                                    onPress={() => {
+                                        if (cat.title === 'KİRALAMA') {
+                                            navigation.navigate('RentalStack');
+                                        } else {
+                                            navigation.navigate(cat.route);
+                                        }
+                                    }}
+                                    activeOpacity={0.9}
+                                >
+                                    <View style={styles.cardContainer}>
+                                        {/* Full Height Image */}
+                                        <View style={styles.cardImageContainer}>
+                                            <Image source={cat.image} style={styles.cardImageFull} contentFit="cover" transition={300} />
+                                        </View>
+
+                                        {/* Overlay Gradient Footer */}
+                                        <LinearGradient
+                                            colors={['transparent', 'rgba(0,0,0,0.95)']}
+                                            style={styles.cardFooter}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 0, y: 1 }}
+                                        >
+                                            <View style={styles.cardTextContent}>
+                                                <View style={styles.verticalGoldLine} />
+                                                <View>
+                                                    <Text style={[styles.cardTitle, cat.id === 8 && { fontSize: 10 }]}>{cat.title}</Text>
+                                                    <Text style={[styles.cardSubtitle, cat.title === 'MARKET' && marketCount > 0 && { color: '#D4AF37', fontWeight: 'bold' }]}>{subtitle}</Text>
+                                                </View>
+                                            </View>
+                                            <Ionicons name="chevron-forward" size={18} color="#D4AF37" />
+                                        </LinearGradient>
                                     </View>
 
-                                    {/* Overlay Gradient Footer */}
-                                    <LinearGradient
-                                        colors={['transparent', 'rgba(0,0,0,0.95)']}
-                                        style={styles.cardFooter}
-                                        start={{ x: 0, y: 0 }}
-                                        end={{ x: 0, y: 1 }}
-                                    >
-                                        <View style={styles.cardTextContent}>
-                                            <View style={styles.verticalGoldLine} />
-                                            <View>
-                                                <Text style={[styles.cardTitle, cat.id === 8 && { fontSize: 10 }]}>{cat.title}</Text>
-                                                <Text style={styles.cardSubtitle}>{cat.subtitle}</Text>
-                                            </View>
-                                        </View>
-                                        <Ionicons name="chevron-forward" size={18} color="#D4AF37" />
-                                    </LinearGradient>
-                                </View>
-
-                                {/* Glossy Border Overlay */}
-                                <View style={styles.cardBorder} />
-                            </TouchableOpacity>
-                        ))}
+                                    {/* Glossy Border Overlay */}
+                                    <View style={styles.cardBorder} />
+                                </TouchableOpacity>
+                            )
+                        })}
                     </View>
                 </ScrollView>
             </SafeAreaView>
