@@ -1,9 +1,10 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     Image,
     ScrollView,
     StatusBar,
@@ -15,21 +16,73 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 const PROFILE_IMAGE = "https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-1.2.1&auto=format&fit=crop&w=687&q=80";
 
 export default function ProfileScreen() {
     const navigation = useNavigation();
-    const { profile, loading, signOut } = useAuth();
+    const { user, signOut } = useAuth();
+    const [profile, setProfile] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [isDarkMode, setIsDarkMode] = useState(true);
 
-    const handleSignOut = async () => {
+    const fetchProfile = async () => {
         try {
-            console.log("ProfileScreen: Signing out...");
-            await signOut();
+            // Only set loading true if we don't have a profile yet to prevent flicker on every focus
+            if (!profile) setLoading(true);
+            if (!user) return;
+
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            if (error) {
+                // If specific error handling is needed
+                throw error;
+            }
+
+            if (data) {
+                setProfile(data);
+            }
         } catch (error) {
-            console.error("Sign out error:", error);
+            console.log('Profil çekme hatası:', error.message);
+        } finally {
+            setLoading(false);
         }
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchProfile();
+        }, [user])
+    );
+
+    const handleSignOut = async () => {
+        Alert.alert("Çıkış Yap", "Hesabınızdan çıkış yapmak istediğinize emin misiniz?", [
+            { text: "Vazgeç", style: "cancel" },
+            {
+                text: "Çıkış Yap",
+                style: "destructive",
+                onPress: async () => {
+                    console.log("ProfileScreen: User confirmed sign out");
+                    try {
+                        await signOut();
+                        // Force navigation to Auth stack
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: 'Auth' }],
+                        });
+                        console.log("ProfileScreen: Sign out successful");
+                    } catch (error) {
+                        console.error("ProfileScreen: Sign out error", error);
+                        Alert.alert("Hata", "Çıkış yapılırken bir sorun oluştu.");
+                    }
+                }
+            }
+        ]);
     };
 
     // Dynamic Theme System
@@ -189,7 +242,11 @@ export default function ProfileScreen() {
                 <View style={styles.sectionContainer}>
                     <Text style={[styles.sectionHeader, { color: theme.subText }]}>HESAP VE AYARLAR</Text>
                     <View style={[styles.menuContainer, { backgroundColor: theme.card }]}>
-                        <MenuItem icon="person-outline" label="Hesap Bilgileri" />
+                        <MenuItem
+                            icon="person-outline"
+                            label="Hesap Bilgileri"
+                            onPress={() => navigation.navigate('AccountSettings', { profileData: profile })}
+                        />
                         <MenuItem
                             icon={isDarkMode ? "moon" : "sunny"}
                             label={isDarkMode ? "Karanlık Mod" : "Aydınlık Mod"}
@@ -197,8 +254,16 @@ export default function ProfileScreen() {
                             switchValue={isDarkMode}
                             onSwitchChange={() => setIsDarkMode(!isDarkMode)}
                         />
-                        <MenuItem icon="notifications-outline" label="Bildirim Ayarları" />
-                        <MenuItem icon="shield-checkmark-outline" label="Gizlilik ve Güvenlik" />
+                        <MenuItem
+                            icon="notifications-outline"
+                            label="Bildirim Ayarları"
+                            onPress={() => navigation.navigate('NotificationSettings')}
+                        />
+                        <MenuItem
+                            icon="shield-checkmark-outline"
+                            label="Gizlilik ve Güvenlik"
+                            onPress={() => navigation.navigate('PrivacySecurity')}
+                        />
                     </View>
                 </View>
 
@@ -206,8 +271,16 @@ export default function ProfileScreen() {
                 <View style={[styles.sectionContainer, { marginBottom: 40 }]}>
                     <Text style={[styles.sectionHeader, { color: theme.subText }]}>DESTEK</Text>
                     <View style={[styles.menuContainer, { backgroundColor: theme.card }]}>
-                        <MenuItem icon="help-circle-outline" label="Yardım Merkezi" />
-                        <MenuItem icon="chatbubble-ellipses-outline" label="Bize Ulaşın" />
+                        <MenuItem
+                            icon="help-circle-outline"
+                            label="Yardım Merkezi"
+                            onPress={() => navigation.navigate('HelpCenter')}
+                        />
+                        <MenuItem
+                            icon="chatbubble-ellipses-outline"
+                            label="Bize Ulaşın"
+                            onPress={() => navigation.navigate('ContactUs')}
+                        />
                         <MenuItem
                             icon="log-out-outline"
                             label="Çıkış Yap"

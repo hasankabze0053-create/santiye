@@ -4,7 +4,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Easing, FlatList, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MarketService } from '../../services/MarketService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -104,7 +103,10 @@ const CATEGORIES = [
     },
 ];
 
+import { useAuth } from '../../context/AuthContext'; // Import useAuth
+
 export default function HomeScreen({ navigation }) {
+    const { profile } = useAuth(); // Get profile
     const [greeting, setGreeting] = useState('İYİ GÜNLER');
     const [marketCount, setMarketCount] = useState(0);
 
@@ -297,12 +299,36 @@ export default function HomeScreen({ navigation }) {
                                     </View>
                                 </Animated.View>
                             </View>
-                            <TouchableOpacity style={styles.profileBtn}>
-                                <View style={styles.initialsContainer}>
-                                    <Text style={styles.initialsText}>CŞ</Text>
-                                </View>
-                                <View style={styles.onlineDot} />
-                            </TouchableOpacity>
+
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                {/* CORPORATE TOGGLE - Only for Corporate Users */}
+                                {profile?.user_type === 'corporate' && (
+                                    <TouchableOpacity
+                                        style={styles.modeToggleBtn}
+                                        onPress={() => navigation.navigate('ProviderDashboard')}
+                                        activeOpacity={0.8}
+                                    >
+                                        <LinearGradient
+                                            colors={['#1a1a1a', '#333']}
+                                            style={styles.modeToggleGradient}
+                                        >
+                                            <Text style={styles.modeToggleText}>Hizmet Paneli</Text>
+                                            <View style={styles.modeToggleIcon}>
+                                                <MaterialCommunityIcons name="briefcase-outline" size={14} color="#D4AF37" />
+                                            </View>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+                                )}
+
+                                <TouchableOpacity style={styles.profileBtn} onPress={() => navigation.navigate('ProfileMain')}>
+                                    <View style={styles.initialsContainer}>
+                                        <Text style={styles.initialsText}>
+                                            {profile?.full_name ? profile.full_name.substring(0, 2).toUpperCase() : 'CŞ'}
+                                        </Text>
+                                    </View>
+                                    <View style={styles.onlineDot} />
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </View>
 
@@ -594,6 +620,40 @@ const styles = StyleSheet.create({
         position: 'absolute', top: 4, right: 4,
         width: 8, height: 8, borderRadius: 4, backgroundColor: '#4ADE80',
         borderWidth: 1, borderColor: '#000'
+    },
+
+    // Mode Toggle Button (Corporate)
+    modeToggleBtn: {
+        borderRadius: 20,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: '#D4AF37',
+        shadowColor: "#D4AF37",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 4,
+    },
+    modeToggleGradient: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+        gap: 6
+    },
+    modeToggleText: {
+        color: '#D4AF37',
+        fontSize: 11,
+        fontWeight: 'bold',
+        letterSpacing: 0.5
+    },
+    modeToggleIcon: {
+        width: 18,
+        height: 18,
+        borderRadius: 9,
+        backgroundColor: 'rgba(212, 175, 55, 0.15)',
+        alignItems: 'center',
+        justifyContent: 'center'
     },
 
     // METALLIC TICKER BAND

@@ -6,7 +6,12 @@ import { Platform, useColorScheme } from 'react-native';
 // Screens
 import HomeScreen from '../screens/Home/HomeScreen';
 import MarketScreen from '../screens/Market/MarketScreen';
+import AccountSettingsScreen from '../screens/Profile/AccountSettingsScreen';
+import ContactUsScreen from '../screens/Profile/ContactUsScreen';
+import HelpCenterScreen from '../screens/Profile/HelpCenterScreen';
+import NotificationSettingsScreen from '../screens/Profile/NotificationSettingsScreen';
 import { InboxScreen, RequestsScreen } from '../screens/Profile/OperationsScreens';
+import PrivacySecurityScreen from '../screens/Profile/PrivacySecurityScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import RentalScreen from '../screens/Rental/RentalScreen';
 
@@ -72,7 +77,14 @@ function ProfileStackNavigator() {
     return (
         <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
             {user ? (
-                <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
+                <>
+                    <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
+                    <ProfileStack.Screen name="AccountSettings" component={AccountSettingsScreen} />
+                    <ProfileStack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
+                    <ProfileStack.Screen name="PrivacySecurity" component={PrivacySecurityScreen} />
+                    <ProfileStack.Screen name="HelpCenter" component={HelpCenterScreen} />
+                    <ProfileStack.Screen name="ContactUs" component={ContactUsScreen} />
+                </>
             ) : (
                 <ProfileStack.Screen name="Auth" component={AuthScreen} />
             )}
