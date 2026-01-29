@@ -8,6 +8,12 @@ export const AuthService = {
             password,
         });
         if (error) throw error;
+
+        // Self-Healing: Ensure profile exists
+        if (data.session?.user) {
+            await this.ensureProfile(data.session.user);
+        }
+
         return data;
     },
 
@@ -20,12 +26,17 @@ export const AuthService = {
                 data: {
                     full_name: fullName,
                     avatar_url: '',
+                    user_type: 'individual' // Explicitly set meta
                 },
             },
         });
         if (error) throw error;
 
-        // Profile is usually created via Trigger, but we can ensure it exists or update it here if needed
+        // If session exists immediately (no email confirm required), ensure profile
+        if (data.session?.user) {
+            await this.ensureProfile(data.session.user);
+        }
+
         return data;
     },
 
@@ -35,10 +46,46 @@ export const AuthService = {
             .from('profiles')
             .select('*')
             .eq('id', userId)
-            .single();
+            .maybeSingle();
 
         if (error) throw error;
         return data;
+    },
+
+    // NEW: Self-Healing Profile Creation
+    async ensureProfile(user) {
+        try {
+            // Check if profile exists
+            let { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .maybeSingle();
+
+            if (!profile) {
+                console.log("AuthService: Profile missing, creating manually...");
+                // Create profile manually since trigger failed or hasn't run
+                const { data: newProfile, error: createError } = await supabase
+                    .from('profiles')
+                    .insert({
+                        id: user.id,
+                        email: user.email,
+                        full_name: user.user_metadata?.full_name || '',
+                        user_type: 'individual', // Default fallback
+                        avatar_url: ''
+                    })
+                    .select()
+                    .single();
+
+                if (createError) {
+                    console.error("AuthService: Failed to create profile manually:", createError);
+                } else {
+                    console.log("AuthService: Profile created manually.");
+                }
+            }
+        } catch (e) {
+            console.error("AuthService: ensureProfile exception:", e);
+        }
     },
 
     // 4. Update Profile (e.g. User Type)

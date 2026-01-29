@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import {
+    ActivityIndicator,
     Image,
     ScrollView,
     StatusBar,
@@ -13,12 +14,23 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '../../context/AuthContext';
 
 const PROFILE_IMAGE = "https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-1.2.1&auto=format&fit=crop&w=687&q=80";
 
 export default function ProfileScreen() {
     const navigation = useNavigation();
+    const { profile, loading, signOut } = useAuth();
     const [isDarkMode, setIsDarkMode] = useState(true);
+
+    const handleSignOut = async () => {
+        try {
+            console.log("ProfileScreen: Signing out...");
+            await signOut();
+        } catch (error) {
+            console.error("Sign out error:", error);
+        }
+    };
 
     // Dynamic Theme System
     const theme = {
@@ -26,7 +38,7 @@ export default function ProfileScreen() {
         card: isDarkMode ? '#1C1C1E' : '#FFFFFF',
         text: isDarkMode ? '#FFFFFF' : '#121212',
         subText: isDarkMode ? '#8E8E93' : '#636366',
-        icon: isDarkMode ? '#FDCB58' : '#121212', // Gold in Dark, Black in Light for clarity
+        icon: isDarkMode ? '#FDCB58' : '#121212',
         border: isDarkMode ? '#333333' : '#E5E5EA',
         placeholder: isDarkMode ? '#2C2C2E' : '#FFFFFF',
         shadow: isDarkMode ? '#000' : '#ccc',
@@ -46,7 +58,7 @@ export default function ProfileScreen() {
             style={[styles.quickActionBtn, {
                 backgroundColor: theme.card,
                 borderColor: theme.border,
-                borderWidth: isDarkMode ? 1 : 0, // No border in light mode, just shadow
+                borderWidth: isDarkMode ? 1 : 0,
                 shadowColor: theme.shadow,
             }]}
             activeOpacity={0.8}
@@ -59,10 +71,12 @@ export default function ProfileScreen() {
         </TouchableOpacity>
     );
 
-    const MenuItem = ({ icon, label, isDestructive, hasSwitch, switchValue, onSwitchChange }) => (
+    const MenuItem = ({ icon, label, isDestructive, hasSwitch, switchValue, onSwitchChange, onPress }) => (
         <TouchableOpacity
             style={[styles.menuItem, { backgroundColor: theme.card, borderBottomColor: theme.border }]}
             activeOpacity={hasSwitch ? 1 : 0.7}
+            onPress={onPress}
+            disabled={hasSwitch}
         >
             <View style={[styles.menuIconContainer, { backgroundColor: isDestructive ? 'rgba(255, 59, 48, 0.1)' : (isDarkMode ? '#2C2C2E' : '#F2F2F7') }]}>
                 <Ionicons
@@ -96,10 +110,22 @@ export default function ProfileScreen() {
                 {/* 1. Header (Individual) */}
                 <View style={styles.header}>
                     <View style={styles.profileRow}>
-                        <Image source={{ uri: PROFILE_IMAGE }} style={styles.avatar} />
+                        <Image source={{ uri: profile?.avatar_url || PROFILE_IMAGE }} style={styles.avatar} />
                         <View style={styles.profileInfo}>
-                            <Text style={[styles.userName, { color: theme.text }]}>Ahmet Yılmaz</Text>
-                            <Text style={[styles.userType, { color: theme.subText }]}>Bireysel Kullanıcı</Text>
+                            {loading ? (
+                                <ActivityIndicator size="small" color={theme.text} />
+                            ) : (
+                                <>
+                                    <Text style={[styles.userName, { color: theme.text }]}>
+                                        {profile ? profile.full_name : 'Misafir Kullanıcı'}
+                                    </Text>
+                                    <Text style={[styles.userType, { color: theme.subText }]}>
+                                        {profile
+                                            ? (profile.user_type === 'corporate' ? 'Kurumsal Üye' : 'Bireysel Kullanıcı')
+                                            : 'Giriş Yapılmadı'}
+                                    </Text>
+                                </>
+                            )}
                         </View>
                         <TouchableOpacity style={[styles.editButton, { backgroundColor: isDarkMode ? '#333' : '#E5E5EA' }]}>
                             <MaterialCommunityIcons name="pencil" size={20} color={theme.text} />
@@ -107,9 +133,18 @@ export default function ProfileScreen() {
                     </View>
                 </View>
 
-                {/* 2. CORPORATE ACTION CARD (Always Dark Premium) */}
+                {/* 2. CORPORATE ACTION CARD */}
                 <View style={styles.sectionContainer}>
-                    <TouchableOpacity activeOpacity={0.9}>
+                    <TouchableOpacity
+                        activeOpacity={0.9}
+                        onPress={() => {
+                            if (profile?.user_type === 'corporate') {
+                                navigation.navigate('ProviderDashboard');
+                            } else {
+                                navigation.navigate('Onboarding');
+                            }
+                        }}
+                    >
                         <LinearGradient
                             colors={corporateTheme.background}
                             start={{ x: 0, y: 0 }}
@@ -121,13 +156,19 @@ export default function ProfileScreen() {
                                     <MaterialCommunityIcons name="domain" size={28} color={corporateTheme.icon} />
                                 </View>
                                 <View style={styles.corporateTextContainer}>
-                                    <Text style={[styles.corporateTitle, { color: corporateTheme.text }]}>Kurumsal Üyelik</Text>
+                                    <Text style={[styles.corporateTitle, { color: corporateTheme.text }]}>
+                                        {profile?.user_type === 'corporate' ? 'Firma Paneli' : 'Kurumsal Üyelik'}
+                                    </Text>
                                     <Text style={[styles.corporateSubtitle, { color: corporateTheme.subText }]}>
-                                        Firma profilini yönet veya teklif al.
+                                        {profile?.user_type === 'corporate'
+                                            ? 'Hizmetlerinizi ve tekliflerinizi yönetin.'
+                                            : 'Hizmet vermek için kurumsal hesaba geçin.'}
                                     </Text>
                                 </View>
                                 <View style={styles.corporateArrow}>
-                                    <Text style={styles.manageText}>YÖNET</Text>
+                                    <Text style={styles.manageText}>
+                                        {profile?.user_type === 'corporate' ? 'GİT' : 'BAŞVUR'}
+                                    </Text>
                                     <Ionicons name="chevron-forward" size={16} color={corporateTheme.icon} />
                                 </View>
                             </View>
@@ -162,19 +203,24 @@ export default function ProfileScreen() {
                 </View>
 
                 {/* 5. Support List */}
-                <View style={styles.sectionContainer}>
+                <View style={[styles.sectionContainer, { marginBottom: 40 }]}>
                     <Text style={[styles.sectionHeader, { color: theme.subText }]}>DESTEK</Text>
                     <View style={[styles.menuContainer, { backgroundColor: theme.card }]}>
                         <MenuItem icon="help-circle-outline" label="Yardım Merkezi" />
                         <MenuItem icon="chatbubble-ellipses-outline" label="Bize Ulaşın" />
-                        <MenuItem icon="log-out-outline" label="Çıkış Yap" isDestructive />
+                        <MenuItem
+                            icon="log-out-outline"
+                            label="Çıkış Yap"
+                            isDestructive
+                            onPress={handleSignOut}
+                        />
                     </View>
                 </View>
 
-            </ScrollView>
+            </ScrollView >
 
             {/* Visual Bottom Navigation Bar (Mockup) */}
-            <View style={[styles.bottomBar, { backgroundColor: theme.card, borderTopColor: theme.border }]}>
+            < View style={[styles.bottomBar, { backgroundColor: theme.card, borderTopColor: theme.border }]} >
                 <TouchableOpacity style={styles.tabItem}>
                     <MaterialCommunityIcons name="home-variant-outline" size={26} color={theme.subText} />
                     <Text style={[styles.tabLabel, { color: theme.subText }]}>Ana Sayfa</Text>
@@ -194,8 +240,8 @@ export default function ProfileScreen() {
                     <MaterialCommunityIcons name="account" size={26} color={theme.icon} />
                     <Text style={[styles.tabLabel, { color: theme.icon, fontWeight: 'bold' }]}>Profil</Text>
                 </TouchableOpacity>
-            </View>
-        </SafeAreaView>
+            </View >
+        </SafeAreaView >
     );
 }
 

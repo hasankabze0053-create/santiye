@@ -4,10 +4,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { ScrollView, StatusBar, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ProviderDashboardScreen() {
     const navigation = useNavigation();
     const [isAvailable, setIsAvailable] = useState(true);
+    const { profile } = useAuth();
 
     return (
         <View style={styles.container}>
@@ -19,7 +21,9 @@ export default function ProviderDashboardScreen() {
                 <View style={styles.header}>
                     <View>
                         <Text style={styles.headerTitle}>Hizmet Paneli</Text>
-                        <Text style={styles.headerSubtitle}>Hoşgeldin, Koray</Text>
+                        <Text style={styles.headerSubtitle}>
+                            Hoşgeldin, {profile ? profile.full_name.split(' ')[0] : 'Misafir'}
+                        </Text>
                     </View>
 
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>

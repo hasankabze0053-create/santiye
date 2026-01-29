@@ -63,12 +63,19 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 const ProfileStack = createNativeStackNavigator(); // Separate Stack for Profile Tab
 
+import { useAuth } from '../context/AuthContext';
+
 // Profile Stack Navigator (Auth -> Profile Flow)
 function ProfileStackNavigator() {
+    const { user } = useAuth();
+
     return (
         <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
-            <ProfileStack.Screen name="Auth" component={AuthScreen} />
-            <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
+            {user ? (
+                <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
+            ) : (
+                <ProfileStack.Screen name="Auth" component={AuthScreen} />
+            )}
         </ProfileStack.Navigator>
     );
 }

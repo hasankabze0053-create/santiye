@@ -70,29 +70,39 @@ export default function AuthScreen() {
 
     // --- AUTH ACTIONS ---
     const handleAuthAction = async () => {
+        console.log('[AuthScreen] handleAuthAction triggered. isLogin:', isLogin);
         if (!email || !password) {
             Alert.alert('Eksik Bilgi', 'Lütfen e-posta ve şifrenizi giriniz.');
             return;
         }
 
         setLoading(true);
+        console.log('[AuthScreen] setLoading(true)');
         try {
             if (isLogin) {
                 // LOGIN
+                console.log('[AuthScreen] Attempting signIn...');
                 const { user } = await AuthService.signIn(email, password);
+                console.log('[AuthScreen] signIn successful, user:', user?.id);
 
                 // Get Profile to redirect correctly
+                console.log('[AuthScreen] Fetching profile...');
                 const profile = await AuthService.getProfile(user.id);
+                console.log('[AuthScreen] Profile fetched:', profile);
 
                 // If no profile (rare), or individual -> Home
                 // If corporate && pending -> ProviderDashboard (locked view? or just dashboard)
                 if (!profile) {
+                    console.log('[AuthScreen] No profile, Navigating to ProfileMain');
                     navigation.navigate('ProfileMain');
                 } else if (!profile.user_type || profile.user_type === 'individual') {
-                    navigation.navigate('MainTabs'); // Go to Home
+                    console.log('[AuthScreen] Individual, Navigating to Ana Sayfa');
+                    // Navigate to the "Ana Sayfa" TAB specifically
+                    navigation.navigate('Ana Sayfa');
                 } else {
                     // Corporate
-                    navigation.navigate('ProviderDashboard'); // or MainTabs depending on design
+                    console.log('[AuthScreen] Corporate, Navigating to ProviderDashboard');
+                    navigation.navigate('ProviderDashboard');
                 }
 
             } else {
@@ -103,8 +113,10 @@ export default function AuthScreen() {
                     return;
                 }
 
+                console.log('[AuthScreen] Attempting signUp...');
                 // Create Auth User
                 const { session, user } = await AuthService.signUp(email, password, fullName);
+                console.log('[AuthScreen] signUp result - session:', !!session, 'user:', user?.id);
 
                 if (!session) {
                     Alert.alert('Kayıt Başarılı', 'Lütfen e-posta adresinizi doğrulayın, ardından giriş yapın.');
@@ -113,11 +125,14 @@ export default function AuthScreen() {
                 }
 
                 // Redirect to Onboarding
+                console.log('[AuthScreen] Navigating to Onboarding');
                 navigation.navigate('Onboarding');
             }
         } catch (error) {
+            console.error('[AuthScreen] Error in handleAuthAction:', error);
             Alert.alert('İşlem Başarısız', getFriendlyErrorMessage(error));
         } finally {
+            console.log('[AuthScreen] Finally block - setLoading(false)');
             setLoading(false);
         }
     };
