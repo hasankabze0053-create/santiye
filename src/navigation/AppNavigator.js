@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Platform, useColorScheme } from 'react-native';
+import RequestDetailScreen from '../screens/Market/RequestDetailScreen';
 
 // Screens
 import HomeScreen from '../screens/Home/HomeScreen';
@@ -227,7 +228,8 @@ export default function AppNavigator() {
 
             {/* Renovation */}
             <Stack.Screen name="Tadilat" component={RenovationScreen} />
-            <Stack.Screen name="RenovationProjectSelection" component={RenovationProjectSelectionScreen} />
+            <Stack.Screen name="RenovationProjectSelection" component={RenovationProjectSelectionScreen} options={{ animation: 'slide_from_right' }} />
+            <Stack.Screen name="RequestDetail" component={RequestDetailScreen} options={{ animation: 'slide_from_right' }} />
             <Stack.Screen name="StyleSelection" component={StyleSelectionScreen} />
             <Stack.Screen name="CustomRequest" component={CustomRequestScreen} />
             <Stack.Screen name="RenovationSuccess" component={RenovationSuccessScreen} />

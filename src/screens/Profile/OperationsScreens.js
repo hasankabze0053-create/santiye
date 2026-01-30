@@ -1,5 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useCallback, useState } from 'react';
 import {
     FlatList,
     Image,
@@ -109,10 +110,13 @@ export const RequestsScreen = () => {
     const [activeTab, setActiveTab] = useState('Aktif');
     const [requests, setRequests] = useState([]);
     const theme = getTheme(isDarkMode);
+    const navigation = useNavigation();
 
-    useEffect(() => {
-        loadRequests();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            loadRequests();
+        }, [])
+    );
 
     const loadRequests = async () => {
         const data = await MarketService.getUserRequests();
@@ -125,7 +129,11 @@ export const RequestsScreen = () => {
     });
 
     const renderItem = ({ item }) => (
-        <View style={[styles.card, { backgroundColor: theme.card }]}>
+        <TouchableOpacity
+            style={[styles.card, { backgroundColor: theme.card }]}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('RequestDetail', { request: item })}
+        >
             <View style={[styles.iconContainer, { backgroundColor: theme.iconBg }]}>
                 <MaterialCommunityIcons name="package-variant-closed" size={24} color={theme.accent} />
             </View>
@@ -140,6 +148,19 @@ export const RequestsScreen = () => {
                     {item.bids ? `${item.bids.length} Teklif` : 'Bekleniyor'}
                 </Text>
             </View>
+        </TouchableOpacity>
+    );
+
+    const EmptyState = () => (
+        <View style={{ alignItems: 'center', marginTop: 40 }}>
+            <MaterialCommunityIcons name="clipboard-text-off-outline" size={48} color={theme.subText} style={{ marginBottom: 10 }} />
+            <Text style={{ color: theme.subText, textAlign: 'center', marginBottom: 20 }}>Henüz bir talebiniz yok.</Text>
+            <TouchableOpacity
+                style={[styles.createBtn, { backgroundColor: theme.accent }]}
+                onPress={() => navigation.navigate('MarketRequest')}
+            >
+                <Text style={{ color: '#000', fontWeight: 'bold' }}>YENİ TALEP OLUŞTUR</Text>
+            </TouchableOpacity>
         </View>
     );
 
@@ -150,7 +171,7 @@ export const RequestsScreen = () => {
                 renderItem={renderItem}
                 keyExtractor={i => i.id}
                 contentContainerStyle={styles.listContent}
-                ListEmptyComponent={<Text style={{ color: theme.subText, textAlign: 'center', marginTop: 20 }}>Talep bulunamadı.</Text>}
+                ListEmptyComponent={<EmptyState />}
                 onRefresh={loadRequests}
                 refreshing={false}
             />
@@ -190,30 +211,102 @@ export const OffersScreen = () => {
     );
 };
 
-// --- 3. INBOX SCREEN (Gelen Kutusu) ---
+// --- 3. INBOX SCREEN (Gelen Kutusu / Teklifler) ---
 export const InboxScreen = () => {
     const colorScheme = useColorScheme();
     const isDarkMode = colorScheme === 'dark' || true;
     const [activeTab, setActiveTab] = useState('Mesajlar');
+    const [messages, setMessages] = useState([]);
+    const [loading, setLoading] = useState(false);
     const theme = getTheme(isDarkMode);
+    const navigation = useNavigation();
+
+    useFocusEffect(
+        useCallback(() => {
+            loadInbox();
+        }, [])
+    );
+
+    const loadInbox = async () => {
+        setLoading(true);
+        const data = await MarketService.getIncomingOffers();
+        setMessages(data || []);
+        setLoading(false);
+    };
 
     const renderItem = ({ item }) => (
-        <TouchableOpacity style={[styles.messageItem, { backgroundColor: theme.card }]}>
-            <Image source={{ uri: item.avatar }} style={styles.avatar} />
+        <TouchableOpacity
+            style={[styles.messageItem, { backgroundColor: theme.card }]}
+            onPress={() => {
+                // İleride teklif detayına gidebilir
+                // navigation.navigate('OfferDetail', { offer: item });
+
+                // Şimdilik talep detayına gitsin, orada teklifleri görüyor zaten
+                // Ancak request bilgisini tam oluşturmamız gerekebilir.
+                if (item.request) {
+                    // Basitçe request id ile detay açmak için navigate yapısına bakmak lazım.
+                    // RequestDetailScreen tam request objesi bekliyor.
+                    // Şimdilik alert verelim veya istek detayına gitmeye çalışalım.
+                    // En doğrusu: RequestDetailScreen'i sadece ID ile çalışacak şekilde güncellemek.
+                    // Ama pratik çözüm: Buradan teklif detayına değil, teklifin bağlı olduğu talebe gidelim.
+                }
+            }}
+        >
+            {/* Avatar / Logo */}
+            {item.profiles?.avatar_url ? (
+                <Image source={{ uri: item.profiles.avatar_url }} style={styles.avatar} />
+            ) : (
+                <View style={[styles.avatar, { alignItems: 'center', justifyContent: 'center', backgroundColor: '#333' }]}>
+                    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>
+                        {item.profiles?.full_name ? item.profiles.full_name.charAt(0).toUpperCase() : '?'}
+                    </Text>
+                </View>
+            )}
+
             <View style={styles.messageContent}>
                 <View style={styles.messageRow}>
-                    <Text style={[styles.senderName, { color: theme.text }]}>{item.sender}</Text>
-                    <Text style={[styles.timeText, { color: theme.subText }]}>{item.time}</Text>
+                    <Text style={[styles.senderName, { color: theme.text }]}>
+                        {item.profiles?.full_name || 'Bilinmeyen Tedarikçi'}
+                    </Text>
+                    <Text style={[styles.timeText, { color: theme.subText }]}>
+                        {new Date(item.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
                 </View>
-                <Text numberOfLines={1} style={[styles.messagePreview, { color: theme.subText }]}>{item.message}</Text>
+
+                {/* Mesaj Yerine Teklif Özeti */}
+                <Text numberOfLines={1} style={[styles.messagePreview, { color: theme.accent }]}>
+                    {item.price ? `${item.price} - Fiyat Teklifi` : 'Yeni bir teklif gönderdi.'}
+                </Text>
+                <Text numberOfLines={1} style={[styles.cardSubtitle, { color: theme.subText, marginTop: 2 }]}>
+                    Talep: {item.request?.title}
+                </Text>
             </View>
-            {item.unread > 0 && <View style={styles.unreadBadge}><Text style={styles.unreadText}>{item.unread}</Text></View>}
+
+            {/* Status Badge instead of unread count for now */}
+            <View style={[styles.statusBadge, { backgroundColor: theme.iconBg, marginLeft: 8 }]}>
+                <Text style={[styles.statusText, { color: theme.text, fontSize: 10 }]}>{item.status}</Text>
+            </View>
         </TouchableOpacity>
+    );
+
+    const EmptyState = () => (
+        <View style={{ alignItems: 'center', marginTop: 40, padding: 20 }}>
+            <MaterialCommunityIcons name="email-off-outline" size={48} color={theme.subText} style={{ marginBottom: 10 }} />
+            <Text style={{ color: theme.subText, textAlign: 'center' }}>Henüz gelen bir mesaj veya teklif yok.</Text>
+        </View>
     );
 
     return (
         <ScreenLayout title="Gelen Kutusu" theme={theme} activeTab={activeTab} setActiveTab={setActiveTab} tabs={['Mesajlar', 'Bildirimler']} icon="check-all">
-            <FlatList data={MESSAGES_DATA} renderItem={renderItem} keyExtractor={i => i.id} contentContainerStyle={styles.listContent} />
+            <FlatList
+                data={messages}
+                renderItem={renderItem}
+                keyExtractor={i => i.id}
+                contentContainerStyle={styles.listContent}
+                ListEmptyComponent={!loading && <EmptyState />}
+                onRefresh={loadInbox}
+                refreshing={loading}
+            />
         </ScreenLayout>
     );
 };
@@ -281,4 +374,5 @@ const styles = StyleSheet.create({
     messagePreview: { fontSize: 13 },
     unreadBadge: { backgroundColor: '#FF3B30', width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
     unreadText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
+    createBtn: { paddingHorizontal: 20, paddingVertical: 12, borderRadius: 20 },
 });

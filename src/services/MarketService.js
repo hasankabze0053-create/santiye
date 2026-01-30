@@ -179,6 +179,45 @@ export const MarketService = {
         }
     },
 
+    // 8. Gelen Kutusu İçin Teklifleri Getir
+    getIncomingOffers: async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return [];
+
+            // Kullanıcının taleplerine gelen teklifleri çekiyoruz
+            // Not: Supabase'de iç içe filtreleme biraz tricky olabilir. 
+            // Önce kullanıcının talep ID'lerini alıp sonra o ID'lere gelen teklifleri çekmek daha güvenli olabilir.
+
+            // 1. Kullanıcının talep ID'lerini al
+            const { data: userRequests } = await supabase
+                .from('market_requests')
+                .select('id, title')
+                .eq('user_id', user.id);
+
+            if (!userRequests || userRequests.length === 0) return [];
+
+            const requestIds = userRequests.map(r => r.id);
+
+            // 2. Bu taleplere gelen teklifleri al (Provider bilgisiyle)
+            const { data, error } = await supabase
+                .from('market_bids')
+                .select(`
+                    *,
+                    provider:profiles(full_name, avatar_url),
+                    request:market_requests(title)
+                `)
+                .in('request_id', requestIds)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error('Incoming Offers Error:', error);
+            return [];
+        }
+    },
+
     getShowcaseItems: async () => {
         // Şu anlık statik, istenirse bunu da 'market_showcase' tablosuna taşıyabiliriz.
         return [

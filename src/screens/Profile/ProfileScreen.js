@@ -1,6 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useState } from 'react';
 import {
     ActivityIndicator,
@@ -106,7 +105,7 @@ export default function ProfileScreen() {
         icon: '#FDCB58'
     };
 
-    const QuickActionButton = ({ icon, label, badge }) => (
+    const QuickActionButton = ({ icon, label, badge, onPress }) => (
         <TouchableOpacity
             style={[styles.quickActionBtn, {
                 backgroundColor: theme.card,
@@ -115,6 +114,7 @@ export default function ProfileScreen() {
                 shadowColor: theme.shadow,
             }]}
             activeOpacity={0.8}
+            onPress={onPress}
         >
             <View style={styles.quickActionIconBox}>
                 <MaterialCommunityIcons name={icon} size={28} color={theme.icon} />
@@ -186,55 +186,28 @@ export default function ProfileScreen() {
                     </View>
                 </View>
 
-                {/* 2. CORPORATE ACTION CARD */}
-                <View style={styles.sectionContainer}>
-                    <TouchableOpacity
-                        activeOpacity={0.9}
-                        onPress={() => {
-                            if (profile?.user_type === 'corporate') {
-                                navigation.navigate('ProviderDashboard');
-                            } else {
-                                navigation.navigate('Onboarding');
-                            }
-                        }}
-                    >
-                        <LinearGradient
-                            colors={corporateTheme.background}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={[styles.corporateCard, { borderColor: corporateTheme.border }]}
-                        >
-                            <View style={styles.corporateContent}>
-                                <View style={styles.corporateIconCircle}>
-                                    <MaterialCommunityIcons name="domain" size={28} color={corporateTheme.icon} />
-                                </View>
-                                <View style={styles.corporateTextContainer}>
-                                    <Text style={[styles.corporateTitle, { color: corporateTheme.text }]}>
-                                        {profile?.user_type === 'corporate' ? 'Firma Paneli' : 'Kurumsal Üyelik'}
-                                    </Text>
-                                    <Text style={[styles.corporateSubtitle, { color: corporateTheme.subText }]}>
-                                        {profile?.user_type === 'corporate'
-                                            ? 'Hizmetlerinizi ve tekliflerinizi yönetin.'
-                                            : 'Hizmet vermek için kurumsal hesaba geçin.'}
-                                    </Text>
-                                </View>
-                                <View style={styles.corporateArrow}>
-                                    <Text style={styles.manageText}>
-                                        {profile?.user_type === 'corporate' ? 'GİT' : 'BAŞVUR'}
-                                    </Text>
-                                    <Ionicons name="chevron-forward" size={16} color={corporateTheme.icon} />
-                                </View>
-                            </View>
-                        </LinearGradient>
-                    </TouchableOpacity>
-                </View>
+                {/* 2. CORPORATE ACTION CARD REMOVED (Moved to AccountSettings) */}
+
 
                 {/* 3. Quick Actions */}
                 <View style={styles.sectionContainer}>
                     <View style={styles.quickActionsRow}>
-                        <QuickActionButton icon="clipboard-list-outline" label="Taleplerim" />
-                        <QuickActionButton icon="message-text-outline" label="Gelen Kutusu" badge />
-                        <QuickActionButton icon="wallet-outline" label="Cüzdanım" />
+                        <QuickActionButton
+                            icon="clipboard-list-outline"
+                            label="Taleplerim"
+                            onPress={() => navigation.navigate('Requests')}
+                        />
+                        <QuickActionButton
+                            icon="message-text-outline"
+                            label="Gelen Kutusu"
+                            badge
+                            onPress={() => navigation.navigate('Inbox')}
+                        />
+                        <QuickActionButton
+                            icon="wallet-outline"
+                            label="Cüzdanım"
+                            onPress={() => Alert.alert("Yakında", "Cüzdan özelliği yakında eklenecek.")}
+                        />
                     </View>
                 </View>
 
