@@ -1,12 +1,15 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
     Alert,
+    Animated,
     Dimensions,
+    FlatList,
     InputAccessoryView,
     Keyboard,
+    Modal,
     Platform,
     StyleSheet,
     Text,
@@ -21,6 +24,60 @@ import GlassCard from '../../components/GlassCard';
 import PremiumBackground from '../../components/PremiumBackground';
 
 const { width } = Dimensions.get('window');
+
+// --- DATA ---
+const DISTRICTS = {
+    'İstanbul': [
+        'Tümü', 'Adalar', 'Arnavutköy', 'Ataşehir', 'Avcılar', 'Bağcılar', 'Bahçelievler', 'Bakırköy', 'Başakşehir',
+        'Bayrampaşa', 'Beşiktaş', 'Beykoz', 'Beylikdüzü', 'Beyoğlu', 'Büyükçekmece', 'Çatalca', 'Çekmeköy',
+        'Esenler', 'Esenyurt', 'Eyüpsultan', 'Fatih', 'Gaziosmanpaşa', 'Güngören', 'Kadıköy', 'Kağıthane',
+        'Kartal', 'Küçükçekmece', 'Maltepe', 'Pendik', 'Sancaktepe', 'Sarıyer', 'Silivri', 'Sultanbeyli',
+        'Sultangazi', 'Şile', 'Şişli', 'Tuzla', 'Ümraniye', 'Üsküdar', 'Zeytinburnu'
+    ]
+};
+
+// --- COMPONENTS ---
+const SelectionModal = ({ visible, onClose, title, items, onSelect }) => {
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        if (visible) {
+            Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+        } else {
+            Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }).start();
+        }
+    }, [visible]);
+
+    if (!visible) return null;
+
+    return (
+        <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
+            <View style={localStyles.modalOverlay}>
+                <Animated.View style={[localStyles.modalContent, { opacity: fadeAnim, transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [50, 0] }) }] }]}>
+                    <LinearGradient colors={['#1a1a1a', '#0F0F0F']} style={localStyles.modalGradient}>
+                        <View style={localStyles.modalHeader}>
+                            <Text style={localStyles.modalTitle}>{title}</Text>
+                            <TouchableOpacity onPress={onClose} style={localStyles.closeButton}>
+                                <Ionicons name="close" size={24} color="#D4AF37" />
+                            </TouchableOpacity>
+                        </View>
+                        <FlatList
+                            data={items}
+                            keyExtractor={(item) => item}
+                            showsVerticalScrollIndicator={false}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity style={localStyles.modalItem} onPress={() => { onSelect(item); onClose(); }}>
+                                    <Text style={localStyles.modalItemText}>{item}</Text>
+                                    <Ionicons name="chevron-forward" size={16} color="rgba(212, 175, 55, 0.3)" />
+                                </TouchableOpacity>
+                            )}
+                        />
+                    </LinearGradient>
+                </Animated.View>
+            </View>
+        </Modal>
+    );
+};
 
 // iOS Specific 'Done' Button Component
 const KeyboardDoneBar = () => {
@@ -39,7 +96,11 @@ const KeyboardDoneBar = () => {
 export default function ConstructionOfferScreen() {
     const navigation = useNavigation();
     const route = useRoute();
-    const { location } = route.params || {};
+    // Default location İstanbul/Tümü if not passed
+    const [location, setLocation] = useState(route.params?.location || { city: 'İstanbul', district: 'Tümü' });
+
+    // Modal State
+    const [modalVisible, setModalVisible] = useState(false);
 
     // Form State
     const [neighborhood, setNeighborhood] = useState('');
@@ -100,13 +161,21 @@ export default function ConstructionOfferScreen() {
                                     <View style={styles.readOnlyRow}>
                                         <View style={{ flex: 1 }}>
                                             <Text style={styles.label}>İL</Text>
-                                            <Text style={styles.readOnlyValue}>{location?.city || 'Seçilmedi'}</Text>
+                                            <Text style={styles.readOnlyValue}>İstanbul</Text>
                                         </View>
                                         <View style={styles.verticalDivider} />
-                                        <View style={{ flex: 1, paddingLeft: 12 }}>
-                                            <Text style={styles.label}>İLÇE</Text>
-                                            <Text style={styles.readOnlyValue}>{location?.district || 'Seçilmedi'}</Text>
-                                        </View>
+                                        <TouchableOpacity
+                                            style={{ flex: 1, paddingLeft: 12 }}
+                                            onPress={() => setModalVisible(true)}
+                                        >
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                <View>
+                                                    <Text style={styles.label}>İLÇE</Text>
+                                                    <Text style={styles.readOnlyValue}>{location?.district || 'Tümü'}</Text>
+                                                </View>
+                                                <MaterialCommunityIcons name="chevron-down" size={20} color="#D4AF37" />
+                                            </View>
+                                        </TouchableOpacity>
                                     </View>
 
                                     <View style={styles.divider} />
@@ -267,6 +336,15 @@ export default function ConstructionOfferScreen() {
 
                 {/* Single iOS Accessory Button Instance */}
                 {Platform.OS === 'ios' && <KeyboardDoneBar />}
+
+                {/* MODAL */}
+                <SelectionModal
+                    visible={modalVisible}
+                    onClose={() => setModalVisible(false)}
+                    title="İLÇE SEÇİN"
+                    items={DISTRICTS['İstanbul']}
+                    onSelect={(item) => setLocation({ ...location, district: item })}
+                />
             </SafeAreaView>
         </PremiumBackground>
     );
@@ -389,4 +467,15 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 14,
     }
+});
+
+const localStyles = StyleSheet.create({
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
+    modalContent: { height: Dimensions.get('window').height * 0.5, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' },
+    modalGradient: { flex: 1, padding: 24 },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(212, 175, 55, 0.2)', paddingBottom: 16 },
+    modalTitle: { fontSize: 16, color: '#D4AF37', fontWeight: 'bold', letterSpacing: 2 },
+    closeButton: { padding: 4 },
+    modalItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
+    modalItemText: { color: '#eee', fontSize: 16, fontWeight: '300', letterSpacing: 0.5 },
 });

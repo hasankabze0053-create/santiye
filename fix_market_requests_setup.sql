@@ -24,13 +24,22 @@ CREATE TABLE IF NOT EXISTS public.market_request_items (
 CREATE TABLE IF NOT EXISTS public.market_bids (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     request_id UUID REFERENCES public.market_requests(id) ON DELETE CASCADE,
-    provider_id UUID REFERENCES auth.users(id), -- Assuming providers are also users
+    provider_id UUID REFERENCES public.profiles(id), -- Changed to link with profiles for easier joining
     price DECIMAL(12, 2),
     currency TEXT DEFAULT 'TRY',
     notes TEXT,
     status TEXT DEFAULT 'PENDING', -- PENDING, ACCEPTED, REJECTED
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Fix for existing tables (Run this to update the relationship)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'market_bids_provider_id_fkey') THEN
+        ALTER TABLE public.market_bids DROP CONSTRAINT market_bids_provider_id_fkey;
+        ALTER TABLE public.market_bids ADD CONSTRAINT market_bids_provider_id_fkey FOREIGN KEY (provider_id) REFERENCES public.profiles(id);
+    END IF;
+END $$;
 
 -- 2. Enable RLS
 ALTER TABLE public.market_requests ENABLE ROW LEVEL SECURITY;

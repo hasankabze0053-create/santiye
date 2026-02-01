@@ -106,6 +106,18 @@ export default function RequestDetailScreen() {
                             <StatusBadge status={request?.status} />
                         </View>
 
+                        {/* Request Image */}
+                        {request?.image_url && (
+                            <View style={{ marginTop: 16 }}>
+                                <Text style={styles.label}>EKLENEN FOTOĞRAF</Text>
+                                <Image
+                                    source={{ uri: request.image_url }}
+                                    style={{ width: '100%', height: 200, borderRadius: 12, marginTop: 4, borderWidth: 1, borderColor: '#333' }}
+                                    resizeMode="cover"
+                                />
+                            </View>
+                        )}
+
                         {request?.notes && (
                             <View style={{ marginTop: 16 }}>
                                 <Text style={styles.label}>ÖZEL NOTLAR</Text>

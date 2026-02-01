@@ -1,8 +1,9 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { Alert, Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MarketService } from '../../services/MarketService';
 
@@ -20,6 +21,10 @@ export default function MarketRequestScreen() {
     const [step, setStep] = useState(1);
     const [mode, setMode] = useState('manual'); // 'fast' | 'manual'
 
+    // Camera / Image State
+    const [capturedImage, setCapturedImage] = useState(null);
+    const [cameraPermission, requestCameraPermission] = ImagePicker.useCameraPermissions();
+
     // Form Data
     const [title, setTitle] = useState(''); // Step 2 or auto-gen
     const [items, setItems] = useState([
@@ -36,6 +41,44 @@ export default function MarketRequestScreen() {
     // Unit Modal State
     const [unitModalVisible, setUnitModalVisible] = useState(false);
     const [activeItemId, setActiveItemId] = useState(null);
+
+    // --- CAMERA HANDLERS ---
+    const handleTakePhoto = async () => {
+        if (!cameraPermission || !cameraPermission.granted) {
+            const permission = await requestCameraPermission();
+            if (!permission.granted) {
+                Alert.alert('İzin Gerekli', 'Kamerayı kullanmak için izin vermeniz gerekiyor.');
+                return;
+            }
+        }
+
+        const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.8,
+        });
+
+        if (!result.canceled) {
+            setCapturedImage(result.assets[0].uri);
+            // Otomatik başlık önerisi
+            if (!title) setTitle('Hızlı Fotoğraflı Talep');
+        }
+    };
+
+    const pickImage = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.8,
+        });
+
+        if (!result.canceled) {
+            setCapturedImage(result.assets[0].uri);
+            if (!title) setTitle('Hızlı Fotoğraflı Talep');
+        }
+    };
 
     // --- HANDLERS ---
     const handleAddItem = () => {
@@ -95,6 +138,13 @@ export default function MarketRequestScreen() {
 
         setIsSubmitting(true);
         try {
+            let uploadedImageUrl = null;
+
+            // Eğer resim seçildiyse önce onu yükle
+            if (capturedImage) {
+                uploadedImageUrl = await MarketService.uploadImage(capturedImage);
+            }
+
             const result = await MarketService.createRequest({
                 title: finalTitle,
                 items: items.filter(i => i.name && i.qty).map(i => ({
@@ -104,7 +154,8 @@ export default function MarketRequestScreen() {
                 delivery_time: deliveryTime,
                 location: location,
                 notes: notes,
-                payment_method: paymentMethod
+                payment_method: paymentMethod,
+                image_url: uploadedImageUrl // Resim URL'sini gönder
             });
 
             if (result.success) {
@@ -238,11 +289,34 @@ export default function MarketRequestScreen() {
 
                     {step === 1 && mode === 'fast' && (
                         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                            <MaterialCommunityIcons name="camera-off" size={64} color="#333" />
-                            <Text style={{ color: '#666', marginTop: 16 }}>Kamera Modülü Hazırlanıyor...</Text>
-                            <TouchableOpacity onPress={() => setMode('manual')} style={{ marginTop: 20 }}>
-                                <Text style={{ color: '#D4AF37', textDecorationLine: 'underline' }}>Manuel Devam Et</Text>
-                            </TouchableOpacity>
+                            {capturedImage ? (
+                                <View style={{ alignItems: 'center', width: '100%' }}>
+                                    <Image source={{ uri: capturedImage }} style={{ width: '100%', height: 300, borderRadius: 16, marginBottom: 20 }} resizeMode="cover" />
+                                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                                        <TouchableOpacity onPress={() => setCapturedImage(null)} style={{ padding: 12, backgroundColor: '#333', borderRadius: 12 }}>
+                                            <MaterialCommunityIcons name="trash-can-outline" size={24} color="#EF4444" />
+                                        </TouchableOpacity>
+                                        <TouchableOpacity onPress={() => setCapturedImage(null)} style={{ padding: 12, backgroundColor: '#D4AF37', borderRadius: 12, paddingHorizontal: 32 }}>
+                                            <Text style={{ fontWeight: 'bold' }}>YENİDEN ÇEK</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            ) : (
+                                <>
+                                    <TouchableOpacity
+                                        onPress={handleTakePhoto}
+                                        style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: '#222', alignItems: 'center', justifyContent: 'center', marginBottom: 16, borderWidth: 1, borderColor: '#D4AF37' }}
+                                    >
+                                        <MaterialCommunityIcons name="camera" size={40} color="#D4AF37" />
+                                    </TouchableOpacity>
+                                    <Text style={{ color: '#DDD', fontSize: 16, fontWeight: 'bold', marginBottom: 4 }}>Fotoğraf Çek</Text>
+                                    <Text style={{ color: '#666', textAlign: 'center', maxWidth: 250 }}>İhtiyacınız olan malzemenin veya yapılacak işin fotoğrafını çekin, gerisini bize bırakın.</Text>
+
+                                    <TouchableOpacity onPress={pickImage} style={{ marginTop: 30 }}>
+                                        <Text style={{ color: '#666', textDecorationLine: 'underline' }}>Galeriden Seç</Text>
+                                    </TouchableOpacity>
+                                </>
+                            )}
                         </View>
                     )}
 

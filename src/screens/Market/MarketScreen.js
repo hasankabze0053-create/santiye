@@ -315,14 +315,10 @@ export default function MarketScreen() {
                                         }}
                                         activeOpacity={0.7}
                                     >
-                                        <View style={styles.listIconContainer}>
-                                            <MaterialCommunityIcons name={sub.icon} size={24} color="#D4AF37" />
-                                        </View>
+
                                         <View style={styles.listContent}>
                                             <Text style={styles.listTitle}>{sub.name}</Text>
-                                            <Text style={styles.listSubtitle}>
-                                                {selectedCategory.items.filter(item => item.subcategory === sub.name).length} Ürün Mevcut
-                                            </Text>
+
                                         </View>
                                         <MaterialCommunityIcons name="chevron-right" size={24} color="#666" />
                                     </TouchableOpacity>

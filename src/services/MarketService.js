@@ -54,7 +54,7 @@ export const MarketService = {
     },
 
     // 4. Talep Oluştur (RFQ)
-    createRequest: async ({ title, items, location, delivery_time, notes, payment_method }) => {
+    createRequest: async ({ title, items, location, delivery_time, notes, payment_method, image_url }) => {
         try {
             // 1. Kullanıcıyı al
             const { data: { user } } = await supabase.auth.getUser();
@@ -73,7 +73,8 @@ export const MarketService = {
                     location,
                     delivery_time,
                     notes,
-                    payment_method
+                    payment_method,
+                    image_url // Yeni alan
                 }])
                 .select()
                 .single();
@@ -215,6 +216,35 @@ export const MarketService = {
         } catch (error) {
             console.error('Incoming Offers Error:', error);
             return [];
+        }
+    },
+
+    // 9. Resim Yükle
+    uploadImage: async (uri) => {
+        try {
+            const fetchResponse = await fetch(uri);
+            const blob = await fetchResponse.blob();
+
+            const fileExt = uri.split('.').pop();
+            const fileName = `${Date.now()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            const { data, error } = await supabase.storage
+                .from('market-images')
+                .upload(filePath, blob, {
+                    contentType: `image/${fileExt}`
+                });
+
+            if (error) throw error;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('market-images')
+                .getPublicUrl(filePath);
+
+            return publicUrl;
+        } catch (error) {
+            console.error('Image Upload Error:', error);
+            return null;
         }
     },
 

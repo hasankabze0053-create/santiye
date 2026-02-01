@@ -96,9 +96,42 @@ function ProfileStackNavigator() {
 // Force Refresh Comment
 
 // --- PREMIUM BOTTOM TAB NAVIGATOR ---
+import { useEffect, useState } from 'react';
+import { MarketService } from '../services/MarketService';
+
+// ... (existing imports)
+
+// --- PREMIUM BOTTOM TAB NAVIGATOR ---
 function BottomTabNavigator() {
     const colorScheme = useColorScheme();
     const isDarkMode = colorScheme === 'dark' || true; // Force Dark Mode for now context or remove true
+    const { user } = useAuth(); // Get user to trigger refetch on login
+
+    const [requestCount, setRequestCount] = useState(0);
+    const [inboxCount, setInboxCount] = useState(0);
+
+    useEffect(() => {
+        if (user) {
+            fetchCounts();
+        } else {
+            setRequestCount(0);
+            setInboxCount(0);
+        }
+    }, [user]);
+
+    const fetchCounts = async () => {
+        try {
+            // 1. Fetch Request Count
+            const requests = await MarketService.getUserRequests();
+            if (requests) setRequestCount(requests.length);
+
+            // 2. Fetch Inbox/Offer Count
+            const offers = await MarketService.getIncomingOffers();
+            if (offers) setInboxCount(offers.length);
+        } catch (error) {
+            console.log("Badge fetch error:", error);
+        }
+    };
 
     // Theme Colors
     const theme = {
@@ -155,6 +188,13 @@ function BottomTabNavigator() {
                 component={RequestsScreen}
                 options={{
                     tabBarLabel: 'Taleplerim',
+                    tabBarBadge: requestCount > 0 ? requestCount : undefined,
+                    tabBarBadgeStyle: {
+                        backgroundColor: '#FDCB58', // Gold for requests
+                        color: 'black',
+                        fontSize: 10,
+                        fontWeight: 'bold',
+                    },
                     tabBarIcon: ({ color, focused }) => (
                         <MaterialCommunityIcons
                             name={focused ? "clipboard-list" : "clipboard-list-outline"}
@@ -171,9 +211,9 @@ function BottomTabNavigator() {
                 component={InboxScreen}
                 options={{
                     tabBarLabel: 'Gelen Kutusu',
-                    tabBarBadge: 3,
+                    tabBarBadge: inboxCount > 0 ? inboxCount : undefined,
                     tabBarBadgeStyle: {
-                        backgroundColor: '#FF3B30',
+                        backgroundColor: '#FF3B30', // Red for alerts
                         color: 'white',
                         fontSize: 10,
                         fontWeight: 'bold',
