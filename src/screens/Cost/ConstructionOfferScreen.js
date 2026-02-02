@@ -1,5 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker'; // Added ImagePicker
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -7,6 +8,9 @@ import {
     Animated,
     Dimensions,
     FlatList,
+    Image // Added Image
+    ,
+
     InputAccessoryView,
     Keyboard,
     Modal,
@@ -22,6 +26,9 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { SafeAreaView } from 'react-native-safe-area-context';
 import GlassCard from '../../components/GlassCard';
 import PremiumBackground from '../../components/PremiumBackground';
+import { supabase } from '../../lib/supabase'; // Search for this file to confirm path
+// React Native'de blob fetch ile alınır.
+
 
 const { width } = Dimensions.get('window');
 
@@ -108,7 +115,9 @@ export default function ConstructionOfferScreen() {
     const [parsel, setParsel] = useState('');
     const [pafta, setPafta] = useState('');
     const [address, setAddress] = useState('');
-    const [hasDocument, setHasDocument] = useState(false);
+    // const [hasDocument, setHasDocument] = useState(false);
+    const [imageUri, setImageUri] = useState(null);
+    const [loading, setLoading] = useState(false); // Added loading state
 
     // Refs for Smart Focus
     const adaRef = useRef(null);
@@ -116,12 +125,148 @@ export default function ConstructionOfferScreen() {
     const paftaRef = useRef(null);
     const addressRef = useRef(null);
 
-    const handleSubmit = () => {
+    const uploadImage = async (uri) => {
+        try {
+            const ext = uri.substring(uri.lastIndexOf('.') + 1);
+            const fileName = `deed_${Date.now()}.${ext}`;
+            const formData = new FormData();
+            formData.append('file', {
+                uri: uri,
+                name: fileName,
+                type: `image/${ext}`
+            });
+
+            const { data, error } = await supabase.storage
+                .from('construction-documents')
+                .upload(fileName, formData, {
+                    contentType: `image/${ext}`,
+                });
+
+            if (error) {
+                console.error('Upload Error:', error);
+                throw error;
+            }
+
+            // Get Public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('construction-documents')
+                .getPublicUrl(fileName);
+
+            return publicUrl;
+        } catch (error) {
+            console.error('Image upload failed:', error);
+            throw error;
+        }
+    };
+
+    const handleSubmit = async () => {
         if (!ada || !parsel || !neighborhood) {
             Alert.alert('Eksik Bilgi', 'Lütfen Ada, Parsel ve Mahalle bilgilerini giriniz. Bu bilgiler doğru teklif için şarttır.');
             return;
         }
-        navigation.navigate('ConstructionSuccess');
+
+        try {
+            setLoading(true);
+
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                Alert.alert('Hata', 'Kullanıcı oturumu bulunamadı. Lütfen tekrar giriş yapın.');
+                return;
+            }
+
+            let uploadedImageUrl = null;
+            if (imageUri) {
+                uploadedImageUrl = await uploadImage(imageUri);
+            }
+
+            const { error } = await supabase
+                .from('construction_requests')
+                .insert({
+                    user_id: user.id,
+                    city: 'İstanbul',
+                    district: location.district,
+                    neighborhood: neighborhood,
+                    ada: ada,
+                    parsel: parsel,
+                    pafta: pafta,
+                    full_address: address,
+                    deed_image_url: uploadedImageUrl,
+                    status: 'pending'
+                });
+
+            if (error) throw error;
+
+            navigation.navigate('ConstructionSuccess');
+        } catch (error) {
+            console.error('Submission Error:', error);
+            Alert.alert('Hata', 'Talebiniz oluşturulurken bir hata oluştu. Lütfen tekrar deneyiniz.\n' + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDocumentUpload = async () => {
+        Alert.alert(
+            "Belge Yükle",
+            "Lütfen bir yöntem seçiniz",
+            [
+                {
+                    text: "Kamera",
+                    onPress: async () => {
+                        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+                        if (status !== 'granted') {
+                            Alert.alert('İzin Gerekli', 'Kamera erişimi için izin vermeniz gerekmektedir.');
+                            return;
+                        }
+
+                        const result = await ImagePicker.launchCameraAsync({
+                            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                            allowsEditing: true,
+                            quality: 0.8,
+                        });
+
+                        if (!result.canceled) {
+                            setImageUri(result.assets[0].uri);
+                        }
+                    }
+                },
+                {
+                    text: "Galeri",
+                    onPress: async () => {
+                        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                        if (status !== 'granted') {
+                            Alert.alert('İzin Gerekli', 'Galeri erişimi için izin vermeniz gerekmektedir.');
+                            return;
+                        }
+
+                        const result = await ImagePicker.launchImageLibraryAsync({
+                            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                            allowsEditing: true,
+                            quality: 0.8,
+                        });
+
+                        if (!result.canceled) {
+                            setImageUri(result.assets[0].uri);
+                        }
+                    }
+                },
+                {
+                    text: "İptal",
+                    style: "cancel"
+                }
+            ]
+        );
+    };
+
+    const handleRemoveImage = () => {
+        Alert.alert(
+            "Görseli Sil",
+            "Yüklenen görseli silmek istediğinize emin misiniz?",
+            [
+                { text: "Vazgeç", style: "cancel" },
+                { text: "Sil", style: "destructive", onPress: () => setImageUri(null) }
+            ]
+        );
     };
 
     return (
@@ -290,13 +435,20 @@ export default function ConstructionOfferScreen() {
                                     <Text style={styles.sectionTitle}>BELGE VE GÖRSEL</Text>
                                 </View>
 
-                                <TouchableOpacity activeOpacity={0.8} onPress={() => setHasDocument(!hasDocument)}>
-                                    <GlassCard style={[styles.uploadCard, hasDocument && styles.uploadCardActive]}>
-                                        {hasDocument ? (
-                                            <View style={{ alignItems: 'center' }}>
-                                                <MaterialCommunityIcons name="check-circle" size={42} color="#4CAF50" />
-                                                <Text style={[styles.uploadText, { color: '#4CAF50', marginTop: 8 }]}>Belge Eklendi</Text>
-                                                <Text style={styles.uploadSubText}>Tapu_Fotokopisi.jpg</Text>
+                                <TouchableOpacity activeOpacity={0.8} onPress={imageUri ? handleRemoveImage : handleDocumentUpload}>
+                                    <GlassCard style={[styles.uploadCard, imageUri && styles.uploadCardActive]}>
+                                        {imageUri ? (
+                                            <View style={{ alignItems: 'center', width: '100%' }}>
+                                                <Image
+                                                    source={{ uri: imageUri }}
+                                                    style={{ width: 200, height: 200, borderRadius: 12, marginBottom: 12 }}
+                                                    resizeMode="cover"
+                                                />
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                                    <MaterialCommunityIcons name="check-circle" size={20} color="#4CAF50" />
+                                                    <Text style={[styles.uploadText, { color: '#4CAF50', fontSize: 14 }]}>Görsel Yüklendi</Text>
+                                                </View>
+                                                <Text style={[styles.uploadSubText, { color: '#FF4444', marginTop: 8 }]}>Silmek için dokunun</Text>
                                             </View>
                                         ) : (
                                             <View style={{ alignItems: 'center' }}>
@@ -314,9 +466,10 @@ export default function ConstructionOfferScreen() {
 
                             {/* SUBMIT BUTTON */}
                             <TouchableOpacity
-                                style={styles.submitButton}
+                                style={[styles.submitButton, loading && { opacity: 0.7 }]}
                                 activeOpacity={0.9}
                                 onPress={handleSubmit}
+                                disabled={loading}
                             >
                                 <LinearGradient
                                     colors={['#996515', '#FFD700', '#FDB931', '#996515']}
@@ -324,7 +477,7 @@ export default function ConstructionOfferScreen() {
                                     end={{ x: 1, y: 0.5 }}
                                     style={styles.submitGradient}
                                 >
-                                    <Text style={styles.submitText}>PROJEYİ MÜTEAHHİTLERE SUN</Text>
+                                    <Text style={styles.submitText}>{loading ? 'GÖNDERİLİYOR...' : 'PROJEYİ MÜTEAHHİTLERE SUN'}</Text>
                                     <MaterialCommunityIcons name="briefcase-check" size={24} color="#000" />
                                 </LinearGradient>
                             </TouchableOpacity>

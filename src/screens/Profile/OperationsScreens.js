@@ -2,6 +2,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import {
+    ActivityIndicator // Added ActivityIndicator
+    ,
     FlatList,
     Image,
     StatusBar,
@@ -12,6 +14,7 @@ import {
     useColorScheme
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ConstructionService } from '../../services/ConstructionService'; // Added ConstructionService
 import { MarketService } from '../../services/MarketService';
 
 // --- MOCK DATA ---
@@ -109,6 +112,7 @@ export const RequestsScreen = () => {
     const isDarkMode = colorScheme === 'dark' || true;
     const [activeTab, setActiveTab] = useState('Aktif');
     const [requests, setRequests] = useState([]);
+    const [loading, setLoading] = useState(true); // Added loading state, default true
     const theme = getTheme(isDarkMode);
     const navigation = useNavigation();
 
@@ -119,8 +123,37 @@ export const RequestsScreen = () => {
     );
 
     const loadRequests = async () => {
-        const data = await MarketService.getUserRequests();
-        setRequests(data);
+        setLoading(true); // Start loading
+        // Removed setRequests([]) to keep previous data while refreshing if desired, or keep it to clear list.
+        // For better UX during refresh, we might not want to clear list immediately, but for initial load it's fine.
+
+        try {
+            const [marketData, constructionData] = await Promise.all([
+                MarketService.getUserRequests(),
+                ConstructionService.getUserRequests()
+            ]);
+
+            // Transform construction data to match request interface if needed
+            const formattedConstructionData = constructionData.map(item => ({
+                ...item,
+                type: 'construction', // Tag to distinguish
+                title: 'Kentsel Dönüşüm Talebi', // Or generic title
+                subtitle: `${item.district} / ${item.neighborhood}`,
+                created_at: item.created_at,
+                status: item.status === 'pending' ? 'OPEN' : item.status, // Map status
+                // Add other fields as needed
+            }));
+
+            // Merge and sort
+            const allRequests = [...(marketData || []), ...formattedConstructionData];
+            allRequests.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            setRequests(allRequests);
+        } catch (error) {
+            console.error("Load Requests Error:", error);
+        } finally {
+            setLoading(false); // End loading
+        }
     };
 
     const filteredRequests = requests.filter(r => {
@@ -135,7 +168,11 @@ export const RequestsScreen = () => {
             onPress={() => navigation.navigate('RequestDetail', { request: item })}
         >
             <View style={[styles.iconContainer, { backgroundColor: theme.iconBg }]}>
-                <MaterialCommunityIcons name="package-variant-closed" size={24} color={theme.accent} />
+                {item.type === 'construction' ? (
+                    <MaterialCommunityIcons name="office-building-cog" size={24} color={theme.accent} />
+                ) : (
+                    <MaterialCommunityIcons name="package-variant-closed" size={24} color={theme.accent} />
+                )}
             </View>
             <View style={styles.cardContent}>
                 <Text style={[styles.cardTitle, { color: theme.text }]}>{item.title}</Text>
@@ -166,15 +203,21 @@ export const RequestsScreen = () => {
 
     return (
         <ScreenLayout title="Taleplerim" theme={theme} activeTab={activeTab} setActiveTab={setActiveTab} tabs={['Aktif', 'Geçmiş']}>
-            <FlatList
-                data={filteredRequests}
-                renderItem={renderItem}
-                keyExtractor={i => i.id}
-                contentContainerStyle={styles.listContent}
-                ListEmptyComponent={<EmptyState />}
-                onRefresh={loadRequests}
-                refreshing={false}
-            />
+            {loading && requests.length === 0 ? (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 50 }}>
+                    <ActivityIndicator size="large" color={theme.accent} />
+                </View>
+            ) : (
+                <FlatList
+                    data={filteredRequests}
+                    renderItem={renderItem}
+                    keyExtractor={i => i.id}
+                    contentContainerStyle={styles.listContent}
+                    ListEmptyComponent={<EmptyState />}
+                    onRefresh={loadRequests}
+                    refreshing={loading}
+                />
+            )}
         </ScreenLayout>
     );
 };

@@ -97,6 +97,7 @@ function ProfileStackNavigator() {
 
 // --- PREMIUM BOTTOM TAB NAVIGATOR ---
 import { useEffect, useState } from 'react';
+import { ConstructionService } from '../services/ConstructionService'; // Added ConstructionService
 import { MarketService } from '../services/MarketService';
 
 // ... (existing imports)
@@ -122,8 +123,13 @@ function BottomTabNavigator() {
     const fetchCounts = async () => {
         try {
             // 1. Fetch Request Count
-            const requests = await MarketService.getUserRequests();
-            if (requests) setRequestCount(requests.length);
+            const [marketRequests, constructionRequests] = await Promise.all([
+                MarketService.getUserRequests(),
+                ConstructionService.getUserRequests()
+            ]);
+
+            const totalRequests = (marketRequests?.length || 0) + (constructionRequests?.length || 0);
+            setRequestCount(totalRequests);
 
             // 2. Fetch Inbox/Offer Count
             const offers = await MarketService.getIncomingOffers();

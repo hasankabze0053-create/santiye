@@ -35,7 +35,14 @@
           "backgroundColor": "#121212"
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Uygulamanın fotoğraflarınıza erişmesi gerekiyor.",
+          "cameraPermission": "Uygulamanın kameranıza erişmesi gerekiyor."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
