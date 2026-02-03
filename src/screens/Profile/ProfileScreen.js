@@ -15,49 +15,34 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
-import { supabase } from '../../lib/supabase';
 
 const PROFILE_IMAGE = "https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-1.2.1&auto=format&fit=crop&w=687&q=80";
 
 export default function ProfileScreen() {
     const navigation = useNavigation();
-    const { user, signOut } = useAuth();
-    const [profile, setProfile] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const { user, signOut, profile, refreshProfile } = useAuth(); // Use profile from context
+    // const [profile, setProfile] = useState(null); // Removed local state
+    const [loading, setLoading] = useState(false); // Default false, strictly for refresh
     const [isDarkMode, setIsDarkMode] = useState(true);
 
-    const fetchProfile = async () => {
-        try {
-            // Only set loading true if we don't have a profile yet to prevent flicker on every focus
-            if (!profile) setLoading(true);
-            if (!user) return;
-
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', user.id)
-                .single();
-
-            if (error) {
-                // If specific error handling is needed
-                throw error;
-            }
-
-            if (data) {
-                setProfile(data);
-            }
-        } catch (error) {
-            console.log('Profil çekme hatası:', error.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
+    // Initial fetch handled by AuthContext. We just refresh on focus.
     useFocusEffect(
         useCallback(() => {
-            fetchProfile();
+            if (user) {
+                // Optional: refresh silently
+                handleRefresh();
+            }
         }, [user])
     );
+
+    const handleRefresh = async () => {
+        // Don't show full screen loader, just maybe small indicator if needed, 
+        // or just let it update in background.
+        // For now, if profile is missing, we might want to show loader.
+        if (!profile) setLoading(true);
+        await refreshProfile();
+        setLoading(false);
+    };
 
     const handleSignOut = async () => {
         Alert.alert("Çıkış Yap", "Hesabınızdan çıkış yapmak istediğinize emin misiniz?", [
@@ -155,7 +140,7 @@ export default function ProfileScreen() {
     );
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
