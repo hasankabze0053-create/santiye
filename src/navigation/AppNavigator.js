@@ -96,7 +96,8 @@ function ProfileStackNavigator() {
 // Force Refresh Comment
 
 // --- PREMIUM BOTTOM TAB NAVIGATOR ---
-import { useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useState } from 'react';
 import { ConstructionService } from '../services/ConstructionService'; // Added ConstructionService
 import { MarketService } from '../services/MarketService';
 
@@ -111,14 +112,17 @@ function BottomTabNavigator() {
     const [requestCount, setRequestCount] = useState(0);
     const [inboxCount, setInboxCount] = useState(0);
 
-    useEffect(() => {
-        if (user) {
-            fetchCounts();
-        } else {
-            setRequestCount(0);
-            setInboxCount(0);
-        }
-    }, [user]);
+    /* Removed simple useEffect, replaced with focus effect */
+    useFocusEffect(
+        useCallback(() => {
+            if (user) {
+                fetchCounts();
+            } else {
+                setRequestCount(0);
+                setInboxCount(0);
+            }
+        }, [user])
+    );
 
     const fetchCounts = async () => {
         try {

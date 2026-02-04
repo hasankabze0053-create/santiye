@@ -2,11 +2,13 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 import ProviderScaffold, { GlassCard, SectionTitle, THEME } from '../../components/ProviderScaffold';
 
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
+import { TouchableOpacity } from 'react-native';
 import { ConstructionService } from '../../services/ConstructionService';
 
 export default function ContractorProviderScreen() {
+    const navigation = useNavigation();
     const [requests, setRequests] = useState([]);
 
     useFocusEffect(
@@ -49,41 +51,47 @@ export default function ContractorProviderScreen() {
                 </View>
             ) : (
                 requests.map((item) => (
-                    <GlassCard key={item.id} style={{ marginBottom: 16 }}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
-                            <View style={styles.tag}>
-                                <Text style={styles.tagText}>TEKLİF BEKLİYOR</Text>
-                            </View>
-                            <Text style={{ color: '#aaa', fontSize: 11 }}>{new Date(item.created_at).toLocaleDateString()}</Text>
-                        </View>
-
-                        <Text style={styles.projTitle}>Kentsel Dönüşüm Talebi</Text>
-                        <Text style={styles.projSub}>{item.district}, {item.neighborhood}</Text>
-                        <Text style={{ color: '#ccc', fontSize: 12, marginBottom: 12 }}>{item.full_address}</Text>
-
-                        <View style={styles.specsRow}>
-                            <View style={styles.specItem}>
-                                <MaterialCommunityIcons name="land-plots" size={16} color="#bbb" />
-                                <Text style={styles.specText}>Ada: {item.ada}</Text>
-                            </View>
-                            <View style={styles.specItem}>
-                                <MaterialCommunityIcons name="vector-square" size={16} color="#bbb" />
-                                <Text style={styles.specText}>Parsel: {item.parsel}</Text>
-                            </View>
-                        </View>
-
-                        <View style={styles.actionBlock}>
-                            {item.deed_image_url && (
-                                <View style={styles.pdfBtn}>
-                                    <MaterialCommunityIcons name="image" size={20} color="#3b82f6" />
-                                    <Text style={{ color: '#ccc', fontSize: 11, marginLeft: 4 }}>Tapu Görseli</Text>
+                    <TouchableOpacity
+                        key={item.id}
+                        activeOpacity={0.9}
+                        onPress={() => navigation.navigate('RequestDetail', { request: item, type: 'construction' })}
+                    >
+                        <GlassCard style={{ marginBottom: 16 }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+                                <View style={styles.tag}>
+                                    <Text style={styles.tagText}>TEKLİF BEKLİYOR</Text>
                                 </View>
-                            )}
-                            <View style={styles.submitBtn}>
-                                <Text style={styles.btnText}>TEKLİF VER</Text>
+                                <Text style={{ color: '#aaa', fontSize: 11 }}>{new Date(item.created_at).toLocaleDateString()}</Text>
                             </View>
-                        </View>
-                    </GlassCard>
+
+                            <Text style={styles.projTitle}>Kentsel Dönüşüm Talebi</Text>
+                            <Text style={styles.projSub}>{item.district}, {item.neighborhood}</Text>
+                            <Text style={{ color: '#ccc', fontSize: 12, marginBottom: 12 }}>{item.full_address}</Text>
+
+                            <View style={styles.specsRow}>
+                                <View style={styles.specItem}>
+                                    <MaterialCommunityIcons name="land-plots" size={16} color="#bbb" />
+                                    <Text style={styles.specText}>Ada: {item.ada}</Text>
+                                </View>
+                                <View style={styles.specItem}>
+                                    <MaterialCommunityIcons name="vector-square" size={16} color="#bbb" />
+                                    <Text style={styles.specText}>Parsel: {item.parsel}</Text>
+                                </View>
+                            </View>
+
+                            <View style={styles.actionBlock}>
+                                {item.deed_image_url && (
+                                    <View style={styles.pdfBtn}>
+                                        <MaterialCommunityIcons name="image" size={20} color="#3b82f6" />
+                                        <Text style={{ color: '#ccc', fontSize: 11, marginLeft: 4 }}>Tapu Görseli</Text>
+                                    </View>
+                                )}
+                                <View style={styles.submitBtn}>
+                                    <Text style={styles.btnText}>TEKLİF VER</Text>
+                                </View>
+                            </View>
+                        </GlassCard>
+                    </TouchableOpacity>
                 ))
             )}
 

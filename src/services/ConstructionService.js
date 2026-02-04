@@ -63,5 +63,25 @@ export const ConstructionService = {
             console.error('ConstructionService.submitOffer Error:', error);
             return { success: false, error };
         }
+    },
+
+    // 4. Talebi sil (Kullanıcı)
+    deleteRequest: async (requestId) => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error('Oturum gerekli');
+
+            const { error } = await supabase
+                .from('construction_requests')
+                .delete()
+                .eq('id', requestId)
+                .eq('user_id', user.id); // Güvenlik: Sadece kendi talebini silebilir
+
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('ConstructionService.deleteRequest Error:', error);
+            return { success: false, error };
+        }
     }
 };

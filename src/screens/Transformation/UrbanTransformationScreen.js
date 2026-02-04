@@ -107,7 +107,7 @@ export default function UrbanTransformationScreen({ navigation }) {
     };
 
     const handleGetQuotes = () => {
-        Alert.alert("Teklif Talebi", "Bölgenizdeki lisanslı müteahhit firmalara talebiniz iletiliyor.");
+        navigation.navigate('ConstructionOffer');
     };
 
     return (

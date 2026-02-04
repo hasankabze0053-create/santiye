@@ -2,24 +2,37 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
+import { ConstructionService } from '../../services/ConstructionService';
 
 export default function RequestDetailScreen() {
     const navigation = useNavigation();
     const route = useRoute();
     const { request } = route.params || {};
+    const type = route.params?.type || request?.type; // Support both ways
 
     const [items, setItems] = useState([]);
     const [bids, setBids] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [currentUserId, setCurrentUserId] = useState(null);
 
     useEffect(() => {
+        // Get current user to check ownership
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) setCurrentUserId(user.id);
+        });
+
         if (request?.id) {
-            fetchDetails();
+            // Only fetch items if it's a MARKET request
+            if (type !== 'construction') {
+                fetchDetails();
+            } else {
+                setLoading(false); // No extra items to fetch for construction yet
+            }
         }
-    }, [request]);
+    }, [request, type]);
 
     const fetchDetails = async () => {
         try {
@@ -33,14 +46,12 @@ export default function RequestDetailScreen() {
             if (itemsError) throw itemsError;
             setItems(itemsData || []);
 
-            // 2. Fetch Bids (if any) - Optional for now
+            // 2. Fetch Bids (if any)
             const { data: bidsData, error: bidsError } = await supabase
                 .from('market_bids')
                 .select('*, provider:providers(company_name)')
                 .eq('request_id', request.id);
 
-            // Note: If providers table relation setup isn't perfect, this might fail. 
-            // Only fetching raw bids for now if relation fails.
             if (bidsError) console.log("Bids fetch note:", bidsError.message);
             setBids(bidsData || []);
 
@@ -51,11 +62,38 @@ export default function RequestDetailScreen() {
         }
     };
 
+    const handleDeleteRequest = () => {
+        Alert.alert(
+            'Talebi Sil',
+            'Bu talebi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+            [
+                { text: 'Vazgeç', style: 'cancel' },
+                {
+                    text: 'Sil',
+                    style: 'destructive',
+                    onPress: async () => {
+                        setLoading(true);
+                        const { success, error } = await ConstructionService.deleteRequest(request.id);
+                        setLoading(false);
+                        if (success) {
+                            Alert.alert('Başarılı', 'Talep başarıyla silindi.', [
+                                { text: 'Tamam', onPress: () => navigation.goBack() }
+                            ]);
+                        } else {
+                            Alert.alert('Hata', 'Silme işlemi başarısız oldu: ' + error?.message);
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
     const getStatusColor = (status) => {
         switch (status) {
             case 'OPEN': return '#FDCB58'; // Yellow
             case 'COMPLETED': return '#34C759'; // Green
             case 'CLOSED': return '#8E8E93'; // Gray
+            case 'pending': return '#FDCB58';
             default: return '#FDCB58';
         }
     };
@@ -64,11 +102,196 @@ export default function RequestDetailScreen() {
         <View style={[styles.statusBadge, { borderColor: getStatusColor(status) }]}>
             <View style={[styles.statusDot, { backgroundColor: getStatusColor(status) }]} />
             <Text style={[styles.statusText, { color: getStatusColor(status) }]}>
-                {status === 'OPEN' ? 'TEKLİF BEKLENİYOR' : status}
+                {status === 'OPEN' || status === 'pending' ? 'TEKLİF BEKLENİYOR' : status}
             </Text>
         </View>
     );
 
+    // --- CONSTRUCTION DETAIL VIEW ---
+    if (type === 'construction') {
+        const offerLabel = request.offer_type === 'kat_karsiligi' ? 'Kat Karşılığı' : 'Komple Yapım (Anahtar Teslim)';
+        const isOwner = currentUserId && request.user_id === currentUserId;
+
+        return (
+            <View style={styles.container}>
+                <StatusBar barStyle="light-content" />
+                <LinearGradient colors={['#000000', '#121212']} style={StyleSheet.absoluteFillObject} />
+                <SafeAreaView style={{ flex: 1 }}>
+                    {/* Header */}
+                    <View style={styles.header}>
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                            <Ionicons name="arrow-back" size={24} color="#FFF" />
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle}>PROJE DETAYI</Text>
+                        <View style={{ width: 40 }} />
+                    </View>
+
+                    <ScrollView contentContainerStyle={styles.content}>
+                        {/* 1. PROJECT CARD */}
+                        <View style={styles.card}>
+                            <View style={styles.cardHeader}>
+                                <MaterialCommunityIcons name="office-building-cog" size={32} color="#D4AF37" />
+                                <View style={{ flex: 1, marginLeft: 12 }}>
+                                    <Text style={styles.title}>Kentsel Dönüşüm Projesi</Text>
+                                    <Text style={styles.date}>{request.district}, {request.neighborhood}</Text>
+                                </View>
+                            </View>
+
+                            <View style={styles.divider} />
+
+                            <View style={styles.infoRow}>
+                                <View>
+                                    <Text style={styles.label}>PROJE NO</Text>
+                                    <Text style={styles.value}>#{request.id?.slice(0, 8).toUpperCase()}</Text>
+                                </View>
+                                <StatusBadge status={request.status || 'pending'} />
+                            </View>
+
+                            {/* Yarısı Bizden Status */}
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16, backgroundColor: 'rgba(255,255,255,0.05)', padding: 12, borderRadius: 8 }}>
+                                <MaterialCommunityIcons
+                                    name={request.is_campaign_active ? "check-circle" : "close-circle"}
+                                    size={20}
+                                    color={request.is_campaign_active ? "#34C759" : "#EF4444"}
+                                />
+                                <Text style={{ color: '#DDD', marginLeft: 8, fontWeight: 'bold' }}>
+                                    {request.is_campaign_active ? '"Yarısı Bizden" Kampanyasından Faydalanılıyor' : '"Yarısı Bizden" Kampanyası Yok'}
+                                </Text>
+                            </View>
+                        </View>
+
+                        {/* 2. SPECS & UNITS */}
+                        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
+                            <View style={[styles.card, { flex: 1, marginBottom: 0, padding: 15 }]}>
+                                <Text style={styles.label}>KONUT SAYISI</Text>
+                                <Text style={[styles.value, { fontSize: 24, color: '#FDCB58' }]}>{request.campaign_unit_count || 0}</Text>
+                            </View>
+                            <View style={[styles.card, { flex: 1, marginBottom: 0, padding: 15 }]}>
+                                <Text style={styles.label}>TİCARİ SAYISI</Text>
+                                <Text style={[styles.value, { fontSize: 24, color: '#FDCB58' }]}>{request.campaign_commercial_count || 0}</Text>
+                            </View>
+                        </View>
+
+                        {/* 3. OFFER TYPE */}
+                        <View style={styles.card}>
+                            <Text style={styles.sectionTitle}>TEKLİF MODELİ</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                                <MaterialCommunityIcons name="handshake" size={24} color="#D4AF37" />
+                                <Text style={{ color: '#FFF', fontSize: 16, fontWeight: 'bold', marginLeft: 10 }}>{offerLabel}</Text>
+                            </View>
+                            {request.offer_type === 'kat_karsiligi' && (
+                                <Text style={{ color: '#888', fontSize: 12, marginTop: 4, marginLeft: 34 }}>
+                                    Müteahhit firma arsa payı/daire karşılığında projeyi üstlenir.
+                                </Text>
+                            )}
+                        </View>
+
+                        {/* 4. DETAILS - DESCRIPTION */}
+                        {request.description && (
+                            <View style={styles.card}>
+                                <Text style={styles.sectionTitle}>PROJE NOTLARI & DETAYLAR</Text>
+                                <Text style={styles.noteText}>{request.description}</Text>
+                            </View>
+                        )}
+
+                        {/* 5. LOCATION & LAND INFO */}
+                        <View style={styles.card}>
+                            <Text style={styles.sectionTitle}>TAPU VE KONUM BİLGİLERİ</Text>
+                            <View style={{ marginTop: 10, gap: 12 }}>
+                                <View style={styles.infoRow}>
+                                    <Text style={{ color: '#888' }}>İl / İlçe:</Text>
+                                    <Text style={{ color: '#FFF', fontWeight: 'bold' }}>{request.city} / {request.district}</Text>
+                                </View>
+                                <View style={styles.infoRow}>
+                                    <Text style={{ color: '#888' }}>Mahalle:</Text>
+                                    <Text style={{ color: '#FFF', fontWeight: 'bold' }}>{request.neighborhood}</Text>
+                                </View>
+                                <View style={styles.divider} style={{ marginVertical: 8, height: 1, backgroundColor: '#333' }} />
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                    <View>
+                                        <Text style={styles.label}>ADA</Text>
+                                        <Text style={styles.value}>{request.ada}</Text>
+                                    </View>
+                                    <View>
+                                        <Text style={styles.label}>PARSEL</Text>
+                                        <Text style={styles.value}>{request.parsel}</Text>
+                                    </View>
+                                    <View>
+                                        <Text style={styles.label}>PAFTA</Text>
+                                        <Text style={styles.value}>{request.pafta || '-'}</Text>
+                                    </View>
+                                </View>
+                                {request.full_address && (
+                                    <View style={{ marginTop: 12 }}>
+                                        <Text style={styles.label}>AÇIK ADRES</Text>
+                                        <Text style={{ color: '#CCC', fontSize: 13 }}>{request.full_address}</Text>
+                                    </View>
+                                )}
+                            </View>
+                        </View>
+
+                        {/* 6. DOCUMENTS & IMAGES */}
+                        <Text style={styles.sectionTitle}>BELGELER VE GÖRSELLER</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingBottom: 30 }}>
+                            {/* Legacy Single Image */}
+                            {request.deed_image_url && (
+                                <View>
+                                    <Image
+                                        source={{ uri: request.deed_image_url }}
+                                        style={{ width: 140, height: 140, borderRadius: 12, borderWidth: 1, borderColor: '#333' }}
+                                    />
+                                    <Text style={{ color: '#666', fontSize: 10, textAlign: 'center', marginTop: 4 }}>Tapu Görseli</Text>
+                                </View>
+                            )}
+
+                            {/* New Multiple Images */}
+                            {request.document_urls && request.document_urls.length > 0 && request.document_urls.map((url, idx) => (
+                                <View key={idx}>
+                                    <Image
+                                        source={{ uri: url }}
+                                        style={{ width: 140, height: 140, borderRadius: 12, borderWidth: 1, borderColor: '#333' }}
+                                    />
+                                    <Text style={{ color: '#666', fontSize: 10, textAlign: 'center', marginTop: 4 }}>Belge #{idx + 1}</Text>
+                                </View>
+                            ))}
+
+                            {(!request.deed_image_url && (!request.document_urls || request.document_urls.length === 0)) && (
+                                <View style={{ width: '100%', padding: 20, alignItems: 'center', justifyContent: 'center', borderStyle: 'dashed', borderWidth: 1, borderColor: '#333', borderRadius: 12 }}>
+                                    <MaterialCommunityIcons name="image-off-outline" size={32} color="#444" />
+                                    <Text style={{ color: '#666', marginTop: 8 }}>Belge yüklenmemiş</Text>
+                                </View>
+                            )}
+                        </ScrollView>
+
+                        {/* DELETE BUTTON (Only for Owner) */}
+                        {isOwner && (
+                            <TouchableOpacity
+                                style={{
+                                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                                    borderWidth: 1,
+                                    borderColor: '#EF4444',
+                                    borderRadius: 12,
+                                    paddingVertical: 16,
+                                    alignItems: 'center',
+                                    marginTop: 20,
+                                    marginBottom: 40
+                                }}
+                                onPress={handleDeleteRequest}
+                            >
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <MaterialCommunityIcons name="trash-can-outline" size={20} color="#EF4444" />
+                                    <Text style={{ color: '#EF4444', fontWeight: 'bold', fontSize: 16 }}>BU TALEBİ SİL</Text>
+                                </View>
+                            </TouchableOpacity>
+                        )}
+
+                    </ScrollView>
+                </SafeAreaView>
+            </View>
+        );
+    }
+
+    // --- MARKET DETAIL VIEW (Legacy) ---
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />

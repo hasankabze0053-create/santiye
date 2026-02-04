@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import {
     ActivityIndicator // Added ActivityIndicator
     ,
+
     FlatList,
     Image,
     StatusBar,
@@ -124,8 +125,8 @@ export const RequestsScreen = () => {
 
     const loadRequests = async () => {
         setLoading(true); // Start loading
-        // Removed setRequests([]) to keep previous data while refreshing if desired, or keep it to clear list.
-        // For better UX during refresh, we might not want to clear list immediately, but for initial load it's fine.
+        setRequests([]); // Clear list to force refresh visual
+
 
         try {
             const [marketData, constructionData] = await Promise.all([

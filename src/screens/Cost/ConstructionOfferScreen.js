@@ -22,6 +22,15 @@ import {
 
 
 
+
+
+
+
+
+
+
+
+
     InputAccessoryView,
     Keyboard,
     LayoutAnimation,
@@ -135,8 +144,7 @@ export default function ConstructionOfferScreen() {
     const [pafta, setPafta] = useState('');
     const [address, setAddress] = useState('');
     // const [hasDocument, setHasDocument] = useState(false);
-    const [address, setAddress] = useState('');
-    // const [hasDocument, setHasDocument] = useState(false);
+
     const [imageUris, setImageUris] = useState([]); // Changed to array for multiple images
     const [loading, setLoading] = useState(false); // Added loading state
 
@@ -357,17 +365,18 @@ export default function ConstructionOfferScreen() {
                 {/* Fixed Header */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={24} color="#D4AF37" />
+                        <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>PROJE KÜNYESİ</Text>
-                    <View style={{ width: 40 }} />
+                    <View style={{ width: 44 }} />
                 </View>
 
                 {/* Main Scroll View with Keyboard Handling */}
                 <KeyboardAwareScrollView
                     enableOnAndroid={true}
-                    enableAutomaticScroll={(Platform.OS === 'ios')}
-                    extraHeight={150}
+                    enableAutomaticScroll={Platform.OS === 'ios'}
+                    extraHeight={120}
+                    extraScrollHeight={80}
                     enableResetScrollToCoords={false}
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
@@ -524,13 +533,14 @@ export default function ConstructionOfferScreen() {
 
                                 <GlassCard style={styles.card}>
                                     <TextInput
-                                        style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
-                                        placeholder="Arsa boş durumda mı? İçinde kiracı var mı? Özel istekleriniz neler? Buraya yazabilirsiniz..."
-                                        placeholderTextColor="#666"
+                                        style={[styles.input, { height: 160, textAlignVertical: 'top', backgroundColor: 'rgba(255,255,255,0.08)', fontSize: 16 }]}
+                                        placeholder="Örn: 'Bodrum ve Giriş daire müteahhite, diğerleri mal sahiplerine kalacak şekilde...' veya arsa durumu, özel istekleriniz gibi durumları yazabilirsiniz."
+                                        placeholderTextColor="#999"
                                         multiline
                                         value={details}
                                         onChangeText={setDetails}
                                         inputAccessoryViewID="done_toolbar"
+                                        scrollEnabled={false} // Let container handle scroll
                                     />
                                     <Text style={styles.hintText}>* Müteahhitler teklif verirken bu notları dikkate alacaktır.</Text>
                                 </GlassCard>
@@ -698,8 +708,11 @@ export default function ConstructionOfferScreen() {
                                                     <TouchableOpacity
                                                         style={styles.removeBtn}
                                                         onPress={() => handleRemoveImage(index)}
+                                                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                                                     >
-                                                        <Ionicons name="close-circle" size={24} color="#EF4444" />
+                                                        <View style={styles.removeBtnInner}>
+                                                            <Ionicons name="close" size={18} color="#FFF" />
+                                                        </View>
                                                     </TouchableOpacity>
                                                 </View>
                                             );
@@ -759,18 +772,20 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        paddingBottom: 20,
-        paddingTop: 10,
+        paddingVertical: 15, // Matched Urban
+        borderBottomWidth: 1, // Added border
+        borderBottomColor: '#222', // Added border color
     },
     backButton: {
         padding: 8,
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: '#222', // Matched Urban (#222 instead of faint white)
         borderRadius: 12,
+        width: 44, height: 44, alignItems: 'center', justifyContent: 'center' // Ensure square shape
     },
     headerTitle: {
-        color: '#D4AF37',
+        color: '#FFD700', // Matched Urban Gold
         fontSize: 18,
-        fontWeight: 'bold',
+        fontWeight: '900', // Matched Urban Weight
         letterSpacing: 1,
     },
     scrollContent: {
@@ -839,9 +854,29 @@ const styles = StyleSheet.create({
         borderStyle: 'dashed'
     },
     addPhotoText: { color: '#D4AF37', fontSize: 12, marginTop: 4, fontWeight: 'bold' },
-    thumbnailContainer: { position: 'relative', width: 100, height: 100 },
-    thumbnail: { width: 100, height: 100, borderRadius: 12, backgroundColor: '#000' },
-    removeBtn: { position: 'absolute', top: -8, right: -8, backgroundColor: '#000', borderRadius: 12 },
+    thumbnailContainer: { position: 'relative', width: 100, height: 100, marginRight: 8, marginTop: 8 },
+    thumbnail: { width: 100, height: 100, borderRadius: 12, backgroundColor: '#000', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+    removeBtn: {
+        position: 'absolute',
+        top: -10,
+        right: -10,
+        zIndex: 10,
+        elevation: 5,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.5,
+        shadowRadius: 3.84,
+    },
+    removeBtnInner: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: '#EF4444',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 2,
+        borderColor: '#121212',
+    },
     emptyState: { alignItems: 'center', marginTop: 12 },
     uploadText: { color: '#D4AF37', fontSize: 15, fontWeight: 'bold' },
     uploadSubText: { color: '#666', fontSize: 12, marginTop: 4 },
