@@ -203,7 +203,7 @@ export default function MarketRequestScreen() {
                                 <TextInput
                                     style={styles.premiumInput}
                                     placeholder="Malzeme Adı (Örn: C30 Beton)"
-                                    placeholderTextColor="#555"
+                                    placeholderTextColor="#888"
                                     value={item.name}
                                     onChangeText={(t) => updateItem(item.id, 'name', t)}
                                 />
@@ -218,7 +218,7 @@ export default function MarketRequestScreen() {
                                     <TextInput
                                         style={[styles.premiumInput, { width: '100%' }]}
                                         placeholder="Miktar"
-                                        placeholderTextColor="#555"
+                                        placeholderTextColor="#888"
                                         keyboardType="numeric"
                                         value={item.qty}
                                         onChangeText={(t) => updateItem(item.id, 'qty', t)}
@@ -473,16 +473,16 @@ const styles = StyleSheet.create({
 
     // Content
     content: { flex: 1, paddingHorizontal: 20 },
-    sectionTitle: { color: '#444', fontSize: 11, fontWeight: '900', marginBottom: 12, letterSpacing: 1, textTransform: 'uppercase' },
+    sectionTitle: { color: '#D4AF37', fontSize: 13, fontWeight: 'bold', marginBottom: 12, letterSpacing: 1, textTransform: 'uppercase' },
 
     // Item Card (Premium)
     itemCard: {
-        backgroundColor: '#111',
+        backgroundColor: 'rgba(255,255,255,0.03)',
         borderRadius: 16,
         padding: 16,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: '#222',
+        borderColor: 'rgba(255,255,255,0.1)',
         // Subtle glow
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
@@ -492,33 +492,33 @@ const styles = StyleSheet.create({
     },
     indexCircle: {
         width: 24, height: 24, borderRadius: 12,
-        backgroundColor: '#1A1A1A',
+        backgroundColor: '#D4AF37',
         alignItems: 'center', justifyContent: 'center',
         marginTop: 6
     },
-    indexText: { color: '#444', fontSize: 11, fontWeight: 'bold' },
+    indexText: { color: '#000', fontSize: 13, fontWeight: 'bold' },
 
     // Inputs inside card
     premiumInputContainer: {
         flexDirection: 'row', alignItems: 'center',
-        backgroundColor: '#161616', // Slightly lighter than card
+        backgroundColor: 'rgba(0,0,0,0.3)', // Slightly lighter than card
         borderRadius: 12,
-        borderWidth: 1, borderColor: '#262626',
+        borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
         paddingHorizontal: 12,
         height: 50,
     },
-    premiumInput: { flex: 1, color: '#DDD', fontSize: 14, fontWeight: '500' },
+    premiumInput: { flex: 1, color: '#FFF', fontSize: 15, fontWeight: '500' },
 
     deleteBtn: { marginLeft: 8 },
 
     unitButton: {
         width: 80, height: 50,
-        backgroundColor: '#161616',
+        backgroundColor: 'rgba(0,0,0,0.3)',
         borderRadius: 12,
-        borderWidth: 1, borderColor: '#262626',
+        borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6
     },
-    unitText: { color: '#BBB', fontSize: 13, fontWeight: '600' },
+    unitText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
 
     addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 18, borderRadius: 16, borderWidth: 1, borderColor: '#333', borderStyle: 'dashed', backgroundColor: 'rgba(255,255,255,0.02)', gap: 8, marginTop: 4 },
     addBtnText: { color: '#D4AF37', fontWeight: 'bold', fontSize: 13, letterSpacing: 0.5 },

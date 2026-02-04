@@ -21,6 +21,7 @@ import {
 
 
 
+
     InputAccessoryView,
     Keyboard,
     LayoutAnimation,
@@ -134,7 +135,9 @@ export default function ConstructionOfferScreen() {
     const [pafta, setPafta] = useState('');
     const [address, setAddress] = useState('');
     // const [hasDocument, setHasDocument] = useState(false);
-    const [imageUri, setImageUri] = useState(null);
+    const [address, setAddress] = useState('');
+    // const [hasDocument, setHasDocument] = useState(false);
+    const [imageUris, setImageUris] = useState([]); // Changed to array for multiple images
     const [loading, setLoading] = useState(false); // Added loading state
 
     // Yarısı Bizden Campaign State
@@ -224,9 +227,12 @@ export default function ConstructionOfferScreen() {
                 return;
             }
 
-            let uploadedImageUrl = null;
-            if (imageUri) {
-                uploadedImageUrl = await uploadImage(imageUri);
+            const uploadedUrls = [];
+            if (imageUris.length > 0) {
+                // Upload all images concurrently
+                const uploadPromises = imageUris.map(uri => uploadImage(uri));
+                const results = await Promise.all(uploadPromises);
+                uploadedUrls.push(...results);
             }
 
             const { error } = await supabase
@@ -249,7 +255,11 @@ export default function ConstructionOfferScreen() {
                     campaign_unit_count: hasYarisiBizden ? apartmentCount : 0,
                     campaign_commercial_count: hasYarisiBizden ? commercialCount : 0,
 
-                    deed_image_url: uploadedImageUrl,
+                    campaign_unit_count: hasYarisiBizden ? apartmentCount : 0,
+                    campaign_commercial_count: hasYarisiBizden ? commercialCount : 0,
+
+                    deed_image_url: uploadedUrls.length > 0 ? uploadedUrls[0] : null, // Primary image
+                    document_urls: uploadedUrls, // All images
                     status: 'pending'
                 });
 
@@ -280,12 +290,12 @@ export default function ConstructionOfferScreen() {
 
                         const result = await ImagePicker.launchCameraAsync({
                             mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                            allowsEditing: true,
+                            allowsEditing: true, // User can crop if they want
                             quality: 0.8,
                         });
 
                         if (!result.canceled) {
-                            setImageUri(result.assets[0].uri);
+                            setImageUris(prev => [...prev, result.assets[0].uri]);
                         }
                     }
                 },
@@ -302,10 +312,17 @@ export default function ConstructionOfferScreen() {
                             mediaTypes: ImagePicker.MediaTypeOptions.Images,
                             allowsEditing: true,
                             quality: 0.8,
+                            allowsMultipleSelection: true // Try to allow multiple selection if platform supports
                         });
 
                         if (!result.canceled) {
-                            setImageUri(result.assets[0].uri);
+                            // If multiple selection is supported/used
+                            if (result.assets.length > 1) {
+                                const newUris = result.assets.map(a => a.uri);
+                                setImageUris(prev => [...prev, ...newUris]);
+                            } else {
+                                setImageUris(prev => [...prev, result.assets[0].uri]);
+                            }
                         }
                     }
                 },
@@ -317,13 +334,19 @@ export default function ConstructionOfferScreen() {
         );
     };
 
-    const handleRemoveImage = () => {
+    const handleRemoveImage = (indexToRemove) => {
         Alert.alert(
             "Görseli Sil",
-            "Yüklenen görseli silmek istediğinize emin misiniz?",
+            "Bu görseli listeden kaldırmak istediğinize emin misiniz?",
             [
                 { text: "Vazgeç", style: "cancel" },
-                { text: "Sil", style: "destructive", onPress: () => setImageUri(null) }
+                {
+                    text: "Sil",
+                    style: "destructive",
+                    onPress: () => {
+                        setImageUris(prev => prev.filter((_, index) => index !== indexToRemove));
+                    }
+                }
             ]
         );
     };
@@ -653,31 +676,39 @@ export default function ConstructionOfferScreen() {
                                     <Text style={styles.sectionTitle}>BELGE VE GÖRSEL</Text>
                                 </View>
 
-                                <GlassCard
-                                    style={[styles.uploadCard, imageUri && styles.uploadCardActive]}
-                                    onPress={imageUri ? handleRemoveImage : handleDocumentUpload}
-                                >
-                                    {imageUri ? (
-                                        <View style={{ alignItems: 'center', width: '100%' }}>
-                                            <Image
-                                                source={{ uri: imageUri }}
-                                                style={{ width: 200, height: 200, borderRadius: 12, marginBottom: 12 }}
-                                                resizeMode="cover"
-                                            />
-                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                                <MaterialCommunityIcons name="check-circle" size={20} color="#4CAF50" />
-                                                <Text style={[styles.uploadText, { color: '#4CAF50', fontSize: 14 }]}>Görsel Yüklendi</Text>
-                                            </View>
-                                            <Text style={[styles.uploadSubText, { color: '#FF4444', marginTop: 8 }]}>Silmek için dokunun</Text>
-                                        </View>
-                                    ) : (
-                                        <View style={{ alignItems: 'center' }}>
-                                            <View style={styles.iconCircle}>
-                                                <MaterialCommunityIcons name="camera-plus" size={32} color="#D4AF37" />
-                                            </View>
-                                            <Text style={styles.uploadText}>Tapu / İmar Durumu Fotoğrafı Yükle</Text>
+                                <GlassCard style={styles.uploadCardContainer}>
+                                    <FlatList
+                                        data={[...imageUris, 'ADD_BUTTON']}
+                                        horizontal
+                                        showsHorizontalScrollIndicator={false}
+                                        keyExtractor={(item, index) => index.toString()}
+                                        contentContainerStyle={{ alignItems: 'center', gap: 12 }}
+                                        renderItem={({ item, index }) => {
+                                            if (item === 'ADD_BUTTON') {
+                                                return (
+                                                    <TouchableOpacity style={styles.addPhotoBtn} onPress={handleDocumentUpload}>
+                                                        <MaterialCommunityIcons name="camera-plus" size={32} color="#D4AF37" />
+                                                        <Text style={styles.addPhotoText}>Yeni Ekle</Text>
+                                                    </TouchableOpacity>
+                                                );
+                                            }
+                                            return (
+                                                <View style={styles.thumbnailContainer}>
+                                                    <Image source={{ uri: item }} style={styles.thumbnail} />
+                                                    <TouchableOpacity
+                                                        style={styles.removeBtn}
+                                                        onPress={() => handleRemoveImage(index)}
+                                                    >
+                                                        <Ionicons name="close-circle" size={24} color="#EF4444" />
+                                                    </TouchableOpacity>
+                                                </View>
+                                            );
+                                        }}
+                                    />
+                                    {imageUris.length === 0 && (
+                                        <View style={styles.emptyState}>
+                                            <Text style={styles.uploadHint}>Tapu / İmar Durumu vb. belgeleri yükleyebilirsiniz.</Text>
                                             <Text style={styles.uploadSubText}>(Opsiyonel ama Önerilir)</Text>
-                                            <Text style={styles.uploadHint}>Talebinizin ciddiyetini artırır.</Text>
                                         </View>
                                     )}
                                 </GlassCard>
@@ -788,25 +819,30 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(255, 215, 0, 0.2)',
     },
     infoText: { color: '#ccc', fontSize: 12, lineHeight: 18, flex: 1 },
-    uploadCard: {
-        padding: 30,
+    uploadCardContainer: {
+        padding: 16,
         borderStyle: 'dashed',
-        borderWidth: 2,
+        borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.1)',
+        minHeight: 140,
+        justifyContent: 'center'
+    },
+    addPhotoBtn: {
+        width: 100,
+        height: 100,
+        borderRadius: 12,
+        backgroundColor: 'rgba(255,255,255,0.05)',
         alignItems: 'center',
         justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#D4AF37',
+        borderStyle: 'dashed'
     },
-    uploadCardActive: {
-        borderColor: '#4CAF50',
-        borderStyle: 'solid',
-        backgroundColor: 'rgba(76, 175, 80, 0.1)',
-    },
-    iconCircle: {
-        width: 60, height: 60, borderRadius: 30,
-        backgroundColor: 'rgba(212, 175, 55, 0.1)',
-        alignItems: 'center', justifyContent: 'center',
-        marginBottom: 12,
-    },
+    addPhotoText: { color: '#D4AF37', fontSize: 12, marginTop: 4, fontWeight: 'bold' },
+    thumbnailContainer: { position: 'relative', width: 100, height: 100 },
+    thumbnail: { width: 100, height: 100, borderRadius: 12, backgroundColor: '#000' },
+    removeBtn: { position: 'absolute', top: -8, right: -8, backgroundColor: '#000', borderRadius: 12 },
+    emptyState: { alignItems: 'center', marginTop: 12 },
     uploadText: { color: '#D4AF37', fontSize: 15, fontWeight: 'bold' },
     uploadSubText: { color: '#666', fontSize: 12, marginTop: 4 },
     uploadHint: { color: '#888', fontSize: 11, fontStyle: 'italic', marginTop: 12 },
