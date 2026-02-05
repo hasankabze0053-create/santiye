@@ -2,7 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, Easing, FlatList, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Animated, Dimensions, Easing, FlatList, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
@@ -43,67 +43,21 @@ const MARKET_OPTS = {
     }
 };
 
-// Real Photography for Categories
-const CATEGORIES = [
-    {
-        id: 2,
-        title: 'KİRALAMA',
-        subtitle: 'İş Makinesi',
-        image: require('../../assets/categories/cat_rental_v4.png'),
-        route: 'RentalStack'
-    },
-    {
-        id: 3,
-        title: 'MARKET',
-        subtitle: 'Yapı Malzemesi',
-        image: require('../../assets/categories/cat_market_v4.png'),
-        route: 'MarketStack'
-    },
-    {
-        id: 4,
-        title: 'TADİLAT',
-        subtitle: 'Boya & Tamirat',
-        image: require('../../assets/categories/cat_renovation_v9.png'),
-        route: 'Tadilat'
-    },
-    {
-        id: 5,
-        title: 'TEKNİK OFİS',
-        subtitle: 'Mühendis & Mimar',
-        image: require('../../assets/categories/cat_engineering_v10.png'),
-        route: 'Mühendislik'
-    },
-    {
-        id: 6,
-        title: 'HUKUK',
-        subtitle: 'Yasal Danışmanlık',
-        image: require('../../assets/categories/cat_law_v4.png'),
-        route: 'Hukuk'
-    },
-    {
-        id: 7,
-        title: 'NAKLİYE',
-        subtitle: 'Lojistik Çözüm',
-        image: require('../../assets/categories/cat_logistics_v11.png'),
-        route: 'Nakliye'
-    },
-    {
-        id: 8,
-        title: 'KENTSEL DÖNÜŞÜM',
-        subtitle: 'Devlet Destekli',
-        image: require('../../assets/categories/cat_yerindedonusum_v3.png'),
-        route: 'KentselDonusum'
-    },
-    {
-        id: 9,
-        title: 'MALİYET',
-        subtitle: 'Proje Hesabı',
-        image: require('../../assets/categories/cat_cost_v5.png'),
-        route: 'Maliyet'
-    },
-];
+// Asset Logic Map for Dynamic Loading
+const ASSET_MAP = {
+    'cat_rental_v4': require('../../assets/categories/cat_rental_v4.png'),
+    'cat_market_v4': require('../../assets/categories/cat_market_v4.png'),
+    'cat_renovation_v9': require('../../assets/categories/cat_renovation_v9.png'),
+    'cat_engineering_v10': require('../../assets/categories/cat_engineering_v10.png'),
+    'cat_law_v4': require('../../assets/categories/cat_law_v4.png'),
+    'cat_logistics_v11': require('../../assets/categories/cat_logistics_v11.png'),
+    'cat_yerindedonusum_v3': require('../../assets/categories/cat_yerindedonusum_v3.png'),
+    'cat_cost_v5': require('../../assets/categories/cat_cost_v5.png'),
+};
 
 import { useAuth } from '../../context/AuthContext'; // Import useAuth
+import { supabase } from '../../lib/supabase';
+import { MarketService } from '../../services/MarketService'; // Ensure MarketService is also imported if usedAuth
 
 export default function HomeScreen({ navigation }) {
     const { profile } = useAuth(); // Get profile
@@ -125,13 +79,48 @@ export default function HomeScreen({ navigation }) {
         return () => swing.stop();
     }, []);
 
+    const [categories, setCategories] = useState([]);
+    const [loadingConfig, setLoadingConfig] = useState(true);
+
+    // Reload config when screen focuses (to capture Admin updates instantly)
     useEffect(() => {
-        const loadMarketCount = async () => {
+        const fetchConfig = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('app_module_config')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('sort_order', { ascending: true });
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    setCategories(data);
+                } else {
+                    // Fallback if empty (should not happen after seed)
+                    console.log('No config found, using default empty.');
+                }
+            } catch (err) {
+                console.error('Config Fetch Error:', err);
+            } finally {
+                setLoadingConfig(false);
+            }
+        };
+
+        const loadInternalData = async () => {
             // Mock auth check or just safe call
             const data = await MarketService.getUserRequests();
             if (data) setMarketCount(data.length);
         };
-        const unsubscribe = navigation.addListener('focus', loadMarketCount);
+
+        const unsubscribe = navigation.addListener('focus', () => {
+            fetchConfig(); // Re-fetch on focus
+            loadInternalData();
+        });
+
+        fetchConfig(); // Initial fetch
+        loadInternalData();
+
         return unsubscribe;
     }, [navigation]);
 
@@ -421,54 +410,61 @@ export default function HomeScreen({ navigation }) {
 
                     {/* GRID CATEGORIES - SPLIT VIEW METALLIC */}
                     <View style={styles.gridContainer}>
-                        {CATEGORIES.map((cat, index) => {
-                            let subtitle = cat.subtitle;
-                            if (cat.title === 'MARKET' && marketCount > 0) {
-                                subtitle = `${marketCount} Aktif Talep`;
-                            }
+                        {loadingConfig ? (
+                            <ActivityIndicator size="large" color="#D4AF37" style={{ marginTop: 20, width: '100%' }} />
+                        ) : (
+                            categories.map((cat, index) => {
+                                let subtitle = cat.subtitle;
+                                // Special logic for Market
+                                if (cat.id === 'market' && marketCount > 0) {
+                                    subtitle = `${marketCount} Aktif Talep`;
+                                }
 
-                            return (
-                                <TouchableOpacity
-                                    key={cat.id}
-                                    style={styles.cardWrapper}
-                                    onPress={() => {
-                                        if (cat.title === 'KİRALAMA') {
-                                            navigation.navigate('RentalStack');
-                                        } else {
-                                            navigation.navigate(cat.route);
-                                        }
-                                    }}
-                                    activeOpacity={0.9}
-                                >
-                                    <View style={styles.cardContainer}>
-                                        {/* Full Height Image */}
-                                        <View style={styles.cardImageContainer}>
-                                            <Image source={cat.image} style={styles.cardImageFull} contentFit="cover" transition={300} />
+                                // Resolve Image
+                                const imageSource = ASSET_MAP[cat.image_asset_key] || null;
+
+                                return (
+                                    <TouchableOpacity
+                                        key={cat.id}
+                                        style={styles.cardWrapper}
+                                        onPress={() => {
+                                            if (cat.title === 'KİRALAMA') {
+                                                navigation.navigate('RentalStack'); // Kept specifically for Rental logic if any
+                                            } else if (cat.screen_route) {
+                                                navigation.navigate(cat.screen_route);
+                                            }
+                                        }}
+                                        activeOpacity={0.9}
+                                    >
+                                        <View style={styles.cardContainer}>
+                                            {/* Full Height Image */}
+                                            <View style={styles.cardImageContainer}>
+                                                <Image source={imageSource} style={styles.cardImageFull} contentFit="cover" transition={300} />
+                                            </View>
+
+                                            {/* Overlay Gradient Footer */}
+                                            <LinearGradient
+                                                colors={['transparent', 'rgba(0,0,0,0.95)']}
+                                                style={styles.cardFooter}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 0, y: 1 }}
+                                            >
+                                                <View style={styles.cardTextContent}>
+                                                    <View style={styles.verticalGoldLine} />
+                                                    <View>
+                                                        <Text style={[styles.cardTitle, cat.id === 8 && { fontSize: 10 }]}>{cat.title}</Text>
+                                                        <Text style={[styles.cardSubtitle, cat.title === 'MARKET' && marketCount > 0 && { color: '#D4AF37', fontWeight: 'bold' }]}>{subtitle}</Text>
+                                                    </View>
+                                                </View>
+                                                <Ionicons name="chevron-forward" size={18} color="#D4AF37" />
+                                            </LinearGradient>
                                         </View>
 
-                                        {/* Overlay Gradient Footer */}
-                                        <LinearGradient
-                                            colors={['transparent', 'rgba(0,0,0,0.95)']}
-                                            style={styles.cardFooter}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 0, y: 1 }}
-                                        >
-                                            <View style={styles.cardTextContent}>
-                                                <View style={styles.verticalGoldLine} />
-                                                <View>
-                                                    <Text style={[styles.cardTitle, cat.id === 8 && { fontSize: 10 }]}>{cat.title}</Text>
-                                                    <Text style={[styles.cardSubtitle, cat.title === 'MARKET' && marketCount > 0 && { color: '#D4AF37', fontWeight: 'bold' }]}>{subtitle}</Text>
-                                                </View>
-                                            </View>
-                                            <Ionicons name="chevron-forward" size={18} color="#D4AF37" />
-                                        </LinearGradient>
-                                    </View>
-
-                                    {/* Glossy Border Overlay */}
-                                    <View style={styles.cardBorder} />
-                                </TouchableOpacity>
-                            )
-                        })}
+                                        {/* Glossy Border Overlay */}
+                                        <View style={styles.cardBorder} />
+                                    </TouchableOpacity>
+                                )
+                            }))}
                     </View>
                 </ScrollView>
             </SafeAreaView>

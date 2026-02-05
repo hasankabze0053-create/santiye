@@ -17,6 +17,7 @@ import ProfileScreen from '../screens/Profile/ProfileScreen';
 import RentalScreen from '../screens/Rental/RentalScreen';
 
 // Secondary Screens (Stack)
+import AdminPortal from '../screens/Admin/AdminDashboardScreen';
 import AiArchitectScreen from '../screens/AI/AiArchitectScreen';
 import AuthScreen from '../screens/Auth/AuthScreen'; // Import Authentication Screen
 import CompanyRegistrationScreen from '../screens/Auth/CompanyRegistrationScreen';
@@ -334,6 +335,7 @@ export default function AppNavigator() {
             <Stack.Screen name="CompanyRegistration" component={CompanyRegistrationScreen} />
 
             <Stack.Screen name="ProviderDashboard" component={ProviderDashboardScreen} />
+            <Stack.Screen name="AdminDashboard" component={AdminPortal} />
         </Stack.Navigator>
     );
 }

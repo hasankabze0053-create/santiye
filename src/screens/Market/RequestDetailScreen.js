@@ -2,7 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { ConstructionService } from '../../services/ConstructionService';
@@ -17,11 +17,19 @@ export default function RequestDetailScreen() {
     const [bids, setBids] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentUserId, setCurrentUserId] = useState(null);
+    const [selectedImage, setSelectedImage] = useState(null); // Full screen modal state
 
     useEffect(() => {
         // Get current user to check ownership
         supabase.auth.getUser().then(({ data: { user } }) => {
-            if (user) setCurrentUserId(user.id);
+            if (user) {
+                setCurrentUserId(user.id);
+                console.log('DEBUG: Current User ID:', user.id);
+                console.log('DEBUG: Request User ID:', request?.user_id);
+                console.log('DEBUG: Is Owner:', user.id === request?.user_id);
+            }
+        }).catch(err => {
+            console.log('Auth check error (Network):', err.message);
         });
 
         if (request?.id) {
@@ -155,22 +163,27 @@ export default function RequestDetailScreen() {
                                     color={request.is_campaign_active ? "#34C759" : "#EF4444"}
                                 />
                                 <Text style={{ color: '#DDD', marginLeft: 8, fontWeight: 'bold' }}>
-                                    {request.is_campaign_active ? '"Yarısı Bizden" Kampanyasından Faydalanılıyor' : '"Yarısı Bizden" Kampanyası Yok'}
+                                    {request.is_campaign_active ? 'Yarısı Bizden Kampanyasından Faydalanılacağı Belirtildi' : 'Yarısı Bizden Kampanyası Yok'}
                                 </Text>
                             </View>
                         </View>
 
-                        {/* 2. SPECS & UNITS */}
-                        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
-                            <View style={[styles.card, { flex: 1, marginBottom: 0, padding: 15 }]}>
-                                <Text style={styles.label}>KONUT SAYISI</Text>
-                                <Text style={[styles.value, { fontSize: 24, color: '#FDCB58' }]}>{request.campaign_unit_count || 0}</Text>
+                        {/* 2. SPECS & UNITS (Conditionally Rendered) */}
+                        {request.is_campaign_active && (
+                            <View style={{ marginBottom: 20 }}>
+                                <Text style={styles.sectionTitle}>YARISI DEVLETTEN DESTEĞİNDEN FAYDALANILACAK KONUT / TİCARİ SAYISI</Text>
+                                <View style={{ flexDirection: 'row', gap: 12 }}>
+                                    <View style={[styles.card, { flex: 1, marginBottom: 0, padding: 15 }]}>
+                                        <Text style={[styles.label, { fontSize: 14 }]}>KONUT</Text>
+                                        <Text style={[styles.value, { fontSize: 24, color: '#FDCB58' }]}>{request.campaign_unit_count || 0}</Text>
+                                    </View>
+                                    <View style={[styles.card, { flex: 1, marginBottom: 0, padding: 15 }]}>
+                                        <Text style={[styles.label, { fontSize: 14 }]}>TİCARİ</Text>
+                                        <Text style={[styles.value, { fontSize: 24, color: '#FDCB58' }]}>{request.campaign_commercial_count || 0}</Text>
+                                    </View>
+                                </View>
                             </View>
-                            <View style={[styles.card, { flex: 1, marginBottom: 0, padding: 15 }]}>
-                                <Text style={styles.label}>TİCARİ SAYISI</Text>
-                                <Text style={[styles.value, { fontSize: 24, color: '#FDCB58' }]}>{request.campaign_commercial_count || 0}</Text>
-                            </View>
-                        </View>
+                        )}
 
                         {/* 3. OFFER TYPE */}
                         <View style={styles.card}>
@@ -206,7 +219,7 @@ export default function RequestDetailScreen() {
                                     <Text style={{ color: '#888' }}>Mahalle:</Text>
                                     <Text style={{ color: '#FFF', fontWeight: 'bold' }}>{request.neighborhood}</Text>
                                 </View>
-                                <View style={styles.divider} style={{ marginVertical: 8, height: 1, backgroundColor: '#333' }} />
+                                <View style={[styles.divider, { marginVertical: 8, height: 1, backgroundColor: '#333' }]} />
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                     <View>
                                         <Text style={styles.label}>ADA</Text>
@@ -235,24 +248,24 @@ export default function RequestDetailScreen() {
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingBottom: 30 }}>
                             {/* Legacy Single Image */}
                             {request.deed_image_url && (
-                                <View>
+                                <TouchableOpacity onPress={() => setSelectedImage(request.deed_image_url)} activeOpacity={0.8}>
                                     <Image
                                         source={{ uri: request.deed_image_url }}
                                         style={{ width: 140, height: 140, borderRadius: 12, borderWidth: 1, borderColor: '#333' }}
                                     />
                                     <Text style={{ color: '#666', fontSize: 10, textAlign: 'center', marginTop: 4 }}>Tapu Görseli</Text>
-                                </View>
+                                </TouchableOpacity>
                             )}
 
                             {/* New Multiple Images */}
                             {request.document_urls && request.document_urls.length > 0 && request.document_urls.map((url, idx) => (
-                                <View key={idx}>
+                                <TouchableOpacity key={idx} onPress={() => setSelectedImage(url)} activeOpacity={0.8}>
                                     <Image
                                         source={{ uri: url }}
                                         style={{ width: 140, height: 140, borderRadius: 12, borderWidth: 1, borderColor: '#333' }}
                                     />
                                     <Text style={{ color: '#666', fontSize: 10, textAlign: 'center', marginTop: 4 }}>Belge #{idx + 1}</Text>
-                                </View>
+                                </TouchableOpacity>
                             ))}
 
                             {(!request.deed_image_url && (!request.document_urls || request.document_urls.length === 0)) && (
@@ -285,7 +298,49 @@ export default function RequestDetailScreen() {
                             </TouchableOpacity>
                         )}
 
+                        {/* OFFER BUTTON (Only for Non-Owners) */}
+                        {!isOwner && (
+                            <TouchableOpacity
+                                style={{
+                                    backgroundColor: '#D4AF37', // Gold color
+                                    borderRadius: 12,
+                                    paddingVertical: 16,
+                                    alignItems: 'center',
+                                    marginTop: 20,
+                                    marginBottom: 40,
+                                    shadowColor: '#D4AF37',
+                                    shadowOffset: { width: 0, height: 4 },
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 8,
+                                    elevation: 4
+                                }}
+                                onPress={() => navigation.navigate('ConstructionOfferScreen', { request })}
+                            >
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <MaterialCommunityIcons name="file-document-edit-outline" size={20} color="#000" />
+                                    <Text style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>TEKLİF VER</Text>
+                                </View>
+                            </TouchableOpacity>
+                        )}
                     </ScrollView>
+
+                    {/* FULL SCREEN IMAGE MODAL */}
+                    <Modal visible={!!selectedImage} transparent={true} animationType="fade" onRequestClose={() => setSelectedImage(null)}>
+                        <View style={{ flex: 1, backgroundColor: 'black', justifyContent: 'center', alignItems: 'center' }}>
+                            <TouchableOpacity
+                                style={{ position: 'absolute', top: 50, right: 20, zIndex: 10, padding: 10 }}
+                                onPress={() => setSelectedImage(null)}
+                            >
+                                <Ionicons name="close-circle" size={40} color="white" />
+                            </TouchableOpacity>
+                            {selectedImage && (
+                                <Image
+                                    source={{ uri: selectedImage }}
+                                    style={{ width: '100%', height: '80%', resizeMode: 'contain' }}
+                                />
+                            )}
+                        </View>
+                    </Modal>
                 </SafeAreaView>
             </View>
         );
@@ -404,15 +459,19 @@ const styles = StyleSheet.create({
     date: { color: '#888', fontSize: 12, marginTop: 4 },
     divider: { height: 1, backgroundColor: '#333', marginVertical: 16 },
     infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    label: { color: '#666', fontSize: 10, fontWeight: '900', letterSpacing: 0.5, marginBottom: 4 },
-    value: { color: '#DDD', fontSize: 14, fontWeight: '600', fontFamily: 'monospace' },
-    noteText: { color: '#CCC', fontSize: 14, fontStyle: 'italic', lineHeight: 20 },
+
+    // Updated Styles
+    label: { color: '#888', fontSize: 12, fontWeight: 'bold', letterSpacing: 0.5, marginBottom: 6 },
+    value: { color: '#FFFFFF', fontSize: 16, fontWeight: '600', fontFamily: 'System' }, // Removed monospace, increased size and white color
+    noteText: { color: '#FFFFFF', fontSize: 15, lineHeight: 22 }, // White and easier to read
 
     statusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1 },
     statusDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
     statusText: { fontSize: 10, fontWeight: 'bold' },
 
-    sectionTitle: { color: '#666', fontSize: 12, fontWeight: '900', marginBottom: 12, marginLeft: 4, letterSpacing: 1 },
+    // Updated Section Title (Gold)
+    sectionTitle: { color: '#D4AF37', fontSize: 14, fontWeight: 'bold', marginBottom: 12, marginLeft: 4, letterSpacing: 1, textTransform: 'uppercase' },
+
     itemsContainer: { backgroundColor: '#1A1A1A', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#333', marginBottom: 24 },
     itemRow: { flexDirection: 'row', alignItems: 'center', padding: 16 },
     itemBorder: { borderBottomWidth: 1, borderBottomColor: '#252525' },

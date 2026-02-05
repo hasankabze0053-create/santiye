@@ -225,6 +225,20 @@ export default function ProfileScreen() {
                     </View>
                 </View>
 
+                {/* 4.5. ADMIN SECTION */}
+                {profile?.is_admin && (
+                    <View style={styles.sectionContainer}>
+                        <Text style={[styles.sectionHeader, { color: theme.subText }]}>YÖNETİCİ</Text>
+                        <View style={[styles.menuContainer, { backgroundColor: theme.card }]}>
+                            <MenuItem
+                                icon="shield-checkmark"
+                                label="Admin Paneli"
+                                onPress={() => navigation.navigate('AdminDashboard')}
+                            />
+                        </View>
+                    </View>
+                )}
+
                 {/* 5. Support List */}
                 <View style={[styles.sectionContainer, { marginBottom: 40 }]}>
                     <Text style={[styles.sectionHeader, { color: theme.subText }]}>DESTEK</Text>
