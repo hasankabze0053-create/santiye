@@ -72,6 +72,7 @@ export const AuthService = {
                         email: user.email,
                         full_name: user.user_metadata?.full_name || '',
                         user_type: 'individual', // Default fallback
+                        approval_status: 'approved', // Individuals are auto-approved
                         avatar_url: ''
                     })
                     .select()
@@ -131,6 +132,12 @@ export const AuthService = {
             .insert(servicesToInsert);
 
         if (servicesError) throw servicesError;
+
+        // C. Update Profile to Corporate & Pending Approval
+        await this.updateProfile(companyData.owner_id, {
+            user_type: 'corporate',
+            approval_status: 'pending'
+        });
 
         return company;
     },

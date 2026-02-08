@@ -14,6 +14,30 @@ end $$;
 -- Update specific user to admin
 update public.profiles set is_admin = true where email = 'mkorayzengin@gmail.com';
 
+-- Add approval_status if it doesn't exist
+do $$ 
+begin 
+    if not exists (select 1 from information_schema.columns where table_name='profiles' and column_name='approval_status') then 
+        alter table public.profiles add column approval_status text default 'approved'; 
+    end if; 
+end $$;
+
+-- Allow Admins to update profiles (for Approval)
+drop policy if exists "Admins can update any profile" on public.profiles;
+create policy "Admins can update any profile"
+on public.profiles
+for update
+using (
+  exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
+);
+
+-- Add phone column if it doesn't exist
+do $$ 
+begin 
+    if not exists (select 1 from information_schema.columns where table_name='profiles' and column_name='phone') then 
+        alter table public.profiles add column phone text; 
+    end if; 
+end $$;
 
 -- 2. TABLES AND RELATIONS (Safe)
 
@@ -91,11 +115,11 @@ create table if not exists public.app_module_config (
 alter table public.app_module_config enable row level security;
 
 -- Policy: Everyone can read
--- drop policy if exists "Enable read access for all users" on public.app_module_config;
+drop policy if exists "Enable read access for all users" on public.app_module_config;
 create policy "Enable read access for all users" on public.app_module_config for select using (true);
 
 -- Policy: Only admins can update
--- drop policy if exists "Enable update for admins" on public.app_module_config;
+drop policy if exists "Enable update for admins" on public.app_module_config;
 create policy "Enable update for admins" on public.app_module_config for update using (
   exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
 );

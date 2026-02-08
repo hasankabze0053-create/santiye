@@ -160,7 +160,8 @@ export default function MarketRequestScreen() {
 
             if (result.success) {
                 // Success - could go to Step 3 or back
-                Alert.alert("Başarılı", "Talebiniz satıcılara iletildi!", [{ text: "Tamam", onPress: () => navigation.goBack() }]);
+                // Success - Go to Success Screen
+                navigation.navigate('MarketSuccessScreen');
             } else {
                 Alert.alert("Hata", "Talep oluşturulamadı - Lütfen SQL iznini çalıştırdığınızdan emin olun.");
             }

@@ -95,6 +95,10 @@ export default function AuthScreen() {
                 if (!profile) {
                     console.log('[AuthScreen] No profile, Navigating to ProfileMain');
                     navigation.navigate('ProfileMain');
+                } else if (profile.is_admin) {
+                    // ADMIN CHECK FIRST
+                    console.log('[AuthScreen] User is Admin, Navigating to AdminDashboard');
+                    navigation.navigate('AdminDashboard');
                 } else if (!profile.user_type || profile.user_type === 'individual') {
                     console.log('[AuthScreen] Individual, Navigating to Ana Sayfa');
                     // Navigate to the "Ana Sayfa" TAB specifically
