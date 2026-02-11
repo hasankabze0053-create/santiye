@@ -314,7 +314,7 @@ export default function RequestDetailScreen() {
                                     shadowRadius: 8,
                                     elevation: 4
                                 }}
-                                onPress={() => navigation.navigate('ConstructionOfferScreen', { request })}
+                                onPress={() => navigation.navigate('ConstructionOfferSubmit', { request })}
                             >
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                     <MaterialCommunityIcons name="file-document-edit-outline" size={20} color="#000" />

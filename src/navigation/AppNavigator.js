@@ -23,6 +23,7 @@ import AuthScreen from '../screens/Auth/AuthScreen'; // Import Authentication Sc
 import CompanyRegistrationScreen from '../screens/Auth/CompanyRegistrationScreen';
 import OnboardingScreen from '../screens/Auth/OnboardingScreen';
 import ConstructionOfferScreen from '../screens/Cost/ConstructionOfferScreen';
+import ConstructionOfferSubmitScreen from '../screens/Cost/ConstructionOfferSubmitScreen';
 import ConstructionSuccessScreen from '../screens/Cost/ConstructionSuccessScreen';
 import DetailedCostScreen from '../screens/Cost/DetailedCostScreen';
 import MaliyetScreen from '../screens/Cost/MaliyetScreen';
@@ -65,6 +66,7 @@ import StyleSelectionScreen from '../screens/Renovation/StyleSelectionScreen';
 import ProjectProposalScreen from '../screens/Rental/ProjectProposalScreen';
 import RentalProposalScreen from '../screens/Rental/RentalProposalScreen';
 import CustomSplashScreen from '../screens/Splash/CustomSplashScreen';
+import TransformationExpertChatScreen from '../screens/Transformation/TransformationExpertChatScreen';
 import UrbanTransformationScreen from '../screens/Transformation/UrbanTransformationScreen';
 
 const Tab = createBottomTabNavigator();
@@ -311,11 +313,13 @@ export default function AppNavigator() {
             <Stack.Screen name="SmartSketch" component={SmartSketchScreen} />
             <Stack.Screen name="DetailedCost" component={DetailedCostScreen} />
             <Stack.Screen name="ConstructionOffer" component={ConstructionOfferScreen} />
+            <Stack.Screen name="ConstructionOfferSubmit" component={ConstructionOfferSubmitScreen} />
             <Stack.Screen name="ConstructionSuccess" component={ConstructionSuccessScreen} />
             <Stack.Screen name="PosCost" component={PosCostScreen} options={{ title: 'Poz No Hesap' }} />
 
             {/* Transformation & Proposals */}
             <Stack.Screen name="KentselDonusum" component={UrbanTransformationScreen} />
+            <Stack.Screen name="TransformationExpertChat" component={TransformationExpertChatScreen} />
             <Stack.Screen name="ProjectProposal" component={ProjectProposalScreen} />
             <Stack.Screen name="RentalProposal" component={RentalProposalScreen} />
 
