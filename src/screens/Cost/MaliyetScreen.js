@@ -1,7 +1,10 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+    ActivityIndicator,
+    Alert,
     Animated, Dimensions,
     FlatList,
     Modal,
@@ -13,6 +16,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LuxuryCard from '../../components/LuxuryCard';
 import PremiumBackground from '../../components/PremiumBackground';
+import { supabase } from '../../lib/supabase';
+import { ScreenConfigService } from '../../services/ScreenConfigService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -97,32 +102,44 @@ const SelectionModal = ({ visible, onClose, title, items, onSelect }) => {
     );
 };
 
-const MENU_ITEMS = [
-    {
-        id: 'simple',
-        title: 'HIZLI HESAPLAMA',
-        subtitle: 'Anlık maliyet analizi',
+// Metadata for mapping dynamic config to UI components
+const SECTION_METADATA = {
+    'cost_simple': {
         icon: 'calculator-variant-outline',
         iconLibrary: 'MaterialCommunityIcons',
         screen: 'SimpleCost',
+        defaultTitle: 'HIZLI HESAPLAMA',
+        defaultSubtitle: 'Anlık maliyet analizi'
     },
-    {
-        id: 'detailed',
-        title: 'DETAYLI ANALİZ',
-        subtitle: 'Kapsamlı proje bütçesi',
+    'cost_detailed': {
         icon: 'chart-timeline-variant',
         iconLibrary: 'MaterialCommunityIcons',
         screen: 'DetailedCost',
+        defaultTitle: 'DETAYLI ANALİZ',
+        defaultSubtitle: 'Kapsamlı proje bütçesi'
     },
-    {
-        id: 'pos',
-        title: 'POZ SORGULAMA',
-        subtitle: 'Birim fiyat kütüphanesi',
+    'cost_pos': {
         icon: 'barcode-scan',
         iconLibrary: 'MaterialCommunityIcons',
         screen: 'PosCost',
+        defaultTitle: 'POZ SORGULAMA',
+        defaultSubtitle: 'Birim fiyat kütüphanesi'
+    },
+    'cost_requests_user': {
+        icon: 'folder-home-outline',
+        iconLibrary: 'MaterialCommunityIcons',
+        screen: 'UserRequests',
+        defaultTitle: 'TALEPLERİM',
+        defaultSubtitle: 'Oluşturduğum talepler ve teklifler'
+    },
+    'cost_requests_contractor': {
+        icon: 'hard-hat',
+        iconLibrary: 'MaterialCommunityIcons',
+        screen: 'ContractorRequests',
+        defaultTitle: 'MÜTEAHHİT PANELİ',
+        defaultSubtitle: 'Gelen inşaat talepleri'
     }
-];
+};
 
 const LocationSelector = ({ city, onOpenCity }) => (
     <View style={styles.locationContainer}>
@@ -148,6 +165,10 @@ export default function MaliyetScreen({ navigation }) {
 
     // State
     const [city, setCity] = useState('İstanbul');
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [isContractor, setIsContractor] = useState(false);
+    const [sections, setSections] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     // Modal State
     const [modalVisible, setModalVisible] = useState(false);
@@ -159,7 +180,70 @@ export default function MaliyetScreen({ navigation }) {
             duration: 1000,
             useNativeDriver: true,
         }).start();
+        checkUserStatus();
     }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            loadScreenConfig();
+        }, [])
+    );
+
+    const checkUserStatus = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('is_admin, is_contractor')
+                    .eq('id', user.id)
+                    .single();
+                setIsAdmin(data?.is_admin || false);
+                setIsContractor(data?.is_contractor || false);
+            }
+        } catch (e) {
+            console.warn('User status check failed', e);
+        }
+    };
+
+    const loadScreenConfig = async () => {
+        setLoading(true);
+        try {
+            let config = await ScreenConfigService.fetchConfig('cost_screen');
+
+            // Fallback if no config found (first time run before migration)
+            if (!config || config.length === 0) {
+                config = [
+                    { id: 'cost_simple', is_visible: true, sort_order: 10 },
+                    { id: 'cost_detailed', is_visible: true, sort_order: 20 },
+                    { id: 'cost_pos', is_visible: true, sort_order: 30 },
+                    { id: 'cost_requests_user', is_visible: true, sort_order: 40 },
+                    { id: 'cost_requests_contractor', is_visible: true, sort_order: 50 },
+                ];
+            }
+            setSections(config);
+        } catch (error) {
+            console.error('Config load error:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const toggleSectionVisibility = async (section) => {
+        try {
+            const newVisibility = !section.is_visible;
+            const updatedSections = sections.map(s =>
+                s.id === section.id ? { ...s, is_visible: newVisibility } : s
+            );
+            setSections(updatedSections);
+
+            // Optimistic update
+            await ScreenConfigService.updateSectionConfig(section.id, { is_visible: newVisibility });
+        } catch (error) {
+            Alert.alert("Hata", "Güncelleme yapılamadı.");
+            loadScreenConfig(); // Revert on error
+        }
+    };
 
     // Handlers
     const openCityModal = () => {
@@ -212,7 +296,6 @@ export default function MaliyetScreen({ navigation }) {
                     style={{ opacity: fadeAnim }}
                 >
                     {/* CUSTOM HEADER (Previously Native) */}
-                    {/* CUSTOM HEADER (Previously Native) */}
                     <View style={[styles.header, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                             <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
@@ -231,36 +314,82 @@ export default function MaliyetScreen({ navigation }) {
                         onOpenCity={openCityModal}
                     />
 
-                    <View style={styles.menuGrid}>
-                        {MENU_ITEMS.map((item) => (
-                            <LuxuryCard
-                                key={item.id}
-                                style={styles.menuCard}
-                                onPress={() => handleNavigation(item.screen)}
-                            >
-                                <View style={styles.menuCardContent}>
+                    {loading ? (
+                        <View style={{ padding: 20 }}>
+                            <ActivityIndicator size="large" color="#D4AF37" />
+                        </View>
+                    ) : (
+                        <View style={styles.menuGrid}>
+                            {sections
+                                .filter(s => {
+                                    if (s.id === 'cost_requests_contractor') {
+                                        return (s.is_visible && isContractor) || isAdmin;
+                                    }
+                                    return s.is_visible || isAdmin;
+                                })
+                                .map((section) => {
+                                    const meta = SECTION_METADATA[section.id];
+                                    if (!meta) return null;
 
-                                    <View style={styles.iconWrapper}>
-                                        {/* Pure Gold Icon without Box */}
-                                        {item.iconLibrary === 'MaterialCommunityIcons' ? (
-                                            <MaterialCommunityIcons name={item.icon} size={42} color="#D4AF37" />
-                                        ) : (
-                                            <Ionicons name={item.icon} size={42} color="#D4AF37" />
-                                        )}
-                                    </View>
+                                    return (
+                                        <View key={section.id} style={{ position: 'relative' }}>
+                                            {/* Admin Control */}
+                                            {isAdmin && (
+                                                <View style={{
+                                                    position: 'absolute',
+                                                    top: -10,
+                                                    right: 10,
+                                                    zIndex: 999,
+                                                    flexDirection: 'row',
+                                                    alignItems: 'center',
+                                                    backgroundColor: 'rgba(0,0,0,0.8)',
+                                                    padding: 5,
+                                                    borderRadius: 8,
+                                                    borderWidth: 1,
+                                                    borderColor: section.is_visible ? '#00FF00' : '#FF0000'
+                                                }}>
+                                                    <TouchableOpacity
+                                                        onPress={() => toggleSectionVisibility(section)}
+                                                        hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                                                        style={{ padding: 4 }}
+                                                    >
+                                                        <MaterialCommunityIcons
+                                                            name={section.is_visible ? "eye" : "eye-off"}
+                                                            size={24}
+                                                            color={section.is_visible ? "#00FF00" : "#FF0000"}
+                                                        />
+                                                    </TouchableOpacity>
+                                                </View>
+                                            )}
 
-                                    <View style={styles.textWrapper}>
-                                        <Text style={styles.menuTitle}>{item.title}</Text>
-                                        <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
-                                    </View>
+                                            <View style={{ opacity: (!section.is_visible && isAdmin) ? 0.5 : 1 }}>
+                                                <LuxuryCard
+                                                    style={styles.menuCard}
+                                                    onPress={() => handleNavigation(meta.screen)}
+                                                >
+                                                    <View style={styles.menuCardContent}>
+                                                        <View style={styles.iconWrapper}>
+                                                            {meta.iconLibrary === 'MaterialCommunityIcons' ? (
+                                                                <MaterialCommunityIcons name={meta.icon} size={42} color="#D4AF37" />
+                                                            ) : (
+                                                                <Ionicons name={meta.icon} size={42} color="#D4AF37" />
+                                                            )}
+                                                        </View>
 
-                                    <MaterialCommunityIcons name="chevron-right" size={28} color="#D4AF37" style={{ opacity: 0.5 }} />
-                                </View>
-                            </LuxuryCard>
-                        ))}
-                    </View>
+                                                        <View style={styles.textWrapper}>
+                                                            <Text style={styles.menuTitle}>{section.title || meta.defaultTitle}</Text>
+                                                            <Text style={styles.menuSubtitle}>{meta.defaultSubtitle}</Text>
+                                                        </View>
 
-
+                                                        <MaterialCommunityIcons name="chevron-right" size={28} color="#D4AF37" style={{ opacity: 0.5 }} />
+                                                    </View>
+                                                </LuxuryCard>
+                                            </View>
+                                        </View>
+                                    );
+                                })}
+                        </View>
+                    )}
                 </Animated.ScrollView>
 
                 {/* Selection Modal */}

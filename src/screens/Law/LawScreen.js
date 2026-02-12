@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Animated, Dimensions, InputAccessoryView, Keyboard, KeyboardAvoidingView, Platform, Modal as ReactModal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+// import { supabase } from '../../lib/supabase'; // Handled in replace content above
 
 const { width } = Dimensions.get('window');
 
@@ -319,6 +320,8 @@ const WizardModal = ({ visible, onClose, config }) => {
     );
 };
 
+import { supabase } from '../../lib/supabase';
+
 export default function LawScreen() {
     const navigation = useNavigation();
     const [expertMatchInput, setExpertMatchInput] = useState('');
@@ -326,6 +329,30 @@ export default function LawScreen() {
     const [wizardVisible, setWizardVisible] = useState(false);
     const [selectedWizardTool, setSelectedWizardTool] = useState(null);
     const scrollViewRef = useRef(null);
+
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [isLawyer, setIsLawyer] = useState(false);
+
+    useEffect(() => {
+        checkUserStatus();
+    }, []);
+
+    const checkUserStatus = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('is_admin, is_lawyer')
+                    .eq('id', user.id)
+                    .single();
+                setIsAdmin(data?.is_admin || false);
+                setIsLawyer(data?.is_lawyer || false);
+            }
+        } catch (e) {
+            console.warn('User status check failed', e);
+        }
+    };
 
     const handleQuickTool = (toolName) => {
         const config = LAW_WIZARD_CONFIG[toolName];
@@ -387,10 +414,15 @@ export default function LawScreen() {
                                 </View>
                             </View>
                             <TouchableOpacity
-                                style={styles.headerIconBtn}
-                                onPress={() => navigation.navigate('LawProvider')}
+                                style={[styles.headerIconBtn, !isLawyer && !isAdmin && { opacity: 0.5 }]}
+                                onPress={() => {
+                                    if (isAdmin || isLawyer) {
+                                        navigation.navigate('LawProvider');
+                                    }
+                                }}
+                                activeOpacity={isAdmin || isLawyer ? 0.7 : 1}
                             >
-                                <MaterialCommunityIcons name="scale-balance" size={24} color={GOLD_MAIN} />
+                                <MaterialCommunityIcons name="scale-balance" size={24} color={isAdmin || isLawyer ? GOLD_MAIN : "#666"} />
                             </TouchableOpacity>
                         </View>
 

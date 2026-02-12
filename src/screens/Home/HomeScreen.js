@@ -1,9 +1,13 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Dimensions, Easing, FlatList, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '../../context/AuthContext'; // Import useAuth
+import { supabase } from '../../lib/supabase';
+import { MarketService } from '../../services/MarketService'; // Ensure MarketService is also i imported if usedAuth
 
 const { width, height } = Dimensions.get('window');
 
@@ -55,10 +59,6 @@ const ASSET_MAP = {
     'cat_cost_v5': require('../../assets/categories/cat_cost_v5.png'),
 };
 
-import { useAuth } from '../../context/AuthContext'; // Import useAuth
-import { supabase } from '../../lib/supabase';
-import { MarketService } from '../../services/MarketService'; // Ensure MarketService is also imported if usedAuth
-
 export default function HomeScreen({ navigation }) {
     const { profile } = useAuth(); // Get profile
     const [greeting, setGreeting] = useState('İYİ GÜNLER');
@@ -85,23 +85,45 @@ export default function HomeScreen({ navigation }) {
     // Reload config when screen focuses (to capture Admin updates instantly)
     useEffect(() => {
         const fetchConfig = async () => {
+            const CACHE_KEY = 'app_module_config_cache';
+            let isCacheUsed = false;
+
             try {
-                const { data, error } = await supabase
+                // 1. Try Cache First (Optimistic UI)
+                // Use imported Storage directly
+                const cached = await AsyncStorage.getItem(CACHE_KEY);
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (parsed && parsed.length > 0) {
+                        setCategories(parsed);
+                        setLoadingConfig(false);
+                        isCacheUsed = true;
+                    }
+                }
+
+                // 2. Fetch Fresh Data with Timeout
+                const fetchPromise = supabase
                     .from('app_module_config')
                     .select('*')
                     .eq('is_active', true)
                     .order('sort_order', { ascending: true });
 
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Request Timeout')), 15000)
+                );
+
+                const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
+
                 if (error) throw error;
 
                 if (data && data.length > 0) {
                     setCategories(data);
-                } else {
-                    // Fallback if empty (should not happen after seed)
+                    await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(data));
+                } else if (!isCacheUsed) {
                     console.log('No config found, using default empty.');
                 }
             } catch (err) {
-                console.error('Config Fetch Error:', err);
+                console.warn('Config Fetch Warning: Network slow or unavailable, using cache/defaults.', err.message);
             } finally {
                 setLoadingConfig(false);
             }

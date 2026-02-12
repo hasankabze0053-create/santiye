@@ -73,9 +73,35 @@ const MOCK_SUPPLIERS = [
     { id: 'l3', name: 'Global Trans', prices: { daily: '9.200 ₺', weekly: 'Sefer Bazlı', monthly: 'Teklif Al' }, verified: true, logo: 'airplane-takeoff' }
 ];
 
+import { supabase } from '../../lib/supabase';
+
 export default function LogisticsScreen() {
     const navigation = useNavigation();
     const route = useRoute();
+
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [isTransporter, setIsTransporter] = useState(false);
+
+    useEffect(() => {
+        checkUserStatus();
+    }, []);
+
+    const checkUserStatus = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('is_admin, is_transporter')
+                    .eq('id', user.id)
+                    .single();
+                setIsAdmin(data?.is_admin || false);
+                setIsTransporter(data?.is_transporter || false);
+            }
+        } catch (e) {
+            console.warn('User status check failed', e);
+        }
+    };
 
     // Consume params from navigation (Native Stack behavior)
     const viewMode = route.params?.viewMode || 'list';
@@ -122,8 +148,16 @@ export default function LogisticsScreen() {
                         <Text style={styles.headerTitle}>NAKLİYE & LOJİSTİK</Text>
                         <Text style={styles.headerSubtitle}>Güvenilir Taşıma Ağı</Text>
                     </View>
-                    <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate('LogisticsProvider')}>
-                        <MaterialCommunityIcons name="truck-check" size={24} color="#D4AF37" />
+                    <TouchableOpacity
+                        style={[styles.headerIconBtn, !isTransporter && !isAdmin && { opacity: 0.5 }]}
+                        onPress={() => {
+                            if (isAdmin || isTransporter) {
+                                navigation.navigate('LogisticsProvider');
+                            }
+                        }}
+                        activeOpacity={isAdmin || isTransporter ? 0.7 : 1}
+                    >
+                        <MaterialCommunityIcons name="truck-check" size={24} color={isAdmin || isTransporter ? "#D4AF37" : "#666"} />
                     </TouchableOpacity>
                 </View>
 

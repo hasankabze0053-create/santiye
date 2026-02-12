@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { supabase } from '../../lib/supabase';
 import { MarketService } from '../../services/MarketService';
 import { getMarketImage } from '../../utils/marketAssets';
 
@@ -12,6 +13,30 @@ const { width } = Dimensions.get('window');
 export default function MarketScreen() {
     const navigation = useNavigation();
     const route = useRoute();
+
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [isSeller, setIsSeller] = useState(false);
+
+    useEffect(() => {
+        checkUserStatus();
+    }, []);
+
+    const checkUserStatus = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('is_admin, is_seller')
+                    .eq('id', user.id)
+                    .single();
+                setIsAdmin(data?.is_admin || false);
+                setIsSeller(data?.is_seller || false);
+            }
+        } catch (e) {
+            console.warn('User status check failed', e);
+        }
+    };
 
     // Data State
     const [marketCategories, setMarketCategories] = useState([]);
@@ -164,8 +189,16 @@ export default function MarketScreen() {
                         </Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                        <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate('MarketProvider')}>
-                            <MaterialCommunityIcons name="storefront-outline" size={24} color="#D4AF37" />
+                        <TouchableOpacity
+                            style={[styles.headerIconBtn, !isSeller && !isAdmin && { opacity: 0.5 }]}
+                            onPress={() => {
+                                if (isAdmin || isSeller) {
+                                    navigation.navigate('MarketProvider');
+                                }
+                            }}
+                            activeOpacity={isAdmin || isSeller ? 0.7 : 1}
+                        >
+                            <MaterialCommunityIcons name="storefront-outline" size={24} color={isAdmin || isSeller ? "#D4AF37" : "#666"} />
                         </TouchableOpacity>
                     </View>
                 </View>

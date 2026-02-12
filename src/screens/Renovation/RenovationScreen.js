@@ -69,10 +69,38 @@ const GoldCard = ({ children, style, onPress }) => (
     </TouchableOpacity>
 );
 
+import { supabase } from '../../lib/supabase';
+
 export default function RenovationScreen({ navigation }) {
     const [requestInput, setRequestInput] = useState('');
     const [selectedQuality, setSelectedQuality] = useState('Konfor');
     const scrollX = useRef(new Animated.Value(0)).current;
+
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [isArchitect, setIsArchitect] = useState(false);
+    const [isContractor, setIsContractor] = useState(false);
+
+    useEffect(() => {
+        checkUserStatus();
+    }, []);
+
+    const checkUserStatus = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('is_admin, is_architect, is_contractor')
+                    .eq('id', user.id)
+                    .single();
+                setIsAdmin(data?.is_admin || false);
+                setIsArchitect(data?.is_architect || false);
+                setIsContractor(data?.is_contractor || false);
+            }
+        } catch (e) {
+            console.warn('User status check failed', e);
+        }
+    };
 
     const handleServicePress = (service) => {
         if (service.id === 'turnkey') {
@@ -107,8 +135,16 @@ export default function RenovationScreen({ navigation }) {
                         <Text style={styles.headerSubtitle}>Yaşam Alanınızı Yeniden Keşfedin</Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                        <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate('RenovationProvider')}>
-                            <MaterialCommunityIcons name="hammer-wrench" size={24} color="#D4AF37" />
+                        <TouchableOpacity
+                            style={[styles.headerIconBtn, !isArchitect && !isContractor && !isAdmin && { opacity: 0.5 }]}
+                            onPress={() => {
+                                if (isAdmin || isArchitect || isContractor) {
+                                    navigation.navigate('RenovationProvider');
+                                }
+                            }}
+                            activeOpacity={isAdmin || isArchitect || isContractor ? 0.7 : 1}
+                        >
+                            <MaterialCommunityIcons name="hammer-wrench" size={24} color={isAdmin || isArchitect || isContractor ? "#D4AF37" : "#666"} />
                         </TouchableOpacity>
                     </View>
                 </View>

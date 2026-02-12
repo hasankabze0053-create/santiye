@@ -78,10 +78,36 @@ const GreenHighlightCard = ({ children, style, onPress }) => (
     </TouchableOpacity>
 );
 
+import { supabase } from '../../lib/supabase';
+
 export default function EngineeringScreen() {
     const navigation = useNavigation();
     const [projectInput, setProjectInput] = useState('');
     const scrollViewRef = useRef(null);
+
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [isEngineer, setIsEngineer] = useState(false);
+
+    useEffect(() => {
+        checkUserStatus();
+    }, []);
+
+    const checkUserStatus = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('is_admin, is_engineer')
+                    .eq('id', user.id)
+                    .single();
+                setIsAdmin(data?.is_admin || false);
+                setIsEngineer(data?.is_engineer || false);
+            }
+        } catch (e) {
+            console.warn('User status check failed', e);
+        }
+    };
 
     // Mock Handle Tool - In reality this could open the Wizard or just Navigate
     const handleQuickTool = (toolId) => {
@@ -131,10 +157,15 @@ export default function EngineeringScreen() {
                                 <Text style={styles.headerSubtitle}>DANIŞMANLIK OFİSİ</Text>
                             </View>
                             <TouchableOpacity
-                                style={styles.headerIconBtn}
-                                onPress={() => navigation.navigate('TechnicalProvider')}
+                                style={[styles.headerIconBtn, !isEngineer && !isAdmin && { opacity: 0.5 }]}
+                                onPress={() => {
+                                    if (isAdmin || isEngineer) {
+                                        navigation.navigate('TechnicalProvider');
+                                    }
+                                }}
+                                activeOpacity={isAdmin || isEngineer ? 0.7 : 1}
                             >
-                                <MaterialCommunityIcons name="ruler-square" size={24} color={GOLD_MAIN} />
+                                <MaterialCommunityIcons name="ruler-square" size={24} color={isAdmin || isEngineer ? GOLD_MAIN : "#666"} />
                             </TouchableOpacity>
                         </View>
 

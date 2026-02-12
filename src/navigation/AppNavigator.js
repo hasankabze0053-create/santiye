@@ -25,12 +25,15 @@ import OnboardingScreen from '../screens/Auth/OnboardingScreen';
 import ConstructionOfferScreen from '../screens/Cost/ConstructionOfferScreen';
 import ConstructionOfferSubmitScreen from '../screens/Cost/ConstructionOfferSubmitScreen';
 import ConstructionSuccessScreen from '../screens/Cost/ConstructionSuccessScreen';
+import ContractorRequestDetailScreen from '../screens/Cost/ContractorRequestDetailScreen';
+import ContractorRequestsScreen from '../screens/Cost/ContractorRequestsScreen';
 import DetailedCostScreen from '../screens/Cost/DetailedCostScreen';
 import MaliyetScreen from '../screens/Cost/MaliyetScreen';
 import PosCostScreen from '../screens/Cost/PosCostScreen';
 import ProjectIdentityScreen from '../screens/Cost/ProjectIdentityScreen';
 import SimpleCostScreen from '../screens/Cost/SimpleCostScreen';
 import SmartSketchScreen from '../screens/Cost/SmartSketchScreen';
+import UserRequestsScreen from '../screens/Cost/UserRequestsScreen';
 import EngineeringScreen from '../screens/Engineering/EngineeringScreen';
 import OnlineDiscoveryScreen from '../screens/Engineering/OnlineDiscoveryScreen';
 import LawScreen from '../screens/Law/LawScreen';
@@ -316,6 +319,10 @@ export default function AppNavigator() {
             <Stack.Screen name="ConstructionOfferSubmit" component={ConstructionOfferSubmitScreen} />
             <Stack.Screen name="ConstructionSuccess" component={ConstructionSuccessScreen} />
             <Stack.Screen name="PosCost" component={PosCostScreen} options={{ title: 'Poz No Hesap' }} />
+
+            <Stack.Screen name="ContractorRequests" component={ContractorRequestsScreen} />
+            <Stack.Screen name="ContractorRequestDetail" component={ContractorRequestDetailScreen} />
+            <Stack.Screen name="UserRequests" component={UserRequestsScreen} />
 
             {/* Transformation & Proposals */}
             <Stack.Screen name="KentselDonusum" component={UrbanTransformationScreen} />
