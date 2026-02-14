@@ -286,7 +286,7 @@ export default function AppNavigator() {
             {/* Renovation */}
             <Stack.Screen name="Tadilat" component={RenovationScreen} />
             <Stack.Screen name="RenovationProjectSelection" component={RenovationProjectSelectionScreen} options={{ animation: 'slide_from_right' }} />
-            <Stack.Screen name="RequestDetail" component={RequestDetailScreen} options={{ animation: 'slide_from_right' }} />
+            <Stack.Screen name="RequestDetail" component={RequestDetailScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
             <Stack.Screen name="StyleSelection" component={StyleSelectionScreen} />
             <Stack.Screen name="CustomRequest" component={CustomRequestScreen} />
             <Stack.Screen name="RenovationSuccess" component={RenovationSuccessScreen} />
@@ -316,7 +316,7 @@ export default function AppNavigator() {
             <Stack.Screen name="SmartSketch" component={SmartSketchScreen} />
             <Stack.Screen name="DetailedCost" component={DetailedCostScreen} />
             <Stack.Screen name="ConstructionOffer" component={ConstructionOfferScreen} />
-            <Stack.Screen name="ConstructionOfferSubmit" component={ConstructionOfferSubmitScreen} />
+            <Stack.Screen name="ConstructionOfferSubmit" component={ConstructionOfferSubmitScreen} options={{ headerShown: false }} />
             <Stack.Screen name="ConstructionSuccess" component={ConstructionSuccessScreen} />
             <Stack.Screen name="PosCost" component={PosCostScreen} options={{ title: 'Poz No Hesap' }} />
 

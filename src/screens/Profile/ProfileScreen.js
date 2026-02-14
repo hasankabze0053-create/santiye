@@ -5,6 +5,7 @@ import {
     ActivityIndicator,
     Alert,
     Image,
+    RefreshControl,
     ScrollView,
     StatusBar,
     StyleSheet,
@@ -139,11 +140,26 @@ export default function ProfileScreen() {
         </TouchableOpacity>
     );
 
+    const [refreshing, setRefreshing] = useState(false);
+
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        // Simulate wait for better UX or actual fetch
+        await refreshProfile();
+        setRefreshing(false);
+    }, []);
+
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.text} />
+                }
+            >
 
                 {/* 1. Header (Individual) */}
                 <View style={styles.header}>

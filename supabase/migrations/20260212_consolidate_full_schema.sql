@@ -1,4 +1,4 @@
--- Consolidated Schema Migration to replace manual SQL scripts
+-- Consolidated Schema Migration to replace manual SQL scripts (Idempotent)
 
 -- 1. MARKETPLACE SCHEMA
 CREATE TABLE IF NOT EXISTS public.market_categories (
@@ -22,9 +22,9 @@ CREATE TABLE IF NOT EXISTS public.market_products (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     subcategory_id uuid REFERENCES public.market_subcategories(id) ON DELETE SET NULL,
     name text NOT NULL,
-    price text, -- stored as text to include currency symbol if needed, or numeric
+    price text,
     spec text,
-    options jsonb DEFAULT '{}'::jsonb, -- e.g. {"color": ["red", "blue"], "size": ["M", "L"]}
+    options jsonb DEFAULT '{}'::jsonb,
     image_url text,
     is_local boolean DEFAULT false,
     tag text,
@@ -32,16 +32,21 @@ CREATE TABLE IF NOT EXISTS public.market_products (
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- RLS for Market (Public Read)
+-- RLS for Market
 ALTER TABLE public.market_categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.market_subcategories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.market_products ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Public Read Categories" ON public.market_categories;
 CREATE POLICY "Public Read Categories" ON public.market_categories FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public Read Subcategories" ON public.market_subcategories;
 CREATE POLICY "Public Read Subcategories" ON public.market_subcategories FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public Read Products" ON public.market_products;
 CREATE POLICY "Public Read Products" ON public.market_products FOR SELECT USING (true);
 
--- 2. CONSTRUCTION REQUESTS SCHEMA (Ensuring existence)
+-- 2. CONSTRUCTION REQUESTS SCHEMA
 CREATE TABLE IF NOT EXISTS public.construction_requests (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id uuid REFERENCES auth.users(id) NOT NULL,
@@ -52,9 +57,9 @@ CREATE TABLE IF NOT EXISTS public.construction_requests (
     parsel text,
     pafta text,
     full_address text,
-    offer_type text, -- 'anahtar_teslim', 'kat_karsiligi'
+    offer_type text,
     is_campaign_active boolean DEFAULT false,
-    status text DEFAULT 'pending', -- pending, active, completed, archived
+    status text DEFAULT 'pending',
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -68,7 +73,7 @@ CREATE TABLE IF NOT EXISTS public.construction_offers (
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- RLS for Construction (Basic safety, full policies in other migrations)
+-- RLS for Construction
 ALTER TABLE public.construction_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.construction_offers ENABLE ROW LEVEL SECURITY;
 
@@ -78,14 +83,15 @@ VALUES ('market-images', 'market-images', true)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO storage.buckets (id, name, public)
-VALUES ('construction-documents', 'construction-documents', false) -- Private by default
+VALUES ('construction-documents', 'construction-documents', false)
 ON CONFLICT (id) DO NOTHING;
 
--- Policies for Storage (Simplified)
+-- Policies for Storage
+DROP POLICY IF EXISTS "Public Access Market Images" ON storage.objects;
 CREATE POLICY "Public Access Market Images" ON storage.objects FOR SELECT
 USING (bucket_id = 'market-images');
 
--- 5. COMPANY SCHEMA (Recovered from usage in AuthService.js)
+-- 5. COMPANY SCHEMA
 CREATE TABLE IF NOT EXISTS public.companies (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     owner_id uuid REFERENCES auth.users(id) NOT NULL,
@@ -109,5 +115,8 @@ CREATE TABLE IF NOT EXISTS public.company_services (
 ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.company_services ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Public Read Companies" ON public.companies;
 CREATE POLICY "Public Read Companies" ON public.companies FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public Read Company Services" ON public.company_services;
 CREATE POLICY "Public Read Company Services" ON public.company_services FOR SELECT USING (true);

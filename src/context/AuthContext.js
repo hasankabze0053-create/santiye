@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
             // but for now we just set what we have.
             setProfile(data);
         } catch (error) {
-            console.error("AuthContext: Fetch profile error:", error);
+            console.warn("AuthContext: Fetch profile warning (non-fatal):", error.message);
         }
     };
 

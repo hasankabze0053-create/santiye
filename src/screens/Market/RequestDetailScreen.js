@@ -18,19 +18,33 @@ export default function RequestDetailScreen() {
     const [loading, setLoading] = useState(true);
     const [currentUserId, setCurrentUserId] = useState(null);
     const [selectedImage, setSelectedImage] = useState(null); // Full screen modal state
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         // Get current user to check ownership
-        supabase.auth.getUser().then(({ data: { user } }) => {
-            if (user) {
-                setCurrentUserId(user.id);
-                console.log('DEBUG: Current User ID:', user.id);
-                console.log('DEBUG: Request User ID:', request?.user_id);
-                console.log('DEBUG: Is Owner:', user.id === request?.user_id);
+        const checkAuth = async () => {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    setCurrentUserId(user.id);
+                    // Check if user is admin
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('is_admin')
+                        .eq('id', user.id)
+                        .single();
+
+                    setIsAdmin(profile?.is_admin || false);
+                    console.log('DEBUG: Current User ID:', user.id);
+                    console.log('DEBUG: Request User ID:', request?.user_id);
+                    console.log('DEBUG: Is Owner:', user.id === request?.user_id);
+                }
+            } catch (err) {
+                console.log('Auth check error (Network):', err.message);
             }
-        }).catch(err => {
-            console.log('Auth check error (Network):', err.message);
-        });
+        };
+
+        checkAuth();
 
         if (request?.id) {
             // Only fetch items if it's a MARKET request
@@ -57,7 +71,7 @@ export default function RequestDetailScreen() {
             // 2. Fetch Bids (if any)
             const { data: bidsData, error: bidsError } = await supabase
                 .from('market_bids')
-                .select('*, provider:providers(company_name)')
+                .select('*, provider:profiles(full_name)')
                 .eq('request_id', request.id);
 
             if (bidsError) console.log("Bids fetch note:", bidsError.message);
@@ -68,6 +82,36 @@ export default function RequestDetailScreen() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleCompleteRequest = () => {
+        Alert.alert(
+            'Talebi Dondur',
+            'Bu talebi dondurmak istediğinize emin misiniz? Talep pasife alınacak ve yeni tekliflere kapatılacaktır.',
+            [
+                { text: 'Vazgeç', style: 'cancel' },
+                {
+                    text: 'Evet, Dondur',
+                    style: 'default',
+                    onPress: async () => {
+                        setLoading(true);
+                        const { error } = await supabase
+                            .from('construction_requests')
+                            .update({ status: 'frozen' }) // Using 'frozen' or 'inactive' status
+                            .eq('id', request.id);
+
+                        setLoading(false);
+                        if (!error) {
+                            Alert.alert('Başarılı', 'Talep donduruldu.', [
+                                { text: 'Tamam', onPress: () => navigation.goBack() }
+                            ]);
+                        } else {
+                            Alert.alert('Hata', 'İşlem başarısız oldu: ' + error?.message);
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     const handleDeleteRequest = () => {
@@ -117,7 +161,14 @@ export default function RequestDetailScreen() {
 
     // --- CONSTRUCTION DETAIL VIEW ---
     if (type === 'construction') {
-        const offerLabel = request.offer_type === 'kat_karsiligi' ? 'Kat Karşılığı' : 'Komple Yapım (Anahtar Teslim)';
+        // Robust check for Flat for Land
+        const isFlatForLand =
+            request?.offer_type === 'kat_karsiligi' ||
+            request?.offer_type === 'Kat Karşılığı' ||
+            request?.offer_model === 'kat_karsiligi' ||
+            request?.offer_model === 'Kat Karşılığı';
+
+        const offerLabel = isFlatForLand ? 'Kat Karşılığı' : 'Komple Yapım (Anahtar Teslim)';
         const isOwner = currentUserId && request.user_id === currentUserId;
 
         return (
@@ -276,51 +327,81 @@ export default function RequestDetailScreen() {
                             )}
                         </ScrollView>
 
-                        {/* DELETE BUTTON (Only for Owner) */}
+                        {/* OWNER ACTIONS */}
                         {isOwner && (
-                            <TouchableOpacity
-                                style={{
-                                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                                    borderWidth: 1,
-                                    borderColor: '#EF4444',
-                                    borderRadius: 12,
-                                    paddingVertical: 16,
-                                    alignItems: 'center',
-                                    marginTop: 20,
-                                    marginBottom: 40
-                                }}
-                                onPress={handleDeleteRequest}
-                            >
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                    <MaterialCommunityIcons name="trash-can-outline" size={20} color="#EF4444" />
-                                    <Text style={{ color: '#EF4444', fontWeight: 'bold', fontSize: 16 }}>BU TALEBİ SİL</Text>
-                                </View>
-                            </TouchableOpacity>
+                            <View style={{ gap: 12, marginTop: 20, marginBottom: 40 }}>
+                                {/* FREEZE REQUEST BUTTON */}
+                                {request.status !== 'frozen' && request.status !== 'completed' && (
+                                    <TouchableOpacity
+                                        style={{
+                                            backgroundColor: 'rgba(56, 189, 248, 0.1)', // Light Blue Tint
+                                            borderWidth: 1,
+                                            borderColor: '#38BDF8', // Light Blue
+                                            borderRadius: 12,
+                                            paddingVertical: 16,
+                                            alignItems: 'center',
+                                        }}
+                                        onPress={handleCompleteRequest}
+                                    >
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                            <MaterialCommunityIcons name="snowflake" size={20} color="#38BDF8" />
+                                            <Text style={{ color: '#38BDF8', fontWeight: 'bold', fontSize: 16 }}>TALEBİ DONDUR</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                )}
+
+                                {/* DELETE BUTTON */}
+                                <TouchableOpacity
+                                    style={{
+                                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                        borderWidth: 1,
+                                        borderColor: '#EF4444',
+                                        borderRadius: 12,
+                                        paddingVertical: 16,
+                                        alignItems: 'center',
+                                    }}
+                                    onPress={handleDeleteRequest}
+                                >
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                        <MaterialCommunityIcons name="trash-can-outline" size={20} color="#EF4444" />
+                                        <Text style={{ color: '#EF4444', fontWeight: 'bold', fontSize: 16 }}>TALEBİ SİL</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
                         )}
 
-                        {/* OFFER BUTTON (Only for Non-Owners) */}
-                        {!isOwner && (
-                            <TouchableOpacity
-                                style={{
-                                    backgroundColor: '#D4AF37', // Gold color
-                                    borderRadius: 12,
-                                    paddingVertical: 16,
-                                    alignItems: 'center',
-                                    marginTop: 20,
-                                    marginBottom: 40,
-                                    shadowColor: '#D4AF37',
-                                    shadowOffset: { width: 0, height: 4 },
-                                    shadowOpacity: 0.2,
-                                    shadowRadius: 8,
-                                    elevation: 4
-                                }}
-                                onPress={() => navigation.navigate('ConstructionOfferSubmit', { request })}
-                            >
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                    <MaterialCommunityIcons name="file-document-edit-outline" size={20} color="#000" />
-                                    <Text style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>TEKLİF VER</Text>
-                                </View>
-                            </TouchableOpacity>
+                        {/* OFFER BUTTON (For Non-Owners OR Admins testing their own requests) */}
+                        {(!isOwner || isAdmin) && (
+                            <View>
+                                <TouchableOpacity
+                                    style={{
+                                        backgroundColor: '#D4AF37', // Gold color
+                                        borderRadius: 12,
+                                        paddingVertical: 16,
+                                        alignItems: 'center',
+                                        marginTop: isOwner ? 0 : 20,
+                                        marginBottom: 40,
+                                        shadowColor: '#D4AF37',
+                                        shadowOffset: { width: 0, height: 4 },
+                                        shadowOpacity: 0.2,
+                                        shadowRadius: 8,
+                                        elevation: 4
+                                    }}
+                                    onPress={() => navigation.navigate('ConstructionOfferSubmit', { request })}
+                                >
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                        <MaterialCommunityIcons name="file-document-edit-outline" size={20} color="#000" />
+                                        <Text style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>TEKLİF VER</Text>
+                                    </View>
+                                </TouchableOpacity>
+
+                                {isOwner && isAdmin && (
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: -20, marginBottom: 20, justifyContent: 'center', opacity: 0.7 }}>
+                                        <MaterialCommunityIcons name="shield-account" size={14} color="#666" />
+                                        <Text style={{ color: '#666', fontSize: 11 }}>Admin Test Modu Aktif</Text>
+                                    </View>
+                                )}
+                            </View>
                         )}
                     </ScrollView>
 

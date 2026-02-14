@@ -41,15 +41,25 @@ export const AuthService = {
     },
 
     // 3. Get User Profile
-    async getProfile(userId) {
-        const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
-            .maybeSingle();
+    async getProfile(userId, retries = 3) {
+        for (let i = 0; i < retries; i++) {
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .maybeSingle();
 
-        if (error) throw error;
-        return data;
+                if (error) throw error;
+                return data;
+
+            } catch (error) {
+                console.warn(`AuthService: getProfile attempt ${i + 1} failed:`, error.message);
+                if (i === retries - 1) throw error; // Throw on last attempt
+                // Wait 1s before retry
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
     },
 
     // NEW: Self-Healing Profile Creation

@@ -87,7 +87,11 @@ export default function ContractorProviderScreen() {
                                 </View>
                                 <View>
                                     <Text style={styles.detailLabel}>MODEL</Text>
-                                    <Text style={styles.detailValue}>Kat Karşılığı</Text>
+                                    <Text style={styles.detailValue}>
+                                        {(item.offer_type === 'kat_karsiligi' || item.offer_type === 'Kat Karşılığı' || item.offer_model === 'kat_karsiligi')
+                                            ? 'Kat Karşılığı'
+                                            : 'Anahtar Teslim'}
+                                    </Text>
                                 </View>
                             </View>
                             <View style={styles.hDivider} />
