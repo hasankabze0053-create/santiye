@@ -110,6 +110,31 @@ export default function ConstructionOfferSubmitScreen() {
     const [cashAdjustmentType, setCashAdjustmentType] = useState('request'); // 'request' (Müteahhit ister) | 'payment' (Müteahhit öder)
     const [cashAdjustmentAmount, setCashAdjustmentAmount] = useState('');
     const [grantOwnership, setGrantOwnership] = useState('landowner'); // 'landowner' | 'contractor'
+    const [savedStrategies, setSavedStrategies] = useState([]); // Store list of saved offers (Renamed to avoid cache issues)
+
+    useEffect(() => {
+        fetchSavedStrategies();
+    }, []);
+
+    const fetchSavedStrategies = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const { data, error } = await supabase
+                .from('construction_offers')
+                .select('*')
+                .eq('request_id', request.id)
+                .eq('contractor_id', user.id)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            console.log('DEBUG: fetched strategies', data ? data.length : 0);
+            setSavedStrategies(data || []);
+        } catch (error) {
+            console.error('Error fetching saved offers:', error);
+        }
+    };
 
     // Helpers
     const handleUnitSelect = (unit) => {
@@ -305,14 +330,43 @@ export default function ConstructionOfferSubmitScreen() {
         setFloorDetails(newMap);
     };
 
-    const handleSubmit = async () => {
+    const loadOffer = (offer) => {
+        // Load data from offer object
+        const breakdown = offer.unit_breakdown || {};
+
+        // 1. Restore Selected Units
+        if (breakdown.selected_units) {
+            setSelectedUnits(breakdown.selected_units);
+        }
+
+        // 2. Restore Cash Adjustment
+        if (breakdown.cash_adjustment) {
+            setCashAdjustmentType(breakdown.cash_adjustment.type);
+            setCashAdjustmentAmount(breakdown.cash_adjustment.amount ? breakdown.cash_adjustment.amount.toString() : '');
+        }
+
+        // 3. Restore Details
+        // If details was stored in offer_details text column? 
+        // We didn't explicitly map it in insert but usually it's there. 
+        // Let's assume offer.offer_details holds the text.
+        if (offer.offer_details) {
+            setDetails(offer.offer_details);
+        }
+
+        // 4. Scroll to top (optional, handled by user action)
+        Alert.alert('Yüklendi', 'Seçilen teklif detayları forma yüklendi.');
+    };
+
+    const handleSubmit = async (shouldExit = true) => {
         const isFlatForLand = request?.offer_type === 'kat_karsiligi';
 
         // Validation
+        /*
         if (!details) {
             Alert.alert('Eksik Bilgi', 'Lütfen detayları giriniz.');
             return;
         }
+        */
 
         if (!isFlatForLand && !price) {
             Alert.alert('Eksik Bilgi', 'Lütfen fiyat teklifi giriniz.');
@@ -358,12 +412,8 @@ export default function ConstructionOfferSubmitScreen() {
                 // Flat for Land Specifics
                 offerData.price_estimate = 0; // Or cash amount? Let's keep 0 for now as it's not a total contract price
                 offerData.unit_price = 0;
-                offerData.offer_metadata = { // Store specific logic here if column doesn't exist, or put in offer_details text? 
-                    // Wait, offer_details is text column usually. 
-                    // Let's assume user wants structured data.
-                    // If no specific columns, I'll allow Supabase to handle extra fields if it's JSONB, 
-                    // OR I will stuff them into floor_details_json or create a new object.
-                    // The schema likely has 'unit_breakdown' as JSONB.
+
+                const flatLandMetadata = {
                     selected_units: selectedUnits,
                     grant_ownership: grantOwnership,
                     cash_adjustment: {
@@ -371,8 +421,9 @@ export default function ConstructionOfferSubmitScreen() {
                         amount: cashAdjustmentAmount ? parseCurrency(cashAdjustmentAmount) : 0
                     }
                 };
-                // We can use unit_breakdown for this metadata since it's JSONB and relevant
-                offerData.unit_breakdown = offerData.offer_metadata;
+
+                // Use unit_breakdown column which is JSONB to store this metadata
+                offerData.unit_breakdown = flatLandMetadata;
             } else {
                 // Standard Offer
                 offerData.price_estimate = parseCurrency(price);
@@ -386,9 +437,24 @@ export default function ConstructionOfferSubmitScreen() {
 
             if (error) throw error;
 
-            Alert.alert('Başarılı', 'Teklifiniz başarıyla iletildi!', [
-                { text: 'Tamam', onPress: () => navigation.navigate('MainTabs', { screen: 'Requests' }) }
-            ]);
+            if (shouldExit) {
+                Alert.alert('Başarılı', 'Teklifiniz başarıyla iletildi!', [
+                    { text: 'Tamam', onPress: () => navigation.navigate('MainTabs', { screen: 'Requests' }) }
+                ]);
+            } else {
+            } else {
+                await fetchSavedStrategies(); // Refresh list
+
+                // Reset Form
+                setSelectedUnits([]);
+                setCashAdjustmentAmount('');
+                setDetails('');
+                // Keep other structural things like floor details? Yes.
+
+                Alert.alert('Kaydedildi', 'Bu teklif seçeneği kaydedildi. Form temizlendi, şimdi yeni bir seçenek (strateji) oluşturabilirsiniz.', [
+                    { text: 'Devam Et', onPress: () => { } }
+                ]);
+            }
 
         } catch (error) {
             console.error('Offer submission error:', error);
@@ -819,6 +885,7 @@ export default function ConstructionOfferSubmitScreen() {
                             </GlassCard>
 
                             {/* Visualization */}
+
                             <View style={styles.schemaContainer}>
                                 <BuildingSchema
                                     floorCount={floorCount}
@@ -826,11 +893,97 @@ export default function ConstructionOfferSubmitScreen() {
                                     groundFloorType={groundFloorType}
                                     isBasementResidential={isBasementResidential}
                                     basementCount={basementCount}
-                                    selectable={isFlatForLand}
+                                    selectable={true}
                                     selectedUnits={selectedUnits}
                                     onUnitSelect={handleUnitSelect}
+                                    campaignData={{
+                                        unitCount: request?.campaign_unit_count || 0,
+                                        commercialCount: request?.campaign_commercial_count || 0
+                                    }}
+                                    cashAdjustment={{
+                                        type: cashAdjustmentType, // 'request' or 'payment'
+                                        amount: parseCurrency(cashAdjustmentAmount) || 0
+                                    }}
                                 />
                             </View>
+
+                            {/* Dynamic Offer Summary */}
+                            {isFlatForLand && (
+                                <GlassCard style={{ marginTop: 16, borderColor: '#D4AF37', borderWidth: 1, backgroundColor: 'rgba(212, 175, 55, 0.05)' }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                                        <MaterialCommunityIcons name="file-document-edit-outline" size={24} color="#D4AF37" style={{ marginRight: 8 }} />
+                                        <Text style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 13, letterSpacing: 1 }}>TEKLİF ÖZETİ</Text>
+                                    </View>
+
+                                    <Text style={{ color: '#E0E0E0', fontSize: 13, lineHeight: 22 }}>
+                                        <Text style={{ fontWeight: 'bold', color: '#FFF' }}>Söz konusu inşaa yapım işi için müteahhit firma olarak talebim;</Text>
+                                        {'\n\n'}
+                                        {(() => {
+                                            // 1. Find Unit Names
+                                            const unitNames = [];
+                                            if (selectedUnits.length > 0 && floorDetails) {
+                                                Object.values(floorDetails).forEach(floor => {
+                                                    if (Array.isArray(floor)) {
+                                                        floor.forEach(u => {
+                                                            if (selectedUnits.includes(u.id)) unitNames.push(u.name || u.type);
+                                                        });
+                                                    }
+                                                });
+                                            }
+
+                                            // 2. Grant Amount
+                                            const grantAmount = ((request?.campaign_unit_count || 0) * 1750000) + ((request?.campaign_commercial_count || 0) * 875000);
+                                            const formattedGrant = new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(grantAmount);
+
+                                            // 3. Cash Adjustment
+                                            const cashAmount = parseCurrency(cashAdjustmentAmount);
+                                            const formattedCash = new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(cashAmount);
+
+                                            return (
+                                                <Text>
+                                                    {unitNames.length > 0 ? (
+                                                        <>
+                                                            Binada yer alan <Text style={{ color: '#D4AF37', fontWeight: 'bold' }}>{unitNames.join(', ')}</Text>
+                                                            {unitNames.length > 1 ? ' bağımsız bölümlerinin' : ' bağımsız bölümünün'} tarafıma devredilmesi
+                                                        </>
+                                                    ) : (
+                                                        <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Binada yer alan tüm bağımsız bölümlerin hak sahiplerine teslim edilmesi </Text>
+                                                    )}
+
+                                                    {grantAmount > 0 && (
+                                                        <Text>
+                                                            {' ve kentsel dönüşüm kapsamında sağlanan '}
+                                                            <Text style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedGrant}</Text>
+                                                            <Text style={{ color: '#AAA', fontSize: 11, fontStyle: 'italic' }}> ({numberToTurkishWords(grantAmount)})</Text>
+                                                            {' hibe/kredi desteği hak edişinin tarafımca alınması'}
+                                                        </Text>
+                                                    )}
+                                                    {' karşılığında; '}
+
+                                                    {cashAdjustmentType === 'payment' && cashAmount > 0 ? (
+                                                        <Text>
+                                                            hak sahiplerine toplam <Text style={{ color: '#FF5252', fontWeight: 'bold' }}>{formattedCash}</Text>
+                                                            <Text style={{ color: '#AAA', fontSize: 11, fontStyle: 'italic' }}> ({numberToTurkishWords(cashAmount)})</Text>
+                                                            {' nakit ödeme yapmayı taahhüt ediyorum.'}
+                                                        </Text>
+                                                    ) : cashAdjustmentType === 'request' && cashAmount > 0 ? (
+                                                        <Text>
+                                                            hak sahiplerinden inşaat yapım bedeline ek olarak <Text style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedCash}</Text>
+                                                            <Text style={{ color: '#AAA', fontSize: 11, fontStyle: 'italic' }}> ({numberToTurkishWords(cashAmount)})</Text>
+                                                            {' nakit ödeme talep ediyorum.'}
+                                                        </Text>
+                                                    ) : (
+                                                        <Text>
+                                                            taraflar arasında herhangi bir nakit ödemesi talep edilmemektedir.
+                                                        </Text>
+                                                    )}
+                                                </Text>
+                                            );
+                                        })()}
+                                    </Text>
+                                </GlassCard>
+                            )}
+
 
                             <Text style={styles.sectionHeader}>AÇIKLAMA VE DETAYLAR</Text>
                             <GlassCard style={styles.card}>
@@ -843,22 +996,85 @@ export default function ConstructionOfferSubmitScreen() {
                                     value={details}
                                     onChangeText={setDetails}
                                 />
-                            </GlassCard>
-
-                            <TouchableOpacity onPress={handleSubmit} disabled={loading} style={styles.submitBtnContainer}>
-                                <LinearGradient
-                                    colors={['#D4AF37', '#FFD700', '#FDB931', '#D4AF37']}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 0 }}
-                                    style={styles.submitBtn}
-                                >
-                                    {loading ? (
-                                        <ActivityIndicator color="#000" />
+                                <View style={{ marginBottom: 20 }}>
+                                    <Text style={styles.sectionHeader}>KAYDEDİLEN TEKLİFLER (STRATEJİLER)</Text>
+                                    {(!savedStrategies || savedStrategies.length === 0) ? (
+                                        <Text style={{ color: '#666', fontStyle: 'italic', textAlign: 'center', marginVertical: 10 }}>Henüz kaydedilmiş bir seçenek yok.</Text>
                                     ) : (
-                                        <Text style={styles.submitBtnText}>TEKLİFİ GÖNDER</Text>
+                                        savedStrategies.map((offer, index) => {
+                                            const breakdown = offer.unit_breakdown || {};
+                                            const unitCount = breakdown.selected_units ? breakdown.selected_units.length : 0;
+                                            const cash = breakdown.cash_adjustment ? breakdown.cash_adjustment.amount : 0;
+                                            const type = breakdown.cash_adjustment ? breakdown.cash_adjustment.type : 'none';
+
+                                            return (
+                                                <TouchableOpacity
+                                                    key={offer.id}
+                                                    style={styles.summaryCard}
+                                                    onPress={() => loadOffer(offer)}
+                                                >
+                                                    <View style={styles.summaryHeader}>
+                                                        <View style={[styles.summaryIcon, { backgroundColor: '#333' }]}>
+                                                            <Text style={{ color: '#D4AF37', fontWeight: 'bold' }}>{savedStrategies.length - index}</Text>
+                                                        </View>
+                                                        <View style={{ flex: 1 }}>
+                                                            <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 13 }}>
+                                                                {unitCount > 0 ? `${unitCount} Daire` : 'Daire Yok'}
+                                                                {cash > 0 ? (type === 'request' ? ` + ${formatCurrency(cash.toString())} TL (Alacak)` : ` - ${formatCurrency(cash.toString())} TL (Ödeme)`) : ''}
+                                                            </Text>
+                                                            <Text style={{ color: '#888', fontSize: 11 }}>
+                                                                {new Date(offer.created_at).toLocaleString('tr-TR')}
+                                                            </Text>
+                                                        </View>
+                                                        <MaterialCommunityIcons name="pencil" size={20} color="#D4AF37" />
+                                                    </View>
+                                                </TouchableOpacity>
+                                            );
+                                        })
                                     )}
-                                </LinearGradient>
-                            </TouchableOpacity>
+                                </View>
+
+                                <View style={{ marginBottom: 40, marginTop: 10 }}>
+                                    {/* Secondary Action: Save & Add New Option */}
+                                    <TouchableOpacity
+                                        style={{
+                                            paddingVertical: 14,
+                                            alignItems: 'center',
+                                            borderRadius: 14,
+                                            borderWidth: 1,
+                                            borderColor: '#D4AF37',
+                                            marginBottom: 16,
+                                            backgroundColor: 'rgba(212, 175, 55, 0.05)'
+                                        }}
+                                        onPress={() => handleSubmit(false)} // Pass false to shrink/stay
+                                        disabled={loading}
+                                    >
+                                        <Text style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 13, letterSpacing: 1 }}>
+                                            {loading ? 'KAYDEDİLİYOR...' : 'BU TEKLİFİ KAYDET VE YENİ SEÇENEK EKLE'}
+                                        </Text>
+                                    </TouchableOpacity>
+
+                                    {/* Primary Action: Submit & Exit */}
+                                    <TouchableOpacity
+                                        onPress={() => handleSubmit(true)}
+                                        disabled={loading}
+                                        style={[styles.submitBtnContainer, { marginVertical: 0 }]}
+                                    >
+                                        <LinearGradient
+                                            colors={['#D4AF37', '#FFD700', '#FDB931', '#D4AF37']}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 0 }}
+                                            style={styles.submitBtn}
+                                        >
+                                            {loading ? (
+                                                <ActivityIndicator color="#000" />
+                                            ) : (
+                                                <Text style={styles.submitBtnText}>TEKLİFİ GÖNDER VE ÇIK</Text>
+                                            )}
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+                                </View>
+                            </GlassCard>
                         </View>
                     </TouchableWithoutFeedback>
                 </KeyboardAwareScrollView >

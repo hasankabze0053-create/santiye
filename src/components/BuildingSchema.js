@@ -22,7 +22,9 @@ export default function BuildingSchema({
     basementCount = 1,
     selectable = false,
     selectedUnits = [],
-    onUnitSelect
+    onUnitSelect,
+    campaignData = {}, // Default empty object to prevent crash
+    cashAdjustment = null // { type: 'request' | 'payment', amount: 0 }
 }) {
     const floors = parseInt(floorCount) || 0;
     const basements = parseInt(basementCount) || 1;
@@ -208,6 +210,9 @@ export default function BuildingSchema({
     return (
         <View style={styles.container}>
             <Text style={styles.title}>ÖNİZLEME: YENİ BİNA PLAN ŞEMASI</Text>
+            {selectable && (
+                <Text style={styles.instruction}>Müteahhit payına düşen daireleri seçmek için üzerine dokunun.</Text>
+            )}
             <View style={styles.schemaContainer}>
                 {renderFloors()}
             </View>
@@ -226,6 +231,115 @@ export default function BuildingSchema({
             )}
 
             <Text style={styles.note}>* Temsili şemadır. Kat planları proje detaylarına göre değişebilir.</Text>
+
+
+            {/* Government Grant Info */}
+            {campaignData && (campaignData.unitCount > 0 || campaignData.commercialCount > 0) && (
+                <View style={styles.grantContainer}>
+                    <Text style={styles.grantLabel}>DEVLET DESTEĞİNDE HAK EDİŞİNİZ</Text>
+                    <Text style={styles.grantAmount}>
+                        {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(
+                            (campaignData.unitCount * 1750000) + (campaignData.commercialCount * 875000)
+                        )}
+                    </Text>
+                    <Text style={styles.grantSubtext}>
+                        {campaignData.unitCount > 0 ? `${campaignData.unitCount} Konut ` : ''}
+                        {campaignData.commercialCount > 0 ? `${campaignData.commercialCount} Ticari ` : ''}
+                        (Hibe + Kredi)
+                    </Text>
+                </View>
+            )}
+
+            {/* Cash Adjustment Info */}
+            {cashAdjustment && cashAdjustment.amount > 0 && (
+                <View style={[
+                    styles.grantContainer,
+                    {
+                        marginTop: 10,
+                        backgroundColor: cashAdjustment.type === 'request' ? 'rgba(50, 205, 50, 0.1)' : 'rgba(255, 82, 82, 0.1)',
+                        borderColor: cashAdjustment.type === 'request' ? 'rgba(50, 205, 50, 0.3)' : 'rgba(255, 82, 82, 0.3)'
+                    }
+                ]}>
+                    <Text style={[
+                        styles.grantLabel,
+                        { color: cashAdjustment.type === 'request' ? '#4CAF50' : '#FF5252' }
+                    ]}>
+                        {cashAdjustment.type === 'request' ? 'HAK SAHİPLERİNDEN TALEP EDİLEN TOPLAM TUTAR' : 'HAK SAHİPLERİNE ÖDENECEK TOPLAM TUTAR'}
+                    </Text>
+                    <Text style={[
+                        styles.grantAmount,
+                        {
+                            textShadowColor: cashAdjustment.type === 'request' ? 'rgba(76, 175, 80, 0.5)' : 'rgba(244, 67, 54, 0.5)'
+                        }
+                    ]}>
+                        {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(cashAdjustment.amount)}
+                    </Text>
+                    <Text style={styles.grantSubtext}>
+                        {cashAdjustment.type === 'request' ? 'Nakit Ödeme (İlave Ücret)' : 'Nakit Ödeme (Üste Para)'}
+                    </Text>
+                </View>
+            )}
+
+            {/* Contractor Selected Units Info */}
+            {selectedUnits.length > 0 && (
+                <View style={[
+                    styles.grantContainer,
+                    {
+                        marginTop: 10,
+                        backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                        borderColor: 'rgba(212, 175, 55, 0.3)'
+                    }
+                ]}>
+                    <Text style={[styles.grantLabel, { color: '#D4AF37' }]}>
+                        MÜTEAHHİT FİRMAYA KALACAK DAİRELER
+                    </Text>
+                    <Text style={[
+                        styles.grantAmount,
+                        {
+                            fontSize: 14,
+                            textAlign: 'center',
+                            textShadowColor: 'rgba(212, 175, 55, 0.5)',
+                            lineHeight: 20
+                        }
+                    ]}>
+                        {(() => {
+                            const unitNames = [];
+                            // Re-calculate unit names from floorDetails
+                            if (floorDetails) {
+                                // Upper floors
+                                for (let i = floors; i >= 1; i--) {
+                                    const fData = floorDetails[i];
+                                    if (Array.isArray(fData)) {
+                                        fData.forEach(u => {
+                                            if (selectedUnits.includes(u.id)) unitNames.push(u.name || u.type);
+                                        });
+                                    }
+                                }
+                                // Ground
+                                const gData = floorDetails[0];
+                                if (Array.isArray(gData)) {
+                                    gData.forEach(u => {
+                                        if (selectedUnits.includes(u.id)) unitNames.push(u.name || u.type);
+                                    });
+                                }
+                                // Basement
+                                for (let b = 1; b <= basements; b++) {
+                                    const bData = floorDetails[-b];
+                                    if (Array.isArray(bData)) {
+                                        bData.forEach(u => {
+                                            if (selectedUnits.includes(u.id)) unitNames.push(u.name || u.type);
+                                        });
+                                    }
+                                }
+                            }
+                            return unitNames.join(', ');
+                        })()}
+                    </Text>
+                    <Text style={styles.grantSubtext}>
+                        {selectedUnits.length} Adet Bağımsız Bölüm
+                    </Text>
+                </View>
+            )}
         </View>
     );
 }
@@ -248,6 +362,43 @@ const styles = StyleSheet.create({
         marginBottom: 24,
         letterSpacing: 2,
         textTransform: 'uppercase'
+    },
+    instruction: {
+        color: '#888',
+        fontSize: 11,
+        marginBottom: 16,
+        textAlign: 'center',
+        fontStyle: 'italic'
+    },
+    grantContainer: {
+        marginTop: 20,
+        backgroundColor: 'rgba(50, 205, 50, 0.1)',
+        padding: 12,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(50, 205, 50, 0.3)',
+        alignItems: 'center',
+        width: '100%'
+    },
+    grantLabel: {
+        color: '#4CAF50',
+        fontSize: 10,
+        fontWeight: 'bold',
+        marginBottom: 4,
+        letterSpacing: 1
+    },
+    grantAmount: {
+        color: '#FFF',
+        fontSize: 18,
+        fontWeight: 'bold',
+        textShadowColor: 'rgba(76, 175, 80, 0.5)',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 10
+    },
+    grantSubtext: {
+        color: '#AAA',
+        fontSize: 10,
+        marginTop: 4
     },
     schemaContainer: {
         width: '100%',
