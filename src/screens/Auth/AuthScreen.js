@@ -105,8 +105,13 @@ export default function AuthScreen() {
                     navigation.navigate('Ana Sayfa');
                 } else {
                     // Corporate
-                    console.log('[AuthScreen] Corporate, Navigating to ProviderDashboard');
-                    navigation.navigate('ProviderDashboard');
+                    if (profile.approval_status === 'approved') {
+                        console.log('[AuthScreen] Corporate Approved, Navigating to ProviderDashboard');
+                        navigation.navigate('ProviderDashboard');
+                    } else {
+                        console.log(`[AuthScreen] Corporate ${profile.approval_status}, Navigating to ProfileMain`);
+                        navigation.navigate('ProfileMain');
+                    }
                 }
 
             } else {

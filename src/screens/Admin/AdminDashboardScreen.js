@@ -2,7 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Image, Linking, Modal, RefreshControl, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Image, Linking, Modal, RefreshControl, ScrollView, StatusBar, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 
@@ -113,7 +113,14 @@ const AdminDashboardScreen = () => {
 
     // User Management State
     const [users, setUsers] = useState([]);
-    const [userTypeFilter, setUserTypeFilter] = useState('corporate'); // 'individual' | 'corporate'
+    const [userTypeFilter, setUserTypeFilter] = useState('corporate');
+    const [selectedUserDetail, setSelectedUserDetail] = useState(null); // Moved here // 'individual' | 'corporate'
+
+    // Rejection / Info Request Modal State
+    const [rejectModalVisible, setRejectModalVisible] = useState(false);
+    const [rejectionReason, setRejectionReason] = useState('');
+    const [targetUser, setTargetUser] = useState(null);
+    const [actionType, setActionType] = useState(null); // 'reject' | 'incomplete'
 
     // Reuse ASSET_MAP for admin display if needed, or just use icons
     // We will use the list from DB for the grid when in Edit Mode
@@ -412,25 +419,134 @@ const AdminDashboardScreen = () => {
         );
     };
 
+    const handleOpenActionModal = (user, type) => {
+        setTargetUser(user);
+        setActionType(type);
+        setRejectionReason('');
+        setRejectModalVisible(true);
+    };
+
+    const handleSubmitAction = async () => {
+        if (!rejectionReason.trim()) {
+            Alert.alert('Uyarı', 'Lütfen bir sebep/açıklama giriniz.');
+            return;
+        }
+
+        const status = actionType === 'reject' ? 'rejected' : 'incomplete';
+        const successTitle = actionType === 'reject' ? 'Reddedildi' : 'Bilgi Talep Edildi';
+
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({
+                    approval_status: status,
+                    rejection_reason: rejectionReason
+                })
+                .eq('id', targetUser.id);
+
+            if (error) throw error;
+
+            Alert.alert('Başarılı', `${targetUser.full_name || targetUser.email} durumu güncellendi: ${successTitle}`);
+
+            // Optimistic Update
+            setUsers(prev => prev.map(u => u.id === targetUser.id ? {
+                ...u,
+                approval_status: status,
+                rejection_reason: rejectionReason
+            } : u));
+
+            setRejectModalVisible(false);
+            setTargetUser(null);
+        } catch (err) {
+            console.error(err);
+            Alert.alert('Hata', 'İşlem başarısız (Sütun eksik olabilir): ' + err.message);
+        }
+    };
+
+    const handleConvertToIndividual = (user) => {
+        Alert.alert(
+            'Kurumsal Üyelikten Çıkar?',
+            'Bu işlem kullanıcının tüm firma yetkilerini (Müteahhit, Satıcı vb.) iptal edecek ve hesabı "Bireysel"e çevirecektir.',
+            [
+                { text: 'Vazgeç', style: 'cancel' },
+                {
+                    text: 'Onayla ve Çevir',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            const { error } = await supabase
+                                .from('profiles')
+                                .update({
+                                    user_type: 'individual',
+                                    approval_status: 'approved', // Individuals default to approved
+                                    is_contractor: false,
+                                    is_seller: false,
+                                    is_transporter: false,
+                                    is_architect: false,
+                                    is_engineer: false,
+                                    is_real_estate_agent: false,
+                                    rejection_reason: null
+                                })
+                                .eq('id', user.id);
+
+                            if (error) throw error;
+
+                            // Optimistic Update
+                            if (userTypeFilter === 'corporate') {
+                                // Remove from list if viewing corporate only
+                                setUsers(prev => prev.filter(u => u.id !== user.id));
+                                setSelectedUserDetail(null); // Close modal
+                            } else {
+                                // Just update details
+                                const updatedUser = {
+                                    ...user,
+                                    user_type: 'individual',
+                                    approval_status: 'approved',
+                                    is_contractor: false,
+                                    is_seller: false,
+                                    is_transporter: false,
+                                    is_architect: false,
+                                    is_engineer: false,
+                                    is_real_estate_agent: false,
+                                    rejection_reason: null
+                                };
+                                setUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
+                                setSelectedUserDetail(updatedUser);
+                            }
+
+                            Alert.alert('Başarılı', 'Kullanıcı bireysel hesaba geçirildi.');
+
+                        } catch (err) {
+                            Alert.alert('Hata', 'İşlem başarısız: ' + err.message);
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
     const handleApproveUser = async (user) => {
         try {
             const { error } = await supabase
                 .from('profiles')
-                .update({ approval_status: 'approved' })
+                .update({
+                    approval_status: 'approved',
+                    rejection_reason: null // Clear reason on approval
+                })
                 .eq('id', user.id);
 
             if (error) throw error;
 
             Alert.alert('Başarılı', `${user.full_name || user.email} onaylandı. ✅`);
             // Optimistic Update
-            setUsers(prev => prev.map(u => u.id === user.id ? { ...u, approval_status: 'approved' } : u));
+            setUsers(prev => prev.map(u => u.id === user.id ? { ...u, approval_status: 'approved', rejection_reason: null } : u));
         } catch (err) {
             Alert.alert('Hata', 'Onaylama başarısız: ' + err.message);
         }
     };
 
     const renderOfferItem = ({ item }) => (
-        <TouchableOpacity 
+        <TouchableOpacity
             style={styles.offerCard}
             activeOpacity={0.8}
             onPress={() => {
@@ -479,77 +595,253 @@ const AdminDashboardScreen = () => {
     );
 
     const renderUserItem = ({ item }) => (
-        <View style={styles.userCard}>
-            <View style={styles.userIconBox}>
-                <Ionicons
-                    name={userTypeFilter === 'individual' ? "person" : "business"}
-                    size={24}
-                    color="#D4AF37"
-                />
-            </View>
-            <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={styles.userCardTitle}>{item.full_name || 'İsimsiz'}</Text>
-                <Text style={styles.userCardSubtitle}>{item.email}</Text>
-                {item.phone && (
-                    <Text style={styles.userCardPhone}>📞 {item.phone}</Text>
-                )}
-                <Text style={styles.userCardDate}>Kayıt: {new Date(item.created_at).toLocaleDateString('tr-TR')}</Text>
+        <TouchableOpacity
+            style={styles.userCard}
+            activeOpacity={0.7}
+            onPress={() => setSelectedUserDetail(item)}
+        >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={styles.userIconBox}>
+                    <Ionicons
+                        name={userTypeFilter === 'individual' ? "person" : "business"}
+                        size={24}
+                        color="#D4AF37"
+                    />
+                </View>
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={styles.userCardTitle}>{item.full_name || 'İsimsiz'}</Text>
+                    <Text style={styles.userCardSubtitle}>{item.email}</Text>
+                    {item.phone && (
+                        <Text style={styles.userCardPhone}>📞 {item.phone}</Text>
+                    )}
+                    <Text style={styles.userCardDate}>Kayıt: {new Date(item.created_at).toLocaleDateString('tr-TR')}</Text>
+                </View>
 
-                {/* Status Badge */}
-                <View style={[
-                    styles.statusBadge,
-                    {
-                        backgroundColor: item.approval_status === 'approved' ? 'rgba(74, 222, 128, 0.1)' :
-                            item.approval_status === 'suspended' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(251, 191, 36, 0.1)'
-                    }
-                ]}>
-                    <Text style={[
-                        styles.statusText,
+                {/* Status Badge (Right Side) */}
+                <View style={{ alignItems: 'flex-end' }}>
+                    <View style={[
+                        styles.statusBadge,
                         {
-                            color: item.approval_status === 'approved' ? '#4ADE80' :
-                                item.approval_status === 'suspended' ? '#EF4444' : '#FBBF24'
+                            backgroundColor: item.approval_status === 'approved' ? 'rgba(74, 222, 128, 0.1)' :
+                                item.approval_status === 'suspended' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(251, 191, 36, 0.1)'
                         }
                     ]}>
-                        {item.approval_status === 'approved' ? 'ONAYLI' :
-                            item.approval_status === 'suspended' ? 'ASKIDA' : 'ONAY BEKLİYOR'}
-                    </Text>
+                        <Text style={[
+                            styles.statusText,
+                            {
+                                color: item.approval_status === 'approved' ? '#4ADE80' :
+                                    item.approval_status === 'suspended' ? '#EF4444' : '#FBBF24',
+                                fontSize: 10
+                            }
+                        ]}>
+                            {item.approval_status === 'approved' ? 'ONAYLI' :
+                                item.approval_status === 'suspended' ? 'ASKIDA' : 'BEKLİYOR'}
+                        </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#555" style={{ marginTop: 8 }} />
                 </View>
             </View>
+        </TouchableOpacity>
+    );
 
-            {/* Action Buttons Row */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-
-                {/* 1. Approve Button (Only if Pending) */}
-                {item.approval_status === 'pending' && item.user_type === 'corporate' && (
-                    <TouchableOpacity
-                        style={styles.actionBtn}
-                        onPress={() => handleApproveUser(item)}
+    const renderUserDetailModal = () => (
+        <Modal
+            animationType="slide"
+            transparent={true}
+            visible={!!selectedUserDetail}
+            onRequestClose={() => setSelectedUserDetail(null)}
+        >
+            <View style={styles.modalOverlay}>
+                <View style={styles.modalContainer}>
+                    <LinearGradient
+                        colors={['#1e293b', '#0f172a']}
+                        style={styles.modalContent}
                     >
-                        <Ionicons name="checkmark-circle" size={24} color="#4ADE80" />
-                    </TouchableOpacity>
-                )}
+                        {/* Header */}
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Kullanıcı Detayı</Text>
+                            <TouchableOpacity onPress={() => setSelectedUserDetail(null)} style={styles.closeBtn}>
+                                <Ionicons name="close" size={24} color="#FFF" />
+                            </TouchableOpacity>
+                        </View>
 
-                {/* 2. Communication Buttons (If Approved/Active) */}
-                <TouchableOpacity onPress={() => handleCall(item.phone)} disabled={!item.phone}>
-                    <Ionicons name="call" size={20} color={item.phone ? "#3B82F6" : "#444"} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleMessage(item.phone)} disabled={!item.phone}>
-                    <MaterialCommunityIcons name="whatsapp" size={20} color={item.phone ? "#25D366" : "#444"} />
-                </TouchableOpacity>
+                        {selectedUserDetail && (
+                            <ScrollView contentContainerStyle={{ padding: 20 }}>
+                                {/* User Info */}
+                                <View style={{ alignItems: 'center', marginBottom: 20 }}>
+                                    <View style={{
+                                        width: 80, height: 80, borderRadius: 40,
+                                        backgroundColor: '#334155', alignItems: 'center', justifyContent: 'center', marginBottom: 12
+                                    }}>
+                                        <Ionicons name={selectedUserDetail.user_type === 'corporate' ? "business" : "person"} size={40} color="#D4AF37" />
+                                    </View>
+                                    <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>{selectedUserDetail.full_name || 'İsimsiz'}</Text>
+                                    <Text style={{ color: '#94a3b8', fontSize: 14 }}>{selectedUserDetail.email}</Text>
+                                    <Text style={{ color: '#94a3b8', fontSize: 14, marginTop: 4 }}>{selectedUserDetail.phone || 'Telefon Yok'}</Text>
 
-                {/* 3. Manage Buttons (Suspend/Delete) */}
-                <TouchableOpacity onPress={() => handleToggleSuspend(item)}>
-                    <MaterialCommunityIcons
-                        name={item.approval_status === 'suspended' ? "lock-open" : "lock"}
-                        size={20}
-                        color={item.approval_status === 'suspended' ? "#FBBF24" : "#EF4444"}
-                    />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDeleteUser(item)}>
-                    <Ionicons name="trash" size={20} color="#EF4444" />
-                </TouchableOpacity>
+                                    <View style={{
+                                        marginTop: 12, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12,
+                                        backgroundColor: selectedUserDetail.approval_status === 'approved' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(251, 191, 36, 0.1)',
+                                        borderWidth: 1, borderColor: selectedUserDetail.approval_status === 'approved' ? '#4ADE80' : '#FBBF24'
+                                    }}>
+                                        <Text style={{ color: selectedUserDetail.approval_status === 'approved' ? '#4ADE80' : '#FBBF24', fontWeight: 'bold', fontSize: 12 }}>
+                                            {selectedUserDetail.approval_status === 'approved' ? 'ONAYLI HESAP' :
+                                                selectedUserDetail.approval_status === 'rejected' ? 'REDDEDİLDİ' :
+                                                    selectedUserDetail.approval_status === 'suspended' ? 'HESAP ASKIDA' : 'ONAY BEKLİYOR'}
+                                        </Text>
+                                    </View>
+
+                                    {selectedUserDetail.rejection_reason && (
+                                        <Text style={{ color: '#EF4444', marginTop: 8, textAlign: 'center', fontStyle: 'italic' }}>
+                                            "{selectedUserDetail.rejection_reason}"
+                                        </Text>
+                                    )}
+                                </View>
+
+                                {/* ROLE MANAGEMENT SECTION */}
+                                {selectedUserDetail.user_type === 'corporate' && (
+                                    <View style={{ marginBottom: 20, padding: 15, backgroundColor: '#1a1a1a', borderRadius: 12, borderWidth: 1, borderColor: '#333' }}>
+                                        <Text style={{ color: '#FFD700', fontSize: 14, fontWeight: 'bold', marginBottom: 10 }}>FİRMA YETKİLERİ / ROLLERİ</Text>
+
+                                        {[
+                                            { key: 'is_contractor', label: 'Müteahhitlik / Proje' },
+                                            { key: 'is_seller', label: 'Yapı Market / Satıcı' },
+                                            { key: 'is_transporter', label: 'İş Makinesi / Nakliye' },
+                                            { key: 'is_architect', label: 'Mimar' },
+                                            { key: 'is_engineer', label: 'Mühendis' },
+                                            { key: 'is_real_estate_agent', label: 'Emlakçı' },
+                                            { key: 'is_lawyer', label: 'Avukat / Hukuk' },
+                                        ].map((role) => (
+                                            <View key={role.key} style={styles.roleRow}>
+                                                <Text style={{ color: '#ccc', flex: 1 }}>{role.label}</Text>
+                                                <Switch
+                                                    value={selectedUserDetail[role.key] || false}
+                                                    trackColor={{ false: '#333', true: '#4ADE80' }}
+                                                    thumbColor={selectedUserDetail[role.key] ? '#fff' : '#f4f3f4'}
+                                                    onValueChange={async (newValue) => {
+                                                        // Optimistic Update
+                                                        const updatedUser = { ...selectedUserDetail, [role.key]: newValue };
+                                                        setSelectedUserDetail(updatedUser);
+
+                                                        // Database Update
+                                                        try {
+                                                            const { error } = await supabase
+                                                                .from('profiles')
+                                                                .update({ [role.key]: newValue })
+                                                                .eq('id', selectedUserDetail.id);
+
+                                                            if (error) throw error;
+
+                                                            // Also update the main users list to reflect changes if we close modal
+                                                            setUsers(prev => prev.map(u => u.id === selectedUserDetail.id ? updatedUser : u));
+                                                        } catch (err) {
+                                                            Alert.alert("Hata", "Rol güncellenemedi.");
+                                                            // Revert
+                                                            setSelectedUserDetail({ ...selectedUserDetail, [role.key]: !newValue });
+                                                        }
+                                                    }}
+                                                />
+                                            </View>
+                                        ))}
+                                    </View>
+                                )}
+
+                                {/* ACTION BUTTONS */}
+                                <Text style={{ color: '#64748b', fontSize: 12, fontWeight: 'bold', marginBottom: 10 }}>İŞLEMLER</Text>
+
+                                <View style={{ gap: 10 }}>
+                                    {/* Approval Actions */}
+                                    {['pending', 'incomplete', 'rejected'].includes(selectedUserDetail.approval_status) && selectedUserDetail.user_type === 'corporate' && (
+                                        <>
+                                            <TouchableOpacity
+                                                style={[styles.actionRowBtn, { backgroundColor: '#065f46' }]}
+                                                onPress={() => { handleApproveUser(selectedUserDetail); setSelectedUserDetail(null); }}
+                                            >
+                                                <Ionicons name="checkmark-circle" size={22} color="#4ADE80" />
+                                                <Text style={{ color: '#ecfdf5', fontWeight: 'bold', marginLeft: 10 }}>Onayla ve Aktifleştir</Text>
+                                            </TouchableOpacity>
+
+                                            <TouchableOpacity
+                                                style={[styles.actionRowBtn, { backgroundColor: '#422006' }]}
+                                                onPress={() => { handleOpenActionModal(selectedUserDetail, 'incomplete'); }}
+                                            >
+                                                <MaterialCommunityIcons name="file-document-edit" size={22} color="#FBBF24" />
+                                                <Text style={{ color: '#fef3c7', fontWeight: 'bold', marginLeft: 10 }}>Eksik Bilgi/Belge İste</Text>
+                                            </TouchableOpacity>
+
+                                            <TouchableOpacity
+                                                style={[styles.actionRowBtn, { backgroundColor: '#450a0a' }]}
+                                                onPress={() => { handleOpenActionModal(selectedUserDetail, 'reject'); }}
+                                            >
+                                                <Ionicons name="close-circle" size={22} color="#EF4444" />
+                                                <Text style={{ color: '#fef2f2', fontWeight: 'bold', marginLeft: 10 }}>Reddet</Text>
+                                            </TouchableOpacity>
+                                        </>
+                                    )}
+
+                                    {/* Communication */}
+                                    <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+                                        <TouchableOpacity
+                                            style={[styles.actionRowBtn, { flex: 1, justifyContent: 'center', backgroundColor: '#1e293b' }]}
+                                            onPress={() => handleCall(selectedUserDetail.phone)}
+                                            disabled={!selectedUserDetail.phone}
+                                        >
+                                            <Ionicons name="call" size={20} color={selectedUserDetail.phone ? "#3B82F6" : "#444"} />
+                                            <Text style={{ color: '#cbd5e1', marginLeft: 8 }}>Ara</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.actionRowBtn, { flex: 1, justifyContent: 'center', backgroundColor: '#1e293b' }]}
+                                            onPress={() => handleMessage(selectedUserDetail.phone)}
+                                            disabled={!selectedUserDetail.phone}
+                                        >
+                                            <MaterialCommunityIcons name="whatsapp" size={20} color={selectedUserDetail.phone ? "#25D366" : "#444"} />
+                                            <Text style={{ color: '#cbd5e1', marginLeft: 8 }}>WhatsApp</Text>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    {/* Danger Zone */}
+                                    <View style={{ marginTop: 20, borderTopWidth: 1, borderTopColor: '#334155', paddingTop: 20 }}>
+                                        <Text style={{ color: '#EF4444', fontSize: 12, fontWeight: 'bold', marginBottom: 10 }}>TEHLİKELİ BÖLGE</Text>
+
+                                        {selectedUserDetail.user_type === 'corporate' && (
+                                            <TouchableOpacity
+                                                style={[styles.actionRowBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#F59E0B', marginBottom: 10 }]}
+                                                onPress={() => handleConvertToIndividual(selectedUserDetail)}
+                                            >
+                                                <MaterialCommunityIcons name="account-convert" size={20} color="#F59E0B" />
+                                                <Text style={{ color: '#F59E0B', marginLeft: 10 }}>Kurumsal Üyelikten Çıkar (Bireysele Çevir)</Text>
+                                            </TouchableOpacity>
+                                        )}
+
+                                        <TouchableOpacity
+                                            style={[styles.actionRowBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#FBBF24', marginBottom: 10 }]}
+                                            onPress={() => { handleToggleSuspend(selectedUserDetail); }}
+                                        >
+                                            <MaterialCommunityIcons
+                                                name={selectedUserDetail.approval_status === 'suspended' ? "lock-open" : "lock"}
+                                                size={20}
+                                                color="#FBBF24"
+                                            />
+                                            <Text style={{ color: '#FBBF24', marginLeft: 10 }}>
+                                                {selectedUserDetail.approval_status === 'suspended' ? 'Hesabın Kilidini Aç' : 'Hesabı Askıya Al / Dondur'}
+                                            </Text>
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={[styles.actionRowBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#EF4444' }]}
+                                            onPress={() => { handleDeleteUser(selectedUserDetail); setSelectedUserDetail(null); }}
+                                        >
+                                            <Ionicons name="trash" size={20} color="#EF4444" />
+                                            <Text style={{ color: '#EF4444', marginLeft: 10 }}>Kullanıcıyı Tamamen Sil</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </ScrollView>
+                        )}
+                    </LinearGradient>
+                </View>
             </View>
-        </View>
+        </Modal>
     );
 
     // --- RENDER MODULE GRID ---
@@ -629,7 +921,7 @@ const AdminDashboardScreen = () => {
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
-            <LinearGradient colors={['#0f172a', '#000000']} style={StyleSheet.absoluteFillObject} />
+            <LinearGradient colors={['#0f172a', '#000000']} style={[StyleSheet.absoluteFillObject, { zIndex: -1 }]} />
             <SafeAreaView style={{ flex: 1 }}>
 
                 {/* HEADERS */}
@@ -936,13 +1228,75 @@ const AdminDashboardScreen = () => {
                                 ListEmptyComponent={
                                     <Text style={styles.noBidsText}>Henüz teklif verilmemiş.</Text>
                                 }
-                                contentContainerStyle={{ paddingBottom: 50 }}
                             />
                         )}
                     </View>
                 </Modal>
-
             </SafeAreaView>
+
+            {/* REJECTION / INFO REQUEST MODAL */}
+            <Modal
+                visible={rejectModalVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setRejectModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.modalContent, { backgroundColor: '#1e293b', maxHeight: 300 }]}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>
+                                {actionType === 'reject' ? 'Red Nedeni' : 'Eksik Bilgi Talebi'}
+                            </Text>
+                            <TouchableOpacity onPress={() => setRejectModalVisible(false)}>
+                                <Ionicons name="close" size={24} color="#FFF" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={{ padding: 20 }}>
+                            <Text style={{ color: '#ccc', marginBottom: 10 }}>
+                                {actionType === 'reject'
+                                    ? 'Kullanıcıyı reddetme sebebinizi giriniz:'
+                                    : 'Kullanıcıdan talep ettiğiniz eksik bilgileri yazınız:'}
+                            </Text>
+
+                            <TextInput
+                                style={{
+                                    backgroundColor: '#0f172a',
+                                    color: '#FFF',
+                                    padding: 10,
+                                    borderRadius: 8,
+                                    height: 100,
+                                    textAlignVertical: 'top',
+                                    borderWidth: 1,
+                                    borderColor: '#334155'
+                                }}
+                                multiline
+                                placeholder="Açıklama yazınız..."
+                                placeholderTextColor="#64748b"
+                                value={rejectionReason}
+                                onChangeText={setRejectionReason}
+                            />
+
+                            <TouchableOpacity
+                                style={{
+                                    marginTop: 20,
+                                    backgroundColor: actionType === 'reject' ? '#EF4444' : '#FBBF24',
+                                    padding: 15,
+                                    borderRadius: 8,
+                                    alignItems: 'center'
+                                }}
+                                onPress={handleSubmitAction}
+                            >
+                                <Text style={{ color: actionType === 'reject' ? '#FFF' : '#000', fontWeight: 'bold' }}>
+                                    {actionType === 'reject' ? 'REDDET' : 'GÖNDER'}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {renderUserDetailModal()}
         </View >
     );
 };
@@ -963,6 +1317,13 @@ const ASSET_MAP = {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#000' },
+    actionRowBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        borderRadius: 8,
+        marginVertical: 4
+    },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#333' },
     headerTitle: { color: '#D4AF37', fontSize: 18, fontWeight: 'bold' },
 
@@ -1033,6 +1394,8 @@ const styles = StyleSheet.create({
     debugText: { color: '#555', marginTop: 5, fontSize: 12 },
 
     // Modal Styles
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 20 },
+    modalContent: { borderRadius: 16, overflow: 'hidden', maxHeight: '80%', width: '100%' },
     modalContainer: { flex: 1 },
     modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, borderBottomWidth: 1, borderBottomColor: '#333' },
     modalTitle: { color: '#D4AF37', fontSize: 20, fontWeight: 'bold' },
@@ -1091,6 +1454,11 @@ const styles = StyleSheet.create({
     userCardSubtitle: { color: '#AAA', fontSize: 12 },
     userCardPhone: { color: '#DDD', fontSize: 12, marginTop: 2, fontWeight: '500' },
     userCardDate: { color: '#666', fontSize: 11, marginTop: 4 },
+
+    roleRow: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+        paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#333'
+    },
     statusBadge: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, marginTop: 5 },
     statusText: { fontSize: 10, fontWeight: 'bold' },
 

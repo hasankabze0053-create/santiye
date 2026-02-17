@@ -66,9 +66,9 @@ export default function UserRequestsScreen() {
             const { data, error } = await supabase
                 .from('construction_offers')
                 .select('*, profiles:contractor_id(full_name, avatar_url, company_name)') // Assuming relation
+                .select('*, profiles:contractor_id(full_name, avatar_url, company_name)') // Assuming relation
                 .eq('request_id', requestId)
-                .order('created_at', { ascending: false });
-
+                .neq('status', 'draft') // Show only submitted offers
             if (error) {
                 // If relation fails (profiles might not be linked in schema foreign key directly if implicit), try simple fetch
                 const { data: simpleData, error: simpleError } = await supabase
@@ -142,7 +142,14 @@ export default function UserRequestsScreen() {
                             <Text style={styles.noOffersText}>Henüz bu talebe bir teklif gelmedi.</Text>
                         ) : (
                             requestOffers.map((offer, index) => (
-                                <View key={offer.id} style={styles.offerItem}>
+                                <TouchableOpacity
+                                    key={offer.id}
+                                    style={styles.offerItem}
+                                    onPress={() => navigation.navigate('OfferDetail', {
+                                        request_id: item.id,
+                                        contractor_id: offer.contractor_id
+                                    })}
+                                >
                                     <View style={styles.offerHeader}>
                                         <Text style={styles.contractorName}>Müteahhit Firma</Text>
                                         {/* Since we might not have join setup perfectly, generic name */}
@@ -150,9 +157,9 @@ export default function UserRequestsScreen() {
                                     </View>
                                     <Text style={styles.offerDetails} numberOfLines={3}>{offer.offer_details}</Text>
                                     <TouchableOpacity style={styles.contactBtn}>
-                                        <Text style={styles.contactBtnText}>İLETİŞİME GEÇ</Text>
+                                        <Text style={styles.contactBtnText}>TEKLİFİ İNCELE &gt;</Text>
                                     </TouchableOpacity>
-                                </View>
+                                </TouchableOpacity>
                             ))
                         )}
                     </View>

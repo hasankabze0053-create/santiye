@@ -29,6 +29,7 @@ import ContractorRequestDetailScreen from '../screens/Cost/ContractorRequestDeta
 import ContractorRequestsScreen from '../screens/Cost/ContractorRequestsScreen';
 import DetailedCostScreen from '../screens/Cost/DetailedCostScreen';
 import MaliyetScreen from '../screens/Cost/MaliyetScreen';
+import OfferDetailScreen from '../screens/Cost/OfferDetailScreen';
 import PosCostScreen from '../screens/Cost/PosCostScreen';
 import ProjectIdentityScreen from '../screens/Cost/ProjectIdentityScreen';
 import SimpleCostScreen from '../screens/Cost/SimpleCostScreen';
@@ -142,9 +143,25 @@ function BottomTabNavigator() {
             const totalRequests = (marketRequests?.length || 0) + (constructionRequests?.length || 0);
             setRequestCount(totalRequests);
 
-            // 2. Fetch Inbox/Offer Count
-            const offers = await MarketService.getIncomingOffers();
-            if (offers) setInboxCount(offers.length);
+            // 2. Fetch Inbox/Offer Count (Grouped)
+            const [marketOffers, constructionOffers] = await Promise.all([
+                MarketService.getIncomingOffers(),
+                ConstructionService.getIncomingOffers()
+            ]);
+
+            // Group Construction Offers
+            const groupedConstruction = {};
+            (constructionOffers || []).forEach(offer => {
+                const key = `${offer.request_id}_${offer.contractor_id}`;
+                if (!groupedConstruction[key]) {
+                    groupedConstruction[key] = true; // Just need existence
+                }
+            });
+
+            // Total Inbox Items = Market Offers (individual) + Construction Groups
+            const totalInbox = (marketOffers?.length || 0) + Object.keys(groupedConstruction).length;
+            setInboxCount(totalInbox);
+
         } catch (error) {
             console.log("Badge fetch error:", error);
         }
@@ -323,6 +340,7 @@ export default function AppNavigator() {
             <Stack.Screen name="ContractorRequests" component={ContractorRequestsScreen} />
             <Stack.Screen name="ContractorRequestDetail" component={ContractorRequestDetailScreen} />
             <Stack.Screen name="UserRequests" component={UserRequestsScreen} />
+            <Stack.Screen name="OfferDetail" component={OfferDetailScreen} options={{ headerShown: false }} />
 
             {/* Transformation & Proposals */}
             <Stack.Screen name="KentselDonusum" component={UrbanTransformationScreen} />

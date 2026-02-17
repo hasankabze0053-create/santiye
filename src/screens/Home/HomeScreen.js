@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, Dimensions, Easing, FlatList, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Dimensions, Easing, FlatList, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext'; // Import useAuth
 import { supabase } from '../../lib/supabase';
@@ -316,7 +316,13 @@ export default function HomeScreen({ navigation }) {
                                 {profile?.user_type === 'corporate' && (
                                     <TouchableOpacity
                                         style={styles.modeToggleBtn}
-                                        onPress={() => navigation.navigate('ProviderDashboard')}
+                                        onPress={() => {
+                                            if (profile?.approval_status === 'approved') {
+                                                navigation.navigate('ProviderDashboard');
+                                            } else {
+                                                Alert.alert('Onay Bekleniyor', 'Üyeliğiniz henüz onaylanmamış. Onay sürecini profil sayfasından takip edebilirsiniz.');
+                                            }
+                                        }}
                                         activeOpacity={0.8}
                                     >
                                         <LinearGradient

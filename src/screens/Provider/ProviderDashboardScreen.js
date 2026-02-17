@@ -11,6 +11,28 @@ export default function ProviderDashboardScreen() {
     const [isAvailable, setIsAvailable] = useState(true);
     const { profile } = useAuth();
 
+    if (profile?.user_type === 'corporate' && profile?.approval_status !== 'approved') {
+        return (
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
+                <StatusBar barStyle="light-content" />
+                <LinearGradient colors={['#0f172a', '#1e293b']} style={StyleSheet.absoluteFillObject} />
+
+                <Ionicons name="time-outline" size={64} color="#F59E0B" style={{ marginBottom: 20 }} />
+                <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>Hesabınız Onay Aşamasında</Text>
+                <Text style={{ color: '#94a3b8', textAlign: 'center', marginBottom: 30 }}>
+                    Firma paneline erişebilmek için hesap başvurunuzun onaylanması gerekmektedir.
+                </Text>
+
+                <TouchableOpacity
+                    style={{ backgroundColor: '#334155', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 10 }}
+                    onPress={() => navigation.goBack()}
+                >
+                    <Text style={{ color: '#fff', fontWeight: 'bold' }}>Geri Dön</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />

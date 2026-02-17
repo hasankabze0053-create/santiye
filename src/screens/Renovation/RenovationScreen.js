@@ -140,6 +140,8 @@ export default function RenovationScreen({ navigation }) {
                             onPress={() => {
                                 if (isAdmin || isArchitect || isContractor) {
                                     navigation.navigate('RenovationProvider');
+                                } else {
+                                    Alert.alert("Yetkisiz Erişim", "Bu panele sadece 'Mimar' veya 'Müteahhit' yetkisi olan hesaplar erişebilir.");
                                 }
                             }}
                             activeOpacity={isAdmin || isArchitect || isContractor ? 0.7 : 1}

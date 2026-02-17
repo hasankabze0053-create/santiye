@@ -128,6 +128,7 @@ export default function UrbanTransformationScreen({ navigation }) {
     };
 
     const [isContractor, setIsContractor] = useState(false);
+    const [isProvider, setIsProvider] = useState(false); // New state for general providers
 
     const checkAdminStatus = async () => {
         try {
@@ -135,11 +136,18 @@ export default function UrbanTransformationScreen({ navigation }) {
             if (user) {
                 const { data } = await supabase
                     .from('profiles')
-                    .select('is_admin, is_contractor')
+                    .select('is_admin, is_contractor, user_type, approval_status')
                     .eq('id', user.id)
                     .single();
-                setIsAdmin(data?.is_admin || false);
-                setIsContractor(data?.is_contractor || false);
+
+                const adminStatus = data?.is_admin || false;
+                const contractorStatus = data?.is_contractor || false;
+                // Allow access if explicitly contractor OR if corporate and approved
+                const providerStatus = contractorStatus || (data?.user_type === 'corporate' && data?.approval_status === 'approved');
+
+                setIsAdmin(adminStatus);
+                setIsContractor(contractorStatus);
+                setIsProvider(providerStatus);
             }
         } catch (e) {
             console.warn('Admin check failed', e);
@@ -297,15 +305,17 @@ export default function UrbanTransformationScreen({ navigation }) {
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                         <TouchableOpacity
-                            style={[styles.headerIconBtn, !isContractor && !isAdmin && { opacity: 0.5 }]}
+                            style={[styles.headerIconBtn, !isContractor && !isAdmin && { opacity: 0.5 }]} // Use isContractor
                             onPress={() => {
                                 if (isAdmin || isContractor) {
                                     navigation.navigate('ContractorProvider');
+                                } else {
+                                    Alert.alert("Yetkisiz Erişim", "Bu panele sadece 'Müteahhit / Proje' yetkisi olan hesaplar erişebilir.");
                                 }
                             }}
-                            activeOpacity={isAdmin || isContractor ? 0.7 : 1}
+                            activeOpacity={isAdmin || isProvider ? 0.7 : 1}
                         >
-                            <MaterialCommunityIcons name="home-city" size={24} color={isAdmin || isContractor ? "#D4AF37" : "#666"} />
+                            <MaterialCommunityIcons name="home-city" size={24} color={isAdmin || isProvider ? "#D4AF37" : "#666"} />
                         </TouchableOpacity>
                     </View>
                 </View>

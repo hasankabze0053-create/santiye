@@ -1,7 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Dimensions, RefreshControl, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ConstructionService } from '../../services/ConstructionService';
@@ -30,15 +30,29 @@ export default function ContractorProviderScreen() {
 
     const loadRequests = async () => {
         setRefreshing(true);
-        const data = await ConstructionService.getOpenRequests();
-        setRequests(data);
+        let data = [];
+        if (activeTab === 'tenders') {
+            data = await ConstructionService.getOpenRequestsForContractor();
+        } else if (activeTab === 'bids') {
+            data = await ConstructionService.getContractorBids();
+        } else {
+            // won - future implementation
+            data = [];
+        }
+        setRequests(data || []);
         setRefreshing(false);
     };
+
+    useEffect(() => {
+        loadRequests();
+    }, [activeTab]);
 
     const renderTendersTab = () => (
         <View style={styles.tabContent}>
             <View style={styles.feedHeader}>
-                <Text style={styles.feedTitle}>YERİNDE DÖNÜŞÜM İHALELERİ ({requests.length})</Text>
+                <Text style={styles.feedTitle}>
+                    {activeTab === 'tenders' ? `YERİNDE DÖNÜŞÜM İHALELERİ (${requests.length})` : `VERİLEN TEKLİFLER (${requests.length})`}
+                </Text>
                 <TouchableOpacity onPress={loadRequests} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, padding: 8 }}>
                     <Ionicons name="filter" size={16} color="#94a3b8" />
                     <Text style={{ color: '#94a3b8', fontSize: 13, fontWeight: '500' }}>Filtrele</Text>
@@ -47,9 +61,11 @@ export default function ContractorProviderScreen() {
 
             {requests.length === 0 ? (
                 <View style={styles.emptyState}>
-                    <MaterialCommunityIcons name="home-city-outline" size={56} color="#334155" />
-                    <Text style={styles.emptyText}>Aktif kentsel dönüşüm ihalesi bulunmuyor.</Text>
-                    <Text style={styles.emptySub}>Yeni projeler eklendiğinde burada görünecek.</Text>
+                    <MaterialCommunityIcons name={activeTab === 'tenders' ? "home-city-outline" : "file-document-edit-outline"} size={56} color="#334155" />
+                    <Text style={styles.emptyText}>
+                        {activeTab === 'tenders' ? 'Aktif kentsel dönüşüm ihalesi bulunmuyor.' : 'Henüz bir teklif vermediniz.'}
+                    </Text>
+                    {activeTab === 'tenders' && <Text style={styles.emptySub}>Yeni projeler eklendiğinde burada görünecek.</Text>}
                 </View>
             ) : (
                 requests.map((item, index) => (
@@ -60,9 +76,15 @@ export default function ContractorProviderScreen() {
                     >
                         {/* 1. STATUS TAGS */}
                         <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
-                            <View style={styles.tagBadge}>
-                                <View style={styles.statusDot} />
-                                <Text style={styles.tagText}>TEKLİF BEKLİYOR</Text>
+                            <View style={[styles.tagBadge, activeTab === 'bids' && { backgroundColor: 'rgba(212, 175, 55, 0.1)' }]}>
+                                <View style={[styles.statusDot, activeTab === 'bids' && { backgroundColor: '#D4AF37' }]} />
+                                <Text style={[styles.tagText, activeTab === 'bids' && { color: '#D4AF37' }]}>
+                                    {activeTab === 'bids'
+                                        ? (item.my_offers && item.my_offers.length > 0
+                                            ? (item.my_offers[0].status === 'pending' ? 'DEĞERLENDİRİLİYOR' : (item.my_offers[0].status === 'approved' ? 'ONAYLANDI' : 'REDDEDİLDİ'))
+                                            : 'DURUM BELİRSİZ')
+                                        : 'TEKLİF BEKLİYOR'}
+                                </Text>
                             </View>
                             <View style={[styles.timerTag, { marginLeft: 'auto' }]}>
                                 <Ionicons name="calendar" size={12} color="#94a3b8" />
@@ -101,8 +123,14 @@ export default function ContractorProviderScreen() {
                                     <MaterialCommunityIcons name="file-document-outline" size={18} color="#D4AF37" />
                                 </View>
                                 <View>
-                                    <Text style={styles.detailLabel}>DURUM</Text>
-                                    <Text style={styles.detailValue}>Aktif</Text>
+                                    <Text style={styles.detailLabel}>{activeTab === 'bids' ? 'SON TEKLİFİNİZ' : 'DURUM'}</Text>
+                                    <Text style={styles.detailValue}>
+                                        {activeTab === 'bids'
+                                            ? (item.my_offers && item.my_offers.length > 0
+                                                ? (item.my_offers[0].price_estimate ? item.my_offers[0].price_estimate.toLocaleString('tr-TR') + ' ₺' : 'Kat Karşılığı')
+                                                : 'Belirtilmedi')
+                                            : 'Aktif'}
+                                    </Text>
                                 </View>
                             </View>
                         </View>
@@ -111,14 +139,20 @@ export default function ContractorProviderScreen() {
                         <TouchableOpacity
                             style={styles.bidButton}
                             activeOpacity={0.8}
-                            onPress={() => navigation.navigate('RequestDetail', { request: item, type: 'construction' })}
+                            onPress={() => navigation.navigate(activeTab === 'bids' ? 'OfferDetail' : 'RequestDetail', {
+                                request: item,
+                                request_id: item.id,
+                                contractor_id: item.my_offers?.[0]?.contractor_id,
+                                type: 'construction',
+                                ...(activeTab === 'bids' ? { offers: item.my_offers, readOnly: true } : {}) // Pass ALL offers for this request
+                            })}
                         >
                             <LinearGradient
                                 colors={['#D4AF37', '#FDCB58']} // Gold Gradient
                                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                                 style={styles.gradientBtn}
                             >
-                                <Text style={styles.bidButtonText}>DETAY EKRANINA GİT</Text>
+                                <Text style={styles.bidButtonText}>{activeTab === 'bids' ? 'TEKLİFİ İNCELE' : 'DETAY EKRANINA GİT'}</Text>
                                 <MaterialCommunityIcons name="arrow-right" size={20} color="#000" />
                             </LinearGradient>
                         </TouchableOpacity>
@@ -193,7 +227,7 @@ export default function ContractorProviderScreen() {
                     </View>
 
                     {/* 4. CONTENT */}
-                    {activeTab === 'tenders' ? renderTendersTab() : (
+                    {(activeTab === 'tenders' || activeTab === 'bids') ? renderTendersTab() : (
                         <View style={styles.emptyState}>
                             <MaterialCommunityIcons name="lock-outline" size={48} color="#334155" />
                             <Text style={styles.emptyText}>Bu özellik yakında aktif olacak.</Text>

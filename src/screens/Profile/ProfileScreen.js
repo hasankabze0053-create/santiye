@@ -1,5 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useState } from 'react';
 import {
     ActivityIndicator,
@@ -187,7 +188,115 @@ export default function ProfileScreen() {
                     </View>
                 </View>
 
-                {/* 2. CORPORATE ACTION CARD REMOVED (Moved to AccountSettings) */}
+                {/* 1.5. CORPORATE ACTION CARD (Firma Paneli / Başvuru) */}
+                {/* 1.5. CORPORATE ACTION CARD (Firma Paneli - Sadece Onaylı Kurumsallar İçin) */}
+                {profile?.user_type === 'corporate' && profile?.approval_status === 'approved' && (
+                    <View style={[styles.sectionContainer, { marginTop: 10 }]}>
+                        <TouchableOpacity
+                            activeOpacity={0.9}
+                            onPress={() => navigation.navigate('ProviderDashboard')}
+                        >
+                            <LinearGradient
+                                colors={corporateTheme.background}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                                style={[styles.corporateCard, { borderColor: corporateTheme.border }]}
+                            >
+                                <View style={styles.corporateContent}>
+                                    <View style={styles.corporateIconCircle}>
+                                        <MaterialCommunityIcons name="domain" size={28} color={corporateTheme.icon} />
+                                    </View>
+                                    <View style={styles.corporateTextContainer}>
+                                        <Text style={[styles.corporateTitle, { color: corporateTheme.text }]}>
+                                            Firma Paneli
+                                        </Text>
+                                        <Text style={[styles.corporateSubtitle, { color: corporateTheme.subText }]}>
+                                            Hizmetlerinizi ve tekliflerinizi yönetin.
+                                        </Text>
+                                    </View>
+                                    <View style={styles.corporateArrow}>
+                                        <Text style={styles.manageText}>GİT</Text>
+                                        <Ionicons name="chevron-forward" size={16} color={corporateTheme.icon} />
+                                    </View>
+                                </View>
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
+                )}
+
+                {/* 2. APPLICATION STATUS CARD (Pending/Rejected/Incomplete) */}
+                {profile?.user_type === 'corporate' && profile?.approval_status !== 'approved' && (
+                    <View style={[styles.sectionContainer, { marginTop: 10 }]}>
+                        <LinearGradient
+                            colors={
+                                profile.approval_status === 'rejected' ? ['#450a0a', '#7f1d1d'] :
+                                    profile.approval_status === 'incomplete' ? ['#422006', '#854d0e'] :
+                                        ['#172033', '#1e293b']
+                            }
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={[
+                                styles.corporateCard,
+                                {
+                                    borderColor:
+                                        profile.approval_status === 'rejected' ? '#ef4444' :
+                                            profile.approval_status === 'incomplete' ? '#eab308' :
+                                                '#334155'
+                                }
+                            ]}
+                        >
+                            <View style={styles.corporateContent}>
+                                <View style={[
+                                    styles.corporateIconCircle,
+                                    {
+                                        backgroundColor:
+                                            profile.approval_status === 'rejected' ? 'rgba(239, 68, 68, 0.2)' :
+                                                profile.approval_status === 'incomplete' ? 'rgba(234, 179, 8, 0.2)' :
+                                                    'rgba(56, 189, 248, 0.1)'
+                                    }
+                                ]}>
+                                    <MaterialCommunityIcons
+                                        name={
+                                            profile.approval_status === 'rejected' ? "alert-circle-outline" :
+                                                profile.approval_status === 'incomplete' ? "file-document-edit-outline" :
+                                                    "timer-sand"
+                                        }
+                                        size={28}
+                                        color={
+                                            profile.approval_status === 'rejected' ? '#ef4444' :
+                                                profile.approval_status === 'incomplete' ? '#eab308' :
+                                                    '#38bdf8'
+                                        }
+                                    />
+                                </View>
+                                <View style={styles.corporateTextContainer}>
+                                    <Text style={[styles.corporateTitle, { color: '#fff' }]}>
+                                        {profile.approval_status === 'rejected' ? 'Başvurunuz Reddedildi' :
+                                            profile.approval_status === 'incomplete' ? 'Eksik Bilgi/Belge Talebi' :
+                                                'Başvurunuz İnceleniyor'}
+                                    </Text>
+
+                                    <Text style={[styles.corporateSubtitle, { color: '#94a3b8' }]}>
+                                        {profile.approval_status === 'rejected'
+                                            ? 'Başvurunuz kriterlerimize uygun görülmedi.'
+                                            : profile.approval_status === 'incomplete'
+                                                ? 'Başvurunuzda eksiklikler tespit edildi. Lütfen aşağıdaki notu dikkate alınız.'
+                                                : 'Uzmanlık başvurunuz onay sürecindedir. Onaylandığında paneliniz aktif olacaktır.'}
+                                    </Text>
+
+                                    {/* Rejection Reason / Note */}
+                                    {profile.rejection_reason && (
+                                        <View style={{ marginTop: 8, padding: 8, backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 8 }}>
+                                            <Text style={{ color: '#fff', fontSize: 13, fontStyle: 'italic' }}>
+                                                "{profile.rejection_reason}"
+                                            </Text>
+                                        </View>
+                                    )}
+                                </View>
+                            </View>
+                        </LinearGradient>
+                    </View>
+                )}
 
 
                 {/* 3. Quick Actions */}

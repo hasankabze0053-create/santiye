@@ -418,6 +418,8 @@ export default function LawScreen() {
                                 onPress={() => {
                                     if (isAdmin || isLawyer) {
                                         navigation.navigate('LawProvider');
+                                    } else {
+                                        Alert.alert("Yetkisiz Erişim", "Bu panele sadece hukuk yetkisi tanımlanmış kurumsal hesaplar erişebilir.");
                                     }
                                 }}
                                 activeOpacity={isAdmin || isLawyer ? 0.7 : 1}

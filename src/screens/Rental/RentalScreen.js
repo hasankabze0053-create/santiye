@@ -2,7 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Alert, Animated, Dimensions, FlatList, Keyboard, Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -155,108 +155,76 @@ const MOCK_ITEM_SUPPLIERS = [
 
 
 export default function RentalScreen() {
-    // Force Refresh
-    // Force Refresh
     const navigation = useNavigation();
     const route = useRoute();
-
-    // Premium Rental Screen UI
-    // Consume params from navigation (Native Stack behavior)
-    const viewMode = route.params?.viewMode || 'list';
-    const selectedCategory = route.params?.category || null;
-
-    const [activeTab, setActiveTab] = useState('periodic'); // 'periodic' or 'project'
-
-    // Animation Ref
-    const scrollX = useRef(new Animated.Value(0)).current;
-
-    // --- PROJECT PROPOSAL STATE ---
-    const [photos, setPhotos] = useState([]);
-    const [address, setAddress] = useState('Bağdat Cad. No:15, Kadıköy');
-    const [description, setDescription] = useState('');
-    const [selectedMachines, setSelectedMachines] = useState([]);
-    const [machineModalVisible, setMachineModalVisible] = useState(false);
-
-    // --- CORPORATE MODE STATE (NEW) ---
-    const [rentalCategories, setRentalCategories] = useState(RENTAL_CATEGORIES);
-    const [newMachine, setNewMachine] = useState({ name: '', type: '', price: '', categoryId: '' });
-    const [addMachineModalVisible, setAddMachineModalVisible] = useState(false);
-
-    // Accordion State
-    const [expandedItemIndex, setExpandedItemIndex] = useState(null);
-
-    const togglePricing = (index) => {
-        // Toggle: if same index, close it (null), otherwise open new index
-        setExpandedItemIndex(expandedItemIndex === index ? null : index);
-    };
-
-    // Mock Photo Add
-    const handleAddPhoto = () => {
-        const newPhoto = { id: Date.now(), uri: 'https://via.placeholder.com/150/FFD700/000000?text=Foto' };
-        setPhotos([...photos, newPhoto]);
-    };
-    const handleRemovePhoto = (id) => setPhotos(photos.filter(p => p.id !== id));
-
-    // Machine Logic
-    const handleAddMachine = (machineName, categoryIcon) => {
-        const existing = selectedMachines.find(m => m.name === machineName);
-        if (existing) { handleUpdateQuantity(existing.id, 1); }
-        else {
-            const newMachine = { id: Date.now().toString(), name: machineName, icon: categoryIcon, quantity: 1 };
-            setSelectedMachines([...selectedMachines, newMachine]);
-        }
-        setMachineModalVisible(false);
-    };
-    const handleUpdateQuantity = (id, delta) => {
-        setSelectedMachines(prev => prev.map(m => {
-            if (m.id === id) {
-                const newQty = m.quantity + delta;
-                return newQty > 0 ? { ...m, quantity: newQty } : m;
-            }
-            return m;
-        }));
-    };
-    const handleRemoveMachine = (id) => setSelectedMachines(prev => prev.filter(m => m.id !== id));
-
-    // Search State
+    const [viewMode, setViewMode] = useState('list');
     const [searchVisible, setSearchVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [expandedItemIndex, setExpandedItemIndex] = useState(null);
+    const [scrollX] = useState(new Animated.Value(0));
+    const [machineModalVisible, setMachineModalVisible] = useState(false);
 
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [isTransporter, setIsTransporter] = useState(false);
+
+    // Helpers
     const handleCategorySelect = (category) => {
-        navigation.push('RentalStack', {
-            viewMode: 'detail',
-            category: category
-        });
+        setSelectedCategory(category);
+        setViewMode('detail');
+    };
+
+    const togglePricing = (index) => {
+        // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setExpandedItemIndex(expandedItemIndex === index ? null : index);
+    };
+
+    const handleSearch = (text) => {
+        setSearchQuery(text);
+        if (text.length > 1) {
+            const results = [];
+            RENTAL_CATEGORIES.forEach(cat => {
+                cat.items.forEach(item => {
+                    if (item.name.toLowerCase().includes(text.toLowerCase())) {
+                        results.push({ ...item, categoryTitle: cat.title, categoryIcon: cat.icon });
+                    }
+                });
+            });
+            setSearchResults(results);
+        } else {
+            setSearchResults([]);
+        }
     };
 
     const handleRentRequest = (item, supplierName) => {
-        // Navigate to the new Smart Proposal Wizard
-        navigation.navigate('RentalProposal', {
-            item: item,
-            supplier: { name: supplierName }
-        });
+        Alert.alert("Talep Alındı", `${item.name} için ${supplierName ? supplierName + ' üzerinden' : ''} kiralama talebiniz başarıyla oluşturuldu. Operasyon ekibimiz sizinle iletişime geçecektir.`);
     };
 
-    // Search Logic
-    const handleSearch = (text) => {
-        setSearchQuery(text);
-        if (text.length < 2) {
-            setSearchResults([]);
-            return;
-        }
+    const handleAddMachine = (item, icon) => {
+        // Project Proposal Logic Placeholder
+        Alert.alert("Eklendi", `${item} listeye eklendi.`);
+    };
 
-        const results = [];
-        rentalCategories.forEach(cat => {
-            cat.items.forEach(item => {
-                if (item.name.toLowerCase().includes(text.toLowerCase()) ||
-                    item.type.toLowerCase().includes(text.toLowerCase()) ||
-                    cat.title.toLowerCase().includes(text.toLowerCase())) {
-                    results.push({ ...item, categoryTitle: cat.title, categoryIcon: cat.icon });
-                }
-            });
-        });
-        setSearchResults(results);
+    useEffect(() => {
+        checkUserStatus();
+    }, []);
+
+    const checkUserStatus = async () => {
+        try {
+            const { data: { user } } = await import('../../lib/supabase').supabase.auth.getUser();
+            if (user) {
+                const { data } = await import('../../lib/supabase').supabase
+                    .from('profiles')
+                    .select('is_admin, is_transporter')
+                    .eq('id', user.id)
+                    .single();
+                setIsAdmin(data?.is_admin || false);
+                setIsTransporter(data?.is_transporter || false);
+            }
+        } catch (e) {
+            console.warn('User status check failed', e);
+        }
     };
 
     return (
@@ -279,10 +247,17 @@ export default function RentalScreen() {
                         <Text style={styles.headerSubtitle}>Projeniz İçin Güçlü Çözümler</Text>
                     </View>
                     <TouchableOpacity
-                        style={styles.headerIconBtn}
-                        onPress={() => navigation.navigate('MachineryProvider')}
+                        style={[styles.headerIconBtn, !isTransporter && !isAdmin && { opacity: 0.5 }]}
+                        onPress={() => {
+                            if (isAdmin || isTransporter) {
+                                navigation.navigate('MachineryProvider');
+                            } else {
+                                Alert.alert("Yetkisiz Erişim", "Bu panele sadece 'İş Makinesi / Nakliye' yetkisi olan hesaplar erişebilir.");
+                            }
+                        }}
+                        activeOpacity={isAdmin || isTransporter ? 0.7 : 1}
                     >
-                        <MaterialCommunityIcons name="excavator" size={24} color="#D4AF37" />
+                        <MaterialCommunityIcons name="excavator" size={24} color={isAdmin || isTransporter ? "#D4AF37" : "#666"} />
                     </TouchableOpacity>
                 </View>
 

@@ -161,6 +161,8 @@ export default function EngineeringScreen() {
                                 onPress={() => {
                                     if (isAdmin || isEngineer) {
                                         navigation.navigate('TechnicalProvider');
+                                    } else {
+                                        Alert.alert("Yetkisiz Erişim", "Bu panele sadece 'Mühendis' yetkisi olan hesaplar erişebilir.");
                                     }
                                 }}
                                 activeOpacity={isAdmin || isEngineer ? 0.7 : 1}

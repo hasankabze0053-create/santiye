@@ -93,17 +93,12 @@ export default function AccountSettingsScreen({ route }) {
                     )}
                 </TouchableOpacity>
 
-                {/* CORPORATE ACTION CARD (Moved from ProfileScreen) */}
-                <View style={{ marginTop: 40, marginBottom: 20 }}>
+                {/* Corporate Card Restored for Individual Users */}
+                {(!profileData?.user_type || profileData?.user_type === 'individual') && (
                     <TouchableOpacity
+                        style={{ marginTop: 20 }}
                         activeOpacity={0.9}
-                        onPress={() => {
-                            if (profileData?.user_type === 'corporate') {
-                                navigation.navigate('ProviderDashboard');
-                            } else {
-                                navigation.navigate('Onboarding');
-                            }
-                        }}
+                        onPress={() => navigation.navigate('Onboarding')}
                     >
                         <LinearGradient
                             colors={corporateTheme.background}
@@ -117,24 +112,20 @@ export default function AccountSettingsScreen({ route }) {
                                 </View>
                                 <View style={styles.corporateTextContainer}>
                                     <Text style={[styles.corporateTitle, { color: corporateTheme.text }]}>
-                                        {profileData?.user_type === 'corporate' ? 'Firma Paneli' : 'Kurumsal Üyelik'}
+                                        Kurumsal Üyelik
                                     </Text>
                                     <Text style={[styles.corporateSubtitle, { color: corporateTheme.subText }]}>
-                                        {profileData?.user_type === 'corporate'
-                                            ? 'Hizmetlerinizi ve tekliflerinizi yönetin.'
-                                            : 'Hizmet vermek için kurumsal hesaba geçin.'}
+                                        Hizmet vermek için kurumsal hesaba geçin.
                                     </Text>
                                 </View>
                                 <View style={styles.corporateArrow}>
-                                    <Text style={styles.manageText}>
-                                        {profileData?.user_type === 'corporate' ? 'GİT' : 'BAŞVUR'}
-                                    </Text>
+                                    <Text style={styles.manageText}>BAŞVUR</Text>
                                     <Ionicons name="chevron-forward" size={16} color={corporateTheme.icon} />
                                 </View>
                             </View>
                         </LinearGradient>
                     </TouchableOpacity>
-                </View>
+                )}
             </ScrollView>
         </View>
     );

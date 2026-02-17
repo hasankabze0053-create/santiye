@@ -194,6 +194,8 @@ export default function MarketScreen() {
                             onPress={() => {
                                 if (isAdmin || isSeller) {
                                     navigation.navigate('MarketProvider');
+                                } else {
+                                    Alert.alert("Yetkisiz Erişim", "Yalnızca onaylı 'Yapı Market / Satıcı' hesapları bu panele erişebilir.");
                                 }
                             }}
                             activeOpacity={isAdmin || isSeller ? 0.7 : 1}

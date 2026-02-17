@@ -15,6 +15,7 @@ export default function RequestDetailScreen() {
 
     const [items, setItems] = useState([]);
     const [bids, setBids] = useState([]);
+    const [constructionOffers, setConstructionOffers] = useState([]); // Added state for construction offers
     const [loading, setLoading] = useState(true);
     const [currentUserId, setCurrentUserId] = useState(null);
     const [selectedImage, setSelectedImage] = useState(null); // Full screen modal state
@@ -51,7 +52,7 @@ export default function RequestDetailScreen() {
             if (type !== 'construction') {
                 fetchDetails();
             } else {
-                setLoading(false); // No extra items to fetch for construction yet
+                fetchConstructionOffers(); // Fetch offers for construction requests
             }
         }
     }, [request, type]);
@@ -79,6 +80,36 @@ export default function RequestDetailScreen() {
 
         } catch (error) {
             console.error('Detail fetch error:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // New function to fetch construction offers
+    const fetchConstructionOffers = async () => {
+        try {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('construction_offers')
+                .select('*, profiles:contractor_id(full_name, avatar_url)')
+                .eq('request_id', request.id)
+                .neq('status', 'draft') // Filter drafts
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                // Fallback if relation fails
+                const { data: simpleData } = await supabase
+                    .from('construction_offers')
+                    .select('*')
+                    .eq('request_id', request.id)
+                    .neq('status', 'draft')
+                    .order('created_at', { ascending: false });
+                setConstructionOffers(simpleData || []);
+            } else {
+                setConstructionOffers(data || []);
+            }
+        } catch (error) {
+            console.error('Construction offers fetch error:', error);
         } finally {
             setLoading(false);
         }
@@ -327,7 +358,51 @@ export default function RequestDetailScreen() {
                             )}
                         </ScrollView>
 
-                        {/* OWNER ACTIONS */}
+                        {/* 7. OFFERS SUMMARY (For Owner) - UPDATED AS PER REQUEST */}
+                        {isOwner && (
+                            <View style={{ marginBottom: 30 }}>
+                                <Text style={styles.sectionTitle}>GELEN TEKLİFLER</Text>
+                                {constructionOffers.length === 0 ? (
+                                    <View style={styles.emptyBids}>
+                                        <MaterialCommunityIcons name="timer-sand" size={32} color="#666" />
+                                        <Text style={styles.emptyText}>Henüz teklif gelmedi. Müteahhitler projenizi inceliyor.</Text>
+                                    </View>
+                                ) : (
+                                    <View style={styles.card}>
+                                        <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                                            <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(212, 175, 55, 0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                                                <MaterialCommunityIcons name="email-multiple-outline" size={30} color="#D4AF37" />
+                                            </View>
+                                            <Text style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold' }}>
+                                                {constructionOffers.length} Adet Teklifiniz Var
+                                            </Text>
+                                            <Text style={{ color: '#888', textAlign: 'center', marginTop: 8, paddingHorizontal: 20 }}>
+                                                Gelen tekliflerin detaylarını incelemek için Gelen Kutusu'na gidiniz.
+                                            </Text>
+
+                                            <TouchableOpacity
+                                                style={{
+                                                    marginTop: 20,
+                                                    backgroundColor: '#D4AF37',
+                                                    paddingVertical: 12,
+                                                    paddingHorizontal: 24,
+                                                    borderRadius: 24,
+                                                    flexDirection: 'row',
+                                                    alignItems: 'center',
+                                                    gap: 8
+                                                }}
+                                                onPress={() => navigation.navigate('MainTabs', { screen: 'Operations', params: { screen: 'Inbox' } })}
+                                            >
+                                                <Text style={{ color: '#000', fontWeight: 'bold' }}>TEKLİFLERİ İNCELE</Text>
+                                                <MaterialCommunityIcons name="arrow-right" size={20} color="#000" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                )}
+                            </View>
+                        )}
+
+                        {/* OWNER ACTIONS - DELETE/FREEZE */}
                         {isOwner && (
                             <View style={{ gap: 12, marginTop: 20, marginBottom: 40 }}>
                                 {/* FREEZE REQUEST BUTTON */}

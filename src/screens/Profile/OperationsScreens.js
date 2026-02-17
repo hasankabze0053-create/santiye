@@ -5,6 +5,11 @@ import {
     ActivityIndicator // Added ActivityIndicator
     ,
 
+
+
+
+
+
     FlatList,
     Image,
     StatusBar,
@@ -273,26 +278,79 @@ export const InboxScreen = () => {
 
     const loadInbox = async () => {
         setLoading(true);
-        const data = await MarketService.getIncomingOffers();
-        setMessages(data || []);
-        setLoading(false);
+        try {
+            const [marketOffers, constructionOffers] = await Promise.all([
+                MarketService.getIncomingOffers(),
+                ConstructionService.getIncomingOffers()
+            ]);
+
+            // Group Construction Offers by Request + Contractor
+            const groupedConstruction = {};
+            (constructionOffers || []).forEach(offer => {
+                const key = `${offer.request_id}_${offer.contractor_id}`;
+                if (!groupedConstruction[key]) {
+                    groupedConstruction[key] = {
+                        ...offer,
+                        type: 'construction',
+                        offers: [],
+                        request: {
+                            ...offer.request,
+                            title: offer.request?.title || `${offer.request?.district || ''} / ${offer.request?.neighborhood || ''} - Kentsel Dönüşüm`
+                        }
+                    };
+                }
+                groupedConstruction[key].offers.push(offer);
+            });
+
+            // Normalize Market Offers
+            const normMarket = (marketOffers || []).map(o => ({ ...o, type: 'market' }));
+
+            // Normalize Construction Groups
+            const normConstruction = Object.values(groupedConstruction).map(group => {
+                // Determine display price/text
+                let displayPrice;
+                if (group.offers.length > 1) {
+                    displayPrice = `${group.offers.length} Farklı Teklif`;
+                } else {
+                    const singleOffer = group.offers[0];
+                    displayPrice = singleOffer.unit_breakdown
+                        ? 'Kat Karşılığı Teklif'
+                        : (singleOffer.price_estimate ? singleOffer.price_estimate.toLocaleString('tr-TR') + ' ₺' : 'Fiyat Teklifi');
+                }
+
+                return {
+                    ...group,
+                    price: displayPrice
+                };
+            });
+
+            // Merge and sort
+            const allMessages = [...normMarket, ...normConstruction].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            setMessages(allMessages);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const renderItem = ({ item }) => (
         <TouchableOpacity
             style={[styles.messageItem, { backgroundColor: theme.card }]}
             onPress={() => {
-                // İleride teklif detayına gidebilir
-                // navigation.navigate('OfferDetail', { offer: item });
-
-                // Şimdilik talep detayına gitsin, orada teklifleri görüyor zaten
-                // Ancak request bilgisini tam oluşturmamız gerekebilir.
-                if (item.request) {
-                    // Basitçe request id ile detay açmak için navigate yapısına bakmak lazım.
-                    // RequestDetailScreen tam request objesi bekliyor.
-                    // Şimdilik alert verelim veya istek detayına gitmeye çalışalım.
-                    // En doğrusu: RequestDetailScreen'i sadece ID ile çalışacak şekilde güncellemek.
-                    // Ama pratik çözüm: Buradan teklif detayına değil, teklifin bağlı olduğu talebe gidelim.
+                if (item.type === 'construction') {
+                    // Navigate to Offer Detail (Carousel View) directly
+                    // We pass the GROUP of offers
+                    navigation.navigate('OfferDetail', {
+                        request: item.request,
+                        offers: item.offers,
+                        contractor_id: item.contractor_id,
+                        request_id: item.request_id
+                    });
+                } else if (item.request) {
+                    // Market Request
+                    navigation.navigate('RequestDetail', { request: item.request });
                 }
             }}
         >
@@ -326,9 +384,25 @@ export const InboxScreen = () => {
                 </Text>
             </View>
 
-            {/* Status Badge instead of unread count for now */}
-            <View style={[styles.statusBadge, { backgroundColor: theme.iconBg, marginLeft: 8 }]}>
-                <Text style={[styles.statusText, { color: theme.text, fontSize: 10 }]}>{item.status}</Text>
+            {/* Status Badge */}
+            <View style={[
+                styles.statusBadge,
+                {
+                    backgroundColor: item.status === 'pending' ? 'rgba(212, 175, 55, 0.15)' : theme.iconBg,
+                    borderColor: item.status === 'pending' ? '#D4AF37' : 'transparent',
+                    borderWidth: item.status === 'pending' ? 1 : 0
+                }
+            ]}>
+                <Text style={[
+                    styles.statusText,
+                    {
+                        color: item.status === 'pending' ? '#D4AF37' : theme.text,
+                        fontSize: 10,
+                        fontWeight: '700'
+                    }
+                ]}>
+                    {item.status === 'pending' ? 'YENİ TEKLİF' : (item.status === 'approved' ? 'ONAYLANDI' : item.status)}
+                </Text>
             </View>
         </TouchableOpacity>
     );

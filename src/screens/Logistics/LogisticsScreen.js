@@ -153,6 +153,8 @@ export default function LogisticsScreen() {
                         onPress={() => {
                             if (isAdmin || isTransporter) {
                                 navigation.navigate('LogisticsProvider');
+                            } else {
+                                Alert.alert("Yetkisiz Erişim", "Yalnızca onaylı 'Nakliye / Lojistik' hesapları bu panele erişebilir.");
                             }
                         }}
                         activeOpacity={isAdmin || isTransporter ? 0.7 : 1}

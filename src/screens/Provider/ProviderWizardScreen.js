@@ -5,42 +5,54 @@ import { useState } from 'react';
 import { Alert, ScrollView, StatusBar, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const SPECIALTIES = [
-    'İnşaat Mühendisi', 'Mimar', 'İSG Uzmanı', 'Harita Mühendisi',
-    'İç Mimar', 'Peyzaj Mimarı', 'Makine Mühendisi', 'Elektrik Mühendisi', 'Jeoloji Mühendisi'
+const PROVIDER_ROLES = [
+    { id: 'is_contractor', label: 'Müteahhitlik / Proje', icon: 'business-outline' },
+    { id: 'is_seller', label: 'Yapı Market / Malzeme Satışı', icon: 'cart-outline' },
+    { id: 'is_transporter', label: 'İş Makinesi / Nakliye', icon: 'construct-outline' },
+    { id: 'is_architect', label: 'Mimarlık / Mühendislik Ofisi', icon: 'easel-outline' },
+    { id: 'is_real_estate_agent', label: 'Emlak Danışmanlığı', icon: 'home-outline' },
+    { id: 'is_lawyer', label: 'Avukat / Hukuk Bürosu', icon: 'scale-outline' },
 ];
+
+import { useAuth } from '../../context/AuthContext';
 
 export default function ProviderWizardScreen() {
     const navigation = useNavigation();
+    const { refreshProfile } = useAuth();
     const [step, setStep] = useState(1);
 
     // Form State
-    const [selectedSpecialties, setSelectedSpecialties] = useState([]);
+    const [selectedRoles, setSelectedRoles] = useState([]);
     const [onlineEnabled, setOnlineEnabled] = useState(false);
     const [onlinePrice, setOnlinePrice] = useState('');
     const [onsiteEnabled, setOnsiteEnabled] = useState(false);
     const [onsitePrice, setOnsitePrice] = useState('');
     const [bio, setBio] = useState('');
 
-    const toggleSpecialty = (spec) => {
-        if (selectedSpecialties.includes(spec)) {
-            setSelectedSpecialties(selectedSpecialties.filter(s => s !== spec));
+    const toggleRole = (roleId) => {
+        if (selectedRoles.includes(roleId)) {
+            setSelectedRoles(selectedRoles.filter(id => id !== roleId));
         } else {
-            setSelectedSpecialties([...selectedSpecialties, spec]);
+            setSelectedRoles([...selectedRoles, roleId]);
         }
     };
 
-    const handleNext = () => {
-        if (step === 1 && selectedSpecialties.length === 0) {
-            Alert.alert("Seçim Yapın", "Lütfen en az bir uzmanlık alanı seçin.");
+    const handleNext = async () => {
+        if (step === 1 && selectedRoles.length === 0) {
+            Alert.alert("Seçim Yapın", "Lütfen en az bir hizmet alanı seçin.");
             return;
         }
         if (step === 2 && !onlineEnabled && !onsiteEnabled) {
-            Alert.alert("Hizmet Türü", "En az bir hizmet türünü (Online veya Şantiye) aktif etmelisiniz.");
-            return;
+
+            // For sellers (Yapı Market), service details might not be relevant in the same way, 
+            // but let's keep it required for now or make it optional if only 'is_seller' is selected.
+            // For simplicity, we enforce it for everyone for now, or we can skip step 2 for sellers later.
+            if (!selectedRoles.includes('is_seller')) {
+                Alert.alert("Hizmet Türü", "En az bir hizmet türünü (Online veya Şantiye) aktif etmelisiniz.");
+                return;
+            }
         }
         if (step === 3 && bio.length < 10) {
-            // Basic validation
             Alert.alert("Biyografi", "Lütfen kendinizi tanıtan kısa bir yazı yazın.");
             return;
         }
@@ -48,12 +60,56 @@ export default function ProviderWizardScreen() {
         if (step < 3) {
             setStep(step + 1);
         } else {
-            // Finish
-            Alert.alert("Profil Oluşturuldu", "Tebrikler! Uzman profiliniz onaya gönderildi.", [
-                { text: "Panele Git", onPress: () => navigation.navigate('ProviderDashboard') }
-            ]);
+            // Finish & Save
+            try {
+                const { data: { user } } = await import('../../lib/supabase').supabase.auth.getUser();
+                if (!user) throw new Error("Kullanıcı bulunamadı");
+
+                // Prepare updates object
+                const updates = {
+                    user_type: 'corporate',
+                    approval_status: 'pending', // or 'incomplete' basically needs approval
+                    bio: bio,
+                    // Reset all roles to false first? No, default is false.
+                    is_contractor: selectedRoles.includes('is_contractor'),
+                    is_seller: selectedRoles.includes('is_seller'),
+                    is_transporter: selectedRoles.includes('is_transporter'),
+                    is_architect: selectedRoles.includes('is_architect'),
+                    is_engineer: selectedRoles.includes('is_architect'),
+                    is_real_estate_agent: selectedRoles.includes('is_real_estate_agent'),
+                    is_lawyer: selectedRoles.includes('is_lawyer'),
+                };
+
+                const { error } = await import('../../lib/supabase').supabase
+                    .from('profiles')
+                    .update(updates)
+                    .eq('id', user.id);
+
+                if (error) throw error;
+
+                // Force context refresh to ensure UI updates immediately
+                // We need to import useAuth logic here or just rely on navigation focus
+                // But since we are inside a function, we can't use hook. 
+                // Wait, useAuth() is a hook, we can use it at component level. 
+
+                // Let's assume refreshProfile is passed or we trigger it.
+                // Since I can't easily access the hook's refreshProfile inside this callback if I didn't destructure it,
+                // I will add it to the component.
+                if (refreshProfile) await refreshProfile();
+
+                Alert.alert("Başvuru Alındı", "Profiliniz ve yetki talepleriniz onaya gönderildi. Durumunuzu profil sayfasından takip edebilirsiniz.", [
+                    {
+                        text: "Tamam",
+                        onPress: () => navigation.navigate('MainTabs', { screen: 'Profil' })
+                    }
+                ]);
+
+            } catch (err) {
+                Alert.alert("Hata", "Başvuru gönderilemedi: " + err.message);
+            }
         }
     };
+
 
     const handleBack = () => {
         if (step > 1) setStep(step - 1);
@@ -81,20 +137,28 @@ export default function ProviderWizardScreen() {
 
                     {step === 1 && (
                         <View>
-                            <Text style={styles.title}>Uzmanlık Alanı Seçin</Text>
-                            <Text style={styles.subtitle}>Hangi kategorilerde hizmet vermek istiyorsunuz?</Text>
+                            <Text style={styles.title}>Hizmet Alanları</Text>
+                            <Text style={styles.subtitle}>Firmanızın hangi sektörlerde faaliyet göstereceğini seçiniz. Birden fazla seçim yapabilirsiniz.</Text>
 
-                            <View style={styles.grid}>
-                                {SPECIALTIES.map((spec) => {
-                                    const isSelected = selectedSpecialties.includes(spec);
+                            <View style={styles.roleContainer}>
+                                {PROVIDER_ROLES.map((role) => {
+                                    const isSelected = selectedRoles.includes(role.id);
                                     return (
                                         <TouchableOpacity
-                                            key={spec}
-                                            style={[styles.chip, isSelected && styles.chipSelected]}
-                                            onPress={() => toggleSpecialty(spec)}
+                                            key={role.id}
+                                            style={[styles.roleCard, isSelected && styles.roleCardSelected]}
+                                            onPress={() => toggleRole(role.id)}
+                                            activeOpacity={0.8}
                                         >
-                                            <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>{spec}</Text>
-                                            {isSelected && <Ionicons name="checkmark-circle" size={18} color="#0f172a" style={{ marginLeft: 8 }} />}
+                                            <View style={styles.roleIconBox}>
+                                                <Ionicons name={role.icon} size={24} color={isSelected ? "#000" : "#94a3b8"} />
+                                            </View>
+                                            <Text style={[styles.roleText, isSelected && styles.roleTextSelected]}>
+                                                {role.label}
+                                            </Text>
+                                            <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
+                                                {isSelected && <Ionicons name="checkmark" size={16} color="#000" />}
+                                            </View>
                                         </TouchableOpacity>
                                     )
                                 })}
@@ -218,11 +282,23 @@ const styles = StyleSheet.create({
     subtitle: { fontSize: 16, color: '#94a3b8', marginBottom: 32 },
 
     // Step 1
-    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-    chip: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12, backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155', flexDirection: 'row', alignItems: 'center' },
-    chipSelected: { backgroundColor: '#4ADE80', borderColor: '#4ADE80' },
-    chipText: { color: '#cbd5e1', fontWeight: '500' },
-    chipTextSelected: { color: '#0f172a', fontWeight: 'bold' },
+    roleContainer: { gap: 12 },
+    roleCard: {
+        flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 12,
+        backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155', marginBottom: 12
+    },
+    roleCardSelected: { backgroundColor: '#4ADE80', borderColor: '#4ADE80' },
+    roleIconBox: {
+        width: 40, height: 40, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.1)',
+        alignItems: 'center', justifyContent: 'center', marginRight: 12
+    },
+    roleText: { color: '#cbd5e1', fontWeight: 'bold', fontSize: 16, flex: 1 },
+    roleTextSelected: { color: '#0f172a' },
+    checkbox: {
+        width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: '#64748b',
+        alignItems: 'center', justifyContent: 'center'
+    },
+    checkboxSelected: { backgroundColor: '#fff', borderColor: '#fff' },
 
     // Step 2 & 3
     card: { backgroundColor: '#1e293b', padding: 20, borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: '#334155' },

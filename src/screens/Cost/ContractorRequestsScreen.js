@@ -14,7 +14,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import GlassCard from '../../components/GlassCard';
 import PremiumBackground from '../../components/PremiumBackground';
-import { supabase } from '../../lib/supabase';
 
 const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -24,6 +23,7 @@ const formatDate = (dateString) => {
 
 export default function ContractorRequestsScreen() {
     const navigation = useNavigation();
+    const [activeTab, setActiveTab] = useState('İhaleler'); // 'İhaleler' | 'Tekliflerim'
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -31,13 +31,16 @@ export default function ContractorRequestsScreen() {
     const fetchRequests = async () => {
         try {
             setLoading(true);
-            const { data, error } = await supabase
-                .from('construction_requests')
-                .select('*')
-                .eq('status', 'pending')
-                .order('created_at', { ascending: false });
+            let data = [];
 
-            if (error) throw error;
+            if (activeTab === 'İhaleler') {
+                // Fetch requests NOT YET BID ON
+                data = await ConstructionService.getOpenRequestsForContractor();
+            } else {
+                // Fetch requests ALREADY BID ON
+                data = await ConstructionService.getContractorBids();
+            }
+
             setRequests(data || []);
         } catch (error) {
             console.error('Error fetching requests:', error);
@@ -49,7 +52,7 @@ export default function ContractorRequestsScreen() {
 
     useEffect(() => {
         fetchRequests();
-    }, []);
+    }, [activeTab]);
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -93,8 +96,19 @@ export default function ContractorRequestsScreen() {
                 </View>
             )}
 
+            {/* If My Bids tab, show my offer price if available */}
+            {activeTab === 'Tekliflerim' && item.my_offer && (
+                <View style={{ marginTop: 10, padding: 10, backgroundColor: 'rgba(212, 175, 55, 0.1)', borderRadius: 8, borderWidth: 1, borderColor: '#D4AF37' }}>
+                    <Text style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 12 }}>TEKLİFİNİZ</Text>
+                    <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>
+                        {item.my_offer.price_estimate ? item.my_offer.price_estimate.toLocaleString('tr-TR') + ' ₺' : 'Kat Karşılığı'}
+                    </Text>
+                    <Text style={{ color: '#BBB', fontSize: 10 }}>{item.my_offer.status === 'pending' ? 'Değerlendiriliyor' : (item.my_offer.status === 'approved' ? 'Onaylandı' : 'Reddedildi')}</Text>
+                </View>
+            )}
+
             <View style={styles.footer}>
-                <Text style={styles.viewDetailsText}>DETAYLARI GÖR & TEKLİF VER</Text>
+                <Text style={styles.viewDetailsText}>{activeTab === 'İhaleler' ? 'DETAYLARI GÖR & TEKLİF VER' : 'TEKLİFİNİ İNCELE'}</Text>
                 <MaterialCommunityIcons name="arrow-right" size={20} color="#D4AF37" />
             </View>
         </GlassCard>
@@ -110,8 +124,24 @@ export default function ContractorRequestsScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>GELEN TALEPLER</Text>
+                    <Text style={styles.headerTitle}>MÜTEAHHİT PANELİ</Text>
                     <View style={{ width: 44 }} />
+                </View>
+
+                {/* TABS */}
+                <View style={styles.tabContainer}>
+                    <TouchableOpacity
+                        style={[styles.tabButton, activeTab === 'İhaleler' && styles.activeTabButton]}
+                        onPress={() => setActiveTab('İhaleler')}
+                    >
+                        <Text style={[styles.tabText, activeTab === 'İhaleler' && styles.activeTabText]}>İHALELER</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.tabButton, activeTab === 'Tekliflerim' && styles.activeTabButton]}
+                        onPress={() => setActiveTab('Tekliflerim')}
+                    >
+                        <Text style={[styles.tabText, activeTab === 'Tekliflerim' && styles.activeTabText]}>TEKLİFLERİM</Text>
+                    </TouchableOpacity>
                 </View>
 
                 {loading && !refreshing ? (
@@ -130,8 +160,10 @@ export default function ContractorRequestsScreen() {
                         }
                         ListEmptyComponent={
                             <View style={styles.emptyState}>
-                                <MaterialCommunityIcons name="clipboard-text-off-outline" size={64} color="#666" />
-                                <Text style={styles.emptyText}>Henüz bekleyen talep bulunmuyor.</Text>
+                                <MaterialCommunityIcons name={activeTab === 'İhaleler' ? "clipboard-text-off-outline" : "file-document-edit-outline"} size={64} color="#666" />
+                                <Text style={styles.emptyText}>
+                                    {activeTab === 'İhaleler' ? 'Bekleyen açık ihale bulunmuyor.' : 'Henüz bir teklif vermediniz.'}
+                                </Text>
                             </View>
                         }
                     />
@@ -263,5 +295,30 @@ const styles = StyleSheet.create({
     emptyText: {
         color: '#888',
         fontSize: 16
+    },
+    tabContainer: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        marginBottom: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255,255,255,0.1)'
+    },
+    tabButton: {
+        flex: 1,
+        paddingVertical: 12,
+        alignItems: 'center',
+        borderBottomWidth: 2,
+        borderBottomColor: 'transparent'
+    },
+    activeTabButton: {
+        borderBottomColor: '#D4AF37'
+    },
+    tabText: {
+        color: '#666',
+        fontWeight: 'bold',
+        fontSize: 14
+    },
+    activeTabText: {
+        color: '#D4AF37'
     }
 });
