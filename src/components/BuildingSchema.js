@@ -24,7 +24,10 @@ export default function BuildingSchema({
     selectedUnits = [],
     onUnitSelect,
     campaignData = {}, // Default empty object to prevent crash
-    cashAdjustment = null // { type: 'request' | 'payment', amount: 0 }
+    cashAdjustment = null, // { type: 'request' | 'payment', amount: 0 }
+    showColors = false, // New prop to force coloring in read-only mode,
+    hideDetails = false, // New prop to hide internal details
+    legendLabel = 'Müteahhit (Siz)' // Default label for legend
 }) {
     const floors = parseInt(floorCount) || 0;
     const basements = parseInt(basementCount) || 1;
@@ -73,7 +76,7 @@ export default function BuildingSchema({
         const typeConfig = UNIT_TYPES[unit.type] || UNIT_TYPES.apartment;
 
         const isSelected = selectedUnits.includes(unit.id);
-        const isSelectionsActive = selectable; // If selection mode is active
+        const isSelectionsActive = selectable || showColors; // If selection mode is active OR forced
 
         // Premium Colors and Gradients
         let colors = ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)']; // Default Glass
@@ -217,11 +220,11 @@ export default function BuildingSchema({
                 {renderFloors()}
             </View>
 
-            {selectable && (
+            {(selectable || showColors) && (
                 <View style={styles.legendContainer}>
                     <View style={styles.legendItem}>
                         <LinearGradient colors={['#D4AF37', '#AA8A2E']} style={styles.legendColorBox} />
-                        <Text style={styles.legendText}>Müteahhit (Siz)</Text>
+                        <Text style={styles.legendText}>{legendLabel}</Text>
                     </View>
                     <View style={styles.legendItem}>
                         <LinearGradient colors={['#E0E0E0', '#B0B0B0']} style={styles.legendColorBox} />
@@ -234,7 +237,7 @@ export default function BuildingSchema({
 
 
             {/* Government Grant Info */}
-            {campaignData && (campaignData.unitCount > 0 || campaignData.commercialCount > 0) && (
+            {!hideDetails && campaignData && (campaignData.unitCount > 0 || campaignData.commercialCount > 0) && (
                 <View style={styles.grantContainer}>
                     <Text style={styles.grantLabel}>DEVLET DESTEĞİNDE HAK EDİŞİNİZ</Text>
                     <Text style={styles.grantAmount}>
@@ -251,7 +254,7 @@ export default function BuildingSchema({
             )}
 
             {/* Cash Adjustment Info */}
-            {cashAdjustment && cashAdjustment.amount > 0 && (
+            {!hideDetails && cashAdjustment && cashAdjustment.amount > 0 && (
                 <View style={[
                     styles.grantContainer,
                     {
@@ -281,7 +284,7 @@ export default function BuildingSchema({
             )}
 
             {/* Contractor Selected Units Info */}
-            {selectedUnits.length > 0 && (
+            {!hideDetails && selectedUnits.length > 0 && (
                 <View style={[
                     styles.grantContainer,
                     {

@@ -298,6 +298,7 @@ export default function AppNavigator() {
             <Stack.Screen name="MarketStack" component={MarketScreen} />
             <Stack.Screen name="BulkRequest" component={BulkRequestScreen} />
             <Stack.Screen name="MarketRequest" component={MarketRequestScreen} />
+            <Stack.Screen name="Chat" component={ChatScreen} />
             <Stack.Screen name="MarketSuccess" component={MarketSuccessScreen} />
 
             {/* Renovation */}

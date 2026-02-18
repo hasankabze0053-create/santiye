@@ -107,7 +107,7 @@ export const ConstructionService = {
             // Supabase join syntax: Fetch offers where the related request's user_id is the current user
             const { data, error } = await supabase
                 .from('construction_offers')
-                .select('*, request:construction_requests!inner(id, district, neighborhood, city, user_id), profiles:contractor_id(full_name, avatar_url)')
+                .select('*, request:construction_requests!inner(id, district, neighborhood, city, user_id, is_campaign_active, campaign_unit_count, campaign_commercial_count), profiles:contractor_id(full_name, avatar_url)')
                 .eq('request.user_id', user.id)
                 .neq('status', 'draft') // Filter drafts
                 .order('created_at', { ascending: false });

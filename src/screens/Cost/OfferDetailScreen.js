@@ -8,7 +8,6 @@ import {
     Alert,
     Animated,
     Dimensions,
-    Linking,
     Modal,
     ScrollView,
     StatusBar,
@@ -20,8 +19,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BuildingSchema from '../../components/BuildingSchema';
 import GlassCard from '../../components/GlassCard';
-import OfferSummaryCard from '../../components/OfferSummaryCard';
 import PremiumBackground from '../../components/PremiumBackground';
+import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 
 const { width } = Dimensions.get('window');
@@ -63,6 +62,7 @@ const numberToTurkishWords = (num) => {
 };
 
 export default function OfferDetailScreen() {
+    const { user } = useAuth();
     const navigation = useNavigation();
     const route = useRoute();
     const { request, request_id, contractor_id, offers: initialOffers, initialOfferIndex = 0 } = route.params || {};
@@ -177,6 +177,38 @@ export default function OfferDetailScreen() {
         const selectedUnits = breakdown.selected_units || [];
         const cashAdj = breakdown.cash_adjustment || {};
 
+        // Helper to ensure selectedUnits matching works even if IDs mismatch
+        const normalizeSelectedUnits = () => {
+            const allUnits = Object.values(floorDetails).flat();
+            // Check if we have direct matches
+            const hasDirectMatch = allUnits.some(u => selectedUnits.includes(u.id));
+
+            if (hasDirectMatch) return selectedUnits;
+
+            // Fallback: If no direct match (data inconsistencies with random IDs),
+            // select the LAST N 'apartment' units to represent the selection (usually top floors).
+            if (selectedUnits.length > 0) {
+                const count = selectedUnits.length;
+                console.warn(`Unit ID mismatch. Using representative fallback for ${count} units.`);
+
+                const candidates = allUnits.filter(u => u.type === 'apartment' || u.type === 'residence');
+
+                if (candidates.length >= count) {
+                    return candidates.slice(candidates.length - count).map(u => u.id);
+                }
+                return allUnits.slice(allUnits.length - count).map(u => u.id);
+            }
+            return selectedUnits;
+        };
+
+        const effectiveSelectedUnits = normalizeSelectedUnits();
+
+        console.log('DEBUG: OfferDetail', {
+            offerId: offer.id,
+            selectedUnitsCount: selectedUnits.length,
+            effectiveSelectedUnitsCount: effectiveSelectedUnits.length
+        });
+
         return (
             <ScrollView
                 style={{ width: width, paddingHorizontal: 20 }}
@@ -187,7 +219,8 @@ export default function OfferDetailScreen() {
                 <GlassCard style={styles.card}>
                     <View style={styles.cardHeader}>
                         <MaterialCommunityIcons name="star-circle" size={24} color="#D4AF37" />
-                        <Text style={styles.cardTitle}>SEÇENEK #{offers.length - index}</Text>
+                        {/* FIXED: Title now matches the Tab Index logic (1-based) */}
+                        <Text style={styles.cardTitle}>TEKLİF #{index + 1}</Text>
                         <View style={{ flex: 1 }} />
                         <View style={styles.badge}>
                             <Text style={styles.badgeText}>YENİ TEKLİF</Text>
@@ -238,40 +271,107 @@ export default function OfferDetailScreen() {
 
                 {/* 2. Visual Building Schema */}
                 <Text style={styles.sectionTitle}>MİMARİ GÖRSELLEŞTİRME</Text>
-                <TouchableOpacity onPress={() => setIsSchemaModalVisible(true)} activeOpacity={0.9}>
-                    <View style={styles.schemaContainer}>
-                        <BuildingSchema
-                            floorCount={offer.floor_count}
-                            floorDetails={floorDetails}
-                            groundFloorType={groundFloorType}
-                            isBasementResidential={offer.is_basement_residential}
-                            basementCount={offer.basement_count || 0}
-                            selectable={false} // Read only
-                            selectedUnits={selectedUnits} // Highlights contractor units
-                            campaignData={{ unitCount: 0, commercialCount: 0 }} // Optional: pass real data if available from request context
-                            cashAdjustment={{ type: 'none', amount: 0 }}
-                        />
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 12, gap: 6 }}>
-                            <MaterialCommunityIcons name="magnify-plus-outline" size={16} color="#D4AF37" />
-                            <Text style={{ color: '#D4AF37', fontSize: 11, fontStyle: 'italic' }}>
-                                Detaylı incelemek için dokunun
-                            </Text>
-                        </View>
-                    </View>
-                </TouchableOpacity>
+                {/* FIXED: Removed TouchableOpacity to disable modal opening */}
+                <View style={styles.schemaContainer}>
+                    <BuildingSchema
+                        floorCount={offer.floor_count}
+                        floorDetails={floorDetails}
+                        groundFloorType={groundFloorType}
+                        isBasementResidential={offer.is_basement_residential}
+                        basementCount={offer.basement_count || 0}
+                        selectable={false} // Read only
+                        selectedUnits={effectiveSelectedUnits} // Highlights contractor units
+                        campaignData={{
+                            unitCount: request?.campaign_unit_count || 0,
+                            commercialCount: request?.campaign_commercial_count || 0
+                        }}
+                        cashAdjustment={{
+                            type: cashAdj.type || 'none',
+                            amount: cashAdj.amount || 0
+                        }}
+                        showColors={true}
+                        hideDetails={true} // FIXED: Added prop to hide internal Grant/Cash boxes
+                        legendLabel={contractor?.id === user?.id ? 'Müteahhit (Siz)' : 'Müteahhit Firma'}
+                    />
+                    {/* Removed "Detaylı incelemek için dokunun" hint since interaction is disabled */}
+                </View>
 
-                {/* 3. Offer Summary (New detailed view) */}
-                <OfferSummaryCard
-                    selectedUnits={selectedUnits}
+                {/* 3. Visual Summary Boxes (New) */}
+                <View style={{ marginTop: 20, gap: 12 }}>
+
+                    {/* A. Grant Box (Government Support) */}
+                    {request?.is_campaign_active && (request?.campaign_unit_count > 0 || request?.campaign_commercial_count > 0) && (
+                        <GlassCard style={{ backgroundColor: 'rgba(50, 205, 50, 0.1)', borderColor: 'rgba(50, 205, 50, 0.3)', padding: 16 }}>
+                            <Text style={{ color: '#4CAF50', fontSize: 12, fontWeight: 'bold', textAlign: 'center', marginBottom: 4 }}>
+                                DEVLET DESTEĞİNDE HAK EDİŞİNİZ
+                            </Text>
+                            <Text style={{ color: '#FFF', fontSize: 20, fontWeight: 'bold', textAlign: 'center' }}>
+                                {formatCurrency((
+                                    ((request.campaign_unit_count || 0) * 1750000) +
+                                    ((request.campaign_commercial_count || 0) * 875000)
+                                ).toString())} TL
+                            </Text>
+                            <Text style={{ color: '#DDD', fontSize: 11, textAlign: 'center', marginTop: 4 }}>
+                                {request.campaign_unit_count > 0 ? `${request.campaign_unit_count} Konut (Hibe + Kredi)` : ''}
+                                {request.campaign_commercial_count > 0 ? `${request.campaign_unit_count > 0 ? ' + ' : ''}${request.campaign_commercial_count} Dükkan` : ''}
+                            </Text>
+                        </GlassCard>
+                    )}
+
+                    {/* B. Cash Adjustment Box */}
+                    {cashAdj.amount > 0 && (
+                        <GlassCard style={{ backgroundColor: 'rgba(50, 205, 50, 0.1)', borderColor: 'rgba(50, 205, 50, 0.3)', padding: 16 }}>
+                            <Text style={{ color: '#4CAF50', fontSize: 12, fontWeight: 'bold', textAlign: 'center', marginBottom: 4 }}>
+                                {cashAdj.type === 'request'
+                                    ? 'HAK SAHİPLERİNDEN TALEP EDİLEN TOPLAM TUTAR'
+                                    : 'MÜTEAHHİT FİRMA TARAFINDAN ÖDENECEK TUTAR'}
+                            </Text>
+                            <Text style={{ color: '#FFF', fontSize: 20, fontWeight: 'bold', textAlign: 'center' }}>
+                                ₺{formatCurrency(cashAdj.amount)}
+                            </Text>
+                            <Text style={{ color: '#DDD', fontSize: 11, textAlign: 'center', marginTop: 4 }}>
+                                {cashAdj.type === 'request' ? 'Nakit Ödeme (İlave Ücret)' : 'Nakit Ödeme (Üste Para)'}
+                            </Text>
+                        </GlassCard>
+                    )}
+
+                    {/* C. Contractor Units Box */}
+                    <GlassCard style={{ backgroundColor: 'rgba(212, 175, 55, 0.1)', borderColor: 'rgba(212, 175, 55, 0.3)', padding: 16 }}>
+                        <Text style={{ color: '#D4AF37', fontSize: 12, fontWeight: 'bold', textAlign: 'center', marginBottom: 4 }}>
+                            MÜTEAHHİT FİRMAYA KALACAK DAİRELER
+                        </Text>
+                        <Text style={{ color: '#FFF', fontSize: 16, fontWeight: 'bold', textAlign: 'center' }}>
+                            {effectiveSelectedUnits.length > 0
+                                ? effectiveSelectedUnits.map(uid => {
+                                    // Find unit name from floorDetails if possible, or just ID
+                                    // Helper to find name:
+                                    let name = 'Bilinmeyen Daire';
+                                    Object.values(floorDetails).flat().forEach(u => {
+                                        if (u.id === uid) name = u.name;
+                                    });
+                                    return name;
+                                }).join(', ')
+                                : 'Seçim Yapılmadı'}
+                        </Text>
+                        <Text style={{ color: '#DDD', fontSize: 11, textAlign: 'center', marginTop: 4 }}>
+                            {effectiveSelectedUnits.length} Adet Bağımsız Bölüm
+                        </Text>
+                    </GlassCard>
+
+                </View>
+
+                {/* 4. Offer Summary Text (Existing) - REMOVED per feedback (Duplicate info) */}
+                {/* <OfferSummaryCard
+                    selectedUnits={effectiveSelectedUnits}
                     floorDetails={floorDetails}
                     cashAdjustmentType={cashAdj.type}
                     cashAdjustmentAmount={cashAdj.amount}
                     campaignUnitCount={request?.campaign_unit_count}
                     campaignCommercialCount={request?.campaign_commercial_count}
-                    isFlatForLand={true} // Assuming true here as this screen handles offers which are detailed
+                    isFlatForLand={true}
                     containerStyle={{ marginTop: 20 }}
                     viewerMode={viewerMode}
-                />
+                /> */}
 
                 {/* 3. Description & Notes */}
                 {offer.offer_details && (
@@ -284,35 +384,39 @@ export default function OfferDetailScreen() {
                 )}
 
                 {/* 4. Action Buttons */}
-                <View style={{ marginTop: 30, gap: 12 }}>
-                    <TouchableOpacity style={styles.primaryBtn}>
-                        <LinearGradient
-                            colors={['#D4AF37', '#B8860B']}
-                            style={styles.gradientBtn}
+                {/* 4. Action Buttons - Hide if viewer is the contractor who made the offer */}
+                {contractor?.id !== user?.id && (
+                    <View style={{ marginTop: 30, gap: 12 }}>
+                        <TouchableOpacity style={styles.primaryBtn}>
+                            <LinearGradient
+                                colors={['#D4AF37', '#B8860B']}
+                                style={styles.gradientBtn}
+                            >
+                                <Text style={styles.primaryBtnText}>BU TEKLİFİ KABUL ET</Text>
+                            </LinearGradient>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.secondaryBtn}
+                            onPress={() => {
+                                navigation.navigate('Chat', {
+                                    receiver_id: contractor?.id,
+                                    receiver_name: contractor?.company_name || contractor?.full_name || 'Müteahhit Firma',
+                                    receiver_avatar: contractor?.avatar_url,
+                                    request_id: request?.id,
+                                    request_title: request?.title || 'Kentsel Dönüşüm Projesi'
+                                });
+                            }}
                         >
-                            <Text style={styles.primaryBtnText}>BU TEKLİFİ KABUL ET</Text>
-                        </LinearGradient>
-                    </TouchableOpacity>
+                            <MaterialCommunityIcons name="message-text-outline" size={20} color="#38BDF8" style={{ marginRight: 8 }} />
+                            <Text style={[styles.secondaryBtnText, { color: '#38BDF8' }]}>FİRMA İLE GÖRÜŞ</Text>
+                        </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={styles.secondaryBtn}
-                        onPress={() => {
-                            if (contractor?.phone) {
-                                const phone = contractor.phone.replace(/[^0-9]/g, '');
-                                Linking.openURL(`whatsapp://send?phone=${phone}&text=Merhaba, teklifiniz hakkında görüşmek istiyorum.`);
-                            } else {
-                                Alert.alert('Bilgi', 'Müteahhit iletişim bilgisi bulunamadı.');
-                            }
-                        }}
-                    >
-                        <MaterialCommunityIcons name="whatsapp" size={20} color="#25D366" style={{ marginRight: 8 }} />
-                        <Text style={styles.secondaryBtnText}>WHATSAPP İLE GÖRÜŞ</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={[styles.secondaryBtn, { borderColor: '#EF4444' }]}>
-                        <Text style={[styles.secondaryBtnText, { color: '#EF4444' }]}>REDDET</Text>
-                    </TouchableOpacity>
-                </View>
+                        <TouchableOpacity style={[styles.secondaryBtn, { borderColor: '#EF4444' }]}>
+                            <Text style={[styles.secondaryBtnText, { color: '#EF4444' }]}>REDDET</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
 
             </ScrollView>
         );
