@@ -53,6 +53,7 @@ import MarketRequestScreen from '../screens/Market/MarketRequestScreen';
 import MarketSuccessScreen from '../screens/Market/MarketSuccessScreen';
 import SellerDashboardScreen from '../screens/Market/SellerDashboardScreen';
 import SellerStoreScreen from '../screens/Market/SellerStoreScreen';
+import ChatScreen from '../screens/Messages/ChatScreen';
 import ContractorProviderScreen from '../screens/Provider/ContractorProviderScreen';
 import LawProviderScreen from '../screens/Provider/LawProviderScreen';
 import LogisticsProviderScreen from '../screens/Provider/LogisticsProviderScreen';

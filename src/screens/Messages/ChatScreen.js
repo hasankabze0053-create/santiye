@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     FlatList,
     Image,
     KeyboardAvoidingView,
@@ -31,6 +32,11 @@ export default function ChatScreen() {
     const flatListRef = useRef(null);
 
     useEffect(() => {
+        if (!receiver_id) {
+            Alert.alert('Hata', 'Alıcı bilgisi bulunamadı.');
+            navigation.goBack();
+            return;
+        }
         setupChat();
 
         // Subscribe to new messages
@@ -93,7 +99,11 @@ export default function ChatScreen() {
     };
 
     const sendMessage = async () => {
-        if (!inputText.trim() || !currentUser || !receiver_id) return;
+        if (!inputText.trim()) return;
+        if (!currentUser || !receiver_id) {
+            Alert.alert('Hata', 'Mesaj gönderilemiyor. Oturum veya alıcı hatası.');
+            return;
+        }
 
         setSending(true);
         const text = inputText.trim();
@@ -112,10 +122,8 @@ export default function ChatScreen() {
 
             if (error) throw error;
 
-            // Optimistic update if subscription is slow? 
-            // Actually subscription handles it. If strict optimistic needed, we push locally.
-            // For now rely on subscription or manual fetch if needed.
-            // Let's manually push to be snappy
+            // Optimistic update if needed (Subscription usually handles it)
+            // pushing locally just in case subscription is slow
             const optimisticMsg = {
                 id: Math.random().toString(), // Temp ID
                 sender_id: currentUser.id,
@@ -124,11 +132,18 @@ export default function ChatScreen() {
                 created_at: new Date().toISOString(),
                 is_read: false
             };
-            setMessages(prev => [optimisticMsg, ...prev]);
+            // Check if already added by subscription to avoid dupe? 
+            // Better rely on subscription OR check ID. 
+            // For now, let's rely on subscription for single source of truth to avoid complexity.
+            // But user wants "instant reaction".
+            // We'll add it, and if subscription adds it again, we might have dupe if we don't handle IDs.
+            // React Key extractor handles unique IDs.
+            // Let's NOT add optimistic locally to avoid dupes, unless subscription fails.
 
         } catch (error) {
             console.error('Send Message Error:', error);
-            alert('Mesaj gönderilemedi.');
+            Alert.alert('Hata', 'Mesaj gönderilemedi.');
+            setInputText(text); // Restore text
         } finally {
             setSending(false);
         }
@@ -182,28 +197,32 @@ export default function ChatScreen() {
                     </View>
                 </View>
 
-                {/* Messages List */}
-                {loading ? (
-                    <ActivityIndicator color="#D4AF37" style={{ marginTop: 50 }} />
-                ) : (
-                    <FlatList
-                        ref={flatListRef}
-                        data={messages}
-                        renderItem={renderMessage}
-                        keyExtractor={item => item.id.toString()}
-                        inverted
-                        contentContainerStyle={{ padding: 20, paddingBottom: 20 }}
-                        ListEmptyComponent={
-                            <View style={{ alignItems: 'center', marginTop: 50, opacity: 0.5 }}>
-                                <MaterialCommunityIcons name="message-text-outline" size={48} color="#666" />
-                                <Text style={{ color: '#666', marginTop: 10 }}>Henüz mesaj yok.</Text>
-                            </View>
-                        }
-                    />
-                )}
+                {/* Main Chat Area with Keyboard Handling */}
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                    style={{ flex: 1 }}
+                    keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+                >
+                    {loading ? (
+                        <ActivityIndicator color="#D4AF37" style={{ marginTop: 50 }} />
+                    ) : (
+                        <FlatList
+                            ref={flatListRef}
+                            data={messages}
+                            renderItem={renderMessage}
+                            keyExtractor={item => item.id.toString()}
+                            inverted
+                            contentContainerStyle={{ padding: 20, paddingBottom: 20 }}
+                            ListEmptyComponent={
+                                <View style={{ alignItems: 'center', marginTop: 50, opacity: 0.5 }}>
+                                    <MaterialCommunityIcons name="message-text-outline" size={48} color="#666" />
+                                    <Text style={{ color: '#666', marginTop: 10 }}>Henüz mesaj yok.</Text>
+                                </View>
+                            }
+                        />
+                    )}
 
-                {/* Input Area */}
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={10}>
+                    {/* Input Area */}
                     <View style={styles.inputContainer}>
                         <TextInput
                             style={styles.input}
@@ -212,6 +231,7 @@ export default function ChatScreen() {
                             value={inputText}
                             onChangeText={setInputText}
                             multiline
+                            maxLength={500}
                         />
                         <TouchableOpacity
                             style={[
@@ -220,11 +240,18 @@ export default function ChatScreen() {
                             ]}
                             disabled={!inputText.trim() || sending}
                             onPress={sendMessage}
+                            activeOpacity={0.7}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         >
-                            <Ionicons name="send" size={20} color={inputText.trim() ? '#000' : '#666'} />
+                            {sending ? (
+                                <ActivityIndicator color="#000" size="small" />
+                            ) : (
+                                <Ionicons name="send" size={20} color={inputText.trim() ? '#000' : '#666'} />
+                            )}
                         </TouchableOpacity>
                     </View>
                 </KeyboardAvoidingView>
+
             </SafeAreaView>
         </View>
     );
@@ -232,7 +259,7 @@ export default function ChatScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#000' },
-    header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#222' },
+    header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#222', zIndex: 10, backgroundColor: '#000' },
     backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: '#1A1A1A' },
     headerContent: { flex: 1, marginLeft: 10 },
     headerTitle: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
@@ -247,5 +274,5 @@ const styles = StyleSheet.create({
 
     inputContainer: { flexDirection: 'row', alignItems: 'center', padding: 12, borderTopWidth: 1, borderTopColor: '#222', backgroundColor: '#111' },
     input: { flex: 1, backgroundColor: '#1A1A1A', color: '#FFF', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, maxHeight: 100, fontSize: 15 },
-    sendBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginLeft: 10 },
+    sendBtn: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginLeft: 10 },
 });

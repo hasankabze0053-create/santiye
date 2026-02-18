@@ -10,6 +10,8 @@ import {
 
 
 
+
+
     FlatList,
     Image,
     StatusBar,
@@ -385,25 +387,56 @@ export const InboxScreen = () => {
             </View>
 
             {/* Status Badge */}
-            <View style={[
-                styles.statusBadge,
-                {
-                    backgroundColor: item.status === 'pending' ? 'rgba(212, 175, 55, 0.15)' : theme.iconBg,
-                    borderColor: item.status === 'pending' ? '#D4AF37' : 'transparent',
-                    borderWidth: item.status === 'pending' ? 1 : 0
-                }
-            ]}>
-                <Text style={[
-                    styles.statusText,
+            {item.status === 'pending' ? (
+                <LinearGradient
+                    colors={['#D4AF37', '#B8860B']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={[
+                        styles.statusBadge,
+                        {
+                            borderWidth: 0,
+                            paddingVertical: 8,
+                            paddingHorizontal: 12,
+                            elevation: 5,
+                            shadowColor: '#D4AF37',
+                            shadowOpacity: 0.5,
+                            shadowRadius: 5
+                        }
+                    ]}
+                >
+                    <Text style={[
+                        styles.statusText,
+                        {
+                            color: '#000',
+                            fontSize: 10,
+                            fontWeight: '800',
+                            letterSpacing: 0.5
+                        }
+                    ]}>
+                        YENİ TEKLİF
+                    </Text>
+                </LinearGradient>
+            ) : (
+                <View style={[
+                    styles.statusBadge,
                     {
-                        color: item.status === 'pending' ? '#D4AF37' : theme.text,
-                        fontSize: 10,
-                        fontWeight: '700'
+                        backgroundColor: theme.iconBg,
+                        borderWidth: 0
                     }
                 ]}>
-                    {item.status === 'pending' ? 'YENİ TEKLİF' : (item.status === 'approved' ? 'ONAYLANDI' : item.status)}
-                </Text>
-            </View>
+                    <Text style={[
+                        styles.statusText,
+                        {
+                            color: theme.text,
+                            fontSize: 10,
+                            fontWeight: '700'
+                        }
+                    ]}>
+                        {item.status === 'approved' ? 'ONAYLANDI' : item.status}
+                    </Text>
+                </View>
+            )}
         </TouchableOpacity>
     );
 

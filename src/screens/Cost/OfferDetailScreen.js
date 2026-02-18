@@ -303,7 +303,7 @@ export default function OfferDetailScreen() {
                     {request?.is_campaign_active && (request?.campaign_unit_count > 0 || request?.campaign_commercial_count > 0) && (
                         <GlassCard style={{ backgroundColor: 'rgba(50, 205, 50, 0.1)', borderColor: 'rgba(50, 205, 50, 0.3)', padding: 16 }}>
                             <Text style={{ color: '#4CAF50', fontSize: 12, fontWeight: 'bold', textAlign: 'center', marginBottom: 4 }}>
-                                DEVLET DESTEĞİNDE HAK EDİŞİNİZ
+                                DEVLET DESTEĞİNDE HAK EDİŞİNİZ (MÜTEAHHİT HESABINA AKTARILIR)
                             </Text>
                             <Text style={{ color: '#FFF', fontSize: 20, fontWeight: 'bold', textAlign: 'center' }}>
                                 {formatCurrency((
@@ -313,7 +313,7 @@ export default function OfferDetailScreen() {
                             </Text>
                             <Text style={{ color: '#DDD', fontSize: 11, textAlign: 'center', marginTop: 4 }}>
                                 {request.campaign_unit_count > 0 ? `${request.campaign_unit_count} Konut (Hibe + Kredi)` : ''}
-                                {request.campaign_commercial_count > 0 ? `${request.campaign_unit_count > 0 ? ' + ' : ''}${request.campaign_commercial_count} Dükkan` : ''}
+                                {request.campaign_commercial_count > 0 ? `${request.campaign_unit_count > 0 ? ' + ' : ''}${request.campaign_commercial_count} Dükkan (Hibe + Kredi)` : ''}
                             </Text>
                         </GlassCard>
                     )}
