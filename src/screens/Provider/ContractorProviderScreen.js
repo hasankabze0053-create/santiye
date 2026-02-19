@@ -70,7 +70,7 @@ export default function ContractorProviderScreen() {
             ) : (
                 requests.map((item, index) => (
                     <LinearGradient
-                        key={item.id}
+                        key={`${item.id}-${index}`}
                         colors={['rgba(30, 41, 59, 0.6)', 'rgba(15, 23, 42, 0.8)']}
                         style={styles.leadCard}
                     >

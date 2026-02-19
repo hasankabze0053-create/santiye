@@ -283,6 +283,41 @@ export default function MarketScreen() {
                                 </View>
                             </TouchableOpacity>
 
+                            {/* NEW: AI PROCUREMENT WIZARD BUTTON */}
+                            <TouchableOpacity
+                                style={styles.aiWizardButton}
+                                onPress={() => navigation.navigate('SmartProcurementWizard')}
+                                activeOpacity={0.9}
+                            >
+                                <LinearGradient
+                                    colors={['#101828', '#1D2939']} // Dark blue-grey gradient background
+                                    style={StyleSheet.absoluteFill}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 1 }}
+                                />
+                                <View style={styles.aiContentContainer}>
+                                    <View style={styles.aiIconContainer}>
+                                        <LinearGradient
+                                            colors={['#FDB931', '#996515']} // Gold gradient for icon bg
+                                            style={StyleSheet.absoluteFill}
+                                        />
+                                        <MaterialCommunityIcons name="robot-confused-outline" size={32} color="#000" />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                                            <Text style={styles.aiTitle}>CEPTEŞEF AI</Text>
+                                            <View style={styles.newBadge}>
+                                                <Text style={styles.newBadgeText}>YENİ</Text>
+                                            </View>
+                                        </View>
+                                        <Text style={styles.aiSubtitle}>
+                                            "10 katlı bina için beton lazım" diyin, yapay zeka sizin için en iyi tedarikçileri bulsun.
+                                        </Text>
+                                    </View>
+                                    <MaterialCommunityIcons name="chevron-right" size={24} color="#D4AF37" />
+                                </View>
+                            </TouchableOpacity>
+
                             {/* 4. MAIN CATEGORY GRID */}
                             <View style={styles.sectionHeader}>
                                 <Text style={styles.sectionTitle}>KATEGORİLER</Text>
@@ -630,4 +665,60 @@ const styles = StyleSheet.create({
     listContent: { flex: 1 },
     listTitle: { fontSize: 16, fontWeight: 'bold', color: '#FFF' },
     listSubtitle: { fontSize: 12, color: '#888', marginTop: 2 },
+
+    // AI Wizard Button Styles
+    aiWizardButton: {
+        marginHorizontal: 16,
+        marginBottom: 24,
+        height: 100,
+        borderRadius: 16,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: '#D4AF37',
+        shadowColor: "#D4AF37",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 5
+    },
+    aiContentContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        height: '100%'
+    },
+    aiIconContainer: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 16,
+        borderWidth: 1,
+        borderColor: '#FFF'
+    },
+    aiTitle: {
+        fontSize: 14,
+        fontWeight: '900',
+        color: '#D4AF37',
+        letterSpacing: 1,
+        marginRight: 8
+    },
+    newBadge: {
+        backgroundColor: '#D4AF37',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4
+    },
+    newBadgeText: {
+        color: '#000',
+        fontSize: 10,
+        fontWeight: 'bold'
+    },
+    aiSubtitle: {
+        fontSize: 12,
+        color: '#CCC',
+        fontStyle: 'italic',
+        lineHeight: 16
+    }
 });

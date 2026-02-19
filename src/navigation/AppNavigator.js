@@ -53,6 +53,7 @@ import MarketRequestScreen from '../screens/Market/MarketRequestScreen';
 import MarketSuccessScreen from '../screens/Market/MarketSuccessScreen';
 import SellerDashboardScreen from '../screens/Market/SellerDashboardScreen';
 import SellerStoreScreen from '../screens/Market/SellerStoreScreen';
+import SmartProcurementWizardScreen from '../screens/Market/SmartProcurementWizardScreen';
 import ChatScreen from '../screens/Messages/ChatScreen';
 import ContractorProviderScreen from '../screens/Provider/ContractorProviderScreen';
 import LawProviderScreen from '../screens/Provider/LawProviderScreen';
@@ -301,6 +302,7 @@ export default function AppNavigator() {
             <Stack.Screen name="MarketRequest" component={MarketRequestScreen} />
             <Stack.Screen name="Chat" component={ChatScreen} />
             <Stack.Screen name="MarketSuccess" component={MarketSuccessScreen} />
+            <Stack.Screen name="SmartProcurementWizard" component={SmartProcurementWizardScreen} options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
 
             {/* Renovation */}
             <Stack.Screen name="Tadilat" component={RenovationScreen} />

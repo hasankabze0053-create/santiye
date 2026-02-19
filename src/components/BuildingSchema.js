@@ -406,21 +406,22 @@ const styles = StyleSheet.create({
     schemaContainer: {
         width: '100%',
         alignItems: 'center',
-        maxWidth: 320
+        // Removed maxWidth or set it very large
+        // maxWidth: 500
     },
     /* roof styles removed */
     floorRow: {
         flexDirection: 'row',
         alignItems: 'center',
         width: '100%',
-        marginBottom: 4
+        marginBottom: 8 // Increased gap
     },
     floorLabel: {
-        width: 70,
+        width: 60, // Reduced label width to give more space
         color: '#CCC',
-        fontSize: 11,
+        fontSize: 12,
         textAlign: 'right',
-        marginRight: 12,
+        marginRight: 8,
         fontWeight: 'bold',
         letterSpacing: 0.5
     },
@@ -430,7 +431,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#111',
         borderWidth: 1,
         borderColor: '#333',
-        height: 50, // Slightly taller
+        height: 60, // Increased height for larger visual
         borderRadius: 4,
         overflow: 'hidden'
     },

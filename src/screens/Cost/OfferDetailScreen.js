@@ -19,6 +19,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BuildingSchema from '../../components/BuildingSchema';
 import GlassCard from '../../components/GlassCard';
+import OfferSummaryCard from '../../components/OfferSummaryCard';
 import PremiumBackground from '../../components/PremiumBackground';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -131,6 +132,12 @@ export default function OfferDetailScreen() {
         try {
             setLoading(true);
 
+            if (!request_id || !contractor_id || request_id === 'undefined' || contractor_id === 'undefined') {
+                console.warn('Skipping fetchOffers due to invalid IDs', { request_id, contractor_id });
+                setLoading(false);
+                return;
+            }
+
             // 1. Fetch Offers
             const { data: offersData, error: offersError } = await supabase
                 .from('construction_offers')
@@ -239,34 +246,8 @@ export default function OfferDetailScreen() {
                     ) : (
                         <View>
                             <Text style={styles.label}>KAT KARŞILIĞI PAYLAŞIM MODELİ</Text>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                                <MaterialCommunityIcons name="home-city" size={20} color="#D4AF37" />
-                                <Text style={{ color: '#FFF', fontWeight: 'bold' }}>
-                                    {selectedUnits.length} Daire Müteahhit Payı
-                                </Text>
-                            </View>
-                            {cashAdj.amount > 0 && (
-                                <Text style={{ color: cashAdj.type === 'request' ? '#4CAF50' : '#FF5252', marginTop: 4, fontWeight: 'bold' }}>
-                                    {cashAdj.type === 'request' ? `+ ${formatCurrency(cashAdj.amount)} TL (Müteahhit Ödeyecek)` : `- ${formatCurrency(cashAdj.amount)} TL (Sizden Talep Ediliyor)`}
-                                </Text>
-                            )}
                         </View>
                     )}
-
-                    <View style={{ flexDirection: 'row', marginTop: 16, gap: 20 }}>
-                        <View>
-                            <Text style={styles.label}>TOPLAM ALAN</Text>
-                            <Text style={styles.value}>{offer.total_area || '0'} m²</Text>
-                        </View>
-                        <View>
-                            <Text style={styles.label}>KAT SAYISI</Text>
-                            <Text style={styles.value}>{offer.floor_count || '0'}</Text>
-                        </View>
-                        <View>
-                            <Text style={styles.label}>DAİRE/KAT</Text>
-                            <Text style={styles.value}>{offer.floor_design_type || '0'}</Text>
-                        </View>
-                    </View>
                 </GlassCard>
 
                 {/* 2. Visual Building Schema */}
@@ -341,27 +322,28 @@ export default function OfferDetailScreen() {
                             MÜTEAHHİT FİRMAYA KALACAK DAİRELER
                         </Text>
                         <Text style={{ color: '#FFF', fontSize: 16, fontWeight: 'bold', textAlign: 'center' }}>
-                            {effectiveSelectedUnits.length > 0
-                                ? effectiveSelectedUnits.map(uid => {
-                                    // Find unit name from floorDetails if possible, or just ID
-                                    // Helper to find name:
-                                    let name = 'Bilinmeyen Daire';
-                                    Object.values(floorDetails).flat().forEach(u => {
-                                        if (u.id === uid) name = u.name;
-                                    });
-                                    return name;
-                                }).join(', ')
+                            {effectiveSelectedUnits.filter(uid => Object.values(floorDetails).flat().some(u => u.id === uid)).length > 0
+                                ? effectiveSelectedUnits
+                                    .map(uid => {
+                                        let name = null;
+                                        Object.values(floorDetails).flat().forEach(u => {
+                                            if (u.id === uid) name = u.name;
+                                        });
+                                        return name;
+                                    })
+                                    .filter(name => name !== null) // Filter out nulls (unknowns)
+                                    .join(', ')
                                 : 'Seçim Yapılmadı'}
                         </Text>
                         <Text style={{ color: '#DDD', fontSize: 11, textAlign: 'center', marginTop: 4 }}>
-                            {effectiveSelectedUnits.length} Adet Bağımsız Bölüm
+                            {effectiveSelectedUnits.filter(uid => Object.values(floorDetails).flat().some(u => u.id === uid)).length} Adet Bağımsız Bölüm
                         </Text>
                     </GlassCard>
 
                 </View>
 
                 {/* 4. Offer Summary Text (Existing) - REMOVED per feedback (Duplicate info) */}
-                {/* <OfferSummaryCard
+                <OfferSummaryCard
                     selectedUnits={effectiveSelectedUnits}
                     floorDetails={floorDetails}
                     cashAdjustmentType={cashAdj.type}
@@ -371,7 +353,7 @@ export default function OfferDetailScreen() {
                     isFlatForLand={true}
                     containerStyle={{ marginTop: 20 }}
                     viewerMode={viewerMode}
-                /> */}
+                />
 
                 {/* 3. Description & Notes */}
                 {offer.offer_details && (
@@ -400,10 +382,10 @@ export default function OfferDetailScreen() {
                             style={styles.secondaryBtn}
                             onPress={() => {
                                 navigation.navigate('Chat', {
-                                    receiver_id: contractor?.id,
+                                    receiver_id: contractor?.id || contractor_id,
                                     receiver_name: contractor?.company_name || contractor?.full_name || 'Müteahhit Firma',
                                     receiver_avatar: contractor?.avatar_url,
-                                    request_id: request?.id,
+                                    request_id: request?.id || request_id,
                                     request_title: request?.title || 'Kentsel Dönüşüm Projesi'
                                 });
                             }}
@@ -554,7 +536,7 @@ const styles = StyleSheet.create({
     value: { color: '#FFF', fontSize: 15, fontWeight: '600' },
 
     sectionTitle: { color: '#D4AF37', fontSize: 13, fontWeight: 'bold', marginTop: 24, marginBottom: 12, marginLeft: 4 },
-    schemaContainer: { backgroundColor: 'rgba(255,255,255,0.02)', padding: 10, borderRadius: 16, borderWidth: 1, borderColor: '#222' },
+    schemaContainer: { backgroundColor: 'rgba(255,255,255,0.02)', padding: 0, borderRadius: 16, borderWidth: 1, borderColor: '#222', overflow: 'hidden' },
 
     noteText: { color: '#DDD', fontSize: 14, lineHeight: 22 },
 

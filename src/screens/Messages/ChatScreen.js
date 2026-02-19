@@ -47,8 +47,8 @@ export default function ChatScreen() {
                 {
                     event: 'INSERT',
                     schema: 'public',
-                    table: 'messages',
-                    filter: `request_id=eq.${request_id}`
+                    table: 'messages'
+                    // removed filter: request_id to catch all and rely on RLS + client filter
                 },
                 (payload) => {
                     const newMessage = payload.new;
@@ -110,35 +110,42 @@ export default function ChatScreen() {
         setInputText(''); // Optimistic clear
 
         try {
-            const { error } = await supabase
-                .from('messages')
-                .insert({
-                    sender_id: currentUser.id,
-                    receiver_id: receiver_id,
-                    request_id: request_id, // Context
-                    content: text,
-                    is_read: false
-                });
-
-            if (error) throw error;
-
-            // Optimistic update if needed (Subscription usually handles it)
-            // pushing locally just in case subscription is slow
+            // Optimistic Update
             const optimisticMsg = {
-                id: Math.random().toString(), // Temp ID
+                id: `temp-${Math.random().toString(36).substring(2, 15)}`, // Temp ID
                 sender_id: currentUser.id,
                 receiver_id: receiver_id,
                 content: text,
+                request_id: request_id || null, // Ensure ID is saved if provided
                 created_at: new Date().toISOString(),
                 is_read: false
             };
-            // Check if already added by subscription to avoid dupe? 
-            // Better rely on subscription OR check ID. 
-            // For now, let's rely on subscription for single source of truth to avoid complexity.
-            // But user wants "instant reaction".
-            // We'll add it, and if subscription adds it again, we might have dupe if we don't handle IDs.
-            // React Key extractor handles unique IDs.
-            // Let's NOT add optimistic locally to avoid dupes, unless subscription fails.
+            setMessages(prev => [optimisticMsg, ...prev]);
+
+            const payload = {
+                sender_id: currentUser.id,
+                receiver_id: receiver_id,
+                request_id: request_id || null, // Ensure null if undefined
+                content: text,
+                is_read: false
+            };
+            console.log('Sending message payload:', payload);
+
+            const { error } = await supabase
+                .from('messages')
+                .insert(payload);
+
+            if (error) {
+                console.error('Supabase Insert Error:', JSON.stringify(error, null, 2));
+                // Remove optimistic message on error
+                setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
+                throw error;
+            }
+
+            // Successfully sent
+            // The subscription will eventually bring the real message with its actual ID.
+            // The `setMessages` logic in the subscription handler will replace the optimistic message
+            // or handle potential duplicates.
 
         } catch (error) {
             console.error('Send Message Error:', error);

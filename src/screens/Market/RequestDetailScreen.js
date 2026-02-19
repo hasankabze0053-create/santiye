@@ -91,7 +91,7 @@ export default function RequestDetailScreen() {
             setLoading(true);
             const { data, error } = await supabase
                 .from('construction_offers')
-                .select('*, profiles:contractor_id(full_name, avatar_url)')
+                .select('*, profiles:contractor_id(id, full_name, company_name, avatar_url)')
                 .eq('request_id', request.id)
                 .neq('status', 'draft') // Filter drafts
                 .order('created_at', { ascending: false });
@@ -391,7 +391,31 @@ export default function RequestDetailScreen() {
                                                     alignItems: 'center',
                                                     gap: 8
                                                 }}
-                                                onPress={() => navigation.navigate('MainTabs', { screen: 'Operations', params: { screen: 'Inbox' } })}
+                                                onPress={() => {
+                                                    // Logic to determine where to go
+                                                    const grouped = {};
+                                                    constructionOffers.forEach(o => {
+                                                        if (!grouped[o.contractor_id]) grouped[o.contractor_id] = [];
+                                                        grouped[o.contractor_id].push(o);
+                                                    });
+
+                                                    const contractorIds = Object.keys(grouped);
+
+                                                    if (contractorIds.length === 1) {
+                                                        // Single contractor -> Go directly to Offer Detail
+                                                        const contractorId = contractorIds[0];
+                                                        const offers = grouped[contractorId];
+                                                        navigation.navigate('OfferDetail', {
+                                                            request: request,
+                                                            offers: offers,
+                                                            contractor_id: contractorId,
+                                                            request_id: request.id
+                                                        });
+                                                    } else {
+                                                        // Multiple -> Go to Inbox
+                                                        navigation.navigate('MainTabs', { screen: 'Inbox' });
+                                                    }
+                                                }}
                                             >
                                                 <Text style={{ color: '#000', fontWeight: 'bold' }}>TEKLİFLERİ İNCELE</Text>
                                                 <MaterialCommunityIcons name="arrow-right" size={20} color="#000" />

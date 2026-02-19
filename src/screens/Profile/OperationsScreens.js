@@ -1,5 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useState } from 'react';
 import {
     ActivityIndicator // Added ActivityIndicator
@@ -12,8 +13,20 @@ import {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
     FlatList,
-    Image,
     StatusBar,
     StyleSheet,
     Text,
@@ -22,6 +35,7 @@ import {
     useColorScheme
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ChatService } from '../../services/ChatService';
 import { ConstructionService } from '../../services/ConstructionService'; // Added ConstructionService
 import { MarketService } from '../../services/MarketService';
 
@@ -267,7 +281,8 @@ export const InboxScreen = () => {
     const colorScheme = useColorScheme();
     const isDarkMode = colorScheme === 'dark' || true;
     const [activeTab, setActiveTab] = useState('Mesajlar');
-    const [messages, setMessages] = useState([]);
+    const [chats, setChats] = useState([]);
+    const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(false);
     const theme = getTheme(isDarkMode);
     const navigation = useNavigation();
@@ -281,10 +296,28 @@ export const InboxScreen = () => {
     const loadInbox = async () => {
         setLoading(true);
         try {
-            const [marketOffers, constructionOffers] = await Promise.all([
+            const [marketOffers, constructionOffers, activeChats] = await Promise.all([
                 MarketService.getIncomingOffers(),
-                ConstructionService.getIncomingOffers()
+                ConstructionService.getIncomingOffers(),
+                ChatService.getConversations() // Fetch chats
             ]);
+
+            // Normalize Chats
+            const normChats = (activeChats || []).map(c => ({
+                id: c.key, // Use conversation key as unique ID
+                type: 'chat',
+                title: c.otherParty?.company_name || c.otherParty?.full_name || 'Kullanıcı',
+                subtitle: c.lastMessage,
+                date: c.lastMessageDate,
+                price: '', // No price for chat
+                status: c.isRead ? 'ok' : 'new',
+                statusColor: c.isRead ? '#8E8E93' : '#FF3B30',
+                profiles: c.otherParty, // Use other party as profile
+                request: { title: c.requestTitle || 'Genel Sohbet' },
+                // data for navigation
+                otherPartyId: c.otherPartyId,
+                requestId: c.requestId
+            }));
 
             // Group Construction Offers by Request + Contractor
             const groupedConstruction = {};
@@ -326,10 +359,13 @@ export const InboxScreen = () => {
                 };
             });
 
-            // Merge and sort
-            const allMessages = [...normMarket, ...normConstruction].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            // Sort Lists
+            const sortedChats = normChats.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const sortedNotifications = [...normMarket, ...normConstruction].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-            setMessages(allMessages);
+            setChats(sortedChats);
+            setNotifications(sortedNotifications);
+
         } catch (error) {
             console.error(error);
         } finally {
@@ -341,7 +377,15 @@ export const InboxScreen = () => {
         <TouchableOpacity
             style={[styles.messageItem, { backgroundColor: theme.card }]}
             onPress={() => {
-                if (item.type === 'construction') {
+                if (item.type === 'chat') {
+                    navigation.navigate('Chat', {
+                        receiver_id: item.otherPartyId,
+                        receiver_name: item.title,
+                        receiver_avatar: item.profiles?.avatar_url,
+                        request_id: item.requestId,
+                        request_title: item.request?.title
+                    });
+                } else if (item.type === 'construction') {
                     // Navigate to Offer Detail (Carousel View) directly
                     // We pass the GROUP of offers
                     navigation.navigate('OfferDetail', {
@@ -356,20 +400,9 @@ export const InboxScreen = () => {
                 }
             }}
         >
-            {/* Avatar / Logo */}
-            {item.profiles?.avatar_url ? (
-                <Image source={{ uri: item.profiles.avatar_url }} style={styles.avatar} />
-            ) : (
-                <View style={[styles.avatar, { alignItems: 'center', justifyContent: 'center', backgroundColor: '#333' }]}>
-                    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>
-                        {item.profiles?.full_name ? item.profiles.full_name.charAt(0).toUpperCase() : '?'}
-                    </Text>
-                </View>
-            )}
-
-            <View style={styles.messageContent}>
+            <View style={[styles.messageContent, { marginLeft: 0 }]}>
                 <View style={styles.messageRow}>
-                    <Text style={[styles.senderName, { color: theme.text }]}>
+                    <Text style={[styles.senderName, { color: theme.text, fontSize: 16 }]}>
                         {item.profiles?.full_name || 'Bilinmeyen Tedarikçi'}
                     </Text>
                     <Text style={[styles.timeText, { color: theme.subText }]}>
@@ -377,66 +410,52 @@ export const InboxScreen = () => {
                     </Text>
                 </View>
 
-                {/* Mesaj Yerine Teklif Özeti */}
-                <Text numberOfLines={1} style={[styles.messagePreview, { color: theme.accent }]}>
-                    {item.price ? `${item.price} - Fiyat Teklifi` : 'Yeni bir teklif gönderdi.'}
+                {/* Mesaj Yerine Teklif Özeti VEYA Chat Mesajı */}
+                <Text numberOfLines={1} style={[styles.messagePreview, { color: theme.accent, marginTop: 2 }]}>
+                    {item.type === 'chat'
+                        ? (item.subtitle || 'Mesaj gönderildi')
+                        : (item.price ? `${item.price} - Fiyat Teklifi` : 'Yeni bir teklif gönderdi.')
+                    }
                 </Text>
-                <Text numberOfLines={1} style={[styles.cardSubtitle, { color: theme.subText, marginTop: 2 }]}>
-                    Talep: {item.request?.title}
+                <Text numberOfLines={1} style={[styles.cardSubtitle, { color: theme.subText, marginTop: 4, fontSize: 11 }]}>
+                    {item.type === 'chat' ? 'Sohbet' : `Talep: ${item.request?.title}`}
                 </Text>
+
             </View>
 
-            {/* Status Badge */}
-            {item.status === 'pending' ? (
-                <LinearGradient
-                    colors={['#D4AF37', '#B8860B']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={[
-                        styles.statusBadge,
-                        {
-                            borderWidth: 0,
-                            paddingVertical: 8,
-                            paddingHorizontal: 12,
-                            elevation: 5,
-                            shadowColor: '#D4AF37',
-                            shadowOpacity: 0.5,
-                            shadowRadius: 5
-                        }
-                    ]}
-                >
-                    <Text style={[
-                        styles.statusText,
-                        {
-                            color: '#000',
-                            fontSize: 10,
-                            fontWeight: '800',
-                            letterSpacing: 0.5
-                        }
-                    ]}>
-                        YENİ TEKLİF
-                    </Text>
-                </LinearGradient>
-            ) : (
-                <View style={[
-                    styles.statusBadge,
-                    {
-                        backgroundColor: theme.iconBg,
-                        borderWidth: 0
-                    }
-                ]}>
-                    <Text style={[
-                        styles.statusText,
-                        {
-                            color: theme.text,
-                            fontSize: 10,
-                            fontWeight: '700'
-                        }
-                    ]}>
-                        {item.status === 'approved' ? 'ONAYLANDI' : item.status}
-                    </Text>
-                </View>
-            )}
+            {/* Status Badge / Button */}
+            <View style={styles.rightCol}>
+                {item.type === 'chat' ? (
+                    <View style={{ alignItems: 'flex-end' }}>
+                        {!item.isRead && (
+                            <View style={{ backgroundColor: '#FF3B30', width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
+                                <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>1</Text>
+                            </View>
+                        )}
+                        <Text style={{ color: theme.subText, fontSize: 10 }}>
+                            {new Date(item.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                    </View>
+                ) : (
+                    item.status === 'pending' ? (
+                        <LinearGradient
+                            colors={['#D4AF37', '#AA8A2E']} // Richer Gold Gradient
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.premiumBadge}
+                        >
+                            <MaterialCommunityIcons name="star-four-points" size={12} color="#000" style={{ marginRight: 6 }} />
+                            <Text style={styles.premiumBadgeText}>
+                                İNCELE
+                            </Text>
+                        </LinearGradient>
+                    ) : (
+                        <Text style={[styles.statusText, { color: item.status === 'approved' ? '#34C759' : theme.subText, marginTop: 10 }]}>
+                            {item.status === 'approved' ? 'ONAYLANDI' : item.status}
+                        </Text>
+                    )
+                )}
+            </View>
         </TouchableOpacity>
     );
 
@@ -450,11 +469,11 @@ export const InboxScreen = () => {
     return (
         <ScreenLayout title="Gelen Kutusu" theme={theme} activeTab={activeTab} setActiveTab={setActiveTab} tabs={['Mesajlar', 'Bildirimler']} icon="check-all">
             <FlatList
-                data={messages}
+                data={activeTab === 'Mesajlar' ? chats : notifications}
                 renderItem={renderItem}
                 keyExtractor={i => i.id}
                 contentContainerStyle={styles.listContent}
-                ListEmptyComponent={!loading && <EmptyState />}
+                ListEmptyComponent={<EmptyState />}
                 onRefresh={loadInbox}
                 refreshing={loading}
             />
@@ -526,4 +545,24 @@ const styles = StyleSheet.create({
     unreadBadge: { backgroundColor: '#FF3B30', width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
     unreadText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
     createBtn: { paddingHorizontal: 20, paddingVertical: 12, borderRadius: 20 },
+    premiumBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 20, // More rounded/pill shape
+        elevation: 6,
+        shadowColor: '#D4AF37',
+        shadowOpacity: 0.4,
+        shadowRadius: 6,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.2)'
+    },
+    premiumBadgeText: {
+        color: '#000',
+        fontSize: 11,
+        fontWeight: '900',
+        letterSpacing: 1
+    },
 });
