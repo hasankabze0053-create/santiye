@@ -294,6 +294,15 @@ export default function ConstructionOfferSubmitScreen() {
         }
     };
 
+    // Unified Auto-Generator for Floor Plan
+    useEffect(() => {
+        // Only auto-generate if we are NOT loading an existing offer/strategy
+        // and only if the essential fields are present.
+        if (!editingStrategy && floorCount && floorDesignType) {
+            generateDefaultFloorMap();
+        }
+    }, [floorCount, basementCount, isBasementResidential, groundFloorType, floorDesignType]);
+
     const generateDefaultFloorMap = () => {
         const count = parseInt(floorCount) || 0;
         const bCount = parseInt(basementCount) || 0;
@@ -303,7 +312,7 @@ export default function ConstructionOfferSubmitScreen() {
         let currentApartmentNumber = 1;
 
         // Helper
-        const generateUnits = (count, typePrefix = 'Daire', type = 'apartment') => {
+        const generateUnits = (count, typePrefix = 'Daire', type = 'apartment', floorIdx) => {
             return Array.from({ length: count }).map((_, i) => {
                 let name = `${typePrefix} ${i + 1}`;
 
@@ -314,7 +323,7 @@ export default function ConstructionOfferSubmitScreen() {
                 }
 
                 return {
-                    id: Math.random().toString(),
+                    id: `f${floorIdx}_u${i}_${type}`,
                     type: type,
                     name: name,
                     area: ''
@@ -328,11 +337,11 @@ export default function ConstructionOfferSubmitScreen() {
                 const idx = -b;
                 // Check if user wants residential basements (e.g. bahçe katı)
                 if (isBasementResidential) {
-                    newMap[idx] = generateUnits(unitsPerFloor || 1, 'Daire', 'apartment');
+                    newMap[idx] = generateUnits(unitsPerFloor || 1, 'Daire', 'apartment', idx);
                 } else {
                     // Non-residential basements don't consume apartment numbers
                     newMap[idx] = Array.from({ length: 1 }).map((_, i) => ({
-                        id: Math.random().toString(),
+                        id: `f${idx}_u${i}_shelter`,
                         type: 'shelter',
                         name: 'Sığınak / Depo',
                         area: ''
@@ -343,17 +352,17 @@ export default function ConstructionOfferSubmitScreen() {
 
         // 2. Ground Floor (Zemin)
         if (groundFloorType === 'apartment') {
-            newMap[0] = generateUnits(unitsPerFloor || 1, 'Daire', 'apartment');
+            newMap[0] = generateUnits(unitsPerFloor || 1, 'Daire', 'apartment', 0);
         } else if (groundFloorType === 'shop') {
             newMap[0] = Array.from({ length: unitsPerFloor || 1 }).map((_, i) => ({
-                id: Math.random().toString(),
+                id: `f0_u${i}_shop`,
                 type: 'shop',
                 name: `Dükkan ${i + 1}`,
                 area: ''
             }));
         } else {
             newMap[0] = Array.from({ length: 1 }).map((_, i) => ({
-                id: Math.random().toString(),
+                id: `f0_u${i}_parking`,
                 type: 'parking',
                 name: 'Otopark',
                 area: ''
@@ -363,11 +372,12 @@ export default function ConstructionOfferSubmitScreen() {
         // 3. Upper Floors (1 to N)
         if (count > 0) {
             for (let i = 1; i <= count; i++) {
-                newMap[i] = generateUnits(unitsPerFloor, 'Daire', 'apartment');
+                newMap[i] = generateUnits(unitsPerFloor, 'Daire', 'apartment', i);
             }
         }
 
         setFloorDetails(newMap);
+        return newMap;
     };
 
     const loadOffer = (offer) => {
@@ -425,8 +435,8 @@ export default function ConstructionOfferSubmitScreen() {
     };
 
     const handleSubmit = async (shouldExit = true) => {
-        console.log('DEBUG: handleSubmit called', { shouldExit, savedStrategiesLen: savedStrategies.length, isFlatForLand: request?.offer_type === 'kat_karsiligi' });
-        const isFlatForLand = request?.offer_type === 'kat_karsiligi';
+        console.log('DEBUG: handleSubmit called', { shouldExit, savedStrategiesLen: savedStrategies.length, isFlatForLand });
+        // REMOVED local isFlatForLand redeclaration that was overriding the robust one
 
         // Validation
         // Check if current form is empty
@@ -478,8 +488,11 @@ export default function ConstructionOfferSubmitScreen() {
                 return;
             }
 
-            // Ensure defaults generated
-            generateDefaultFloorMap();
+            // Ensure floorDetails is captured even if state hasn't updated or was empty
+            let finalFloorDetails = floorDetails;
+            if (Object.keys(floorDetails).length === 0) {
+                finalFloorDetails = generateDefaultFloorMap();
+            }
 
             const offerData = {
                 request_id: request.id,
@@ -494,32 +507,31 @@ export default function ConstructionOfferSubmitScreen() {
                 floor_design_type: floorDesignType,
                 floor_details_json: {
                     groundFloor: groundFloorType,
-                    floors: floorDetails
+                    floors: finalFloorDetails
                 },
                 status: shouldExit ? 'pending' : 'draft',
             };
 
+            // Unify metadata: Always save if selectedUnits exists, regardless of model
+            const metadata = {
+                selected_units: selectedUnits,
+                grant_ownership: grantOwnership,
+                cash_adjustment: {
+                    type: cashAdjustmentType,
+                    amount: cashAdjustmentAmount ? parseCurrency(cashAdjustmentAmount) : 0
+                }
+            };
+
             if (isFlatForLand) {
-                // Flat for Land Specifics
-                offerData.price_estimate = 0; // Or cash amount? Let's keep 0 for now as it's not a total contract price
+                offerData.price_estimate = 0;
                 offerData.unit_price = 0;
-
-                const flatLandMetadata = {
-                    selected_units: selectedUnits,
-                    grant_ownership: grantOwnership,
-                    cash_adjustment: {
-                        type: cashAdjustmentType,
-                        amount: cashAdjustmentAmount ? parseCurrency(cashAdjustmentAmount) : 0
-                    }
-                };
-
-                // Use unit_breakdown column which is JSONB to store this metadata
-                offerData.unit_breakdown = flatLandMetadata;
+                offerData.unit_breakdown = metadata;
             } else {
-                // Standard Offer
+                // Standard/Turnkey Offer
                 offerData.price_estimate = parseCurrency(price);
                 offerData.unit_price = parseCurrency(unitPrice) || 0;
-                offerData.unit_breakdown = unitBreakdown;
+                // Merge current selections into unit_breakdown if they exist
+                offerData.unit_breakdown = selectedUnits.length > 0 ? metadata : unitBreakdown;
             }
 
             if (editingStrategy) {
@@ -554,9 +566,17 @@ export default function ConstructionOfferSubmitScreen() {
 
                 if (updateError) console.error('Error updating drafts:', updateError);
 
+                console.log('DEBUG: Final submission success, navigating...');
                 Alert.alert('Başarılı', 'Teklifiniz başarıyla iletildi!', [
                     { text: 'Tamam', onPress: () => navigation.navigate('MainTabs', { screen: 'Requests' }) }
                 ]);
+
+                // Fallback navigation if alert is blocked
+                setTimeout(() => {
+                    if (navigation.canGoBack()) {
+                        navigation.navigate('MainTabs', { screen: 'Requests' });
+                    }
+                }, 1500);
             } else {
 
                 await fetchSavedStrategies(); // Refresh list
@@ -1033,21 +1053,26 @@ export default function ConstructionOfferSubmitScreen() {
                                         type: cashAdjustmentType, // 'request' or 'payment'
                                         amount: parseCurrency(cashAdjustmentAmount) || 0
                                     }}
+                                    isFlatForLand={isFlatForLand}
+                                    turnkeyData={{
+                                        totalPrice: parseCurrency(price) || 0,
+                                        campaignPolicy: campaignPolicy
+                                    }}
                                 />
                             </View>
 
                             {/* Dynamic Offer Summary */}
-                            {isFlatForLand && (
-                                <OfferSummaryCard
-                                    selectedUnits={selectedUnits}
-                                    floorDetails={floorDetails}
-                                    cashAdjustmentType={cashAdjustmentType}
-                                    cashAdjustmentAmount={cashAdjustmentAmount}
-                                    campaignUnitCount={request?.campaign_unit_count}
-                                    campaignCommercialCount={request?.campaign_commercial_count}
-                                    isFlatForLand={isFlatForLand}
-                                />
-                            )}
+                            <OfferSummaryCard
+                                selectedUnits={selectedUnits}
+                                floorDetails={floorDetails}
+                                cashAdjustmentType={cashAdjustmentType}
+                                cashAdjustmentAmount={cashAdjustmentAmount}
+                                campaignUnitCount={request?.campaign_unit_count}
+                                campaignCommercialCount={request?.campaign_commercial_count}
+                                isFlatForLand={isFlatForLand}
+                                totalPrice={price}
+                                campaignPolicy={campaignPolicy}
+                            />
 
 
                             <Text style={styles.sectionHeader}>AÇIKLAMA VE DETAYLAR</Text>
@@ -1313,7 +1338,7 @@ export default function ConstructionOfferSubmitScreen() {
                                         if (Array.isArray(data)) return data;
                                         if (typeof data === 'number' || typeof data === 'string') {
                                             return Array.from({ length: parseInt(data) || 0 }).map((_, i) => ({
-                                                id: Math.random().toString(), type: defaultType, name: `${defaultType === 'apartment' ? 'Daire' : 'Birim'} ${i + 1}`, area: ''
+                                                id: `f${num}_u${i}_${defaultType}`, type: defaultType, name: `${defaultType === 'apartment' ? 'Daire' : 'Birim'} ${i + 1}`, area: ''
                                             }));
                                         }
                                         return [];

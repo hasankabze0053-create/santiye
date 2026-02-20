@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { GeminiService } from './GeminiService';
 
 // Mock Data for Simulation Mode
 const MOCK_CATEGORIES = {
@@ -20,13 +21,24 @@ const MOCK_EQUIPMENT = {
 export const AIService = {
 
     /**
-     * Simulates AI parsing of natural language text into structured procurement data.
-     * In production, this would call an OpenAI/LLM endpoint.
+     * Parses natural language text into structured procurement data.
+     * Tries Google Gemini AI first; falls back to simulation if parsing fails or key is missing.
      * @param {string} text - User's raw input
      * @returns {Promise<Object>} - Structured data
      */
     parseRequest: async (text) => {
-        // Simulate network delay for "Thinking..." effect
+        // 1. Try Real AI (Gemini)
+        try {
+            console.log('Attempting Gemini AI analysis...');
+            const aiResult = await GeminiService.parseProcurementRequest(text);
+            return aiResult;
+        } catch (error) {
+            console.log('Gemini AI failed or key missing, falling back to simulation:', error.message);
+            // Fall through to simulation logic...
+        }
+
+        // 2. Simulation Logic (Fallback)
+        console.log('Running Simulation Fallback...');
         await new Promise(resolve => setTimeout(resolve, 1500));
 
         const lowerText = text.toLowerCase();
@@ -69,7 +81,7 @@ export const AIService = {
             urgency: detectedUrgency,
             requirements: detectedEquipment,
             ai_confidence: 0.95, // Fake confidence score
-            ai_notes: `Talep içeriğinden "${detectedCategory}" kategorisi tespit edildi.`
+            ai_notes: `(Simülasyon) Talep içeriğinden "${detectedCategory}" kategorisi tespit edildi.`
         };
     },
 

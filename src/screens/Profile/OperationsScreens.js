@@ -26,6 +26,10 @@ import {
 
 
 
+
+
+
+
     FlatList,
     StatusBar,
     StyleSheet,
@@ -307,8 +311,8 @@ export const InboxScreen = () => {
                 id: c.key, // Use conversation key as unique ID
                 type: 'chat',
                 title: c.otherParty?.company_name || c.otherParty?.full_name || 'Kullanıcı',
-                subtitle: c.lastMessage,
-                date: c.lastMessageDate,
+                subtitle: c.requestTitle || 'Genel Sohbet',
+                created_at: c.lastMessageDate, // Correct property name for date formatting
                 price: '', // No price for chat
                 status: c.isRead ? 'ok' : 'new',
                 statusColor: c.isRead ? '#8E8E93' : '#FF3B30',
@@ -344,18 +348,23 @@ export const InboxScreen = () => {
             const normConstruction = Object.values(groupedConstruction).map(group => {
                 // Determine display price/text
                 let displayPrice;
+                const isTurnkey = group.offers.some(o => o.unit_breakdown);
+
                 if (group.offers.length > 1) {
                     displayPrice = `${group.offers.length} Farklı Teklif`;
                 } else {
                     const singleOffer = group.offers[0];
-                    displayPrice = singleOffer.unit_breakdown
-                        ? 'Kat Karşılığı Teklif'
+                    displayPrice = isTurnkey
+                        ? 'Kat Karşılığı'
                         : (singleOffer.price_estimate ? singleOffer.price_estimate.toLocaleString('tr-TR') + ' ₺' : 'Fiyat Teklifi');
                 }
 
                 return {
                     ...group,
-                    price: displayPrice
+                    price: displayPrice,
+                    requestType: isTurnkey ? 'Kat Karşılığı' : 'Kentsel Dönüşüm',
+                    companyName: group.profiles?.company_name || group.profiles?.full_name || 'Bilinmeyen Firma',
+                    location: `${group.request?.city || 'İstanbul'} / ${group.request?.district || ''}`
                 };
             });
 
@@ -373,91 +382,140 @@ export const InboxScreen = () => {
         }
     };
 
-    const renderItem = ({ item }) => (
-        <TouchableOpacity
-            style={[styles.messageItem, { backgroundColor: theme.card }]}
-            onPress={() => {
-                if (item.type === 'chat') {
-                    navigation.navigate('Chat', {
-                        receiver_id: item.otherPartyId,
-                        receiver_name: item.title,
-                        receiver_avatar: item.profiles?.avatar_url,
-                        request_id: item.requestId,
-                        request_title: item.request?.title
-                    });
-                } else if (item.type === 'construction') {
-                    // Navigate to Offer Detail (Carousel View) directly
-                    // We pass the GROUP of offers
-                    navigation.navigate('OfferDetail', {
-                        request: item.request,
-                        offers: item.offers,
-                        contractor_id: item.contractor_id,
-                        request_id: item.request_id
-                    });
-                } else if (item.request) {
-                    // Market Request
-                    navigation.navigate('RequestDetail', { request: item.request });
-                }
-            }}
-        >
-            <View style={[styles.messageContent, { marginLeft: 0 }]}>
-                <View style={styles.messageRow}>
-                    <Text style={[styles.senderName, { color: theme.text, fontSize: 16 }]}>
-                        {item.profiles?.full_name || 'Bilinmeyen Tedarikçi'}
-                    </Text>
-                    <Text style={[styles.timeText, { color: theme.subText }]}>
-                        {new Date(item.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                </View>
-
-                {/* Mesaj Yerine Teklif Özeti VEYA Chat Mesajı */}
-                <Text numberOfLines={1} style={[styles.messagePreview, { color: theme.accent, marginTop: 2 }]}>
-                    {item.type === 'chat'
-                        ? (item.subtitle || 'Mesaj gönderildi')
-                        : (item.price ? `${item.price} - Fiyat Teklifi` : 'Yeni bir teklif gönderdi.')
-                    }
-                </Text>
-                <Text numberOfLines={1} style={[styles.cardSubtitle, { color: theme.subText, marginTop: 4, fontSize: 11 }]}>
-                    {item.type === 'chat' ? 'Sohbet' : `Talep: ${item.request?.title}`}
-                </Text>
-
-            </View>
-
-            {/* Status Badge / Button */}
-            <View style={styles.rightCol}>
-                {item.type === 'chat' ? (
-                    <View style={{ alignItems: 'flex-end' }}>
-                        {!item.isRead && (
-                            <View style={{ backgroundColor: '#FF3B30', width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
-                                <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>1</Text>
+    const renderItem = ({ item }) => {
+        if (item.type === 'chat') {
+            const isUnread = !item.isRead;
+            return (
+                <TouchableOpacity
+                    style={styles.premiumChatCard}
+                    onPress={() => {
+                        navigation.navigate('Chat', {
+                            receiver_id: item.otherPartyId,
+                            receiver_name: item.title,
+                            receiver_avatar: item.profiles?.avatar_url,
+                            request_id: item.requestId,
+                            request_title: item.request?.title,
+                            request_owner_id: item.requestOwnerId
+                        });
+                    }}
+                >
+                    <View style={styles.premiumCardContent}>
+                        <View style={styles.premiumHeader}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                                {item.profiles?.avatar_url ? (
+                                    <Image source={{ uri: item.profiles.avatar_url }} style={styles.premiumAvatar} />
+                                ) : (
+                                    <View style={styles.premiumAvatarPlaceholder}>
+                                        <Text style={styles.avatarInitial}>
+                                            {item.title?.charAt(0).toUpperCase() || '?'}
+                                        </Text>
+                                    </View>
+                                )}
+                                <View style={{ marginLeft: 12, flex: 1 }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        <Text style={styles.premiumCompanyName} numberOfLines={1}>
+                                            {item.title}
+                                        </Text>
+                                        <MaterialCommunityIcons name="check-decagram" size={14} color="#D4AF37" style={{ marginLeft: 4 }} />
+                                    </View>
+                                    <Text style={styles.premiumLocationText} numberOfLines={1}>
+                                        Sohbet • {item.request?.title || 'Genel'}
+                                    </Text>
+                                </View>
                             </View>
-                        )}
-                        <Text style={{ color: theme.subText, fontSize: 10 }}>
-                            {new Date(item.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                            <View style={{ alignItems: 'flex-end' }}>
+                                <Text style={styles.premiumTimeText}>
+                                    {item.created_at ? new Date(item.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                                </Text>
+                                {isUnread && (
+                                    <View style={styles.premiumUnreadBadge}>
+                                        <Text style={styles.premiumUnreadText}>YENİ</Text>
+                                    </View>
+                                )}
+                            </View>
+                        </View>
+
+                        <Text numberOfLines={2} style={[
+                            styles.premiumChatPreview,
+                            isUnread && { color: '#FFF', fontWeight: '600' }
+                        ]}>
+                            {item.subtitle || 'Mesaj gönderildi'}
                         </Text>
                     </View>
-                ) : (
-                    item.status === 'pending' ? (
+                </TouchableOpacity>
+            );
+        }
+
+        // --- PREMIUM NOTIFICATION CARD ---
+        return (
+            <TouchableOpacity
+                style={styles.premiumNotificationCard}
+                onPress={() => {
+                    if (item.type === 'construction') {
+                        navigation.navigate('OfferDetail', {
+                            request: item.request,
+                            offers: item.offers,
+                            contractor_id: item.contractor_id,
+                            request_id: item.request_id
+                        });
+                    } else if (item.request) {
+                        navigation.navigate('RequestDetail', { request: item.request });
+                    }
+                }}
+            >
+                <View style={styles.premiumCardGlow} />
+
+                <View style={styles.premiumCardContent}>
+                    {/* Header: Company & Time */}
+                    <View style={styles.premiumHeader}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.premiumCompanyName}>
+                                {item.companyName || item.profiles?.company_name || 'İsimsiz Firma'}
+                            </Text>
+                            <View style={styles.locationContainer}>
+                                <MaterialCommunityIcons name="map-marker" size={12} color="#D4AF37" />
+                                <Text style={styles.premiumLocationText}>
+                                    {item.location || 'İstanbul / Çatalca'}
+                                </Text>
+                            </View>
+                        </View>
+                        <Text style={styles.premiumTimeText}>
+                            {new Date(item.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                    </View>
+
+                    <View style={styles.premiumDivider} />
+
+                    {/* Body: Request Type & Price */}
+                    <View style={styles.premiumBody}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.premiumLabelText}>TALEP TÜRÜ</Text>
+                            <Text style={styles.premiumValueText}>
+                                {item.requestType || 'Kat Karşılığı'}
+                            </Text>
+                        </View>
+
                         <LinearGradient
-                            colors={['#D4AF37', '#AA8A2E']} // Richer Gold Gradient
+                            colors={['#D4AF37', '#AA8A2E']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 1 }}
-                            style={styles.premiumBadge}
+                            style={styles.premiumActionButton}
                         >
-                            <MaterialCommunityIcons name="star-four-points" size={12} color="#000" style={{ marginRight: 6 }} />
-                            <Text style={styles.premiumBadgeText}>
-                                İNCELE
-                            </Text>
+                            <Text style={styles.premiumActionText}>+ İNCELE</Text>
                         </LinearGradient>
-                    ) : (
-                        <Text style={[styles.statusText, { color: item.status === 'approved' ? '#34C759' : theme.subText, marginTop: 10 }]}>
-                            {item.status === 'approved' ? 'ONAYLANDI' : item.status}
+                    </View>
+
+                    {/* Footer: Price or Offer Count */}
+                    <View style={styles.premiumFooter}>
+                        <MaterialCommunityIcons name="cube-send" size={14} color="rgba(212, 175, 55, 0.6)" />
+                        <Text style={styles.premiumFooterText}>
+                            {item.price || 'Fiyat Teklifi'}
                         </Text>
-                    )
-                )}
-            </View>
-        </TouchableOpacity>
-    );
+                    </View>
+                </View>
+            </TouchableOpacity>
+        );
+    };
 
     const EmptyState = () => (
         <View style={{ alignItems: 'center', marginTop: 40, padding: 20 }}>
@@ -565,4 +623,155 @@ const styles = StyleSheet.create({
         fontWeight: '900',
         letterSpacing: 1
     },
+    premiumNotificationCard: {
+        backgroundColor: '#1C1C1E',
+        borderRadius: 20,
+        marginBottom: 16,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: 'rgba(212, 175, 55, 0.2)',
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8
+    },
+    premiumCardGlow: {
+        position: 'absolute',
+        top: 0, left: 0, right: 0,
+        height: 4,
+        backgroundColor: '#D4AF37',
+        opacity: 0.5
+    },
+    premiumCardContent: {
+        padding: 16
+    },
+    premiumHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start'
+    },
+    premiumCompanyName: {
+        color: '#FFF',
+        fontSize: 18,
+        fontWeight: 'bold',
+        letterSpacing: 0.5
+    },
+    locationContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 4,
+        gap: 4
+    },
+    premiumLocationText: {
+        color: '#888',
+        fontSize: 12,
+        fontWeight: '500'
+    },
+    premiumTimeText: {
+        color: '#666',
+        fontSize: 12,
+        fontWeight: '600'
+    },
+    premiumDivider: {
+        height: 1,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        marginVertical: 14
+    },
+    premiumBody: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+    },
+    premiumLabelText: {
+        color: '#D4AF37',
+        fontSize: 10,
+        fontWeight: '900',
+        letterSpacing: 1.5,
+        marginBottom: 2
+    },
+    premiumValueText: {
+        color: '#FFF',
+        fontSize: 15,
+        fontWeight: '700'
+    },
+    premiumActionButton: {
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 12,
+        shadowColor: '#D4AF37',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.4,
+        shadowRadius: 4,
+        elevation: 4
+    },
+    premiumActionText: {
+        color: '#000',
+        fontSize: 12,
+        fontWeight: '900'
+    },
+    premiumFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 14,
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        padding: 10,
+        borderRadius: 10,
+        gap: 8
+    },
+    premiumFooterText: {
+        color: 'rgba(212, 175, 55, 0.8)',
+        fontSize: 13,
+        fontWeight: '600'
+    },
+    // Premium Chat Styles
+    premiumChatCard: {
+        backgroundColor: '#1C1C1E',
+        borderRadius: 20,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(212, 175, 55, 0.1)',
+        overflow: 'hidden'
+    },
+    premiumAvatar: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        borderWidth: 1,
+        borderColor: 'rgba(212, 175, 55, 0.3)'
+    },
+    premiumAvatarPlaceholder: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: '#2C2C2E',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(212, 175, 55, 0.2)'
+    },
+    avatarInitial: {
+        color: '#D4AF37',
+        fontSize: 18,
+        fontWeight: 'bold'
+    },
+    premiumUnreadBadge: {
+        backgroundColor: '#D4AF37',
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 4,
+        marginTop: 4
+    },
+    premiumUnreadText: {
+        color: '#000',
+        fontSize: 8,
+        fontWeight: '900',
+        letterSpacing: 0.5
+    },
+    premiumChatPreview: {
+        color: '#888',
+        fontSize: 13,
+        marginTop: 10,
+        lineHeight: 18
+    }
 });

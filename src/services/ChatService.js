@@ -18,7 +18,7 @@ export const ChatService = {
           *,
           sender:profiles!sender_id(full_name, avatar_url),
           receiver:profiles!receiver_id(full_name, avatar_url),
-          request:request_id(district, neighborhood, ada, parsel)
+          request:request_id(district, neighborhood, ada, parsel, user_id)
         `)
                 .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
                 .order('created_at', { ascending: false });
@@ -47,6 +47,7 @@ export const ChatService = {
                             : 'Genel Sohbet',
                         lastMessage: msg.content,
                         lastMessageDate: msg.created_at,
+                        requestOwnerId: msg.request?.user_id,
                         isRead: msg.sender_id === user.id ? true : msg.is_read,
                         type: 'chat' // To distinguish in Inbox
                     });

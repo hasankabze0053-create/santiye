@@ -27,7 +27,9 @@ export default function BuildingSchema({
     cashAdjustment = null, // { type: 'request' | 'payment', amount: 0 }
     showColors = false, // New prop to force coloring in read-only mode,
     hideDetails = false, // New prop to hide internal details
-    legendLabel = 'Müteahhit (Siz)' // Default label for legend
+    legendLabel = 'Müteahhit (Siz)', // Default label for legend
+    isFlatForLand = true,
+    turnkeyData = null // { totalPrice: 0, campaignPolicy: 'included' | 'excluded' }
 }) {
     const floors = parseInt(floorCount) || 0;
     const basements = parseInt(basementCount) || 1;
@@ -40,7 +42,7 @@ export default function BuildingSchema({
 
         // 1. If undefined/null, use defaults (legacy fallback)
         if (!floorData) {
-            if (defaultCount > 0) return Array.from({ length: defaultCount }).map((_, i) => ({ id: `default-${floorKey}-${i}`, type: defaultType, name: '', area: '' }));
+            if (defaultCount > 0) return Array.from({ length: defaultCount }).map((_, i) => ({ id: `f${floorKey}_u${i}_${defaultType}`, type: defaultType, name: '', area: '' }));
             return [];
         }
 
@@ -249,6 +251,36 @@ export default function BuildingSchema({
                         {campaignData.unitCount > 0 ? `${campaignData.unitCount} Konut ` : ''}
                         {campaignData.commercialCount > 0 ? `${campaignData.commercialCount} Ticari ` : ''}
                         (Hibe + Kredi)
+                    </Text>
+                </View>
+            )}
+
+            {/* Turnkey Net Payment Box (As requested: under the grant box) */}
+            {!hideDetails && !isFlatForLand && turnkeyData && turnkeyData.totalPrice > 0 && (
+                <View style={[
+                    styles.grantContainer,
+                    {
+                        marginTop: 10,
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        borderColor: 'rgba(76, 175, 80, 0.3)'
+                    }
+                ]}>
+                    <Text style={[styles.grantLabel, { color: '#4CAF50' }]}>
+                        ARSA SAHİBİ ÖDEYECEK (NET)
+                    </Text>
+                    <Text style={[styles.grantAmount, { color: '#FFF', textShadowColor: 'rgba(76, 175, 80, 0.5)' }]}>
+                        {(() => {
+                            const grantAmount = (campaignData.unitCount * 1750000) + (campaignData.commercialCount * 875000);
+                            const net = turnkeyData.campaignPolicy === 'included'
+                                ? Math.max(0, turnkeyData.totalPrice - grantAmount)
+                                : turnkeyData.totalPrice;
+                            return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(net);
+                        })()}
+                    </Text>
+                    <Text style={styles.grantSubtext}>
+                        {turnkeyData.campaignPolicy === 'included' && (campaignData.unitCount > 0 || campaignData.commercialCount > 0)
+                            ? 'Devlet hibe/kredi desteği dışındaki tutardır'
+                            : 'Toplam İnşaat Yapım Bedeli'}
                     </Text>
                 </View>
             )}

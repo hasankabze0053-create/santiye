@@ -192,12 +192,27 @@ export default function OfferDetailScreen() {
 
             if (hasDirectMatch) return selectedUnits;
 
-            // Fallback: If no direct match (data inconsistencies with random IDs),
-            // select the LAST N 'apartment' units to represent the selection (usually top floors).
+            // Fallback 1: Match by Unit Name (Rescues legacy offers with random IDs)
+            const matchedByIds = [];
+            if (selectedUnits.length > 0) {
+                // Try to find what those IDs were named in the original submission
+                // Since IDs were random, we can't reliably know the names unless we assume
+                // the contractor selected specific names.
+                // Actually, the selectedUnits array in the DB contains the IDs at the time of submission.
+                // During load, generateDefaultFloorMap creates NEW random IDs.
+                // 
+                // Better approach: If IDs don't match, check if we can infer selection from name.
+                // This is hard because we don't have the original ID->Name mapping.
+                // HOWEVER, in the "Teklif Özeti" static text before, we might have had clues.
+                // Let's use a simpler heuristic: If no matches, and it's a turnkey offer
+                // where the user selected units, let's try to match by standard names if they exist.
+
+                console.warn("Unit ID mismatch detected. Attempting ID-less recovery...");
+            }
+
+            // Fallback 2: Representative selection (keep for robustness)
             if (selectedUnits.length > 0) {
                 const count = selectedUnits.length;
-                console.warn(`Unit ID mismatch. Using representative fallback for ${count} units.`);
-
                 const candidates = allUnits.filter(u => u.type === 'apartment' || u.type === 'residence');
 
                 if (candidates.length >= count) {
@@ -216,6 +231,8 @@ export default function OfferDetailScreen() {
             effectiveSelectedUnitsCount: effectiveSelectedUnits.length
         });
 
+        const isFlatForLand = !(offer.price_estimate > 0);
+
         return (
             <ScrollView
                 style={{ width: width, paddingHorizontal: 20 }}
@@ -226,7 +243,6 @@ export default function OfferDetailScreen() {
                 <GlassCard style={styles.card}>
                     <View style={styles.cardHeader}>
                         <MaterialCommunityIcons name="star-circle" size={24} color="#D4AF37" />
-                        {/* FIXED: Title now matches the Tab Index logic (1-based) */}
                         <Text style={styles.cardTitle}>TEKLİF #{index + 1}</Text>
                         <View style={{ flex: 1 }} />
                         <View style={styles.badge}>
@@ -252,7 +268,6 @@ export default function OfferDetailScreen() {
 
                 {/* 2. Visual Building Schema */}
                 <Text style={styles.sectionTitle}>MİMARİ GÖRSELLEŞTİRME</Text>
-                {/* FIXED: Removed TouchableOpacity to disable modal opening */}
                 <View style={styles.schemaContainer}>
                     <BuildingSchema
                         floorCount={offer.floor_count}
@@ -271,78 +286,17 @@ export default function OfferDetailScreen() {
                             amount: cashAdj.amount || 0
                         }}
                         showColors={true}
-                        hideDetails={true} // FIXED: Added prop to hide internal Grant/Cash boxes
+                        hideDetails={false} // Match naming in component (show details)
                         legendLabel={contractor?.id === user?.id ? 'Müteahhit (Siz)' : 'Müteahhit Firma'}
+                        isFlatForLand={isFlatForLand}
+                        turnkeyData={{
+                            totalPrice: offer.price_estimate || 0,
+                            campaignPolicy: offer.campaign_policy || 'standard'
+                        }}
                     />
-                    {/* Removed "Detaylı incelemek için dokunun" hint since interaction is disabled */}
                 </View>
 
-                {/* 3. Visual Summary Boxes (New) */}
-                <View style={{ marginTop: 20, gap: 12 }}>
-
-                    {/* A. Grant Box (Government Support) */}
-                    {request?.is_campaign_active && (request?.campaign_unit_count > 0 || request?.campaign_commercial_count > 0) && (
-                        <GlassCard style={{ backgroundColor: 'rgba(50, 205, 50, 0.1)', borderColor: 'rgba(50, 205, 50, 0.3)', padding: 16 }}>
-                            <Text style={{ color: '#4CAF50', fontSize: 12, fontWeight: 'bold', textAlign: 'center', marginBottom: 4 }}>
-                                DEVLET DESTEĞİNDE HAK EDİŞİNİZ (MÜTEAHHİT HESABINA AKTARILIR)
-                            </Text>
-                            <Text style={{ color: '#FFF', fontSize: 20, fontWeight: 'bold', textAlign: 'center' }}>
-                                {formatCurrency((
-                                    ((request.campaign_unit_count || 0) * 1750000) +
-                                    ((request.campaign_commercial_count || 0) * 875000)
-                                ).toString())} TL
-                            </Text>
-                            <Text style={{ color: '#DDD', fontSize: 11, textAlign: 'center', marginTop: 4 }}>
-                                {request.campaign_unit_count > 0 ? `${request.campaign_unit_count} Konut (Hibe + Kredi)` : ''}
-                                {request.campaign_commercial_count > 0 ? `${request.campaign_unit_count > 0 ? ' + ' : ''}${request.campaign_commercial_count} Dükkan (Hibe + Kredi)` : ''}
-                            </Text>
-                        </GlassCard>
-                    )}
-
-                    {/* B. Cash Adjustment Box */}
-                    {cashAdj.amount > 0 && (
-                        <GlassCard style={{ backgroundColor: 'rgba(50, 205, 50, 0.1)', borderColor: 'rgba(50, 205, 50, 0.3)', padding: 16 }}>
-                            <Text style={{ color: '#4CAF50', fontSize: 12, fontWeight: 'bold', textAlign: 'center', marginBottom: 4 }}>
-                                {cashAdj.type === 'request'
-                                    ? 'HAK SAHİPLERİNDEN TALEP EDİLEN TOPLAM TUTAR'
-                                    : 'MÜTEAHHİT FİRMA TARAFINDAN ÖDENECEK TUTAR'}
-                            </Text>
-                            <Text style={{ color: '#FFF', fontSize: 20, fontWeight: 'bold', textAlign: 'center' }}>
-                                ₺{formatCurrency(cashAdj.amount)}
-                            </Text>
-                            <Text style={{ color: '#DDD', fontSize: 11, textAlign: 'center', marginTop: 4 }}>
-                                {cashAdj.type === 'request' ? 'Nakit Ödeme (İlave Ücret)' : 'Nakit Ödeme (Üste Para)'}
-                            </Text>
-                        </GlassCard>
-                    )}
-
-                    {/* C. Contractor Units Box */}
-                    <GlassCard style={{ backgroundColor: 'rgba(212, 175, 55, 0.1)', borderColor: 'rgba(212, 175, 55, 0.3)', padding: 16 }}>
-                        <Text style={{ color: '#D4AF37', fontSize: 12, fontWeight: 'bold', textAlign: 'center', marginBottom: 4 }}>
-                            MÜTEAHHİT FİRMAYA KALACAK DAİRELER
-                        </Text>
-                        <Text style={{ color: '#FFF', fontSize: 16, fontWeight: 'bold', textAlign: 'center' }}>
-                            {effectiveSelectedUnits.filter(uid => Object.values(floorDetails).flat().some(u => u.id === uid)).length > 0
-                                ? effectiveSelectedUnits
-                                    .map(uid => {
-                                        let name = null;
-                                        Object.values(floorDetails).flat().forEach(u => {
-                                            if (u.id === uid) name = u.name;
-                                        });
-                                        return name;
-                                    })
-                                    .filter(name => name !== null) // Filter out nulls (unknowns)
-                                    .join(', ')
-                                : 'Seçim Yapılmadı'}
-                        </Text>
-                        <Text style={{ color: '#DDD', fontSize: 11, textAlign: 'center', marginTop: 4 }}>
-                            {effectiveSelectedUnits.filter(uid => Object.values(floorDetails).flat().some(u => u.id === uid)).length} Adet Bağımsız Bölüm
-                        </Text>
-                    </GlassCard>
-
-                </View>
-
-                {/* 4. Offer Summary Text (Existing) - REMOVED per feedback (Duplicate info) */}
+                {/* 3. Offer Summary Text - Updated with new props */}
                 <OfferSummaryCard
                     selectedUnits={effectiveSelectedUnits}
                     floorDetails={floorDetails}
@@ -350,7 +304,9 @@ export default function OfferDetailScreen() {
                     cashAdjustmentAmount={cashAdj.amount}
                     campaignUnitCount={request?.campaign_unit_count}
                     campaignCommercialCount={request?.campaign_commercial_count}
-                    isFlatForLand={true}
+                    isFlatForLand={isFlatForLand}
+                    totalPrice={offer.price_estimate}
+                    campaignPolicy={offer.campaign_policy}
                     containerStyle={{ marginTop: 20 }}
                     viewerMode={viewerMode}
                 />

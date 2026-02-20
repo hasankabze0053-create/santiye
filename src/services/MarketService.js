@@ -205,7 +205,7 @@ export const MarketService = {
                 .from('market_bids')
                 .select(`
                     *,
-                    provider:profiles(full_name, avatar_url),
+                    provider:profiles(full_name, avatar_url, company_name),
                     request:market_requests(title)
                 `)
                 .in('request_id', requestIds)
