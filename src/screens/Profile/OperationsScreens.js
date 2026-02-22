@@ -30,6 +30,8 @@ import {
 
 
 
+
+
     FlatList,
     StatusBar,
     StyleSheet,
@@ -208,7 +210,7 @@ export const RequestsScreen = () => {
             </View>
             <View style={[styles.statusBadge, { backgroundColor: item.bids && item.bids.length > 0 ? theme.accent : theme.iconBg }]}>
                 <Text style={[styles.statusText, { color: item.bids && item.bids.length > 0 ? '#000' : theme.subText }]}>
-                    {item.bids ? `${item.bids.length} Teklif` : 'Bekleniyor'}
+                    {item.bids && item.bids.length > 0 ? `${item.bids.length} Teklif` : 'Bekleniyor'}
                 </Text>
             </View>
         </TouchableOpacity>
@@ -320,7 +322,8 @@ export const InboxScreen = () => {
                 request: { title: c.requestTitle || 'Genel Sohbet' },
                 // data for navigation
                 otherPartyId: c.otherPartyId,
-                requestId: c.requestId
+                requestId: c.requestId,
+                requestOwnerId: c.requestOwnerId
             }));
 
             // Group Construction Offers by Request + Contractor

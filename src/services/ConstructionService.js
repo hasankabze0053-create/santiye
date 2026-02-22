@@ -9,7 +9,7 @@ export const ConstructionService = {
 
             const { data, error } = await supabase
                 .from('construction_requests')
-                .select('*') // JOIN'i kaldırdım, şimdilik sadece talebin kendisini çekelim.
+                .select('*, bids:construction_offers(*)')
                 .eq('user_id', user.id)
                 .order('created_at', { ascending: false });
 
@@ -150,11 +150,12 @@ export const ConstructionService = {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error('Oturum gerekli');
 
+            // Ana talebi sil (Database Cascade sayesinde bağlı teklifler otomatik silinecek)
             const { error } = await supabase
                 .from('construction_requests')
                 .delete()
                 .eq('id', requestId)
-                .eq('user_id', user.id); // Güvenlik: Sadece kendi talebini silebilir
+                .eq('user_id', user.id);
 
             if (error) throw error;
             return { success: true };

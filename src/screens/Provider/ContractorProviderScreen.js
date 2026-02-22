@@ -81,7 +81,7 @@ export default function ContractorProviderScreen() {
                                 <Text style={[styles.tagText, activeTab === 'bids' && { color: '#D4AF37' }]}>
                                     {activeTab === 'bids'
                                         ? (item.my_offers && item.my_offers.length > 0
-                                            ? (item.my_offers[0].status === 'pending' ? 'DEĞERLENDİRİLİYOR' : (item.my_offers[0].status === 'approved' ? 'ONAYLANDI' : 'REDDEDİLDİ'))
+                                            ? (item.my_offers[0].status === 'approved' ? 'ONAYLANDI' : (item.my_offers[0].status === 'rejected' ? 'REDDEDİLDİ' : 'DEĞERLENDİRİLİYOR'))
                                             : 'DURUM BELİRSİZ')
                                         : 'TEKLİF BEKLİYOR'}
                                 </Text>

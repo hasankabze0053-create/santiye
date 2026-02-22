@@ -36,9 +36,6 @@ export default function RequestDetailScreen() {
                         .single();
 
                     setIsAdmin(profile?.is_admin || false);
-                    console.log('DEBUG: Current User ID:', user.id);
-                    console.log('DEBUG: Request User ID:', request?.user_id);
-                    console.log('DEBUG: Is Owner:', user.id === request?.user_id);
                 }
             } catch (err) {
                 console.log('Auth check error (Network):', err.message);
@@ -115,36 +112,6 @@ export default function RequestDetailScreen() {
         }
     };
 
-    const handleCompleteRequest = () => {
-        Alert.alert(
-            'Talebi Dondur',
-            'Bu talebi dondurmak istediğinize emin misiniz? Talep pasife alınacak ve yeni tekliflere kapatılacaktır.',
-            [
-                { text: 'Vazgeç', style: 'cancel' },
-                {
-                    text: 'Evet, Dondur',
-                    style: 'default',
-                    onPress: async () => {
-                        setLoading(true);
-                        const { error } = await supabase
-                            .from('construction_requests')
-                            .update({ status: 'frozen' }) // Using 'frozen' or 'inactive' status
-                            .eq('id', request.id);
-
-                        setLoading(false);
-                        if (!error) {
-                            Alert.alert('Başarılı', 'Talep donduruldu.', [
-                                { text: 'Tamam', onPress: () => navigation.goBack() }
-                            ]);
-                        } else {
-                            Alert.alert('Hata', 'İşlem başarısız oldu: ' + error?.message);
-                        }
-                    }
-                }
-            ]
-        );
-    };
-
     const handleDeleteRequest = () => {
         Alert.alert(
             'Talebi Sil',
@@ -192,7 +159,6 @@ export default function RequestDetailScreen() {
 
     // --- CONSTRUCTION DETAIL VIEW ---
     if (type === 'construction') {
-        // Robust check for Flat for Land
         const isFlatForLand =
             request?.offer_type === 'kat_karsiligi' ||
             request?.offer_type === 'Kat Karşılığı' ||
@@ -328,7 +294,6 @@ export default function RequestDetailScreen() {
                         {/* 6. DOCUMENTS & IMAGES */}
                         <Text style={styles.sectionTitle}>BELGELER VE GÖRSELLER</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingBottom: 30 }}>
-                            {/* Legacy Single Image */}
                             {request.deed_image_url && (
                                 <TouchableOpacity onPress={() => setSelectedImage(request.deed_image_url)} activeOpacity={0.8}>
                                     <Image
@@ -339,7 +304,6 @@ export default function RequestDetailScreen() {
                                 </TouchableOpacity>
                             )}
 
-                            {/* New Multiple Images */}
                             {request.document_urls && request.document_urls.length > 0 && request.document_urls.map((url, idx) => (
                                 <TouchableOpacity key={idx} onPress={() => setSelectedImage(url)} activeOpacity={0.8}>
                                     <Image
@@ -358,7 +322,7 @@ export default function RequestDetailScreen() {
                             )}
                         </ScrollView>
 
-                        {/* 7. OFFERS SUMMARY (For Owner) - UPDATED AS PER REQUEST */}
+                        {/* 7. OFFERS SUMMARY */}
                         {isOwner && (
                             <View style={{ marginBottom: 30 }}>
                                 <Text style={styles.sectionTitle}>GELEN TEKLİFLER</Text>
@@ -392,27 +356,20 @@ export default function RequestDetailScreen() {
                                                     gap: 8
                                                 }}
                                                 onPress={() => {
-                                                    // Logic to determine where to go
                                                     const grouped = {};
                                                     constructionOffers.forEach(o => {
                                                         if (!grouped[o.contractor_id]) grouped[o.contractor_id] = [];
                                                         grouped[o.contractor_id].push(o);
                                                     });
-
                                                     const contractorIds = Object.keys(grouped);
-
                                                     if (contractorIds.length === 1) {
-                                                        // Single contractor -> Go directly to Offer Detail
-                                                        const contractorId = contractorIds[0];
-                                                        const offers = grouped[contractorId];
                                                         navigation.navigate('OfferDetail', {
                                                             request: request,
-                                                            offers: offers,
-                                                            contractor_id: contractorId,
+                                                            offers: grouped[contractorIds[0]],
+                                                            contractor_id: contractorIds[0],
                                                             request_id: request.id
                                                         });
                                                     } else {
-                                                        // Multiple -> Go to Inbox
                                                         navigation.navigate('MainTabs', { screen: 'Inbox' });
                                                     }
                                                 }}
@@ -426,30 +383,9 @@ export default function RequestDetailScreen() {
                             </View>
                         )}
 
-                        {/* OWNER ACTIONS - DELETE/FREEZE */}
+                        {/* OWNER ACTIONS - DELETE */}
                         {isOwner && (
                             <View style={{ gap: 12, marginTop: 20, marginBottom: 40 }}>
-                                {/* FREEZE REQUEST BUTTON */}
-                                {request.status !== 'frozen' && request.status !== 'completed' && (
-                                    <TouchableOpacity
-                                        style={{
-                                            backgroundColor: 'rgba(56, 189, 248, 0.1)', // Light Blue Tint
-                                            borderWidth: 1,
-                                            borderColor: '#38BDF8', // Light Blue
-                                            borderRadius: 12,
-                                            paddingVertical: 16,
-                                            alignItems: 'center',
-                                        }}
-                                        onPress={handleCompleteRequest}
-                                    >
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                            <MaterialCommunityIcons name="snowflake" size={20} color="#38BDF8" />
-                                            <Text style={{ color: '#38BDF8', fontWeight: 'bold', fontSize: 16 }}>TALEBİ DONDUR</Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                )}
-
-                                {/* DELETE BUTTON */}
                                 <TouchableOpacity
                                     style={{
                                         backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -469,22 +405,17 @@ export default function RequestDetailScreen() {
                             </View>
                         )}
 
-                        {/* OFFER BUTTON (For Non-Owners OR Admins testing their own requests) */}
+                        {/* OFFER BUTTON */}
                         {(!isOwner || isAdmin) && (
                             <View>
                                 <TouchableOpacity
                                     style={{
-                                        backgroundColor: '#D4AF37', // Gold color
+                                        backgroundColor: '#D4AF37',
                                         borderRadius: 12,
                                         paddingVertical: 16,
                                         alignItems: 'center',
                                         marginTop: isOwner ? 0 : 20,
                                         marginBottom: 40,
-                                        shadowColor: '#D4AF37',
-                                        shadowOffset: { width: 0, height: 4 },
-                                        shadowOpacity: 0.2,
-                                        shadowRadius: 8,
-                                        elevation: 4
                                     }}
                                     onPress={() => navigation.navigate('ConstructionOfferSubmit', { request })}
                                 >
@@ -504,7 +435,6 @@ export default function RequestDetailScreen() {
                         )}
                     </ScrollView>
 
-                    {/* FULL SCREEN IMAGE MODAL */}
                     <Modal visible={!!selectedImage} transparent={true} animationType="fade" onRequestClose={() => setSelectedImage(null)}>
                         <View style={{ flex: 1, backgroundColor: 'black', justifyContent: 'center', alignItems: 'center' }}>
                             <TouchableOpacity
@@ -526,14 +456,12 @@ export default function RequestDetailScreen() {
         );
     }
 
-    // --- MARKET DETAIL VIEW (Legacy) ---
+    // --- MARKET DETAIL VIEW ---
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
             <LinearGradient colors={['#000000', '#121212']} style={StyleSheet.absoluteFillObject} />
             <SafeAreaView style={{ flex: 1 }}>
-
-                {/* Header */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
@@ -543,8 +471,6 @@ export default function RequestDetailScreen() {
                 </View>
 
                 <ScrollView contentContainerStyle={styles.content}>
-
-                    {/* Main Info Card */}
                     <View style={styles.card}>
                         <View style={styles.cardHeader}>
                             <MaterialCommunityIcons name="cube-outline" size={32} color="#D4AF37" />
@@ -553,9 +479,7 @@ export default function RequestDetailScreen() {
                                 <Text style={styles.date}>{new Date(request?.created_at).toLocaleDateString('tr-TR')} • {request?.location || 'Konum Belirtilmedi'}</Text>
                             </View>
                         </View>
-
                         <View style={styles.divider} />
-
                         <View style={styles.infoRow}>
                             <View>
                                 <Text style={styles.label}>BAŞVURU NO</Text>
@@ -563,19 +487,12 @@ export default function RequestDetailScreen() {
                             </View>
                             <StatusBadge status={request?.status} />
                         </View>
-
-                        {/* Request Image */}
                         {request?.image_url && (
                             <View style={{ marginTop: 16 }}>
                                 <Text style={styles.label}>EKLENEN FOTOĞRAF</Text>
-                                <Image
-                                    source={{ uri: request.image_url }}
-                                    style={{ width: '100%', height: 200, borderRadius: 12, marginTop: 4, borderWidth: 1, borderColor: '#333' }}
-                                    resizeMode="cover"
-                                />
+                                <Image source={{ uri: request.image_url }} style={{ width: '100%', height: 200, borderRadius: 12, marginTop: 4, borderWidth: 1, borderColor: '#333' }} resizeMode="cover" />
                             </View>
                         )}
-
                         {request?.notes && (
                             <View style={{ marginTop: 16 }}>
                                 <Text style={styles.label}>ÖZEL NOTLAR</Text>
@@ -584,7 +501,6 @@ export default function RequestDetailScreen() {
                         )}
                     </View>
 
-                    {/* Items List */}
                     <Text style={styles.sectionTitle}>MALZEME LİSTESİ</Text>
                     {loading ? (
                         <ActivityIndicator color="#D4AF37" style={{ marginTop: 20 }} />
@@ -605,12 +521,11 @@ export default function RequestDetailScreen() {
                         </View>
                     )}
 
-                    {/* Bids Section (Placeholder for now) */}
                     <Text style={styles.sectionTitle}>GELEN TEKLİFLER ({bids.length})</Text>
                     {bids.length === 0 ? (
                         <View style={styles.emptyBids}>
                             <MaterialCommunityIcons name="timer-sand" size={32} color="#666" />
-                            <Text style={styles.emptyText}>Henüz teklif gelmedi. Tedarikçiler talebini inceliyor.</Text>
+                            <Text style={styles.emptyText}>Henüz teklif gelmedi.</Text>
                         </View>
                     ) : (
                         bids.map(bid => (
@@ -619,7 +534,6 @@ export default function RequestDetailScreen() {
                             </View>
                         ))
                     )}
-
                 </ScrollView>
             </SafeAreaView>
         </View>
@@ -632,26 +546,19 @@ const styles = StyleSheet.create({
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 10, marginBottom: 10 },
     headerTitle: { color: '#D4AF37', fontSize: 16, fontWeight: 'bold', letterSpacing: 1 },
     backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#333' },
-
     card: { backgroundColor: '#1A1A1A', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#333', marginBottom: 24 },
     cardHeader: { flexDirection: 'row', alignItems: 'center' },
     title: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
     date: { color: '#888', fontSize: 12, marginTop: 4 },
     divider: { height: 1, backgroundColor: '#333', marginVertical: 16 },
     infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-
-    // Updated Styles
     label: { color: '#888', fontSize: 12, fontWeight: 'bold', letterSpacing: 0.5, marginBottom: 6 },
-    value: { color: '#FFFFFF', fontSize: 16, fontWeight: '600', fontFamily: 'System' }, // Removed monospace, increased size and white color
-    noteText: { color: '#FFFFFF', fontSize: 15, lineHeight: 22 }, // White and easier to read
-
+    value: { color: '#FFFFFF', fontSize: 16, fontWeight: '600', fontFamily: 'System' },
+    noteText: { color: '#FFFFFF', fontSize: 15, lineHeight: 22 },
     statusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1 },
     statusDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
     statusText: { fontSize: 10, fontWeight: 'bold' },
-
-    // Updated Section Title (Gold)
     sectionTitle: { color: '#D4AF37', fontSize: 14, fontWeight: 'bold', marginBottom: 12, marginLeft: 4, letterSpacing: 1, textTransform: 'uppercase' },
-
     itemsContainer: { backgroundColor: '#1A1A1A', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#333', marginBottom: 24 },
     itemRow: { flexDirection: 'row', alignItems: 'center', padding: 16 },
     itemBorder: { borderBottomWidth: 1, borderBottomColor: '#252525' },
@@ -660,7 +567,6 @@ const styles = StyleSheet.create({
     itemName: { color: '#FFF', fontSize: 15, fontWeight: '500' },
     itemDetail: { color: '#666', fontSize: 12, marginTop: 2 },
     itemQty: { color: '#D4AF37', fontSize: 15, fontWeight: 'bold' },
-
     emptyBids: { alignItems: 'center', padding: 30, backgroundColor: '#111', borderRadius: 16, borderStyle: 'dashed', borderWidth: 1, borderColor: '#333' },
     emptyText: { color: '#666', fontSize: 13, marginTop: 10, textAlign: 'center' },
     bidCard: { padding: 16, backgroundColor: '#1A1A1A', marginBottom: 10, borderRadius: 12 }

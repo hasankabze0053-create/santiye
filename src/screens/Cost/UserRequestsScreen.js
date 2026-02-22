@@ -45,7 +45,7 @@ export default function UserRequestsScreen() {
 
             const { data, error } = await supabase
                 .from('construction_requests')
-                .select('*')
+                .select('*, bids:construction_offers(*)')
                 .eq('user_id', user.id)
                 .order('created_at', { ascending: false });
 

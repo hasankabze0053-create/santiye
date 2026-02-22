@@ -394,9 +394,9 @@ export default function OfferDetailScreen() {
                 {offers.length > 1 && (
                     <View style={{ marginTop: 10, height: 50 }}>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 10, alignItems: 'center' }}>
-                            {offers.map((_, index) => (
+                            {offers.map((offer, index) => (
                                 <TouchableOpacity
-                                    key={index}
+                                    key={offer.id || `offer-${index}`}
                                     style={[
                                         {
                                             paddingVertical: 8,

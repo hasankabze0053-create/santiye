@@ -138,7 +138,7 @@ export default function BuildingSchema({
         if (selectable) {
             return (
                 <TouchableOpacity
-                    key={index}
+                    key={unit.id || `unit-${index}`}
                     style={{ flex: 1 }}
                     onPress={() => onUnitSelect && onUnitSelect(unit)}
                     activeOpacity={0.8}
@@ -148,7 +148,7 @@ export default function BuildingSchema({
             );
         }
 
-        return <View key={index} style={{ flex: 1 }}>{content}</View>;
+        return <View key={unit.id || `unit-${index}`} style={{ flex: 1 }}>{content}</View>;
     };
 
     const renderFloors = () => {
