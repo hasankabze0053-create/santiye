@@ -214,12 +214,23 @@ export default function MarketRequestScreen() {
     );
 
     const renderStep1_Manual = () => (
-        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+        <ScrollView 
+            style={{ flex: 1 }} 
+            showsVerticalScrollIndicator={false} 
+            keyboardShouldPersistTaps="handled" 
+            nestedScrollEnabled={true} 
+            contentContainerStyle={{ paddingBottom: 100 }}
+        >
             <Text style={styles.sectionTitle}>MALZEME LİSTESİ</Text>
 
             {items.map((item, index) => (
-                <View key={item.id} style={styles.itemCard}>
-                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                <View key={item.id} style={[styles.itemCard, { zIndex: 1000 - index }]}>
+                    {items.length > 1 && (
+                        <TouchableOpacity onPress={() => handleRemoveItem(item.id)} style={{ position: 'absolute', top: 16, right: 16, zIndex: 20 }}>
+                            <MaterialCommunityIcons name="trash-can-outline" size={22} color="#EF4444" />
+                        </TouchableOpacity>
+                    )}
+                    <View style={{ flexDirection: 'row', gap: 12, marginTop: items.length > 1 ? 32 : 0 }}>
                         {/* Index Indicator */}
                         <View style={styles.indexCircle}>
                             <Text style={styles.indexText}>{index + 1}</Text>
@@ -237,30 +248,34 @@ export default function MarketRequestScreen() {
                                         value={item.name}
                                         onChangeText={(t) => updateItem(item.id, 'name', t)}
                                     />
-                                    <TouchableOpacity onPress={() => handleRemoveItem(item.id)} style={styles.deleteBtn}>
-                                        <Ionicons name="close" size={20} color="#EF4444" />
-                                    </TouchableOpacity>
+                                    {item.name.length > 0 && (
+                                        <TouchableOpacity onPress={() => updateItem(item.id, 'name', '')} style={styles.deleteBtn}>
+                                            <Ionicons name="close-circle" size={20} color="#666" />
+                                        </TouchableOpacity>
+                                    )}
                                 </View>
 
                                 {/* Suggestions Dropdown */}
                                 {item.suggestions && item.suggestions.length > 0 && (
                                     <View style={styles.suggestionsCard}>
-                                        {item.suggestions.map((sug, i) => (
-                                            <TouchableOpacity 
-                                                key={i} 
-                                                style={styles.suggestionItem}
-                                                onPress={() => selectCatalogItem(item.id, sug)}
-                                            >
-                                                <Ionicons name="search" size={14} color="#D4AF37" style={{ marginRight: 8 }} />
-                                                <View style={{ flex: 1 }}>
-                                                    <Text style={styles.suggestionName}>{sug.name}</Text>
-                                                    <Text style={styles.suggestionCat}>{sug.category}</Text>
-                                                </View>
-                                                <View style={styles.suggestionUnitBadge}>
-                                                    <Text style={styles.suggestionUnitText}>{sug.unit}</Text>
-                                                </View>
-                                            </TouchableOpacity>
-                                        ))}
+                                        <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled={true}>
+                                            {item.suggestions.map((sug, i) => (
+                                                <TouchableOpacity 
+                                                    key={i} 
+                                                    style={styles.suggestionItem}
+                                                    onPress={() => selectCatalogItem(item.id, sug)}
+                                                >
+                                                    <Ionicons name="search" size={14} color="#D4AF37" style={{ marginRight: 8 }} />
+                                                    <View style={{ flex: 1 }}>
+                                                        <Text style={styles.suggestionName}>{sug.name}</Text>
+                                                        <Text style={styles.suggestionCat}>{sug.category}</Text>
+                                                    </View>
+                                                    <View style={styles.suggestionUnitBadge}>
+                                                        <Text style={styles.suggestionUnitText}>{sug.unit}</Text>
+                                                    </View>
+                                                </TouchableOpacity>
+                                            ))}
+                                        </ScrollView>
                                     </View>
                                 )}
                             </View>
@@ -318,20 +333,30 @@ export default function MarketRequestScreen() {
                 {/* Mode Tabs (Only on Step 1) */}
                 {step === 1 && (
                     <View style={styles.modeContainer}>
-                        <TouchableOpacity style={[styles.modeCard, mode === 'fast' && styles.modeCardActive]} onPress={() => setMode('fast')}>
-                            <MaterialCommunityIcons name="camera-outline" size={24} color={mode === 'fast' ? '#000' : '#666'} />
-                            <View>
-                                <Text style={[styles.modeTitle, mode === 'fast' && { color: '#000' }]}>HIZLI YÜKLE</Text>
-                                <Text style={[styles.modeSub, mode === 'fast' && { color: '#333' }]}>The Lazy Way</Text>
-                            </View>
+                        <TouchableOpacity style={{ flex: 1 }} onPress={() => setMode('fast')}>
+                            <LinearGradient 
+                                colors={mode === 'fast' ? ['#D4AF37', '#AA7C11'] : ['#1A1A1A', '#0D0D0D']} 
+                                style={[styles.modeCard, mode === 'fast' ? styles.modeCardActive : {}]}
+                            >
+                                <MaterialCommunityIcons name="camera-outline" size={28} color={mode === 'fast' ? '#000' : '#888'} />
+                                <View style={{ marginLeft: 10 }}>
+                                    <Text style={[styles.modeTitle, mode === 'fast' && { color: '#000' }]}>HIZLI YÜKLE</Text>
+                                    <Text style={[styles.modeSub, mode === 'fast' && { color: '#333' }]}>Fotoğraf ile hızlıca</Text>
+                                </View>
+                            </LinearGradient>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={[styles.modeCard, mode === 'manual' && styles.modeCardActive]} onPress={() => setMode('manual')}>
-                            <MaterialCommunityIcons name="playlist-edit" size={24} color={mode === 'manual' ? '#000' : '#666'} />
-                            <View>
-                                <Text style={[styles.modeTitle, mode === 'manual' && { color: '#000' }]}>MANUEL OLUŞTUR</Text>
-                                <Text style={[styles.modeSub, mode === 'manual' && { color: '#333' }]}>The Pro Way</Text>
-                            </View>
+                        <TouchableOpacity style={{ flex: 1 }} onPress={() => setMode('manual')}>
+                            <LinearGradient 
+                                colors={mode === 'manual' ? ['#D4AF37', '#AA7C11'] : ['#1A1A1A', '#0D0D0D']} 
+                                style={[styles.modeCard, mode === 'manual' ? styles.modeCardActive : {}]}
+                            >
+                                <MaterialCommunityIcons name="playlist-edit" size={28} color={mode === 'manual' ? '#000' : '#888'} />
+                                <View style={{ marginLeft: 10 }}>
+                                    <Text style={[styles.modeTitle, mode === 'manual' && { color: '#000' }]}>MANUEL OLUŞTUR</Text>
+                                    <Text style={[styles.modeSub, mode === 'manual' && { color: '#333' }]}>Gelişmiş Giriş</Text>
+                                </View>
+                            </LinearGradient>
                         </TouchableOpacity>
                     </View>
                 )}
@@ -519,10 +544,14 @@ const styles = StyleSheet.create({
 
     // Modes
     modeContainer: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, marginBottom: 24 },
-    modeCard: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#111', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#222' },
-    modeCardActive: { backgroundColor: '#D4AF37', borderColor: '#D4AF37' },
-    modeTitle: { color: '#666', fontWeight: 'bold', fontSize: 13 },
-    modeSub: { color: '#444', fontSize: 10 },
+    modeCard: { 
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'center', 
+        paddingVertical: 18, paddingHorizontal: 10, 
+        borderRadius: 16, borderWidth: 1, borderColor: '#333' 
+    },
+    modeCardActive: { borderColor: '#FFF', shadowColor: '#D4AF37', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 },
+    modeTitle: { color: '#888', fontWeight: '900', fontSize: 12, letterSpacing: 0.5 },
+    modeSub: { color: '#555', fontSize: 10, marginTop: 2 },
 
     // Content
     content: { flex: 1, paddingHorizontal: 20 },
@@ -578,13 +607,19 @@ const styles = StyleSheet.create({
 
     // Autocomplete Dropdown
     suggestionsCard: {
+        position: 'absolute',
+        top: 55,
+        left: 0,
+        right: 0,
         backgroundColor: '#1E1E1E',
         borderRadius: 12,
-        borderWidth: 1, borderColor: '#333',
+        borderWidth: 1, borderColor: '#D4AF37',
         marginTop: 4,
         padding: 4,
-        maxHeight: 200,
-        // absolute positioning yapmadık ki alttaki inputu itsin/kaydırsın.
+        maxHeight: 220,
+        zIndex: 9999,
+        // absolute positioning yapıldı ki alttaki inputu itmesin. Z-index eklendi.
+        shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.8, shadowRadius: 10, elevation: 15,
     },
     suggestionItem: {
         flexDirection: 'row', alignItems: 'center',
