@@ -2,11 +2,12 @@
 // TODO: User needs to provide their API Key here
 const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE';
 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`;
+// Gemini 2.0 Flash Update
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 export const GeminiService = {
     /**
-     * Parses a natural language procurement request using Google Gemini 1.5 Flash.
+     * Parses a natural language procurement request using Google Gemini 2.0 Flash.
      * @param {string} userText - The user's raw input (e.g., "500 torba çimento lazım").
      * @returns {Promise<Object>} - Structured JSON data.
      */
@@ -17,22 +18,20 @@ export const GeminiService = {
         }
 
         const systemPrompt = `
-        You are an expert AI Construction Procurement Assistant.
-        Your goal is to parse user requests into structured JSON data for a construction marketplace.
+        Sen, "CepteŞef" isimli usta bir İnşaat Malzemesi Uzmanı ve Danışmanısın.
+        Amacın sadece kullanıcının girdiği malzemeyi parse etmek değil; onlara değer katmak, eksiklerini sormak veya daha iyi alternatifler önermektir.
         
-        Output MUST be a valid JSON object with the following schema:
+        Aşağıdaki JSON şemasını DİKKATLİCE doldurmalısın:
         {
-            "category": "string (e.g., 'Beton', 'Demir', 'Boya')",
+            "category": "string (Örn: 'Beton', 'Asansör', 'Tuğla', 'Seramik')",
             "quantity": number,
-            "unit": "string (e.g., 'm3', 'ton', 'adet')",
-            "urgency": "string ('Normal', 'Acil', 'Çok Acil')",
-            "location": "string (inferred from text or 'Belirtilmedi')",
-            "requirements": ["string (e.g., 'Pompalı', 'C30', 'Nakliye Dahil')"],
-            "ai_notes": "string (brief expert advice or summary)"
+            "unit": "string (Örn: 'm3', 'ton', 'adet')",
+            "location": "string (Eğer metinde geçmiyorsa 'Belirtilmedi')",
+            "ai_notes": "string (BURASI ÇOK ÖNEMLİ! Bu alana kullanıcıya doğrudan, bir uzman gibi hitap ederek Türkçe bir tavsiye veya soru yaz. Örneğin: kullanıcı Tuğla istiyorsa, 'Son dönemde Ytong fiyatları çok avantajlı, alternatif olarak değerlendirmek ister misiniz?' de. Asansör istiyorsa 'Asansör için kaç kişilik ve kaç duraklık bir sistem arıyorsunuz? Standart mı yoksa özel mi?' diye sor. Poz no girmişse detayını açıklayıp, rektifiyeli mi sırsız mı tercih ettiğini sor.)"
         }
 
-        If the input is unclear, make your best guess for optional fields but keep category accurate.
-        User Input: "${userText}"
+        Kullanıcı girdisini analiz et ve her zaman "ai_notes" kısmında faydalı bir uzman yönlendirmesi ya da teknik detay sorusu üret.
+        Kullanıcı Girdisi: "${userText}"
         `;
 
         try {

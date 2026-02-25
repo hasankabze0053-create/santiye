@@ -6,8 +6,9 @@ import { useState } from 'react';
 import { Alert, Image, Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MarketService } from '../../services/MarketService';
+import { searchMaterials } from '../../utils/MarketCatalog';
 
-const UNITS = ['Adet', 'Kg', 'Ton', 'M3', 'Paket', 'Metre', 'm²', 'Torba'];
+const UNITS = ['Adet', 'Kg', 'Ton', 'M3', 'Paket', 'Metre', 'm²', 'Torba', 'Rulo', 'Teneke'];
 
 const PAYMENT_METHODS = [
     { id: 'cash', title: 'Nakit Ödeme', icon: 'cash-outline', desc: 'Malzeme tesliminde nakit ödeme' },
@@ -28,7 +29,7 @@ export default function MarketRequestScreen() {
     // Form Data
     const [title, setTitle] = useState(''); // Step 2 or auto-gen
     const [items, setItems] = useState([
-        { id: Date.now(), name: '', qty: '', unit: 'Adet' }
+        { id: Date.now(), name: '', qty: '', unit: 'Adet', suggestions: [] }
     ]);
     // Step 2 Data
     const [location, setLocation] = useState('İstanbul Bayrampaşa (Varsayılan)');
@@ -82,7 +83,7 @@ export default function MarketRequestScreen() {
 
     // --- HANDLERS ---
     const handleAddItem = () => {
-        setItems([...items, { id: Date.now() + Math.random(), name: '', qty: '', unit: 'Adet' }]);
+        setItems([...items, { id: Date.now() + Math.random(), name: '', qty: '', unit: 'Adet', suggestions: [] }]);
     };
 
     const handleRemoveItem = (id) => {
@@ -95,7 +96,34 @@ export default function MarketRequestScreen() {
     };
 
     const updateItem = (id, field, value) => {
-        setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
+        setItems(items.map(item => {
+            if (item.id === id) {
+                const updatedItem = { ...item, [field]: value };
+                
+                // Eğer değiştirilen alan "name" ise (autocomplete)
+                if (field === 'name') {
+                    // 2 harften fazlaysa arama yap
+                    if (value.length >= 2) {
+                         const results = searchMaterials(value);
+                         updatedItem.suggestions = results;
+                    } else {
+                         updatedItem.suggestions = []; // Listeyi temizle
+                    }
+                }
+                
+                return updatedItem;
+            }
+            return item;
+        }));
+    };
+
+    const selectCatalogItem = (id, catalogItem) => {
+        // Katalogdan seçilen malzemenin adı ve BİRİMİ otomatik atanır!
+        setItems(items.map(item => 
+            item.id === id 
+                ? { ...item, name: catalogItem.name, unit: catalogItem.unit, suggestions: [] } 
+                : item
+        ));
     };
 
     const openUnitPicker = (id) => {
@@ -199,18 +227,42 @@ export default function MarketRequestScreen() {
 
                         {/* Form Fields */}
                         <View style={{ flex: 1, gap: 12 }}>
-                            {/* Row 1: Name Input + Close Button */}
-                            <View style={styles.premiumInputContainer}>
-                                <TextInput
-                                    style={styles.premiumInput}
-                                    placeholder="Malzeme Adı (Örn: C30 Beton)"
-                                    placeholderTextColor="#888"
-                                    value={item.name}
-                                    onChangeText={(t) => updateItem(item.id, 'name', t)}
-                                />
-                                <TouchableOpacity onPress={() => handleRemoveItem(item.id)} style={styles.deleteBtn}>
-                                    <Ionicons name="close" size={20} color="#EF4444" />
-                                </TouchableOpacity>
+                            {/* Row 1: Name Input + Autocomplete Suggestions */}
+                            <View style={{ zIndex: 10 }}>
+                                <View style={styles.premiumInputContainer}>
+                                    <TextInput
+                                        style={styles.premiumInput}
+                                        placeholder="Malzeme (Örn: C30, Tuğla)"
+                                        placeholderTextColor="#888"
+                                        value={item.name}
+                                        onChangeText={(t) => updateItem(item.id, 'name', t)}
+                                    />
+                                    <TouchableOpacity onPress={() => handleRemoveItem(item.id)} style={styles.deleteBtn}>
+                                        <Ionicons name="close" size={20} color="#EF4444" />
+                                    </TouchableOpacity>
+                                </View>
+
+                                {/* Suggestions Dropdown */}
+                                {item.suggestions && item.suggestions.length > 0 && (
+                                    <View style={styles.suggestionsCard}>
+                                        {item.suggestions.map((sug, i) => (
+                                            <TouchableOpacity 
+                                                key={i} 
+                                                style={styles.suggestionItem}
+                                                onPress={() => selectCatalogItem(item.id, sug)}
+                                            >
+                                                <Ionicons name="search" size={14} color="#D4AF37" style={{ marginRight: 8 }} />
+                                                <View style={{ flex: 1 }}>
+                                                    <Text style={styles.suggestionName}>{sug.name}</Text>
+                                                    <Text style={styles.suggestionCat}>{sug.category}</Text>
+                                                </View>
+                                                <View style={styles.suggestionUnitBadge}>
+                                                    <Text style={styles.suggestionUnitText}>{sug.unit}</Text>
+                                                </View>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+                                )}
                             </View>
 
                             {/* Row 2: Quantity + Unit */}
@@ -523,6 +575,25 @@ const styles = StyleSheet.create({
 
     addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 18, borderRadius: 16, borderWidth: 1, borderColor: '#333', borderStyle: 'dashed', backgroundColor: 'rgba(255,255,255,0.02)', gap: 8, marginTop: 4 },
     addBtnText: { color: '#D4AF37', fontWeight: 'bold', fontSize: 13, letterSpacing: 0.5 },
+
+    // Autocomplete Dropdown
+    suggestionsCard: {
+        backgroundColor: '#1E1E1E',
+        borderRadius: 12,
+        borderWidth: 1, borderColor: '#333',
+        marginTop: 4,
+        padding: 4,
+        maxHeight: 200,
+        // absolute positioning yapmadık ki alttaki inputu itsin/kaydırsın.
+    },
+    suggestionItem: {
+        flexDirection: 'row', alignItems: 'center',
+        padding: 12, borderBottomWidth: 1, borderBottomColor: '#333',
+    },
+    suggestionName: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
+    suggestionCat: { color: '#888', fontSize: 11, marginTop: 2 },
+    suggestionUnitBadge: { backgroundColor: 'rgba(212,175,55,0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+    suggestionUnitText: { color: '#D4AF37', fontSize: 12, fontWeight: '900' },
 
     // Footer
     footer: { padding: 20, paddingTop: 10 },
