@@ -165,8 +165,25 @@ export default function RequestDetailScreen() {
             request?.offer_model === 'kat_karsiligi' ||
             request?.offer_model === 'Kat Karşılığı';
 
-        const offerLabel = isFlatForLand ? 'Kat Karşılığı' : 'Komple Yapım (Anahtar Teslim)';
+        const offerLabel = request?.offer_type === 'anahtar_teslim_tadilat' ? 'Anahtar Teslim Tadilat' :
+                           isFlatForLand ? 'Kat Karşılığı' : 'Komple Yapım (Anahtar Teslim)';
         const isOwner = currentUserId && request.user_id === currentUserId;
+
+        let tadilatDetails = { propertyType: '-', areaSize: '-', style: '-' };
+        if (request?.offer_type === 'anahtar_teslim_tadilat' && request?.description) {
+            const lines = request.description.split('\n');
+            const mekanLine = lines.find(l => l.startsWith('MEKAN:'));
+            const tarzLine = lines.find(l => l.startsWith('TARZ:'));
+            if (mekanLine) {
+                 const mekanPart = mekanLine.replace('MEKAN:', '').trim();
+                 const split = mekanPart.split('(');
+                 tadilatDetails.propertyType = split[0].trim();
+                 tadilatDetails.areaSize = split.length > 1 ? split[1].replace(')', '').trim() : '-';
+            }
+            if (tarzLine) {
+                 tadilatDetails.style = tarzLine.replace('TARZ:', '').trim();
+            }
+        }
 
         return (
             <View style={styles.container}>
@@ -183,13 +200,102 @@ export default function RequestDetailScreen() {
                     </View>
 
                     <ScrollView contentContainerStyle={styles.content}>
+                        {request.offer_type === 'anahtar_teslim_tadilat' ? (
+                            <View style={{ backgroundColor: '#161616', borderRadius: 16, padding: 20, gap: 20, borderWidth: 1, borderColor: '#2A2A2A', marginBottom: 24 }}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                        <MaterialCommunityIcons name="home-edit" size={28} color="#FFD700" />
+                                        <Text style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold' }}>Anahtar Teslim Tadilat</Text>
+                                    </View>
+                                    <View style={{ backgroundColor: 'rgba(255, 215, 0, 0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+                                        <Text style={{ color: '#FFD700', fontSize: 12, fontWeight: 'bold' }}>#{request.id?.slice(0, 8).toUpperCase()}</Text>
+                                    </View>
+                                </View>
+                                
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+                                    <View style={{ flex: 1, minWidth: '30%', gap: 4 }}>
+                                        <Text style={{ color: '#A0A0A0', fontSize: 11, fontWeight: '600', letterSpacing: 0.5 }}>MEKAN</Text>
+                                        <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>{tadilatDetails.propertyType}</Text>
+                                    </View>
+                                    <View style={{ flex: 1, minWidth: '30%', gap: 4 }}>
+                                        <Text style={{ color: '#A0A0A0', fontSize: 11, fontWeight: '600', letterSpacing: 0.5 }}>ALAN</Text>
+                                        <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>{tadilatDetails.areaSize}</Text>
+                                    </View>
+                                    <View style={{ flex: 1, minWidth: '30%', gap: 4 }}>
+                                        <Text style={{ color: '#A0A0A0', fontSize: 11, fontWeight: '600', letterSpacing: 0.5 }}>TARZ</Text>
+                                        <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>{tadilatDetails.style}</Text>
+                                    </View>
+                                </View>
+
+                                {request.description && (
+                                    <View style={{ gap: 8 }}>
+                                        <Text style={{ color: '#FFD700', fontSize: 13, fontWeight: 'bold', textTransform: 'uppercase' }}>Ek Notlar</Text>
+                                        <Text style={{ color: '#DDD', fontSize: 14, lineHeight: 20 }}>
+                                            {request.description.split('NOT:')[1]?.trim() || '-'}
+                                        </Text>
+                                    </View>
+                                )}
+
+                                <View style={{ gap: 12 }}>
+                                    <Text style={{ color: '#FFD700', fontSize: 13, fontWeight: 'bold', textTransform: 'uppercase' }}>Mevcut Alan & İlham</Text>
+                                    {request.document_urls && request.document_urls.length > 0 ? (
+                                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                                            {request.document_urls.map((url, idx) => (
+                                                <TouchableOpacity key={idx} onPress={() => setSelectedImage(url)}>
+                                                    <Image source={{ uri: url }} style={{ width: 100, height: 100, borderRadius: 12, backgroundColor: '#2A2A2A' }} />
+                                                </TouchableOpacity>
+                                            ))}
+                                        </ScrollView>
+                                    ) : (
+                                        <View style={{ height: 100, borderRadius: 12, borderWidth: 1, borderColor: '#333', borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center' }}>
+                                            <MaterialCommunityIcons name="image-off-outline" size={24} color="#555" />
+                                            <Text style={{ color: '#A0A0A0', fontSize: 12, marginTop: 8 }}>Görsel yüklenmemiş</Text>
+                                        </View>
+                                    )}
+                                </View>
+
+                                {isOwner && (
+                                    <TouchableOpacity 
+                                        style={{ backgroundColor: '#FFD700', borderRadius: 12, paddingVertical: 14, alignItems: 'center', justifyContent: 'center', marginTop: 4 }}
+                                        activeOpacity={0.8}
+                                        onPress={() => {
+                                            const grouped = {};
+                                            constructionOffers.forEach(o => {
+                                                if (!grouped[o.contractor_id]) grouped[o.contractor_id] = [];
+                                                grouped[o.contractor_id].push(o);
+                                            });
+                                            const contractorIds = Object.keys(grouped);
+                                            if (contractorIds.length === 1) {
+                                                navigation.navigate('OfferDetail', {
+                                                    request: request,
+                                                    offers: grouped[contractorIds[0]],
+                                                    contractor_id: contractorIds[0],
+                                                    request_id: request.id
+                                                });
+                                            } else {
+                                                navigation.navigate('MainTabs', { screen: 'Inbox' });
+                                            }
+                                        }}
+                                    >
+                                        <Text style={{ color: '#121212', fontSize: 15, fontWeight: 'bold' }}>
+                                            {constructionOffers.length > 0 ? `${constructionOffers.length} Gelen Teklifi Gör` : 'Gelen Teklifleri Gör'}
+                                        </Text>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                        ) : (
+                            <>
+
                         {/* 1. PROJECT CARD */}
                         <View style={styles.card}>
                             <View style={styles.cardHeader}>
-                                <MaterialCommunityIcons name="office-building-cog" size={32} color="#D4AF37" />
+                                <MaterialCommunityIcons 
+                                    name={request.offer_type === 'anahtar_teslim_tadilat' ? "home-edit" : "office-building-cog"} 
+                                    size={32} color="#D4AF37" 
+                                />
                                 <View style={{ flex: 1, marginLeft: 12 }}>
-                                    <Text style={styles.title}>Kentsel Dönüşüm Projesi</Text>
-                                    <Text style={styles.date}>{request.district}, {request.neighborhood}</Text>
+                                    <Text style={styles.title}>{request.offer_type === 'anahtar_teslim_tadilat' ? 'Mimari Dönüşüm Merkezi' : 'Kentsel Dönüşüm Projesi'}</Text>
+                                    <Text style={styles.date}>{request.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat & Yenileme' : `${request.district}, ${request.neighborhood}`}</Text>
                                 </View>
                             </View>
 
@@ -203,17 +309,19 @@ export default function RequestDetailScreen() {
                                 <StatusBadge status={request.status || 'pending'} />
                             </View>
 
-                            {/* Yarısı Bizden Status */}
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16, backgroundColor: 'rgba(255,255,255,0.05)', padding: 12, borderRadius: 8 }}>
-                                <MaterialCommunityIcons
-                                    name={request.is_campaign_active ? "check-circle" : "close-circle"}
-                                    size={20}
-                                    color={request.is_campaign_active ? "#34C759" : "#EF4444"}
-                                />
-                                <Text style={{ color: '#DDD', marginLeft: 8, fontWeight: 'bold' }}>
-                                    {request.is_campaign_active ? 'Yarısı Bizden Kampanyasından Faydalanılacağı Belirtildi' : 'Yarısı Bizden Kampanyası Yok'}
-                                </Text>
-                            </View>
+                            {/* Yarısı Bizden Status (Hide for Tadilat) */}
+                            {request.offer_type !== 'anahtar_teslim_tadilat' && (
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16, backgroundColor: 'rgba(255,255,255,0.05)', padding: 12, borderRadius: 8 }}>
+                                    <MaterialCommunityIcons
+                                        name={request.is_campaign_active ? "check-circle" : "close-circle"}
+                                        size={20}
+                                        color={request.is_campaign_active ? "#34C759" : "#EF4444"}
+                                    />
+                                    <Text style={{ color: '#DDD', marginLeft: 8, fontWeight: 'bold' }}>
+                                        {request.is_campaign_active ? 'Yarısı Bizden Kampanyasından Faydalanılacağı Belirtildi' : 'Yarısı Bizden Kampanyası Yok'}
+                                    </Text>
+                                </View>
+                            )}
                         </View>
 
                         {/* 2. SPECS & UNITS (Conditionally Rendered) */}
@@ -267,21 +375,25 @@ export default function RequestDetailScreen() {
                                     <Text style={{ color: '#888' }}>Mahalle:</Text>
                                     <Text style={{ color: '#FFF', fontWeight: 'bold' }}>{request.neighborhood}</Text>
                                 </View>
-                                <View style={[styles.divider, { marginVertical: 8, height: 1, backgroundColor: '#333' }]} />
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                    <View>
-                                        <Text style={styles.label}>ADA</Text>
-                                        <Text style={styles.value}>{request.ada}</Text>
-                                    </View>
-                                    <View>
-                                        <Text style={styles.label}>PARSEL</Text>
-                                        <Text style={styles.value}>{request.parsel}</Text>
-                                    </View>
-                                    <View>
-                                        <Text style={styles.label}>PAFTA</Text>
-                                        <Text style={styles.value}>{request.pafta || '-'}</Text>
-                                    </View>
-                                </View>
+                                {request.offer_type !== 'anahtar_teslim_tadilat' && (
+                                    <>
+                                        <View style={[styles.divider, { marginVertical: 8, height: 1, backgroundColor: '#333' }]} />
+                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                            <View>
+                                                <Text style={styles.label}>ADA</Text>
+                                                <Text style={styles.value}>{request.ada}</Text>
+                                            </View>
+                                            <View>
+                                                <Text style={styles.label}>PARSEL</Text>
+                                                <Text style={styles.value}>{request.parsel}</Text>
+                                            </View>
+                                            <View>
+                                                <Text style={styles.label}>PAFTA</Text>
+                                                <Text style={styles.value}>{request.pafta || '-'}</Text>
+                                            </View>
+                                        </View>
+                                    </>
+                                )}
                                 {request.full_address && (
                                     <View style={{ marginTop: 12 }}>
                                         <Text style={styles.label}>AÇIK ADRES</Text>
@@ -383,6 +495,9 @@ export default function RequestDetailScreen() {
                             </View>
                         )}
 
+
+                            </>
+                        )}
                         {/* OWNER ACTIONS - DELETE */}
                         {isOwner && (
                             <View style={{ gap: 12, marginTop: 20, marginBottom: 40 }}>

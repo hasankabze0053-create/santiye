@@ -307,8 +307,22 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
 
                 <View style={styles.footer}>
                     <TouchableOpacity
-                        style={styles.continueButton}
-                        onPress={() => navigation.navigate('StyleSelection')}
+                        style={[
+                            styles.continueButton,
+                            // Dim the button slightly if we haven't scrolled to a clear selection (optional, it auto-snaps anyway)
+                        ]}
+                        onPress={() => {
+                            // Find which item is currently centered
+                            const centerOffset = scrollX._value + (width / 2);
+                            const itemIndex = Math.floor(centerOffset / ITEM_WIDTH);
+                            const safeIndex = Math.max(0, Math.min(itemIndex, DATA.length - 1));
+                            const selectedProperty = DATA[safeIndex]?.title || 'DAİRE';
+
+                            navigation.navigate('StyleSelection', {
+                                area: area,
+                                propertyType: selectedProperty
+                            });
+                        }}
                     >
                         <LinearGradient
                             colors={BTN_GRADIENT}

@@ -66,8 +66,14 @@ export default function ContractorRequestsScreen() {
         >
             <View style={styles.cardHeader}>
                 <View style={styles.locationContainer}>
-                    <MaterialCommunityIcons name="map-marker-radius" size={18} color="#D4AF37" />
-                    <Text style={styles.districtText}>{item.district}, {item.neighborhood}</Text>
+                    <MaterialCommunityIcons 
+                        name="office-building-cog" 
+                        size={18} 
+                        color="#D4AF37" 
+                    />
+                    <Text style={styles.districtText}>
+                        {item.district}, {item.neighborhood}
+                    </Text>
                 </View>
                 <View style={styles.dateContainer}>
                     <Text style={styles.dateText}>{formatDate(item.created_at)}</Text>
@@ -80,12 +86,14 @@ export default function ContractorRequestsScreen() {
                 <View style={styles.detailItem}>
                     <Text style={styles.detailLabel}>TÜR</Text>
                     <Text style={styles.detailValue}>
-                        {item.offer_type === 'anahtar_teslim' ? 'Anahtar Teslim' : 'Kat Karşılığı'}
+                        {item.offer_type === 'anahtar_teslim' ? 'Komple Yapım' : 'Kat Karşılığı'}
                     </Text>
                 </View>
                 <View style={styles.detailItem}>
                     <Text style={styles.detailLabel}>ADA / PARSEL</Text>
-                    <Text style={styles.detailValue}>{item.ada} / {item.parsel}</Text>
+                    <Text style={styles.detailValue}>
+                        {item.ada} / {item.parsel}
+                    </Text>
                 </View>
             </View>
 

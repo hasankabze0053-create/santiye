@@ -55,6 +55,7 @@ import SellerDashboardScreen from '../screens/Market/SellerDashboardScreen';
 import SellerStoreScreen from '../screens/Market/SellerStoreScreen';
 import SmartProcurementWizardScreen from '../screens/Market/SmartProcurementWizardScreen';
 import ChatScreen from '../screens/Messages/ChatScreen';
+import ArchitectRequestDetailScreen from '../screens/Provider/ArchitectRequestDetailScreen';
 import ContractorProviderScreen from '../screens/Provider/ContractorProviderScreen';
 import LawProviderScreen from '../screens/Provider/LawProviderScreen';
 import LogisticsProviderScreen from '../screens/Provider/LogisticsProviderScreen';
@@ -64,7 +65,10 @@ import ProviderDashboardScreen from '../screens/Provider/ProviderDashboardScreen
 import ProviderWizardScreen from '../screens/Provider/ProviderWizardScreen';
 import RenovationProviderScreen from '../screens/Provider/RenovationProviderScreen';
 import TechnicalProviderScreen from '../screens/Provider/TechnicalProviderScreen';
+import AIRenovationAssistantScreen from '../screens/Renovation/AIRenovationAssistantScreen';
 import CustomRequestScreen from '../screens/Renovation/CustomRequestScreen';
+import KitchenBathWizardScreen from '../screens/Renovation/KitchenBathWizardScreen';
+import PaintDecorWizardScreen from '../screens/Renovation/PaintDecorWizardScreen';
 import RenovationProjectSelectionScreen from '../screens/Renovation/RenovationProjectSelectionScreen';
 import RenovationScreen from '../screens/Renovation/RenovationScreen';
 import RenovationSuccessScreen from '../screens/Renovation/RenovationSuccessScreen';
@@ -307,6 +311,9 @@ export default function AppNavigator() {
             {/* Renovation */}
             <Stack.Screen name="Tadilat" component={RenovationScreen} />
             <Stack.Screen name="RenovationProjectSelection" component={RenovationProjectSelectionScreen} options={{ animation: 'slide_from_right' }} />
+            <Stack.Screen name="KitchenBathWizard" component={KitchenBathWizardScreen} options={{ headerShown: false, gestureEnabled: true, animation: 'slide_from_bottom' }} />
+            <Stack.Screen name="PaintDecorWizard" component={PaintDecorWizardScreen} options={{ headerShown: false, gestureEnabled: true, animation: 'slide_from_bottom' }} />
+            <Stack.Screen name="AIRenovationAssistant" component={AIRenovationAssistantScreen} options={{ headerShown: false, gestureEnabled: true, animation: 'slide_from_right' }} />
             <Stack.Screen name="RequestDetail" component={RequestDetailScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
             <Stack.Screen name="StyleSelection" component={StyleSelectionScreen} />
             <Stack.Screen name="CustomRequest" component={CustomRequestScreen} />
@@ -343,6 +350,7 @@ export default function AppNavigator() {
 
             <Stack.Screen name="ContractorRequests" component={ContractorRequestsScreen} />
             <Stack.Screen name="ContractorRequestDetail" component={ContractorRequestDetailScreen} />
+            <Stack.Screen name="ArchitectRequestDetail" component={ArchitectRequestDetailScreen} />
             <Stack.Screen name="UserRequests" component={UserRequestsScreen} />
             <Stack.Screen name="OfferDetail" component={OfferDetailScreen} options={{ headerShown: false }} />
 

@@ -1,8 +1,12 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import {
+    ActivityIndicator,
+    Alert,
     Dimensions,
+    Image,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -14,6 +18,8 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { supabase } from '../../lib/supabase';
+import { uploadImageToSupabase } from '../../services/PhotoUploadService';
 
 const { width } = Dimensions.get('window');
 
@@ -30,17 +36,82 @@ const THEME = {
 
 const BTN_GRADIENT = ['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30'];
 
-export default function CustomRequestScreen({ navigation }) {
-    const [note, setNote] = useState('');
+export default function CustomRequestScreen({ navigation, route }) {
+    const { area, propertyType, selectedStyle } = route.params || {};
 
-    // Dummy data for upload slots
-    const renderUploadSlot = (label, isGold = true) => (
+    const [note, setNote] = useState('');
+    const [loading, setLoading] = useState(false);
+    
+    // Arrays to hold image URIs
+    const [currentImages, setCurrentImages] = useState([]);
+    const [inspirationImages, setInspirationImages] = useState([]);
+
+
+
+    const handlePickImage = async (type) => {
+        Alert.alert(
+            "Fotoğraf Ekle",
+            "Lütfen bir yöntem seçiniz",
+            [
+                {
+                    text: "Kamera",
+                    onPress: async () => {
+                        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+                        if (status !== 'granted') {
+                            Alert.alert('İzin Gerekli', 'Kamera erişimi için izin vermeniz gerekmektedir.');
+                            return;
+                        }
+                        const result = await ImagePicker.launchCameraAsync({
+                            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                            quality: 0.8,
+                        });
+                        if (!result.canceled) {
+                            if (type === 'current') setCurrentImages(prev => [...prev, result.assets[0].uri]);
+                            else setInspirationImages(prev => [...prev, result.assets[0].uri]);
+                        }
+                    }
+                },
+                {
+                    text: "Galeri",
+                    onPress: async () => {
+                        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                        if (status !== 'granted') {
+                            Alert.alert('İzin Gerekli', 'Galeri erişimi için izin vermeniz gerekmektedir.');
+                            return;
+                        }
+                        const result = await ImagePicker.launchImageLibraryAsync({
+                            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                            quality: 0.8,
+                            allowsMultipleSelection: true
+                        });
+                        if (!result.canceled) {
+                            const newUris = result.assets.map(a => a.uri);
+                            if (type === 'current') setCurrentImages(prev => [...prev, ...newUris]);
+                            else setInspirationImages(prev => [...prev, ...newUris]);
+                        }
+                    }
+                },
+                { text: "İptal", style: "cancel" }
+            ]
+        );
+    };
+
+    const handleRemoveImage = (type, index) => {
+        if (type === 'current') {
+            setCurrentImages(prev => prev.filter((_, i) => i !== index));
+        } else {
+            setInspirationImages(prev => prev.filter((_, i) => i !== index));
+        }
+    };
+
+    const renderUploadSlot = (label, isGold = true, type) => (
         <TouchableOpacity
             style={[
                 styles.uploadSlot,
                 { borderColor: isGold ? THEME.goldPrimary : '#444' }
             ]}
             activeOpacity={0.7}
+            onPress={() => handlePickImage(type)}
         >
             <MaterialCommunityIcons
                 name="camera-plus-outline"
@@ -55,6 +126,64 @@ export default function CustomRequestScreen({ navigation }) {
             </Text>
         </TouchableOpacity>
     );
+
+    const renderImageItem = (uri, index, type) => (
+        <View key={`${type}-${index}`} style={styles.thumbnailWrap}>
+            <Image source={{ uri }} style={styles.thumbnail} />
+            <TouchableOpacity style={styles.removeCircle} onPress={() => handleRemoveImage(type, index)}>
+                <Ionicons name="close" size={14} color="#FFF" />
+            </TouchableOpacity>
+        </View>
+    );
+
+    const handleSubmit = async () => {
+        setLoading(true);
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                Alert.alert("Hata", "Lütfen önce giriş yapın.");
+                setLoading(false);
+                return;
+            }
+
+            // Upload all images
+            const currentUrls = await Promise.all(currentImages.map(uri => uploadImageToSupabase(uri)));
+            const inspirationUrls = await Promise.all(inspirationImages.map(uri => uploadImageToSupabase(uri)));
+            
+            // Build comprehensive description
+            let fullDescription = `PROJE TİPİ: Anahtar Teslim Tadilat\n`;
+            fullDescription += `MEKAN: ${propertyType || 'Belirtilmedi'} (${area || 0} m²)\n`;
+            fullDescription += `TARZ: ${selectedStyle || 'Belirtilmedi'}\n\n`;
+            if (note) fullDescription += `ÖZEL NOTLAR:\n${note}\n`;
+
+            const allDocumentUrls = [...currentUrls, ...inspirationUrls];
+
+            const { error } = await supabase
+                .from('construction_requests')
+                .insert({
+                    user_id: user.id,
+                    city: 'Türkiye Geneli',
+                    district: 'Tümü', // We bypass location since it's a renovation request
+                    neighborhood: 'Tümü',
+                    ada: '', parsel: '', pafta: '',
+                    full_address: 'Tadilat Talebi',
+                    offer_type: 'anahtar_teslim_tadilat',
+                    description: fullDescription,
+                    status: 'pending',
+                    document_urls: allDocumentUrls,
+                    deed_image_url: allDocumentUrls.length > 0 ? allDocumentUrls[0] : null
+                });
+
+            if (error) throw error;
+
+            navigation.navigate('RenovationSuccess');
+        } catch (error) {
+            console.error('Submit Error:', error);
+            Alert.alert("Hata", "Talebiniz alınırken bir sorun oluştu.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -89,9 +218,8 @@ export default function CustomRequestScreen({ navigation }) {
                             <Text style={styles.sectionLabel}>Mevcut Alan Fotoğrafları</Text>
                             <Text style={styles.sectionSubLabel}>Proje yapılacak alanın şu anki hali (Opsiyonel).</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-                                {renderUploadSlot('Alan Ekle', false)}
-                                {renderUploadSlot('Alan Ekle', false)}
-                                {renderUploadSlot('Alan Ekle', false)}
+                                {currentImages.map((uri, i) => renderImageItem(uri, i, 'current'))}
+                                {renderUploadSlot('Alan Ekle', false, 'current')}
                                 <View style={{ width: 20 }} />
                             </ScrollView>
                         </View>
@@ -121,9 +249,8 @@ export default function CustomRequestScreen({ navigation }) {
                             <Text style={styles.sectionLabel}>İlham Aldığınız Görseller</Text>
                             <Text style={styles.sectionSubLabel}>Beğendiğiniz tasarımları ekleyin.</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-                                {renderUploadSlot('Örnek Ekle', true)}
-                                {renderUploadSlot('Örnek Ekle', true)}
-                                {renderUploadSlot('Örnek Ekle', true)}
+                                {inspirationImages.map((uri, i) => renderImageItem(uri, i, 'inspiration'))}
+                                {renderUploadSlot('Örnek Ekle', true, 'inspiration')}
                                 <View style={{ width: 20 }} />
                             </ScrollView>
                         </View>
@@ -137,15 +264,22 @@ export default function CustomRequestScreen({ navigation }) {
 
                     <TouchableOpacity
                         style={styles.continueButton}
-                        onPress={() => navigation.navigate('RenovationSuccess')}
+                        onPress={handleSubmit}
+                        disabled={loading}
                     >
                         <LinearGradient
                             colors={BTN_GRADIENT}
                             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                             style={styles.gradientButton}
                         >
-                            <Text style={styles.buttonText}>KEŞİF & TEKLİF İSTE</Text>
-                            <MaterialCommunityIcons name="check-decagram" size={20} color="#1a1a1a" style={{ marginLeft: 8 }} />
+                            {loading ? (
+                                <ActivityIndicator color="#000" />
+                            ) : (
+                                <>
+                                    <Text style={styles.buttonText}>KEŞİF & TEKLİF İSTE</Text>
+                                    <MaterialCommunityIcons name="check-decagram" size={20} color="#1a1a1a" style={{ marginLeft: 8 }} />
+                                </>
+                            )}
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>
@@ -232,5 +366,9 @@ const styles = StyleSheet.create({
     gradientButton: {
         height: 55, flexDirection: 'row', justifyContent: 'center', alignItems: 'center'
     },
-    buttonText: { color: '#1a1a1a', fontSize: 16, fontWeight: '900', letterSpacing: 1 }
+    buttonText: { color: '#1a1a1a', fontSize: 16, fontWeight: '900', letterSpacing: 1 },
+
+    thumbnailWrap: { width: 100, height: 100, borderRadius: 12, marginRight: 15, position: 'relative' },
+    thumbnail: { width: '100%', height: '100%', borderRadius: 12 },
+    removeCircle: { position: 'absolute', top: -5, right: -5, width: 22, height: 22, borderRadius: 11, backgroundColor: '#FF3B30', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#000' }
 });

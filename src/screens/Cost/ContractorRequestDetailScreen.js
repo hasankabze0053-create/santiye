@@ -64,7 +64,10 @@ export default function ContractorRequestDetailScreen() {
                         <View style={styles.divider} />
 
                         <View style={styles.row}>
-                            <MaterialCommunityIcons name="sign-direction" size={24} color="#D4AF37" />
+                            <MaterialCommunityIcons 
+                                name="sign-direction" 
+                                size={24} color="#D4AF37" 
+                            />
                             <View style={{ marginLeft: 12, flex: 1 }}>
                                 <Text style={styles.label}>AÇIK ADRES</Text>
                                 <Text style={styles.value}>{request.full_address || 'Belirtilmemiş'}</Text>
@@ -72,25 +75,27 @@ export default function ContractorRequestDetailScreen() {
                         </View>
                     </GlassCard>
 
-                    {/* Technical Info */}
-                    <GlassCard style={styles.section}>
-                        <Text style={styles.sectionTitle}>Tapu & İmar Bilgileri</Text>
+                    {/* Technical Info (Only if Ada/Parsel exists) */}
+                    {(request.ada || request.parsel) && (
+                        <GlassCard style={styles.section}>
+                            <Text style={styles.sectionTitle}>Tapu & İmar Bilgileri</Text>
 
-                        <View style={styles.grid}>
-                            <View style={styles.gridItem}>
-                                <Text style={styles.label}>ADA</Text>
-                                <Text style={styles.value}>{request.ada}</Text>
+                            <View style={styles.grid}>
+                                <View style={styles.gridItem}>
+                                    <Text style={styles.label}>ADA</Text>
+                                    <Text style={styles.value}>{request.ada}</Text>
+                                </View>
+                                <View style={styles.gridItem}>
+                                    <Text style={styles.label}>PARSEL</Text>
+                                    <Text style={styles.value}>{request.parsel}</Text>
+                                </View>
+                                <View style={styles.gridItem}>
+                                    <Text style={styles.label}>PAFTA</Text>
+                                    <Text style={styles.value}>{request.pafta || '-'}</Text>
+                                </View>
                             </View>
-                            <View style={styles.gridItem}>
-                                <Text style={styles.label}>PARSEL</Text>
-                                <Text style={styles.value}>{request.parsel}</Text>
-                            </View>
-                            <View style={styles.gridItem}>
-                                <Text style={styles.label}>PAFTA</Text>
-                                <Text style={styles.value}>{request.pafta || '-'}</Text>
-                            </View>
-                        </View>
-                    </GlassCard>
+                        </GlassCard>
+                    )}
 
                     {/* Offer Type Info */}
                     <GlassCard style={styles.section}>
@@ -101,7 +106,7 @@ export default function ContractorRequestDetailScreen() {
                                 size={28}
                                 color="#D4AF37"
                             />
-                            <View style={{ marginLeft: 12 }}>
+                            <View style={{ marginLeft: 12, flex: 1 }}>
                                 <Text style={styles.value}>
                                     {request.offer_type === 'anahtar_teslim' ? 'Anahtar Teslim İnşaat' : 'Kat Karşılığı İnşaat'}
                                 </Text>

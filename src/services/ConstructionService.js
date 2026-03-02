@@ -42,6 +42,7 @@ export const ConstructionService = {
                 .from('construction_requests')
                 .select('*')
                 .in('status', ['pending', 'offers_received'])
+                .neq('offer_type', 'anahtar_teslim_tadilat') // EXCLUDE TADILAT
                 .order('created_at', { ascending: false });
 
             if (bidRequestIds.length > 0) {
@@ -64,11 +65,12 @@ export const ConstructionService = {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return [];
 
-            // Fetch offers with the related request details
+            // Fetch offers with the related request details, filtering for requests that are NOT tadilat
             const { data, error } = await supabase
                 .from('construction_offers')
                 .select('*, request:construction_requests(*)')
                 .eq('contractor_id', user.id)
+                .neq('request.offer_type', 'anahtar_teslim_tadilat') // EXCLUDE TADILAT
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -144,7 +146,81 @@ export const ConstructionService = {
         }
     },
 
-    // 4. Talebi sil (Kullanıcı)
+    // 4. Mimarlar için açık talepleri getir (Teklif VERMEDİKLERİ)
+    getOpenRequestsForArchitect: async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return [];
+
+            // 1. Get IDs of requests this architect has already bid on
+            const { data: existingBids, error: bidsError } = await supabase
+                .from('construction_offers')
+                .select('request_id')
+                .eq('contractor_id', user.id);
+
+            if (bidsError) throw bidsError;
+
+            const bidRequestIds = existingBids.map(b => b.request_id);
+
+            // 2. Fetch tadilat requests that are pending/offers_received AND NOT in the bid list
+            let query = supabase
+                .from('construction_requests')
+                .select('*')
+                .eq('offer_type', 'anahtar_teslim_tadilat') // ONLY TADILAT
+                .in('status', ['pending', 'offers_received'])
+                .order('created_at', { ascending: false });
+
+            if (bidRequestIds.length > 0) {
+                query = query.not('id', 'in', `(${bidRequestIds.join(',')})`);
+            }
+
+            const { data, error } = await query;
+
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            console.error('ConstructionService.getOpenRequestsForArchitect Error:', error);
+            return [];
+        }
+    },
+
+    // 5. Mimarın teklif verdiği talepleri getir
+    getArchitectBids: async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return [];
+
+            const { data, error } = await supabase
+                .from('construction_offers')
+                .select('*, request:construction_requests!inner(*)')
+                .eq('contractor_id', user.id)
+                .eq('request.offer_type', 'anahtar_teslim_tadilat') // ONLY TADILAT
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            // Group by request_id
+            const grouped = {};
+            data.forEach(offer => {
+                const reqId = offer.request_id;
+                if (!grouped[reqId]) {
+                    grouped[reqId] = {
+                        id: reqId,
+                        ...offer.request,
+                        my_offers: []
+                    };
+                }
+                grouped[reqId].my_offers.push(offer);
+            });
+
+            return Object.values(grouped);
+        } catch (error) {
+            console.error('ConstructionService.getArchitectBids Error:', error);
+            return [];
+        }
+    },
+
+    // 6. Talebi sil (Kullanıcı)
     deleteRequest: async (requestId) => {
         try {
             const { data: { user } } = await supabase.auth.getUser();

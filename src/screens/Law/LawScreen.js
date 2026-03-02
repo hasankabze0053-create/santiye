@@ -1,740 +1,530 @@
+/**
+ * LawScreen.js — Ultra-Premium AI Legal Shield
+ * "The Zero-Friction Interface" — Kategori seçtirmiyoruz, sorunu anlıyoruz.
+ */
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { BlurView } from 'expo-blur';
+import * as DocumentPicker from 'expo-document-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Dimensions, InputAccessoryView, Keyboard, KeyboardAvoidingView, Platform, Modal as ReactModal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+    Alert,
+    Animated,
+    Dimensions,
+    InputAccessoryView,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-// import { supabase } from '../../lib/supabase'; // Handled in replace content above
+import { supabase } from '../../lib/supabase';
+import { analyzeLegalCase } from '../../services/legalAiService';
+import AiOraclePulse from './components/AiOraclePulse';
+import InsightPanel from './components/InsightPanel';
+import SOSBanner from './components/SOSBanner';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-// --- CONSTANTS ---
-const GOLD_DARK = '#FF9100';      // Deep Amber
-const GOLD_MAIN = '#D4AF37';      // Safety Yellow / Standard Gold
-const GOLD_LIGHT = '#FFE57F';     // Light Amber
-const DANGER_RED = '#EF4444';     // Emergency Red
-const SUCCESS_GREEN = '#10B981';  // Emerald Green
+const GOLD      = '#D4AF37';
+const GOLD_DARK = '#FF9100';
+const DANGER    = '#EF4444';
+const ORANGE    = '#F97316';
+const GREEN     = '#10B981';
 
-// Blinking Icon Component
-const BlinkingIcon = ({ name, size, color }) => {
-    const fadeAnim = useRef(new Animated.Value(1)).current;
+// ─── ANALYZING OVERLAY ───────────────────────────────────────────────────────
+function AnalyzingOverlay({ visible }) {
+    const opacity = useRef(new Animated.Value(0)).current;
+    const ring1   = useRef(new Animated.Value(0.7)).current;
+    const ring2   = useRef(new Animated.Value(0.7)).current;
+
     useEffect(() => {
-        Animated.loop(
-            Animated.sequence([
-                Animated.timing(fadeAnim, { toValue: 0.3, duration: 800, useNativeDriver: true }),
-                Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true })
-            ])
-        ).start();
-    }, []);
+        if (visible) {
+            Animated.timing(opacity, { toValue: 1, duration: 280, useNativeDriver: true }).start();
+            Animated.loop(Animated.sequence([
+                Animated.timing(ring1, { toValue: 1.5, duration: 1000, useNativeDriver: true }),
+                Animated.timing(ring1, { toValue: 0.7, duration: 1000, useNativeDriver: true }),
+            ])).start();
+            Animated.loop(Animated.sequence([
+                Animated.delay(500),
+                Animated.timing(ring2, { toValue: 1.5, duration: 1000, useNativeDriver: true }),
+                Animated.timing(ring2, { toValue: 0.7, duration: 1000, useNativeDriver: true }),
+            ])).start();
+        } else {
+            Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: true }).start();
+        }
+    }, [visible]);
+
+    if (!visible) return null;
+
     return (
-        <Animated.View style={{ opacity: fadeAnim }}>
-            <MaterialCommunityIcons name={name} size={size} color={color} />
+        <Animated.View style={[s.overlayBg, { opacity }]}>
+            <BlurView intensity={70} tint="dark" style={StyleSheet.absoluteFill} />
+            <View style={s.overlayInner}>
+                <Animated.View style={[s.ring, s.ring1, { transform: [{ scale: ring1 }] }]} />
+                <Animated.View style={[s.ring, s.ring2, { transform: [{ scale: ring2 }] }]} />
+                <MaterialCommunityIcons name="scale-balance" size={42} color={GOLD} />
+                <Text style={s.overlayTitle}>Analiz Ediliyor…</Text>
+                <Text style={s.overlaySub}>Şantiye dili → Hukuki vaka</Text>
+            </View>
         </Animated.View>
     );
-};
+}
 
-// Standard Gold Card
-const GoldCard = ({ children, style, onPress }) => (
-    <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={[styles.goldCardContainer, style]}>
-        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
-        <LinearGradient
-            colors={[GOLD_MAIN, 'rgba(197, 160, 89, 0.1)', GOLD_MAIN]}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={styles.goldBorderGradient}
-        />
-        <View style={styles.cardContent}>
-            {children}
-        </View>
-    </TouchableOpacity>
-);
-
-// Emergency Card (Red) - Used for İş Kazası
-const HighlightCard = ({ children, style, onPress }) => (
-    <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={[styles.goldCardContainer, style, styles.emergencyShadow]}>
-        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
-        <LinearGradient
-            colors={[DANGER_RED, 'rgba(239, 68, 68, 0.1)', DANGER_RED]}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={styles.goldBorderGradient}
-        />
-        <View style={[styles.cardContent, styles.redCardBg]}>
-            {children}
-        </View>
-    </TouchableOpacity>
-);
-
-// Wizard Configuration
-const LAW_WIZARD_CONFIG = {
-    'SÖZLEŞME': {
-        title: 'Sözleşme & Hakediş',
-        steps: [
-            {
-                id: 'subject',
-                type: 'radio',
-                question: 'Konu nedir?',
-                options: ['Sözleşme İnceletmek İstiyorum', 'Hakedişimi Alamıyorum / Eksik Aldım', 'Taşeron Sözleşmeye Uymadı / İşi Bıraktı']
-            },
-            {
-                id: 'file',
-                type: 'file',
-                question: 'Sözleşme taslağını veya Hakediş Raporunu yükle (PDF/Foto)'
-            }
-        ]
-    },
-    'TAŞERON': {
-        title: 'Taşeron & İşçi',
-        steps: [
-            {
-                id: 'who',
-                type: 'radio',
-                question: 'Sorunlu personel kim?',
-                options: ['SGK\'lı İşçi (Usta/Kalfa)', 'Taşeron Firma']
-            },
-            {
-                id: 'event',
-                type: 'radio',
-                question: 'Ne oldu?',
-                options: ['İşe gelmedi (Tutanak lazım)', 'İstifa etti / İşten ben çıkardım', 'Tazminat / Maaş kavgası']
-            }
-        ]
-    },
-    'İMAR': {
-        title: 'İmar & Ceza',
-        steps: [
-            {
-                id: 'institution',
-                type: 'radio',
-                question: 'Kurum hangisi?',
-                options: ['Belediye / Zabıta', 'Çevre Şehircilik / Yapı Denetim', 'SGK Müfettişi']
-            },
-            {
-                id: 'file',
-                type: 'file',
-                question: 'Ceza makbuzunu veya Mühürleme Tutanığını yükle.'
-            }
-        ]
-    },
-    'KENTSEL DÖNÜŞÜM': {
-        title: 'Kentsel Dönüşüm',
-        steps: [
-            {
-                id: 'stage',
-                type: 'radio',
-                question: 'Hangi aşamadasınız?',
-                options: ['Riskli Yapı Tespiti Yapıldı mı?', '%51 Çoğunluk Sağlandı mı?', 'Arsa Sahibi İmza Atmıyor']
-            }
-        ]
-    },
-    'MALZEME': {
-        title: 'Malzeme & Tedarikçi',
-        steps: [
-            {
-                id: 'problem_item',
-                type: 'radio',
-                question: 'Sorunlu Malzeme/Hizmet?',
-                options: ['Hazır Beton / Demir', 'İnce İşçilik Malzemesi (Seramik, Kapı vb.)']
-            },
-            {
-                id: 'demand',
-                type: 'radio',
-                question: 'Ne istiyorsun?',
-                options: ['Malın İadesi / Değişimi', 'Zararın Tazmini (Para İadesi)']
-            },
-            {
-                id: 'proof',
-                type: 'file',
-                question: 'Fatura ve Ayıplı Malın Fotoğrafını Yükle.'
-            }
-        ]
-    },
-    'ŞİRKET': {
-        title: 'Şirket & SGK',
-        steps: [
-            {
-                id: 'topic',
-                type: 'radio',
-                question: 'Konu Başlığı?',
-                options: ['Vergi Cezasına İtiraz', 'İş Kazası Rücu Davası (SGK Ceza kesti)', 'Şirket Devri / Ortaklık Sözleşmesi']
-            }
-        ]
-    },
-    'EMLAK': {
-        title: 'Emlak Hukuku',
-        steps: [
-            {
-                id: 'action_type',
-                type: 'radio',
-                question: 'İşlem Türü?',
-                options: ['Kira Sözleşmesi Hazırla (Sağlam)', 'Kiracı Tahliyesi / Kira Tespit', 'Satış Vaadi Sözleşmesi', 'Tapu İptal / Tescil Sorunu']
-            }
-        ]
-    }
-};
-
-const WizardModal = ({ visible, onClose, config }) => {
-    const [step, setStep] = useState(0);
-    const [answers, setAnswers] = useState({});
-    const [note, setNote] = useState('');
-    const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-    const modalScrollRef = useRef(null);
-
+// ─── WAVE BARS (voice) ───────────────────────────────────────────────────────
+function WaveBar({ delay }) {
+    const h = useRef(new Animated.Value(4)).current;
     useEffect(() => {
-        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-        const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
-        return () => {
-            keyboardDidShowListener.remove();
-            keyboardDidHideListener.remove();
-        };
+        Animated.loop(Animated.sequence([
+            Animated.timing(h, { toValue: 4 + Math.random() * 20, duration: 300 + delay, useNativeDriver: false }),
+            Animated.timing(h, { toValue: 4, duration: 300 + delay, useNativeDriver: false }),
+        ])).start();
     }, []);
+    return <Animated.View style={[s.waveBar, { height: h }]} />;
+}
 
-    if (!visible || !config) return null;
-
-    const currentStep = config.steps[step];
-    const isLastStep = step === config.steps.length - 1;
-
-    const handleOptionSelect = (option) => {
-        setAnswers({ ...answers, [currentStep.id]: option });
-    };
-
-    const handleNext = () => {
-        if (isLastStep) {
-            onClose();
-            setStep(0);
-            setAnswers({});
-            setNote('');
-            // Navigate to Success Screen
-            // Note: need to access navigation from parent or pass it down. 
-            // Since WizardModal is inside LawScreen, we can pass a callback
-            if (config.onComplete) {
-                config.onComplete();
-            }
-        } else {
-            setStep(step + 1);
-        }
-    };
-
+// ─── RECENT CASE CARD ────────────────────────────────────────────────────────
+function RecentCard({ cat, score, time }) {
+    const c = score >= 8 ? DANGER : score >= 5 ? ORANGE : GREEN;
     return (
-        <ReactModal visible={visible} transparent animationType="slide">
-            <View style={styles.modalOverlay}>
-                <BlurView intensity={50} tint="dark" style={StyleSheet.absoluteFill} />
-                {/* Disable auto-avoiding to prevent button jump, handle scroll manually */}
-                <View style={styles.modalContent}>
-
-                    {/* Header */}
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>{config.title}</Text>
-                        <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                            <Ionicons name="close" size={24} color="#FFF" />
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Progress Bar */}
-                    <View style={styles.progressBar}>
-                        {config.steps.map((_, index) => (
-                            <View key={index} style={[styles.progressStep, index <= step ? styles.progressActive : styles.progressInactive]} />
-                        ))}
-                    </View>
-
-                    {/* Step Content */}
-                    <ScrollView
-                        ref={modalScrollRef}
-                        contentContainerStyle={[styles.stepContainer, { paddingBottom: 300 }]} // Add padding for keyboard
-                    >
-                        <Text style={styles.questionText}>{currentStep.question}</Text>
-
-                        {currentStep.type === 'radio' && (
-                            <View style={styles.optionsContainer}>
-                                {currentStep.options.map((option, index) => (
-                                    <TouchableOpacity
-                                        key={index}
-                                        style={[styles.optionBtn, answers[currentStep.id] === option && styles.optionBtnActive]}
-                                        onPress={() => handleOptionSelect(option)}
-                                    >
-                                        <Text style={[styles.optionText, answers[currentStep.id] === option && styles.optionTextActive]}>{option}</Text>
-                                        {answers[currentStep.id] === option && <Ionicons name="checkmark-circle" size={20} color={GOLD_MAIN} />}
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        )}
-
-                        {currentStep.type === 'file' && (
-                            <View>
-                                <View style={styles.fileUploadContainer}>
-                                    <TouchableOpacity style={styles.uploadBtn}>
-                                        <FontAwesome5 name="file-upload" size={32} color={GOLD_MAIN} />
-                                        <Text style={styles.uploadText}>Dosya Seçin veya Fotoğraf Çekin</Text>
-                                    </TouchableOpacity>
-                                    <Text style={styles.fileNote}>PDF, JPG, PNG (Max 10MB)</Text>
-                                </View>
-
-                                <View style={{ marginTop: 15 }}>
-                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <Text style={styles.inputLabel}>Açıklama / Notlar</Text>
-                                    </View>
-                                    <TextInput
-                                        style={styles.noteInput}
-                                        placeholder="Örn: 5. maddedeki cezai şart oranını kontrol eder misiniz?"
-                                        placeholderTextColor="#666"
-                                        multiline
-                                        value={note}
-                                        onChangeText={setNote}
-                                        inputAccessoryViewID="NoteInputDone"
-                                        onFocus={() => {
-                                            // Instant scroll to bottom
-                                            modalScrollRef.current?.scrollToEnd({ animated: true });
-                                        }}
-                                    />
-                                </View>
-                            </View>
-                        )}
-                    </ScrollView>
-
-                    {/* Trigger Button - Always visible */}
-                    <TouchableOpacity
-                        style={[styles.nextBtn, (!answers[currentStep.id] && currentStep.type === 'radio') && styles.disabledBtn]}
-                        onPress={handleNext}
-                        disabled={!answers[currentStep.id] && currentStep.type === 'radio'}
-                    >
-                        <Text style={styles.nextBtnText}>{isLastStep ? 'GÖNDER' : 'DEVAM ET'}</Text>
-                        <Ionicons name={isLastStep ? "checkmark-done" : "arrow-forward"} size={20} color="#000" />
-                    </TouchableOpacity>
-
-                </View>
-
-                {/* Keyboard Spacer for TextInput visibility */}
-                {isKeyboardVisible && <View style={{ height: Platform.OS === 'ios' ? 220 : 0 }} />}
+        <View style={s.recentCard}>
+            <View style={{ flex: 1 }}>
+                <Text style={s.recentCat}>{cat}</Text>
+                <Text style={s.recentTime}>{time}</Text>
             </View>
-
-            {/* Keyboard Done Button for iOS */}
-            {Platform.OS === 'ios' && (
-                <InputAccessoryView nativeID="NoteInputDone">
-                    <View style={styles.accessory}>
-                        <TouchableOpacity onPress={Keyboard.dismiss} style={styles.accessoryBtn}>
-                            <Text style={styles.accessoryText}>Bitti</Text>
-                        </TouchableOpacity>
-                    </View>
-                </InputAccessoryView>
-            )}
-        </ReactModal>
+            {/* Circular ring score */}
+            <View style={[s.circleScore, { borderColor: c }]}>
+                <Text style={[s.circleScoreNum, { color: c }]}>{score}</Text>
+                <Text style={[s.circleScoreDen, { color: c + '88' }]}>/10</Text>
+            </View>
+        </View>
     );
-};
+}
 
-import { supabase } from '../../lib/supabase';
-
+// ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 export default function LawScreen() {
     const navigation = useNavigation();
-    const [expertMatchInput, setExpertMatchInput] = useState('');
-    const [activePage, setActivePage] = useState(0);
-    const [wizardVisible, setWizardVisible] = useState(false);
-    const [selectedWizardTool, setSelectedWizardTool] = useState(null);
-    const scrollViewRef = useRef(null);
+    const scrollRef  = useRef(null);
 
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [isLawyer, setIsLawyer] = useState(false);
+    const [inputText, setInputText]           = useState('');
+    const [isRecording, setIsRecording]       = useState(false);
+    const [isInputFocused, setIsInputFocused] = useState(false);
+    const [attachedFile, setAttachedFile]     = useState(null);
+    const [isAnalyzing, setIsAnalyzing]       = useState(false);
+    const [caseData, setCaseData]             = useState(null);
+    const [panelVisible, setPanelVisible]     = useState(false);
+    const [isAdmin, setIsAdmin]               = useState(false);
+    const [isLawyer, setIsLawyer]             = useState(false);
+
+    // Input glow aura
+    const auraOpacity = useRef(new Animated.Value(0)).current;
+    const auraScale   = useRef(new Animated.Value(0.97)).current;
+
+    useEffect(() => { checkUserStatus(); }, []);
 
     useEffect(() => {
-        checkUserStatus();
-    }, []);
+        const focused = isInputFocused || inputText.length > 0;
+        Animated.parallel([
+            Animated.timing(auraOpacity, { toValue: focused ? 1 : 0, duration: 400, useNativeDriver: true }),
+            Animated.timing(auraScale, { toValue: focused ? 1 : 0.97, duration: 400, useNativeDriver: true }),
+        ]).start();
+    }, [isInputFocused, inputText]);
 
     const checkUserStatus = async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                const { data } = await supabase
-                    .from('profiles')
-                    .select('is_admin, is_lawyer')
-                    .eq('id', user.id)
-                    .single();
+                const { data } = await supabase.from('profiles').select('is_admin, is_lawyer').eq('id', user.id).single();
                 setIsAdmin(data?.is_admin || false);
                 setIsLawyer(data?.is_lawyer || false);
             }
-        } catch (e) {
-            console.warn('User status check failed', e);
-        }
+        } catch { /* silent */ }
     };
 
-    const handleQuickTool = (toolName) => {
-        const config = LAW_WIZARD_CONFIG[toolName];
-        if (config) {
-            setSelectedWizardTool(toolName);
-            setWizardVisible(true);
-        } else {
-            // Fallback for items without wizard (e.g., ACİL)
-            Alert.alert("Hızlı İşlem", `${toolName} modülü başlatılıyor...`);
-        }
+    const handlePickFile = async () => {
+        try {
+            const result = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'], copyToCacheDirectory: true });
+            if (!result.canceled && result.assets?.[0]) setAttachedFile(result.assets[0]);
+        } catch { Alert.alert('Hata', 'Dosya seçilemedi.'); }
     };
 
-    const handleScroll = (event) => {
-        const slideSize = event.nativeEvent.layoutMeasurement.width;
-        const index = event.nativeEvent.contentOffset.x / slideSize;
-        const roundIndex = Math.round(index);
-        setActivePage(roundIndex);
+    const handleVoice = () => {
+        if (isRecording) { setIsRecording(false); return; }
+        setIsRecording(true);
+        setTimeout(() => {
+            setInputText(t => (t ? t + ' ' : '') + 'Hakediş 3 aydır yatmıyor, üstelik kesinti de yapıyorlar.');
+            setIsRecording(false);
+        }, 3000);
     };
 
-    const handleStartAnalysis = () => {
-        if (!expertMatchInput.trim()) {
-            Alert.alert("Eksik Bilgi", "Lütfen sorununuzu detaylıca yazın.");
+    const handleSOS = () => {
+        const sosText = 'ACİL: Şantiyede iş kazası gerçekleşti, işçi yaralı ve SGK baskını var, mühürlendi.';
+        setInputText(sosText);
+        setTimeout(() => triggerAnalysis(sosText), 300);
+    };
+
+    const triggerAnalysis = async (text) => {
+        if (!text?.trim() && !attachedFile) {
+            Alert.alert('Eksik Bilgi', 'Lütfen sorununuzu anlatın veya belge yükleyin.');
             return;
         }
-        Alert.alert("Talep Alındı", "Hukuki danışmanlık talebiniz avukatlara iletiliyor...");
+        Keyboard.dismiss();
+        setIsAnalyzing(true);
+        try {
+            const result = await analyzeLegalCase({ text: text || inputText, userId: 'user_demo' });
+            if (result.success) {
+                setCaseData(result.data);
+                setIsAnalyzing(false);
+                setPanelVisible(true);
+            }
+        } catch {
+            setIsAnalyzing(false);
+            Alert.alert('Hata', 'Analiz yapılamadı. Tekrar deneyin.');
+        }
+    };
+
+    const handleLawyerConnect = (lawyer) => {
+        setPanelVisible(false);
+        navigation.navigate('LawSuccess', { lawyer, caseData });
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="#050505" />
+        <View style={s.container}>
+            <StatusBar barStyle="light-content" backgroundColor="#070707" />
 
-            {/* Background */}
+            {/* Deep background */}
+            <View style={s.bgBase} />
+            {/* Subtle gold ambient top */}
             <LinearGradient
-                colors={['#1c1c1c', '#000000']}
-                style={StyleSheet.absoluteFillObject}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                colors={['rgba(212,175,55,0.06)', 'transparent']}
+                style={s.bgAmbient}
+                start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
+                pointerEvents="none"
             />
 
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={{ flex: 1 }}
-            >
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={0} style={{ flex: 1 }}>
                 <SafeAreaView style={{ flex: 1 }}>
                     <ScrollView
-                        ref={scrollViewRef}
-                        contentContainerStyle={styles.scrollContent}
+                        ref={scrollRef}
+                        contentContainerStyle={s.scrollContent}
                         showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
                     >
-
-                        {/* HEADER */}
-                        <View style={styles.header}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                                <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
-                                    <Ionicons name="arrow-back" size={24} color="#FFF" />
-                                </TouchableOpacity>
-                                <View>
-                                    <Text style={styles.headerTitle}>HUKUKİ ÇÖZÜM</Text>
-                                    <Text style={styles.headerSubtitle}>MERKEZİ</Text>
-                                </View>
+                        {/* ── HEADER ── */}
+                        <View style={s.header}>
+                            <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerBtn}>
+                                <Ionicons name="arrow-back" size={18} color="#fff" />
+                            </TouchableOpacity>
+                            <View style={s.headerCenter}>
+                                <Text style={s.headerEye}>⚖️  CEFTE ŞEF</Text>
+                                <Text style={s.headerSub}>Hukuki Çözüm Merkezi</Text>
                             </View>
                             <TouchableOpacity
-                                style={[styles.headerIconBtn, !isLawyer && !isAdmin && { opacity: 0.5 }]}
+                                style={[s.headerBtn, (isLawyer || isAdmin) && s.headerBtnActive]}
                                 onPress={() => {
-                                    if (isAdmin || isLawyer) {
-                                        navigation.navigate('LawProvider');
-                                    } else {
-                                        Alert.alert("Yetkisiz Erişim", "Bu panele sadece hukuk yetkisi tanımlanmış kurumsal hesaplar erişebilir.");
-                                    }
+                                    if (isAdmin || isLawyer) navigation.navigate('LawProvider');
+                                    else Alert.alert('Yetkisiz', 'Sadece kayıtlı avukatlar erişebilir.');
                                 }}
-                                activeOpacity={isAdmin || isLawyer ? 0.7 : 1}
                             >
-                                <MaterialCommunityIcons name="scale-balance" size={24} color={isAdmin || isLawyer ? GOLD_MAIN : "#666"} />
+                                <MaterialCommunityIcons name="scale-balance" size={18} color={isAdmin || isLawyer ? GOLD : '#555'} />
                             </TouchableOpacity>
                         </View>
 
-                        {/* 1. SECTION: QUICK TOOLS PAGER */}
-                        <Text style={styles.sectionHeader}>HIZLI İŞLEMLER</Text>
+                        {/* ── SOS BANNER ── */}
+                        <SOSBanner onPress={handleSOS} />
 
-                        <View style={styles.pagerContainer}>
-                            <ScrollView
-                                horizontal
-                                pagingEnabled
-                                showsHorizontalScrollIndicator={false}
-                                onScroll={handleScroll}
-                                scrollEventThrottle={16}
-                                style={styles.pagerScroll}
-                            >
-                                {/* PAGE 1: SITE & EMERGENCY */}
-                                <View style={styles.page}>
-                                    <View style={styles.gridContainer}>
-                                        {/* 1. ACİL (RED/BLINK) */}
-                                        <HighlightCard
-                                            style={styles.gridItem}
-                                            onPress={() => handleQuickTool('ACİL İŞ KAZASI')}
-                                        >
-                                            <View style={styles.iconBox}>
-                                                <BlinkingIcon name="ambulance" size={32} color={DANGER_RED} />
-                                            </View>
-                                            <Text style={[styles.gridTitle, { color: '#FFF', fontWeight: 'bold' }]}>🚨 İŞ KAZASI{'\n'}& BASKIN</Text>
-                                        </HighlightCard>
-
-                                        {/* 2. SÖZLEŞME (GOLD) */}
-                                        <GoldCard
-                                            style={styles.gridItem}
-                                            onPress={() => handleQuickTool('SÖZLEŞME')}
-                                        >
-                                            <View style={styles.iconBox}>
-                                                <FontAwesome5 name="file-contract" size={24} color={GOLD_MAIN} />
-                                            </View>
-                                            <Text style={styles.gridTitle}>📄 SÖZLEŞME{'\n'}& HAKEDİŞ</Text>
-                                        </GoldCard>
-
-                                        {/* 3. TAŞERON (GOLD) */}
-                                        <GoldCard
-                                            style={styles.gridItem}
-                                            onPress={() => handleQuickTool('TAŞERON')}
-                                        >
-                                            <View style={styles.iconBox}>
-                                                <MaterialCommunityIcons name="account-hard-hat" size={28} color={GOLD_MAIN} />
-                                            </View>
-                                            <Text style={styles.gridTitle}>👷‍♂️ TAŞERON{'\n'}& İŞÇİ</Text>
-                                        </GoldCard>
-
-                                        {/* 4. İMAR (GOLD) */}
-                                        <GoldCard
-                                            style={styles.gridItem}
-                                            onPress={() => handleQuickTool('İMAR')}
-                                        >
-                                            <View style={styles.iconBox}>
-                                                <MaterialCommunityIcons name="bank-outline" size={28} color={GOLD_MAIN} />
-                                            </View>
-                                            <Text style={styles.gridTitle}>🏛️ İMAR &{'\n'}CEZA</Text>
-                                        </GoldCard>
-                                    </View>
-                                </View>
-
-                                {/* PAGE 2: OFFICE & TRADE */}
-                                <View style={styles.page}>
-                                    <View style={styles.gridContainer}>
-                                        {/* 5. KENTSEL DÖNÜŞÜM */}
-                                        <GoldCard
-                                            style={styles.gridItem}
-                                            onPress={() => handleQuickTool('KENTSEL DÖNÜŞÜM')}
-                                        >
-                                            <View style={styles.iconBox}>
-                                                <MaterialCommunityIcons name="crane" size={28} color={GOLD_MAIN} />
-                                            </View>
-                                            <Text style={styles.gridTitle}>🏗️ KENTSEL{'\n'}DÖNÜŞÜM</Text>
-                                        </GoldCard>
-
-                                        {/* 6. MALZEME & TEDARİKÇİ */}
-                                        <GoldCard
-                                            style={styles.gridItem}
-                                            onPress={() => handleQuickTool('MALZEME')}
-                                        >
-                                            <View style={styles.iconBox}>
-                                                <MaterialCommunityIcons name="wall" size={28} color={GOLD_MAIN} />
-                                            </View>
-                                            <Text style={styles.gridTitle}>🧱 MALZEME &{'\n'}TEDARİKÇİ</Text>
-                                        </GoldCard>
-
-                                        {/* 7. ŞİRKET & SGK */}
-                                        <GoldCard
-                                            style={styles.gridItem}
-                                            onPress={() => handleQuickTool('ŞİRKET')}
-                                        >
-                                            <View style={styles.iconBox}>
-                                                <MaterialCommunityIcons name="briefcase-variant-outline" size={28} color={GOLD_MAIN} />
-                                            </View>
-                                            <Text style={styles.gridTitle}>💼 ŞİRKET{'\n'}& SGK</Text>
-                                        </GoldCard>
-
-                                        {/* 8. EMLAK HUKUKU */}
-                                        <GoldCard
-                                            style={styles.gridItem}
-                                            onPress={() => handleQuickTool('EMLAK')}
-                                        >
-                                            <View style={styles.iconBox}>
-                                                <MaterialCommunityIcons name="home-city-outline" size={28} color={GOLD_MAIN} />
-                                            </View>
-                                            <Text style={styles.gridTitle}>🏠 EMLAK{'\n'}HUKUKU</Text>
-                                        </GoldCard>
-                                    </View>
-                                </View>
-                            </ScrollView>
-
-                            {/* PAGINATION DOTS */}
-                            <View style={styles.pagination}>
-                                <View style={[styles.dot, activePage === 0 ? styles.activeDot : styles.inactiveDot]} />
-                                <View style={[styles.dot, activePage === 1 ? styles.activeDot : styles.inactiveDot]} />
-                            </View>
+                        {/* ── HERO ── */}
+                        <View style={s.heroBlock}>
+                            <Text style={s.heroEye}>YAPAY ZEKA DESTEKLİ</Text>
+                            <Text style={s.heroTitle}>Hukuki{'\n'}Kalkanınız</Text>
                         </View>
 
-                        {/* 2. SECTION: PREMIUM HUKUKI INPUT (Updated to match Engineering) */}
-                        <View style={styles.aiSection}>
-                            {/* Glow Behind */}
-                            <LinearGradient
-                                colors={['rgba(255, 191, 0, 0.1)', 'transparent']}
-                                style={styles.heroGlow}
+                        {/* ── AI ORACLE PULSE ── */}
+                        <View style={s.oracleWrap}>
+                            <AiOraclePulse />
+                            <Text style={s.oracleLabel}>AI Analiz Motoru — Aktif</Text>
+                        </View>
+
+                        {/* ── GLASSMORPHISM INPUT ── */}
+                        <View style={s.inputWrap}>
+                            {/* Glow aura behind card */}
+                            <Animated.View
+                                style={[s.inputGlow, { opacity: auraOpacity, transform: [{ scale: auraScale }] }]}
+                                pointerEvents="none"
                             />
 
-                            <Text style={styles.aiTitle}>HUKUKİ DANIŞMANLIK & ÇÖZÜM</Text>
-                            <View style={styles.aiInputContainer}>
-                                <TextInput
-                                    style={styles.aiInput}
-                                    placeholder="Sorununuzu, taraf bilgilerini ve beklentinizi detaylıca buraya yazın veya sesli anlatın. Alanında uzman kadromuza iletin."
-                                    placeholderTextColor="#999"
-                                    value={expertMatchInput}
-                                    onChangeText={setExpertMatchInput}
-                                    multiline
-                                    onFocus={() => {
-                                        setTimeout(() => {
-                                            scrollViewRef.current?.scrollToEnd({ animated: true });
-                                        }, 100);
-                                    }}
-                                    inputAccessoryViewID="DoneButton"
+                            <View style={s.glassCard}>
+                                {/* Gold hairline top border */}
+                                <LinearGradient
+                                    colors={[GOLD + '00', GOLD + 'AA', GOLD + '00']}
+                                    style={s.glassBorderTop}
+                                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                                 />
-                                <TouchableOpacity style={styles.micBtn}>
-                                    <Ionicons name="mic" size={22} color={GOLD_MAIN} />
-                                </TouchableOpacity>
+
+                                <TextInput
+                                    style={s.input}
+                                    placeholder={'Sadece probleminizi anlatın veya belge yükleyin…\n\nSes, fotoğraf veya PDF'}
+                                    placeholderTextColor="rgba(255,255,255,0.22)"
+                                    multiline
+                                    value={inputText}
+                                    onChangeText={setInputText}
+                                    onFocus={() => {
+                                        setIsInputFocused(true);
+                                        setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 200);
+                                    }}
+                                    onBlur={() => setIsInputFocused(false)}
+                                    inputAccessoryViewID="LawDone"
+                                    textAlignVertical="top"
+                                />
+
+                                {/* Bottom action row */}
+                                <View style={s.inputFooter}>
+                                    {/* Wave / char */}
+                                    {isRecording ? (
+                                        <View style={s.waveRow}>
+                                            <WaveBar delay={0} />
+                                            <WaveBar delay={100} />
+                                            <WaveBar delay={200} />
+                                            <WaveBar delay={150} />
+                                            <WaveBar delay={80} />
+                                            <Text style={s.recLabel}>Kaydediliyor…</Text>
+                                        </View>
+                                    ) : (
+                                        <Text style={s.charCount}>{inputText.length > 0 ? `${inputText.length} karakter` : 'Metin, ses veya belge'}</Text>
+                                    )}
+                                    <View style={s.footerBtns}>
+                                        {/* Attach */}
+                                        <TouchableOpacity style={[s.iconBtn, attachedFile && s.iconBtnActive]} onPress={handlePickFile}>
+                                            <FontAwesome5 name="paperclip" size={15} color={attachedFile ? GOLD : 'rgba(255,255,255,0.4)'} />
+                                        </TouchableOpacity>
+                                        {/* Mic */}
+                                        <TouchableOpacity
+                                            style={[s.iconBtn, s.micBtn, isRecording && s.micActive]}
+                                            onPress={handleVoice}
+                                        >
+                                            <Ionicons
+                                                name={isRecording ? 'stop' : 'mic'}
+                                                size={16}
+                                                color={isRecording ? '#000' : GOLD}
+                                            />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
                             </View>
 
-                            {/* BIG GOLD ACTION BUTTON */}
-                            <TouchableOpacity style={styles.bigActionBtn} activeOpacity={0.9} onPress={handleStartAnalysis}>
+                            {/* Attached file chip */}
+                            {attachedFile && (
+                                <View style={s.fileChip}>
+                                    <FontAwesome5 name="file-pdf" size={11} color={GOLD} />
+                                    <Text style={s.fileChipText} numberOfLines={1}>{attachedFile.name}</Text>
+                                    <TouchableOpacity onPress={() => setAttachedFile(null)}>
+                                        <Ionicons name="close-circle" size={15} color="#555" />
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+                        </View>
+
+                        {/* ── CTA BUTTON ── */}
+                        <View style={s.ctaWrap}>
+                            <TouchableOpacity style={s.ctaBtn} activeOpacity={0.87} onPress={() => triggerAnalysis(inputText)}>
                                 <LinearGradient
-                                    colors={[GOLD_MAIN, GOLD_DARK]}
-                                    style={styles.bigBtnGradient}
+                                    colors={[GOLD, GOLD_DARK]}
+                                    style={s.ctaGrad}
                                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                                 >
-                                    <Text style={styles.bigBtnText}>İNCELEME BAŞLAT</Text>
-                                    <MaterialCommunityIcons name="arrow-right-circle" size={24} color="#000" />
+                                    <MaterialCommunityIcons name="magnify-scan" size={20} color="#000" style={{ opacity: 0.85 }} />
+                                    <Text style={s.ctaText}>ANALİZ ET VE AVUKATA BAĞLAN</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>
 
-                    </ScrollView>
+                        {/* ── RECENT CASES ── */}
+                        <View style={s.recentSection}>
+                            {/* Hairline separator */}
+                            <View style={s.separator}>
+                                <View style={s.sepLine} />
+                                <Text style={s.sepLabel}>SON ANALİZLERİM</Text>
+                                <View style={s.sepLine} />
+                            </View>
 
+                            <RecentCard cat="📄 Sözleşme & Hakediş" score={8} time="3 gün önce" />
+                            <RecentCard cat="🏛️ İmar & Ceza" score={6} time="1 hafta önce" />
+                            <RecentCard cat="👷 Taşeron & İşçi" score={3} time="2 hafta önce" />
+                        </View>
+                    </ScrollView>
                 </SafeAreaView>
             </KeyboardAvoidingView>
 
-            {
-                Platform.OS === 'ios' && (
-                    <InputAccessoryView nativeID="DoneButton">
-                        <View style={styles.accessory}>
-                            <TouchableOpacity onPress={Keyboard.dismiss} style={styles.accessoryBtn}>
-                                <Text style={styles.accessoryText}>Bitti</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </InputAccessoryView>
-                )
-            }
+            {Platform.OS === 'ios' && (
+                <InputAccessoryView nativeID="LawDone">
+                    <View style={s.accessory}>
+                        <TouchableOpacity onPress={Keyboard.dismiss}>
+                            <Text style={s.accessoryText}>Bitti</Text>
+                        </TouchableOpacity>
+                    </View>
+                </InputAccessoryView>
+            )}
 
-
-            <WizardModal
-                visible={wizardVisible}
-                onClose={() => setWizardVisible(false)}
-                config={{
-                    ...LAW_WIZARD_CONFIG[selectedWizardTool],
-                    onComplete: () => {
-                        setWizardVisible(false);
-                        navigation.navigate('LawSuccess');
-                    }
-                }}
+            <AnalyzingOverlay visible={isAnalyzing} />
+            <InsightPanel
+                visible={panelVisible}
+                data={caseData}
+                onClose={() => setPanelVisible(false)}
+                onConfirm={handleLawyerConnect}
             />
-        </View >
+        </View>
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#000' },
-    scrollContent: { paddingBottom: 150 },
+// ─── STYLES ──────────────────────────────────────────────────────────────────
+const s = StyleSheet.create({
+    container: { flex: 1, backgroundColor: '#070707' },
+    bgBase: { ...StyleSheet.absoluteFillObject, backgroundColor: '#070707' },
+    bgAmbient: { position: 'absolute', top: 0, left: 0, right: 0, height: height * 0.4 },
+    scrollContent: { paddingBottom: 48 },
 
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30, paddingHorizontal: 20, marginTop: 20 },
-    headerTitle: { color: '#fff', fontSize: 18, fontWeight: '300', letterSpacing: 2 },
-    headerSubtitle: { color: GOLD_MAIN, fontSize: 18, fontWeight: '900', letterSpacing: 2 },
-    headerIconBtn: {
-        width: 44,
-        height: 44,
-        borderRadius: 12,
-        backgroundColor: '#1A1A1A',
-        borderWidth: 1,
-        borderColor: GOLD_MAIN,
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: GOLD_MAIN,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.3,
-        shadowRadius: 5,
-        elevation: 3
+    // Header
+    header: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+        paddingHorizontal: 20, paddingTop: 16, paddingBottom: 18,
+    },
+    headerBtn: {
+        width: 40, height: 40, borderRadius: 13,
+        backgroundColor: 'rgba(255,255,255,0.04)',
+        borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+        alignItems: 'center', justifyContent: 'center',
+    },
+    headerBtnActive: { borderColor: GOLD + '55' },
+    headerCenter: { alignItems: 'center' },
+    headerEye: { color: GOLD, fontSize: 9, fontWeight: '700', letterSpacing: 2.5 },
+    headerSub: { color: 'rgba(255,255,255,0.5)', fontSize: 11, marginTop: 2, letterSpacing: 0.3 },
+
+    // Hero
+    heroBlock: { paddingHorizontal: 24, marginBottom: 0 },
+    heroEye: { color: GOLD, fontSize: 10, fontWeight: '700', letterSpacing: 3, marginBottom: 8 },
+    heroTitle: {
+        color: '#ffffff',
+        fontSize: 40,
+        fontWeight: '900',
+        letterSpacing: -0.5,
+        lineHeight: 44,
     },
 
-    sectionHeader: { color: '#666', fontSize: 11, fontWeight: 'bold', letterSpacing: 1.5, marginBottom: 15, marginTop: 10, paddingHorizontal: 20 },
+    // Oracle
+    oracleWrap: { alignItems: 'center', marginVertical: 10, paddingBottom: 8 },
+    oracleLabel: { color: 'rgba(212,175,55,0.5)', fontSize: 10, fontWeight: '600', letterSpacing: 2, marginTop: 8 },
 
-    // Pager System
-    pagerContainer: { marginBottom: 30 },
-    pagerScroll: {},
-    page: { width: width, paddingHorizontal: 20 },
-    gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 12 },
-    gridItem: { width: '48%', height: 120, borderRadius: 20 },
-
-    pagination: { flexDirection: 'row', justifyContent: 'center', marginTop: 10 },
-    dot: { width: 8, height: 8, borderRadius: 4, marginHorizontal: 4 },
-    activeDot: { backgroundColor: GOLD_MAIN },
-    inactiveDot: { backgroundColor: '#333' },
-
-    // Card Styles (Premium)
-    goldCardContainer: {
+    // Input
+    inputWrap: { paddingHorizontal: 20, marginBottom: 16 },
+    inputGlow: {
+        position: 'absolute',
+        top: -10, left: 10, right: 10, bottom: -10,
+        borderRadius: 24,
+        backgroundColor: 'transparent',
+        shadowColor: GOLD,
+        shadowOpacity: 0.35,
+        shadowRadius: 24,
+        elevation: 15,
+    },
+    glassCard: {
         borderRadius: 20,
-        overflow: 'hidden',
-        backgroundColor: '#111',
-        borderWidth: 1, borderColor: '#333'
-    },
-    emergencyShadow: {
-        shadowColor: DANGER_RED, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 5,
-        borderColor: DANGER_RED
-    },
-
-    goldBorderGradient: { position: 'absolute', top: 0, left: 0, right: 0, height: 2, opacity: 0.8 },
-
-    cardContent: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 10 },
-    redCardBg: { backgroundColor: 'rgba(239, 68, 68, 0.05)' },
-
-    iconBox: { marginBottom: 10, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
-    gridTitle: { color: GOLD_MAIN, fontSize: 12, fontWeight: '600', textAlign: 'center', letterSpacing: 0.5, lineHeight: 16 },
-
-    // AI Section (Premium)
-    aiSection: { paddingHorizontal: 20, marginTop: 10, position: 'relative' },
-    heroGlow: { position: 'absolute', top: -50, left: 0, right: 0, height: 200, opacity: 0.5 },
-    aiTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold', letterSpacing: 1 },
-    aiSubtitle: { color: '#888', fontSize: 13, marginTop: 6, marginBottom: 20, lineHeight: 20 },
-
-    aiInputContainer: { flexDirection: 'row', backgroundColor: '#111', borderRadius: 16, padding: 5, borderWidth: 1, borderColor: '#333', marginBottom: 20, height: 120 },
-    aiInput: { flex: 1, color: '#fff', padding: 15, fontSize: 14, textAlignVertical: 'top' },
-    micBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#222', alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-end', margin: 10 },
-
-    bigActionBtn: { borderRadius: 16, overflow: 'hidden', height: 60, shadowColor: GOLD_MAIN, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 6 },
-    bigBtnGradient: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
-    bigBtnText: { color: '#000', fontSize: 16, fontWeight: '900', letterSpacing: 1 },
-
-    accessory: { backgroundColor: '#222', padding: 10, alignItems: 'flex-end' },
-    accessoryBtn: { padding: 10 },
-    accessoryText: { color: GOLD_MAIN, fontWeight: 'bold' },
-
-    // Wizard Modal Styles
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
-    modalContent: { height: '92%', backgroundColor: '#111', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 20, paddingBottom: 100 },
-    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-    modalTitle: { color: GOLD_MAIN, fontSize: 20, fontWeight: 'bold', letterSpacing: 1 },
-    closeBtn: { padding: 5 },
-
-    progressBar: { flexDirection: 'row', gap: 5, marginBottom: 30 },
-    progressStep: { flex: 1, height: 4, borderRadius: 2 },
-    progressActive: { backgroundColor: GOLD_MAIN },
-    progressInactive: { backgroundColor: '#333' },
-
-    stepContainer: { flex: 1 },
-    questionText: { color: '#fff', fontSize: 18, fontWeight: '600', marginBottom: 20, lineHeight: 28 },
-
-    optionsContainer: { gap: 12 },
-    optionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: 16, backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#333', marginBottom: 8 },
-    optionBtnActive: { borderColor: GOLD_MAIN, backgroundColor: 'rgba(255, 215, 0, 0.1)' },
-    optionText: { color: '#ccc', fontSize: 16 },
-    optionTextActive: { color: GOLD_MAIN, fontWeight: 'bold' },
-
-    fileUploadContainer: { alignItems: 'center', justifyContent: 'center', padding: 15, borderWidth: 2, borderColor: '#333', borderStyle: 'dashed', borderRadius: 20, marginTop: 10 },
-    uploadBtn: { alignItems: 'center', gap: 10 },
-    uploadText: { color: '#fff', fontSize: 14, fontWeight: 'bold', marginTop: 10 },
-    fileNote: { color: '#666', fontSize: 12, marginTop: 15 },
-
-    nextBtn: { backgroundColor: GOLD_MAIN, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 56, borderRadius: 28, gap: 10, marginTop: 20, marginBottom: 60, shadowColor: GOLD_MAIN, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 },
-    disabledBtn: { backgroundColor: '#333', opacity: 0.5 },
-    nextBtnText: { color: '#000', fontSize: 16, fontWeight: 'bold' },
-
-    inputLabel: { color: '#888', fontSize: 12, fontWeight: 'bold', marginLeft: 4, marginBottom: 8 },
-    noteInput: {
-        backgroundColor: '#1A1A1A',
-        borderRadius: 12,
         borderWidth: 1,
-        borderColor: GOLD_MAIN,
-        color: '#fff',
-        padding: 15,
-        minHeight: 180, // Enlarged height
-        textAlignVertical: 'top'
-    }
+        borderColor: 'rgba(212,175,55,0.20)',
+        overflow: 'hidden',
+        backgroundColor: '#141414',
+        minHeight: 170,
+    },
+    glassBorderTop: {
+        position: 'absolute',
+        top: 0, left: 0, right: 0,
+        height: 1,
+        opacity: 0.6,
+    },
+    input: {
+        color: '#E8E8E8',
+        fontSize: 15,
+        lineHeight: 24,
+        padding: 18,
+        paddingBottom: 6,
+        minHeight: 120,
+        textAlignVertical: 'top',
+    },
+    inputFooter: {
+        flexDirection: 'row', alignItems: 'center',
+        paddingHorizontal: 14, paddingBottom: 12, paddingTop: 4, gap: 8,
+    },
+    charCount: { color: 'rgba(255,255,255,0.2)', fontSize: 11, flex: 1 },
+    waveRow: { flexDirection: 'row', alignItems: 'center', gap: 3, flex: 1 },
+    waveBar: { width: 3, borderRadius: 2, backgroundColor: GOLD },
+    recLabel: { color: DANGER, fontSize: 11, fontWeight: '700', marginLeft: 4 },
+    footerBtns: { flexDirection: 'row', gap: 8 },
+    iconBtn: {
+        width: 36, height: 36, borderRadius: 10,
+        backgroundColor: 'rgba(255,255,255,0.06)',
+        borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+        alignItems: 'center', justifyContent: 'center',
+    },
+    iconBtnActive: { borderColor: GOLD + '66' },
+    micBtn: { borderColor: 'rgba(212,175,55,0.3)' },
+    micActive: { backgroundColor: GOLD, borderColor: GOLD },
+
+    // File chip
+    fileChip: {
+        flexDirection: 'row', alignItems: 'center', gap: 7,
+        backgroundColor: 'rgba(212,175,55,0.08)',
+        borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7,
+        borderWidth: 1, borderColor: GOLD + '33', marginTop: 10,
+    },
+    fileChipText: { color: 'rgba(212,175,55,0.9)', fontSize: 12, flex: 1 },
+
+    // CTA
+    ctaWrap: { paddingHorizontal: 20, marginBottom: 32 },
+    ctaBtn: {
+        borderRadius: 18, overflow: 'hidden', height: 60,
+        shadowColor: GOLD, shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4, shadowRadius: 16, elevation: 10,
+    },
+    ctaGrad: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+    ctaText: { color: '#000', fontSize: 14, fontWeight: '900', letterSpacing: 0.8 },
+
+    // Recent section
+    recentSection: { paddingHorizontal: 20 },
+    separator: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
+    sepLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.06)' },
+    sepLabel: { color: 'rgba(255,255,255,0.25)', fontSize: 9, fontWeight: '700', letterSpacing: 2 },
+
+    recentCard: {
+        flexDirection: 'row', alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        borderRadius: 16, padding: 14, marginBottom: 8,
+        borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
+    },
+    recentCat: { color: 'rgba(255,255,255,0.72)', fontSize: 13, fontWeight: '600', marginBottom: 3 },
+    recentTime: { color: 'rgba(255,255,255,0.25)', fontSize: 11 },
+    circleScore: {
+        width: 48, height: 48, borderRadius: 24,
+        borderWidth: 2,
+        alignItems: 'center', justifyContent: 'center',
+    },
+    circleScoreNum: { fontSize: 16, fontWeight: '900', lineHeight: 18 },
+    circleScoreDen: { fontSize: 8, fontWeight: '600' },
+
+    // Analyzing overlay
+    overlayBg: { ...StyleSheet.absoluteFillObject, zIndex: 999, alignItems: 'center', justifyContent: 'center' },
+    overlayInner: { alignItems: 'center' },
+    ring: { position: 'absolute', width: 100, height: 100, borderRadius: 50, borderWidth: 1 },
+    ring1: { borderColor: GOLD + '55' },
+    ring2: { borderColor: GOLD + '30', width: 140, height: 140, borderRadius: 70 },
+    overlayTitle: { color: '#fff', fontSize: 18, fontWeight: '800', marginTop: 70, letterSpacing: 0.5 },
+    overlaySub: { color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 6 },
+
+    // Accessory
+    accessory: { backgroundColor: '#111', padding: 10, alignItems: 'flex-end', borderTopWidth: 1, borderTopColor: '#222' },
+    accessoryText: { color: GOLD, fontWeight: '700', fontSize: 14 },
 });

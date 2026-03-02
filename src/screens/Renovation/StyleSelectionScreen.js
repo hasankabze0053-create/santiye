@@ -68,7 +68,8 @@ const STYLES = [
     }
 ];
 
-export default function StyleSelectionScreen({ navigation }) {
+export default function StyleSelectionScreen({ navigation, route }) {
+    const { area, propertyType } = route.params || {};
     const [selectedId, setSelectedId] = useState(null);
 
     const handleSelect = (id) => {
@@ -174,7 +175,14 @@ export default function StyleSelectionScreen({ navigation }) {
                             { opacity: selectedId ? 1 : 0.5 } // Dim if not selected
                         ]}
                         disabled={!selectedId}
-                        onPress={() => navigation.navigate('CustomRequest')}
+                        onPress={() => {
+                            const selectedStyle = STYLES.find(s => s.id === selectedId)?.title || selectedId;
+                            navigation.navigate('CustomRequest', {
+                                area,
+                                propertyType,
+                                selectedStyle
+                            });
+                        }}
                     >
                         <LinearGradient
                             colors={BTN_GRADIENT}

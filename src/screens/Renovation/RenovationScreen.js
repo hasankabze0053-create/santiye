@@ -48,10 +48,14 @@ const HERO_SLIDES = [
 ];
 
 const SERVICES = [
-    { id: 'turnkey', title: 'Anahtar Teslim\nTadilat', subtitle: 'Yıkım, proje ve uygulama.', icon: 'key', lib: 'Ionicons' },
-    { id: 'restoration', title: 'Restorasyon', subtitle: 'Tarihi dokuya uygun güçlendirme.', icon: 'pillar', lib: 'MaterialCommunityIcons' },
-    { id: 'paint', title: 'Boya & Dekorasyon', subtitle: 'Duvar kağıdı, boya ve alçıpan.', icon: 'format-paint', lib: 'MaterialCommunityIcons' },
-    { id: 'kitchen', title: 'Mutfak & Banyo\nYenileme', subtitle: 'Modern ve fonksiyonel alanlar.', icon: 'water-pump', lib: 'MaterialCommunityIcons' },
+    { id: 'turnkey',    title: 'Anahtar Teslim\nTadilat',        subtitle: 'Yıkım, proje ve uygulama.',           icon: 'key',             lib: 'Ionicons' },
+    { id: 'restoration',title: 'Restorasyon',                   subtitle: 'Tarihi dokuya uygun güçlendirme.',    icon: 'pillar',          lib: 'MaterialCommunityIcons' },
+    { id: 'paint',      title: 'Boya & Dekorasyon',             subtitle: 'Duvar kağıdı, boya ve alçıpan.',     icon: 'format-paint',    lib: 'MaterialCommunityIcons' },
+    { id: 'kitchen',    title: 'Mutfak & Banyo\nYenileme',      subtitle: 'Modern ve fonksiyonel alanlar.',     icon: 'water-pump',      lib: 'MaterialCommunityIcons' },
+    { id: 'outdoor',    title: 'Açık Alan, Teras\n& Kış Bahçesi', subtitle: 'Pergola, giyotin cam, peyzaj.',      icon: 'tree-outline',    lib: 'MaterialCommunityIcons' },
+    { id: 'furniture',  title: 'Özel İmalat\nMobilya & Zemin',  subtitle: 'Giyinme odası, panel, masif parke.', icon: 'sofa-outline',    lib: 'MaterialCommunityIcons' },
+    { id: 'smart',      title: 'Akıllı Ev &\nTesisat Dönüşümü', subtitle: 'Smart Home, VRF, yerden ısıtma.',    icon: 'home-automation', lib: 'MaterialCommunityIcons' },
+    { id: 'arch',       title: 'Mimari Proje\n& Çizim',          subtitle: 'Ruhsat, tatbikat ve 3D tasarım.',    icon: 'pencil-ruler',    lib: 'MaterialCommunityIcons' },
 ];
 
 // Standard Gold Card (Premium Button)
@@ -79,6 +83,7 @@ export default function RenovationScreen({ navigation }) {
     const [isAdmin, setIsAdmin] = useState(false);
     const [isArchitect, setIsArchitect] = useState(false);
     const [isContractor, setIsContractor] = useState(false);
+    const [servicePage, setServicePage] = useState(0);
 
     useEffect(() => {
         checkUserStatus();
@@ -106,8 +111,14 @@ export default function RenovationScreen({ navigation }) {
         if (service.id === 'turnkey') {
             navigation.navigate('RenovationProjectSelection');
             return;
+        } else if (service.id === 'kitchen') {
+            navigation.navigate('KitchenBathWizard');
+            return;
+        } else if (service.id === 'paint') {
+            navigation.navigate('PaintDecorWizard');
+            return;
         }
-        Alert.alert(service.title, "Hizmet detayları yakında eklenecek.");
+        Alert.alert(service.title, `${service.subtitle}\n\nBu modül yakında aktif olacak.`);
     };
 
     const handleAction = (action) => {
@@ -199,28 +210,65 @@ export default function RenovationScreen({ navigation }) {
                         </View>
                     </View>
 
-                    {/* SERVICE GRID */}
+                    {/* SERVICE GRID — Sayfalı slider */}
                     <View style={styles.sectionContainer}>
                         <Text style={styles.sectionTitle}>HİZMETLERİMİZ</Text>
-                        <View style={styles.gridContainer}>
-                            {SERVICES.map((item) => (
-                                <GoldCard
-                                    key={item.id}
-                                    style={styles.gridItem}
-                                    onPress={() => handleServicePress(item)}
-                                >
-                                    <View style={styles.iconCircle}>
-                                        {item.lib === 'Ionicons' ? (
-                                            <Ionicons name={item.icon} size={26} color={GOLD_MAIN} />
-                                        ) : (
+                        <ScrollView
+                            horizontal
+                            pagingEnabled
+                            showsHorizontalScrollIndicator={false}
+                            onMomentumScrollEnd={e => {
+                                const idx = Math.round(e.nativeEvent.contentOffset.x / (width - 40));
+                                setServicePage(idx);
+                            }}
+                        >
+                            {/* Sayfa 1 — İlk 4 servis */}
+                            <View style={styles.gridPage}>
+                                {SERVICES.slice(0, 4).map((item) => (
+                                    <GoldCard
+                                        key={item.id}
+                                        style={styles.gridItem}
+                                        onPress={() => handleServicePress(item)}
+                                    >
+                                        <View style={styles.iconCircle}>
+                                            {item.lib === 'Ionicons' ? (
+                                                <Ionicons name={item.icon} size={26} color={GOLD_MAIN} />
+                                            ) : (
+                                                <MaterialCommunityIcons name={item.icon} size={28} color={GOLD_MAIN} />
+                                            )}
+                                        </View>
+                                        <View style={{ alignItems: 'center' }}>
+                                            <Text style={styles.gridItemTitle}>{item.title}</Text>
+                                            <Text style={styles.gridItemSubtitle}>{item.subtitle}</Text>
+                                        </View>
+                                    </GoldCard>
+                                ))}
+                            </View>
+
+                            {/* Sayfa 2 — Yeni premium modüller */}
+                            <View style={[styles.gridPage, { paddingRight: 0 }]}>
+                                {SERVICES.slice(4).map((item) => (
+                                    <GoldCard
+                                        key={item.id}
+                                        style={styles.gridItem}
+                                        onPress={() => handleServicePress(item)}
+                                    >
+                                        <View style={styles.iconCircle}>
                                             <MaterialCommunityIcons name={item.icon} size={28} color={GOLD_MAIN} />
-                                        )}
-                                    </View>
-                                    <View style={{ alignItems: 'center' }}>
-                                        <Text style={styles.gridItemTitle}>{item.title}</Text>
-                                        <Text style={styles.gridItemSubtitle}>{item.subtitle}</Text>
-                                    </View>
-                                </GoldCard>
+                                        </View>
+                                        <View style={{ alignItems: 'center' }}>
+                                            <Text style={styles.gridItemTitle}>{item.title}</Text>
+                                            <Text style={styles.gridItemSubtitle}>{item.subtitle}</Text>
+                                        </View>
+                                    </GoldCard>
+                                ))}
+                            </View>
+                        </ScrollView>
+
+                        {/* Sayfa Göstergesi */}
+                        <View style={styles.servicePagination}>
+                            {[0, 1].map(i => (
+                                <View key={i} style={[styles.serviceDot, servicePage === i && styles.serviceDotActive]} />
                             ))}
                         </View>
                     </View>
@@ -319,6 +367,50 @@ export default function RenovationScreen({ navigation }) {
                     </View>
 
 
+                    {/* ═══ AI TADİLAT ASİSTANI ═══════════════════════════ */}
+                    <TouchableOpacity
+                        style={styles.aiCard}
+                        onPress={() => navigation.navigate('AIRenovationAssistant')}
+                        activeOpacity={0.88}
+                    >
+                        <LinearGradient
+                            colors={['#0a0900', '#1a1400', '#0a0900']}
+                            style={StyleSheet.absoluteFillObject}
+                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                        />
+                        {/* Subtle gold glow in corner */}
+                        <LinearGradient
+                            colors={['rgba(212,175,55,0.18)', 'transparent']}
+                            style={[StyleSheet.absoluteFillObject, { borderRadius: 24 }]}
+                            start={{ x: 0, y: 0 }} end={{ x: 0.6, y: 1 }}
+                        />
+                        <View style={styles.aiCardBorder} />
+
+                        <View style={styles.aiCardLeft}>
+                            <View style={styles.aiTagRow}>
+                                <MaterialCommunityIcons name="chef-hat" size={13} color="#000" />
+                                <Text style={styles.aiTagText}>CepteŞef AI</Text>
+                            </View>
+                            <Text style={styles.aiCardTitle}>İstediğini Bulamadın mı?</Text>
+                            <Text style={styles.aiCardSub}>Mekanının fotoğrafını yükle ve hayalini anlat — yapay zeka teknik listeni çıkarsın.</Text>
+                            <View style={styles.aiBtn}>
+                                <Text style={styles.aiBtnText}>Şefle Konuş</Text>
+                                <MaterialCommunityIcons name="arrow-right" size={14} color={GOLD_MAIN} />
+                            </View>
+                        </View>
+
+                        <View style={styles.aiCardRight}>
+                            {/* Animated-looking concentric rings */}
+                            <View style={styles.aiRingOuter}>
+                                <View style={styles.aiRingMid}>
+                                    <View style={styles.aiRingInner}>
+                                        <MaterialCommunityIcons name="magic-staff" size={28} color={GOLD_MAIN} />
+                                    </View>
+                                </View>
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+
                 </ScrollView>
             </SafeAreaView>
         </View>
@@ -350,7 +442,13 @@ const styles = StyleSheet.create({
     dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: GOLD_MAIN },
 
     // Grid
-    sectionContainer: { paddingHorizontal: 20, marginBottom: 30 },
+    sectionContainer: { paddingHorizontal: 20, marginBottom: 30, overflow: 'visible' },
+    gridPage: { width: width - 40, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+    servicePagination: { flexDirection: 'row', justifyContent: 'center', marginTop: 14, gap: 8 },
+    serviceDot: { width: 22, height: 4, borderRadius: 2, backgroundColor: '#333' },
+    serviceDotActive: { backgroundColor: GOLD_MAIN, width: 36 },
+    svcBadge: { position: 'absolute', top: 10, right: 10, borderRadius: 20, borderWidth: 1, paddingHorizontal: 7, paddingVertical: 2 },
+    svcBadgeText: { fontSize: 9, fontWeight: '900' },
 
     headerIconBtn: {
         width: 44,
@@ -436,7 +534,21 @@ const styles = StyleSheet.create({
     consultantTitle: { color: '#fff', fontSize: 13, fontWeight: 'bold' },
     consultantSub: { color: '#a8a29e', fontSize: 11 },
     consultantBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: GOLD_MAIN, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 20, gap: 4 },
-    consultantBtnText: { color: '#000', fontSize: 11, fontWeight: '900' }
+    consultantBtnText: { color: '#000', fontSize: 11, fontWeight: '900' },
+
+    // AI Asistan Kartı
+    aiCard: { marginHorizontal: 20, marginTop: 20, marginBottom: 10, borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(212,175,55,0.35)', flexDirection: 'row', alignItems: 'center', padding: 22, gap: 16 },
+    aiCardBorder: { position: 'absolute', top: 0, left: 0, right: 0, height: 1, backgroundColor: 'rgba(212,175,55,0.5)' },
+    aiCardLeft: { flex: 1, gap: 6 },
+    aiTagRow: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: GOLD_MAIN, alignSelf: 'flex-start', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
+    aiTagText: { color: '#000', fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
+    aiCardTitle: { color: '#FFF', fontSize: 16, fontWeight: 'bold', lineHeight: 22 },
+    aiCardSub: { color: '#888', fontSize: 12, lineHeight: 18 },
+    aiBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6 },
+    aiBtnText: { color: GOLD_MAIN, fontSize: 13, fontWeight: '700' },
+    aiCardRight: { alignItems: 'center', justifyContent: 'center' },
+    aiRingOuter: { width: 80, height: 80, borderRadius: 40, borderWidth: 1, borderColor: 'rgba(212,175,55,0.2)', alignItems: 'center', justifyContent: 'center' },
+    aiRingMid: { width: 62, height: 62, borderRadius: 31, borderWidth: 1, borderColor: 'rgba(212,175,55,0.35)', alignItems: 'center', justifyContent: 'center' },
+    aiRingInner: { width: 46, height: 46, borderRadius: 23, backgroundColor: 'rgba(212,175,55,0.12)', borderWidth: 1, borderColor: GOLD_MAIN, alignItems: 'center', justifyContent: 'center' },
 
 });
-

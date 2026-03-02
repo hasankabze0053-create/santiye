@@ -1,6 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import ProviderScaffold, { GlassCard, SectionTitle, THEME } from '../../components/ProviderScaffold';
+import { ConstructionService } from '../../services/ConstructionService';
 
 // Mock Gallery Images
 const PROJECT_IMGS = [
@@ -11,6 +15,82 @@ const PROJECT_IMGS = [
 ];
 
 export default function RenovationProviderScreen() {
+    const navigation = useNavigation();
+    const [requests, setRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchRequests();
+    }, []);
+
+    const fetchRequests = async () => {
+        try {
+            setLoading(true);
+            const data = await ConstructionService.getOpenRequestsForArchitect();
+            setRequests(data || []);
+        } catch (error) {
+            console.error('Error fetching architect requests:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const renderRequestItem = (item) => {
+        const hasPhotos = item.document_urls && item.document_urls.length > 0;
+
+        let projeTipi = 'Anahtar Teslim Tadilat';
+        if (item.description && item.description.includes('PROJE TİPİ:')) {
+            projeTipi = item.description.split('PROJE TİPİ:')[1].split('\n')[0].trim();
+        }
+
+        return (
+            <View key={item.id} style={{ backgroundColor: '#161616', borderRadius: 14, borderWidth: 1, borderColor: '#2A2A2A', padding: 16, marginBottom: 16, flexDirection: 'row', gap: 16 }}>
+                {/* Left Avatar (Premium Solid Gradient-like or darker gold) */}
+                <LinearGradient
+                    colors={['#8C6A30', '#D4AF37', '#8C6A30']}
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                    style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <Text style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>
+                        {item.user_id ? item.user_id.substring(0,2).toUpperCase() : 'M'}
+                    </Text>
+                </LinearGradient>
+
+                {/* Right Content */}
+                <View style={{ flex: 1, justifyContent: 'center' }}>
+                    {/* Title */}
+                    <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16, marginBottom: 12 }}>
+                        {projeTipi}
+                    </Text>
+
+                    {/* Actions Area */}
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                        {hasPhotos && (
+                            <TouchableOpacity 
+                                style={{ borderWidth: 1, borderColor: '#3A3A3C', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, justifyContent: 'center' }}
+                                onPress={() => navigation.navigate('ArchitectRequestDetail', { request: item })}
+                            >
+                                <Text style={{ color: '#E5E5EA', fontSize: 13 }}>Fotoğraflar</Text>
+                            </TouchableOpacity>
+                        )}
+                        <TouchableOpacity 
+                            style={{ flex: 1 }}
+                            onPress={() => navigation.navigate('ArchitectRequestDetail', { request: item })}
+                        >
+                            <LinearGradient
+                                colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']}
+                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                                style={{ borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', flex: 1 }}
+                            >
+                                <Text style={{ color: '#000', fontWeight: 'bold', fontSize: 13 }}>Talebi İncele</Text>
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
     return (
         <ProviderScaffold title="Mimar Ofisi">
 
@@ -33,49 +113,17 @@ export default function RenovationProviderScreen() {
             </GlassCard>
 
             {/* 2. DESIGN REQUESTS */}
-            <SectionTitle title="TASARIM TALEPLERİ" actionText="Tümü (5)" />
-
-            <GlassCard>
-                {/* Req 1 */}
-                <View style={styles.requestItem}>
-                    <View style={styles.userAvatar}>
-                        <Text style={{ color: '#000', fontWeight: 'bold' }}>AH</Text>
-                    </View>
-                    <View style={{ flex: 1, paddingLeft: 12 }}>
-                        <Text style={styles.reqHeader}>Ali H. - Salon Yenileme</Text>
-                        <Text style={styles.reqBody}>35m² • Modern Stil • Bütçe: 150k</Text>
-                        <View style={{ flexDirection: 'row', marginTop: 8, gap: 8 }}>
-                            <TouchableOpacity style={styles.outlineBtn}>
-                                <Text style={styles.outlineBtnText}>Fotoğraflar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.fillBtn}>
-                                <Text style={styles.fillBtnText}>Teklif Ver</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-
-                <View style={styles.divider} />
-
-                {/* Req 2 */}
-                <View style={styles.requestItem}>
-                    <View style={styles.userAvatar}>
-                        <Text style={{ color: '#000', fontWeight: 'bold' }}>ZS</Text>
-                    </View>
-                    <View style={{ flex: 1, paddingLeft: 12 }}>
-                        <Text style={styles.reqHeader}>Zeynep S. - Mutfak Tadilatı</Text>
-                        <Text style={styles.reqBody}>12m² • Country Stil • Bütçe: 80k</Text>
-                        <View style={{ flexDirection: 'row', marginTop: 8, gap: 8 }}>
-                            <TouchableOpacity style={styles.outlineBtn}>
-                                <Text style={styles.outlineBtnText}>Fotoğraflar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.fillBtn}>
-                                <Text style={styles.fillBtnText}>Teklif Ver</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </GlassCard>
+            <SectionTitle title="TASARIM TALEPLERİ" actionText={`Tümü (${requests.length})`} />
+            
+            <View style={{ marginTop: 8 }}>
+                {loading ? (
+                    <ActivityIndicator size="small" color="#FFD700" style={{ padding: 20 }} />
+                ) : requests.length > 0 ? (
+                    requests.map(req => renderRequestItem(req))
+                ) : (
+                    <Text style={{ color: '#666', textAlign: 'center', marginVertical: 20 }}>Henüz aktif talep bulunmuyor.</Text>
+                )}
+            </View>
 
             {/* 3. TIMELINE */}
             <SectionTitle title="PROJE TAKVİMİ" />

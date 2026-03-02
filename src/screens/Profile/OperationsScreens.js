@@ -32,6 +32,8 @@ import {
 
 
 
+
+
     FlatList,
     StatusBar,
     StyleSheet,
@@ -165,8 +167,8 @@ export const RequestsScreen = () => {
             const formattedConstructionData = constructionData.map(item => ({
                 ...item,
                 type: 'construction', // Tag to distinguish
-                title: 'Kentsel Dönüşüm Talebi', // Or generic title
-                subtitle: `${item.district} / ${item.neighborhood}`,
+                title: item.offer_type === 'anahtar_teslim_tadilat' ? 'Anahtar Teslim Tadilat' : 'Kentsel Dönüşüm Talebi',
+                subtitle: item.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat & Yenileme' : `${item.district} / ${item.neighborhood}`,
                 created_at: item.created_at,
                 status: item.status === 'pending' ? 'OPEN' : item.status, // Map status
                 // Add other fields as needed
@@ -189,32 +191,62 @@ export const RequestsScreen = () => {
         return r.status !== 'OPEN';
     });
 
-    const renderItem = ({ item }) => (
-        <TouchableOpacity
-            style={[styles.card, { backgroundColor: theme.card }]}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate('RequestDetail', { request: item })}
-        >
-            <View style={[styles.iconContainer, { backgroundColor: theme.iconBg }]}>
-                {item.type === 'construction' ? (
-                    <MaterialCommunityIcons name="office-building-cog" size={24} color={theme.accent} />
-                ) : (
-                    <MaterialCommunityIcons name="package-variant-closed" size={24} color={theme.accent} />
-                )}
-            </View>
-            <View style={styles.cardContent}>
-                <Text style={[styles.cardTitle, { color: theme.text }]}>{item.title}</Text>
-                <Text style={[styles.cardSubtitle, { color: theme.subText }]}>
-                    {new Date(item.created_at).toLocaleDateString('tr-TR')}
-                </Text>
-            </View>
-            <View style={[styles.statusBadge, { backgroundColor: item.bids && item.bids.length > 0 ? theme.accent : theme.iconBg }]}>
-                <Text style={[styles.statusText, { color: item.bids && item.bids.length > 0 ? '#000' : theme.subText }]}>
-                    {item.bids && item.bids.length > 0 ? `${item.bids.length} Teklif` : 'Bekleniyor'}
-                </Text>
-            </View>
-        </TouchableOpacity>
-    );
+    const renderItem = ({ item }) => {
+        if (item.offer_type === 'anahtar_teslim_tadilat') {
+            const isWaiting = !item.bids || item.bids.length === 0;
+            return (
+                <TouchableOpacity 
+                    style={[styles.card, { backgroundColor: '#1A1A1A', borderColor: '#2A2A2A', borderWidth: 1, padding: 16 }]}
+                    activeOpacity={0.7} 
+                    onPress={() => navigation.navigate('RequestDetail', { request: item })}
+                >
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255, 215, 0, 0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                            <MaterialCommunityIcons name="home-edit" size={24} color="#FFD700" />
+                        </View>
+                        <View style={{ flex: 1, justifyContent: 'center', gap: 4 }}>
+                            <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' }} numberOfLines={1}>{item.title}</Text>
+                            <Text style={{ color: '#A0A0A0', fontSize: 12 }}>
+                                {new Date(item.created_at).toLocaleDateString('tr-TR')}
+                            </Text>
+                        </View>
+                        <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, justifyContent: 'center', alignItems: 'center', backgroundColor: isWaiting ? 'rgba(255, 255, 255, 0.1)' : '#FFD700' }}>
+                            <Text style={{ fontSize: 12, fontWeight: 'bold', color: isWaiting ? '#A0A0A0' : '#121212' }}>
+                                {isWaiting ? "Bekleniyor" : `${item.bids.length} Teklif`}
+                            </Text>
+                        </View>
+                    </View>
+                </TouchableOpacity>
+            );
+        }
+
+        return (
+            <TouchableOpacity
+                style={[styles.card, { backgroundColor: theme.card }]}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('RequestDetail', { request: item })}
+            >
+                <View style={[styles.iconContainer, { backgroundColor: theme.iconBg }]}>
+                    {item.type === 'construction' ? (
+                        <MaterialCommunityIcons name="office-building-cog" size={24} color={theme.accent} />
+                    ) : (
+                        <MaterialCommunityIcons name="package-variant-closed" size={24} color={theme.accent} />
+                    )}
+                </View>
+                <View style={styles.cardContent}>
+                    <Text style={[styles.cardTitle, { color: theme.text }]}>{item.title}</Text>
+                    <Text style={[styles.cardSubtitle, { color: theme.subText }]}>
+                        {new Date(item.created_at).toLocaleDateString('tr-TR')}
+                    </Text>
+                </View>
+                <View style={[styles.statusBadge, { backgroundColor: item.bids && item.bids.length > 0 ? theme.accent : theme.iconBg }]}>
+                    <Text style={[styles.statusText, { color: item.bids && item.bids.length > 0 ? '#000' : theme.subText }]}>
+                        {item.bids && item.bids.length > 0 ? `${item.bids.length} Teklif` : 'Bekleniyor'}
+                    </Text>
+                </View>
+            </TouchableOpacity>
+        );
+    };
 
     const EmptyState = () => (
         <View style={{ alignItems: 'center', marginTop: 40 }}>
