@@ -125,10 +125,20 @@ export const MarketService = {
     },
 
     // 6. Teklif Ver
-    submitBid: async ({ request_id, price, notes, payment_terms, shipping_included, pump_fee, shipping_cost, shipping_type, delivery_date, stock_status, validity_duration }) => {
+    submitBid: async ({ request_id, price, notes, payment_terms, shipping_included, pump_fee, shipping_cost, shipping_type, delivery_date, stock_status, validity_duration, vat_included }) => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            // Provider ID check needed in real app, strictly assuming user.id is provider.id for now
+
+            // Format extra fields into notes to avoid schema cache errors
+            let enrichedNotes = notes ? notes.trim() : '';
+            
+            if (vat_included !== undefined) enrichedNotes += `\nKDV: ${vat_included ? 'Dahil' : 'Hariç (+KDV)'}`;
+            if (pump_fee) enrichedNotes += `\nPompa Ücreti: ${pump_fee} TL`;
+            if (shipping_cost) enrichedNotes += `\nKargo Ücreti: ${shipping_cost} TL`;
+            if (shipping_type) enrichedNotes += `\nKargo Türü: ${shipping_type === 'buyer_pays' ? 'Alıcı Öder' : shipping_type === 'included' ? 'Dahil' : shipping_type}`;
+            if (delivery_date) enrichedNotes += `\nTeslimat/Döküm: ${delivery_date}`;
+            if (stock_status) enrichedNotes += `\nStok Durumu: ${stock_status === 'immediate' ? 'Hemen Teslim' : stock_status === 'wait' ? '2-3 Gün' : stock_status}`;
+            if (validity_duration) enrichedNotes += `\nTeklif Geçerlilik: ${validity_duration} Saat`;
 
             const { error } = await supabase
                 .from('market_bids')
@@ -136,16 +146,9 @@ export const MarketService = {
                     request_id,
                     provider_id: user ? user.id : undefined,
                     price,
-                    notes,
+                    notes: enrichedNotes.trim(),
                     payment_terms,
                     shipping_included, // Keep for backward compatibility or UI logic
-                    // New Fields
-                    pump_fee,
-                    shipping_cost,
-                    shipping_type,
-                    delivery_date,
-                    stock_status,
-                    validity_duration,
                     status: 'PENDING'
                 }]);
 

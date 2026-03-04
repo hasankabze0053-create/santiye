@@ -34,7 +34,13 @@ import {
 
 
 
+
+
+
+
+
     FlatList,
+    ScrollView,
     StatusBar,
     StyleSheet,
     Text,
@@ -110,10 +116,11 @@ const MESSAGES_DATA = [
 
 // --- SHARED COMPONENTS ---
 
-const SegmentedTab = ({ tabs, activeTab, onTabChange, theme }) => (
+const SegmentedTab = ({ tabs, activeTab, onTabChange, theme, badges }) => (
     <View style={[styles.tabContainer, { backgroundColor: theme.card }]}>
         {tabs.map((tab) => {
             const isActive = activeTab === tab;
+            const badgeCount = badges && badges[tab] ? badges[tab] : 0;
             return (
                 <TouchableOpacity
                     key={tab}
@@ -124,12 +131,19 @@ const SegmentedTab = ({ tabs, activeTab, onTabChange, theme }) => (
                     onPress={() => onTabChange(tab)}
                     activeOpacity={0.8}
                 >
-                    <Text style={[
-                        styles.tabText,
-                        { color: isActive ? (theme.isDark ? '#000' : '#FFF') : theme.subText }
-                    ]}>
-                        {tab}
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={[
+                            styles.tabText,
+                            { color: isActive ? (theme.isDark ? '#000' : '#FFF') : theme.subText }
+                        ]}>
+                            {tab}
+                        </Text>
+                        {badgeCount > 0 && (
+                            <View style={{ backgroundColor: '#FF3B30', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10 }}>
+                                <Text style={{ color: '#FFF', fontSize: 10, fontWeight: 'bold' }}>{badgeCount}</Text>
+                            </View>
+                        )}
+                    </View>
                 </TouchableOpacity>
             );
         })}
@@ -141,6 +155,7 @@ export const RequestsScreen = () => {
     const colorScheme = useColorScheme();
     const isDarkMode = colorScheme === 'dark' || true;
     const [activeTab, setActiveTab] = useState('Aktif');
+    const [selectedCategory, setSelectedCategory] = useState('Tüm Talepler');
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true); // Added loading state, default true
     const theme = getTheme(isDarkMode);
@@ -171,11 +186,17 @@ export const RequestsScreen = () => {
                 subtitle: item.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat & Yenileme' : `${item.district} / ${item.neighborhood}`,
                 created_at: item.created_at,
                 status: item.status === 'pending' ? 'OPEN' : item.status, // Map status
+                category: item.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat Talepleri' : 'Kentsel Dönüşüm',
                 // Add other fields as needed
             }));
 
+            const formattedMarketData = (marketData || []).map(item => ({
+                ...item,
+                category: 'İlan & Market'
+            }));
+
             // Merge and sort
-            const allRequests = [...(marketData || []), ...formattedConstructionData];
+            const allRequests = [...formattedMarketData, ...formattedConstructionData];
             allRequests.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
             setRequests(allRequests);
@@ -187,8 +208,9 @@ export const RequestsScreen = () => {
     };
 
     const filteredRequests = requests.filter(r => {
-        if (activeTab === 'Aktif') return r.status === 'OPEN';
-        return r.status !== 'OPEN';
+        const matchesTab = activeTab === 'Aktif' ? r.status === 'OPEN' : r.status !== 'OPEN';
+        const matchesCategory = selectedCategory === 'Tüm Talepler' || r.category === selectedCategory;
+        return matchesTab && matchesCategory;
     });
 
     const renderItem = ({ item }) => {
@@ -261,8 +283,35 @@ export const RequestsScreen = () => {
         </View>
     );
 
+    const CATEGORY_TABS = ['Tüm Talepler', 'Tadilat Talepleri', 'Kentsel Dönüşüm', 'İlan & Market'];
+
     return (
         <ScreenLayout title="Taleplerim" theme={theme} activeTab={activeTab} setActiveTab={setActiveTab} tabs={['Aktif', 'Geçmiş']}>
+            {/* Horizontal Category Filter */}
+            <View style={{ marginBottom: 16 }}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}>
+                    {CATEGORY_TABS.map((cat) => {
+                        const isSelected = selectedCategory === cat;
+                        return (
+                            <TouchableOpacity
+                                key={cat}
+                                onPress={() => setSelectedCategory(cat)}
+                                style={{
+                                    backgroundColor: isSelected ? '#D4AF37' : '#2A2A2A',
+                                    paddingHorizontal: 16,
+                                    paddingVertical: 8,
+                                    borderRadius: 20,
+                                    borderWidth: 1,
+                                    borderColor: isSelected ? '#D4AF37' : '#3A3A3C'
+                                }}
+                            >
+                                <Text style={{ color: isSelected ? '#000' : '#E5E5EA', fontWeight: 'bold', fontSize: 13 }}>{cat}</Text>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </ScrollView>
+            </View>
+
             {loading && requests.length === 0 ? (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 50 }}>
                     <ActivityIndicator size="large" color={theme.accent} />
@@ -559,8 +608,13 @@ export const InboxScreen = () => {
         </View>
     );
 
+    const badges = {
+        'Mesajlar': chats.filter(c => c.status === 'new').length,
+        'Bildirimler': notifications.length
+    };
+
     return (
-        <ScreenLayout title="Gelen Kutusu" theme={theme} activeTab={activeTab} setActiveTab={setActiveTab} tabs={['Mesajlar', 'Bildirimler']} icon="check-all">
+        <ScreenLayout title="Gelen Kutusu" theme={theme} activeTab={activeTab} setActiveTab={setActiveTab} tabs={['Mesajlar', 'Bildirimler']} icon="check-all" badges={badges}>
             <FlatList
                 data={activeTab === 'Mesajlar' ? chats : notifications}
                 renderItem={renderItem}
@@ -587,7 +641,7 @@ const getTheme = (isDarkMode) => ({
     iconBg: isDarkMode ? '#2C2C2E' : '#E5E5EA',
 });
 
-const ScreenLayout = ({ title, theme, activeTab, setActiveTab, tabs, children, icon = "filter-variant" }) => (
+const ScreenLayout = ({ title, theme, activeTab, setActiveTab, tabs, children, icon = "filter-variant", badges = {} }) => (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
         <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
         <View style={styles.header}>
@@ -597,7 +651,7 @@ const ScreenLayout = ({ title, theme, activeTab, setActiveTab, tabs, children, i
             </TouchableOpacity>
         </View>
         <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-            <SegmentedTab tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} theme={theme} />
+            <SegmentedTab tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} theme={theme} badges={badges} />
         </View>
         {children}
     </SafeAreaView>

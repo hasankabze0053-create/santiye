@@ -31,6 +31,7 @@ export default function SellerDashboardScreen() {
     const [bidNotes, setBidNotes] = useState('');
     const [shippingIncluded, setShippingIncluded] = useState(false);
     const [paymentTerm, setPaymentTerm] = useState('Peşin');
+    const [vatIncluded, setVatIncluded] = useState(false);
 
     useEffect(() => {
         loadRequests();
@@ -43,12 +44,22 @@ export default function SellerDashboardScreen() {
         setRequests(data);
     };
 
+    const extractRequestedMaturity = (notes) => {
+        if (!notes) return null;
+        const match = notes.match(/İstenen Vade:\s*(.*?)\]/);
+        return match ? match[1] : null;
+    };
+
     const openBidModal = (req) => {
         setSelectedRequest(req);
         setBidPrice('');
         setBidNotes('');
         setShippingIncluded(true); // Default to included
-        setPaymentTerm('Peşin');
+        setVatIncluded(false);
+        
+        const reqVade = extractRequestedMaturity(req?.notes);
+        setPaymentTerm(reqVade || 'Peşin');
+        
         setModalVisible(true);
     };
 
@@ -64,7 +75,8 @@ export default function SellerDashboardScreen() {
                 price: parseFloat(bidPrice),
                 notes: bidNotes,
                 payment_terms: paymentTerm,
-                shipping_included: shippingIncluded
+                shipping_included: shippingIncluded,
+                vat_included: vatIncluded
             });
 
             if (result.success) {
@@ -239,14 +251,25 @@ export default function SellerDashboardScreen() {
                                     {/* Form Fields */}
                                     <View style={styles.formGroup}>
                                         <Text style={styles.label}>Birim Fiyat (TL)</Text>
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="0.00"
-                                            placeholderTextColor="#475569"
-                                            keyboardType="numeric"
-                                            value={bidPrice}
-                                            onChangeText={setBidPrice}
-                                        />
+                                        <View>
+                                            <TextInput
+                                                style={styles.input}
+                                                placeholder="0.00"
+                                                placeholderTextColor="#475569"
+                                                keyboardType="numeric"
+                                                value={bidPrice}
+                                                onChangeText={setBidPrice}
+                                            />
+                                            {/* VAT Toggles */}
+                                            <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
+                                                <TouchableOpacity onPress={() => setVatIncluded(false)} style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: 6, backgroundColor: !vatIncluded ? 'rgba(255, 215, 0, 0.15)' : '#1e293b', borderWidth: 1, borderColor: !vatIncluded ? '#FFD700' : '#334155' }}>
+                                                    <Text style={{ color: !vatIncluded ? '#FFD700' : '#64748b', fontSize: 13, fontWeight: '700' }}>+ KDV</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity onPress={() => setVatIncluded(true)} style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: 6, backgroundColor: vatIncluded ? 'rgba(255, 215, 0, 0.15)' : '#1e293b', borderWidth: 1, borderColor: vatIncluded ? '#FFD700' : '#334155' }}>
+                                                    <Text style={{ color: vatIncluded ? '#FFD700' : '#64748b', fontSize: 13, fontWeight: '700' }}>KDV Dahil</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
                                     </View>
 
                                     <View style={styles.rowGroup}>
@@ -262,15 +285,36 @@ export default function SellerDashboardScreen() {
                                     <View style={styles.formGroup}>
                                         <Text style={styles.label}>Ödeme Vadesi</Text>
                                         <View style={styles.chipsContainer}>
-                                            {TERMS_OPTIONS.map(opt => (
-                                                <TouchableOpacity
-                                                    key={opt}
-                                                    style={[styles.chip, paymentTerm === opt && styles.chipActive]}
-                                                    onPress={() => setPaymentTerm(opt)}
-                                                >
-                                                    <Text style={[styles.chipText, paymentTerm === opt && styles.chipTextActive]}>{opt}</Text>
-                                                </TouchableOpacity>
-                                            ))}
+                                            {(() => {
+                                                const reqVade = extractRequestedMaturity(selectedRequest?.notes);
+                                                const optionsToRender = [...TERMS_OPTIONS];
+                                                if (reqVade && !optionsToRender.includes(reqVade)) {
+                                                    // Insert right after 'Peşin'
+                                                    optionsToRender.splice(1, 0, reqVade);
+                                                }
+                                                return optionsToRender.map(opt => (
+                                                    <TouchableOpacity
+                                                        key={opt}
+                                                        style={[styles.chip, paymentTerm === opt && styles.chipActive]}
+                                                        onPress={() => {
+                                                            if (opt === 'Peşin' && reqVade && paymentTerm !== 'Peşin') {
+                                                                Alert.alert(
+                                                                    "Vade Uyarısı",
+                                                                    `Alıcı bu talep için "${reqVade}" vade istemiştir. Siz peşin fiyatlı teklif veriyorsunuz, devam etmek istiyor musunuz?`,
+                                                                    [
+                                                                        { text: "Vazgeç", style: 'cancel' },
+                                                                        { text: "Evet, Peşin", onPress: () => setPaymentTerm(opt) }
+                                                                    ]
+                                                                );
+                                                            } else {
+                                                                setPaymentTerm(opt);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Text style={[styles.chipText, paymentTerm === opt && styles.chipTextActive]}>{opt}</Text>
+                                                    </TouchableOpacity>
+                                                ));
+                                            })()}
                                         </View>
                                     </View>
 
@@ -292,7 +336,7 @@ export default function SellerDashboardScreen() {
                                             <Text style={styles.totalLabel}>Tahmini Toplam</Text>
                                             <Text style={styles.totalValue}>
                                                 ₺{(parseFloat(bidPrice) * (parseFloat(selectedRequest.items[0]?.quantity?.split(' ')[0]) || 1)).toLocaleString('tr-TR')}
-                                                <Text style={{ fontSize: 14, color: '#94a3b8' }}> + KDV</Text>
+                                                {vatIncluded ? '' : <Text style={{ fontSize: 14, color: '#94a3b8' }}> + KDV</Text>}
                                             </Text>
                                         </View>
                                     ) : null}

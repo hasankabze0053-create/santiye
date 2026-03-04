@@ -31,6 +31,7 @@ import {
 
 
 
+
     InputAccessoryView,
     Keyboard,
     LayoutAnimation,
@@ -492,33 +493,6 @@ export default function ConstructionOfferScreen() {
                                         <Text style={[styles.offerTitle, offerType === 'kat_karsiligi' && styles.textActive]}>Kat Karşılığı Yapım Teklifi</Text>
                                     </View>
                                     <Text style={styles.offerDesc}>İnşaat maliyeti karşılığında firmaya arsa payı/daire verilir.</Text>
-
-                                    {/* Sub Options (Informational Only) */}
-                                    {offerType === 'kat_karsiligi' && (
-                                        <View style={styles.subOptionsContainer}>
-                                            <Text style={styles.subOptionsHeader}>(Bilgilendirme) Bu modelin türleri şunlardır:</Text>
-                                            {[
-                                                { id: 'sadece_kat', label: 'Sadece Kat Karşılığı', desc: 'Herhangi bir nakit ödeme olmaksızın sadece pay paylaşımı.' },
-                                                { id: 'nakit_mulk', label: 'Kat Karşılığı + Nakit (Mülk Sahibi)', desc: 'Pay yetmediği durumda firmaya ek ödeme yapılır.' },
-                                                { id: 'nakit_muteahhit', label: 'Kat Karşılığı + Nakit (Müteahhit)', desc: 'Arsa değeri yüksekse, firma mülk sahibine ödeme yapar.' }
-                                            ].map((opt) => (
-                                                <View
-                                                    key={opt.id}
-                                                    style={styles.subOptionCard}
-                                                >
-                                                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                                                        <MaterialCommunityIcons
-                                                            name="circle-small"
-                                                            size={24}
-                                                            color="#D4AF37"
-                                                        />
-                                                        <Text style={styles.subOptionTitle}>{opt.label}</Text>
-                                                    </View>
-                                                    <Text style={styles.subOptionDesc}>{opt.desc}</Text>
-                                                </View>
-                                            ))}
-                                        </View>
-                                    )}
                                 </GlassCard>
                             </View>
 

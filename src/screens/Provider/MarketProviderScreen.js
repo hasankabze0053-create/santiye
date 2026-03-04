@@ -65,15 +65,21 @@ export default function MarketProviderScreen() {
         setRefreshing(false);
     };
 
+    const extractRequestedMaturity = (notes) => {
+        if (!notes) return null;
+        const match = notes.match(/İstenen Vade:\s*(.*?)\]/);
+        return match ? match[1] : null;
+    };
+
     const openBidModal = (req) => {
         setSelectedRequest(req);
         setBidPrice('');
         setBidNotes('');
-        setShippingIncluded(true);
-        setBidPrice('');
-        setBidNotes('');
         setShippingIncluded(false);
-        setPaymentTerm('Peşin');
+        
+        const reqVade = extractRequestedMaturity(req?.notes);
+        setPaymentTerm(reqVade || 'Peşin');
+
         // Reset new fields
         setPumpFee('');
         setShippingType('buyer_pays');
@@ -103,7 +109,8 @@ export default function MarketProviderScreen() {
                 shipping_type: shippingType,
                 delivery_date: deliveryDate,
                 stock_status: stockStatus,
-                validity_duration: validity
+                validity_duration: validity,
+                vat_included: vatIncluded
             });
 
             if (result.success) {
@@ -566,7 +573,7 @@ export default function MarketProviderScreen() {
                                                                         <View style={{ alignItems: 'flex-end' }}>
                                                                             <Text style={{ color: '#F1F5F9', fontSize: 13, marginBottom: 4, fontWeight: '700' }}>TOPLAM TUTAR</Text>
                                                                             <Text style={{ color: '#4ADE80', fontSize: 24, fontWeight: '900' }}>
-                                                                                ≈ {((parseFloat(bidPrice) || 0) * getSafeQuantity()).toLocaleString('tr-TR')} TL
+                                                                                ≈ {((parseFloat(bidPrice) || 0) * getSafeQuantity()).toLocaleString('tr-TR')} TL{vatIncluded ? '' : <Text style={{ fontSize: 14, color: '#94a3b8' }}> + KDV</Text>}
                                                                             </Text>
                                                                         </View>
                                                                     ) : <View />}
@@ -613,7 +620,7 @@ export default function MarketProviderScreen() {
                                                                 <View style={{ alignItems: 'flex-end' }}>
                                                                     <Text style={{ color: '#F1F5F9', fontSize: 13, marginBottom: 4, fontWeight: '700' }}>TOPLAM TUTAR</Text>
                                                                     <Text style={{ color: '#4ADE80', fontSize: 24, fontWeight: '900' }}>
-                                                                        ≈ {((parseFloat(bidPrice) || 0) * getSafeQuantity()).toLocaleString('tr-TR')} TL
+                                                                        ≈ {((parseFloat(bidPrice) || 0) * getSafeQuantity()).toLocaleString('tr-TR')} TL{vatIncluded ? '' : <Text style={{ fontSize: 14, color: '#94a3b8' }}> + KDV</Text>}
                                                                     </Text>
                                                                 </View>
                                                             ) : <View />}
@@ -652,15 +659,36 @@ export default function MarketProviderScreen() {
 
                                             <Text style={styles.label}>Ödeme Vadesi</Text>
                                             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsScroll}>
-                                                {TERMS_OPTIONS.map(opt => (
-                                                    <TouchableOpacity
-                                                        key={opt}
-                                                        style={[styles.chip, paymentTerm === opt && styles.chipActive]}
-                                                        onPress={() => setPaymentTerm(opt)}
-                                                    >
-                                                        <Text style={[styles.chipText, paymentTerm === opt && styles.chipTextActive]}>{opt}</Text>
-                                                    </TouchableOpacity>
-                                                ))}
+                                                {(() => {
+                                                    const reqVade = extractRequestedMaturity(selectedRequest?.notes);
+                                                    const optionsToRender = [...TERMS_OPTIONS];
+                                                    if (reqVade && !optionsToRender.includes(reqVade)) {
+                                                        // Insert right after 'Peşin'
+                                                        optionsToRender.splice(1, 0, reqVade);
+                                                    }
+                                                    return optionsToRender.map(opt => (
+                                                        <TouchableOpacity
+                                                            key={opt}
+                                                            style={[styles.chip, paymentTerm === opt && styles.chipActive]}
+                                                            onPress={() => {
+                                                                if (opt === 'Peşin' && reqVade && paymentTerm !== 'Peşin') {
+                                                                    Alert.alert(
+                                                                        "Vade Uyarısı",
+                                                                        `Alıcı bu talep için "${reqVade}" vade istemiştir. Siz peşin fiyatlı teklif veriyorsunuz, devam etmek istiyor musunuz?`,
+                                                                        [
+                                                                            { text: "Vazgeç", style: 'cancel' },
+                                                                            { text: "Evet, Peşin", onPress: () => setPaymentTerm(opt) }
+                                                                        ]
+                                                                    );
+                                                                } else {
+                                                                    setPaymentTerm(opt);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <Text style={[styles.chipText, paymentTerm === opt && styles.chipTextActive]}>{opt}</Text>
+                                                        </TouchableOpacity>
+                                                    ));
+                                                })()}
                                             </ScrollView>
 
                                             <TouchableOpacity style={styles.modalBtn} onPress={submitBid}>

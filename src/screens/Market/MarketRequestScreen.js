@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { Alert, Image, Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, InputAccessoryView, Keyboard, Modal, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MarketService } from '../../services/MarketService';
 import { searchMaterials } from '../../utils/MarketCatalog';
@@ -11,10 +11,9 @@ import { searchMaterials } from '../../utils/MarketCatalog';
 const UNITS = ['Adet', 'Kg', 'Ton', 'M3', 'Paket', 'Metre', 'm²', 'Torba', 'Rulo', 'Teneke'];
 
 const PAYMENT_METHODS = [
-    { id: 'cash', title: 'Nakit Ödeme', icon: 'cash-outline', desc: 'Malzeme tesliminde nakit ödeme' },
+    { id: 'cash_transfer', title: 'Nakit / Havale / EFT', icon: 'cash-outline', desc: 'Teslimatta nakit veya banka transferi' },
     { id: 'credit_card', title: 'Kredi Kartı', icon: 'card-outline', desc: 'Teslimatta veya online güvenli ödeme' },
     { id: 'check', title: 'Çek / Senet', icon: 'document-text-outline', desc: 'Vadeli ödeme seçenekleri' },
-    { id: 'transfer', title: 'Havale / EFT', icon: 'business-outline', desc: 'Banka hesabına transfer' },
 ];
 
 export default function MarketRequestScreen() {
@@ -35,7 +34,9 @@ export default function MarketRequestScreen() {
     const [location, setLocation] = useState('İstanbul Bayrampaşa (Varsayılan)');
     const [deliveryTime, setDeliveryTime] = useState('urgent'); // 'urgent' | 'scheduled'
     const [notes, setNotes] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState('cash');
+    const [paymentMethod, setPaymentMethod] = useState('');
+    const [maturityDays, setMaturityDays] = useState('');
+    const [maturityUnit, setMaturityUnit] = useState('Gün'); // 'Gün' | 'Ay'
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -164,9 +165,25 @@ export default function MarketRequestScreen() {
             finalTitle = `${items[0].name} ve Diğerleri`;
         }
 
+        if (!paymentMethod) {
+            Alert.alert("Eksik Bilgi", "Lütfen bir ödeme yöntemi seçin.");
+            return;
+        }
+
+        if (paymentMethod === 'check' && !maturityDays.trim()) {
+            Alert.alert("Eksik Bilgi", "Lütfen çek/senet için vade süresini belirtin.");
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             let uploadedImageUrl = null;
+
+            // Include maturityDays in notes if applicable
+            let finalNotes = notes.trim();
+            if (paymentMethod === 'check' && maturityDays.trim()) {
+                finalNotes += finalNotes ? `\n\n[Sistem Notu: İstenen Vade: ${maturityDays.trim()} ${maturityUnit}]` : `[Sistem Notu: İstenen Vade: ${maturityDays.trim()} ${maturityUnit}]`;
+            }
 
             // Eğer resim seçildiyse önce onu yükle
             if (capturedImage) {
@@ -181,7 +198,7 @@ export default function MarketRequestScreen() {
                 })),
                 delivery_time: deliveryTime,
                 location: location,
-                notes: notes,
+                notes: finalNotes,
                 payment_method: paymentMethod,
                 image_url: uploadedImageUrl // Resim URL'sini gönder
             });
@@ -189,7 +206,7 @@ export default function MarketRequestScreen() {
             if (result.success) {
                 // Success - could go to Step 3 or back
                 // Success - Go to Success Screen
-                navigation.navigate('MarketSuccessScreen');
+                navigation.navigate('MarketSuccess');
             } else {
                 Alert.alert("Hata", "Talep oluşturulamadı - Lütfen SQL iznini çalıştırdığınızdan emin olun.");
             }
@@ -257,8 +274,24 @@ export default function MarketRequestScreen() {
 
                                 {/* Suggestions Dropdown */}
                                 {item.suggestions && item.suggestions.length > 0 && (
-                                    <View style={styles.suggestionsCard}>
-                                        <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled={true}>
+                                    <View style={[styles.suggestionsCard, { zIndex: 100 }]}>
+                                        {/* Pinned Custom Option at the Top */}
+                                        <TouchableOpacity 
+                                            style={[styles.suggestionItem, { borderBottomWidth: 1, borderBottomColor: '#333', backgroundColor: 'rgba(212,175,55,0.05)' }]}
+                                            onPress={() => setItems(items.map(it => it.id === item.id ? { ...it, suggestions: [] } : it))}
+                                        >
+                                            <Ionicons name="pencil-outline" size={14} color="#D4AF37" style={{ marginRight: 8 }} />
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={[styles.suggestionName, { color: '#D4AF37' }]}>"{item.name}" Olarak Kullan</Text>
+                                                <Text style={styles.suggestionCat}>Özel Malzeme Girişi</Text>
+                                            </View>
+                                            <View style={[styles.suggestionUnitBadge, { backgroundColor: 'transparent', paddingHorizontal: 0 }]}>
+                                                <Ionicons name="chevron-forward" size={16} color="#D4AF37" />
+                                            </View>
+                                        </TouchableOpacity>
+
+                                        {/* Scrollable Catalog Options */}
+                                        <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled={true} style={{ maxHeight: 200 }}>
                                             {item.suggestions.map((sug, i) => (
                                                 <TouchableOpacity 
                                                     key={i} 
@@ -290,6 +323,7 @@ export default function MarketRequestScreen() {
                                         keyboardType="numeric"
                                         value={item.qty}
                                         onChangeText={(t) => updateItem(item.id, 'qty', t)}
+                                        inputAccessoryViewID="DoneKeyboard"
                                     />
                                 </View>
 
@@ -353,7 +387,7 @@ export default function MarketRequestScreen() {
                             >
                                 <MaterialCommunityIcons name="playlist-edit" size={28} color={mode === 'manual' ? '#000' : '#888'} />
                                 <View style={{ marginLeft: 10 }}>
-                                    <Text style={[styles.modeTitle, mode === 'manual' && { color: '#000' }]}>MANUEL OLUŞTUR</Text>
+                                    <Text style={[styles.modeTitle, mode === 'manual' && { color: '#000' }]}>DİJİTAL TALEP</Text>
                                     <Text style={[styles.modeSub, mode === 'manual' && { color: '#333' }]}>Gelişmiş Giriş</Text>
                                 </View>
                             </LinearGradient>
@@ -362,7 +396,16 @@ export default function MarketRequestScreen() {
                 )}
 
                 {/* Content */}
-                <View style={styles.content}>
+                <TouchableWithoutFeedback 
+                    onPress={() => {
+                        Keyboard.dismiss();
+                        setItems(items.map(it => ({...it, suggestions: []})));
+                    }}
+                    accessible={false}
+                >
+                    <View style={{ flex: 1 }}>
+                    <View style={{ flex: 1 }}>
+                        <View style={styles.content}>
                     {step === 1 && mode === 'manual' && renderStep1_Manual()}
 
                     {step === 1 && mode === 'fast' && (
@@ -475,9 +518,52 @@ export default function MarketRequestScreen() {
                                         )}
                                     </TouchableOpacity>
                                 ))}
+
+                                {/* Conditional Vade (Maturity) Input for Check/Senet */}
+                                {paymentMethod === 'check' && (
+                                    <View style={styles.maturityContainer}>
+                                        <Text style={styles.labelSmall}>VADE SÜRESİ</Text>
+                                        <View style={{ flexDirection: 'row', gap: 10, marginTop: 4, height: 50 }}>
+                                            <TextInput
+                                                style={[styles.premiumInput, { backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 16, textAlign: 'center', fontSize: 18, fontWeight: 'bold' }]}
+                                                placeholder="Örn: 30"
+                                                placeholderTextColor="#666"
+                                                keyboardType="numeric"
+                                                value={maturityDays}
+                                                onChangeText={setMaturityDays}
+                                                inputAccessoryViewID="DoneKeyboard"
+                                            />
+                                            {Platform.OS === 'ios' && (
+                                                <InputAccessoryView nativeID="DoneKeyboard">
+                                                    <View style={{ backgroundColor: '#1E1E1E', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#333' }}>
+                                                        <TouchableOpacity onPress={() => Keyboard.dismiss()}>
+                                                            <Text style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 16 }}>Bitti</Text>
+                                                        </TouchableOpacity>
+                                                    </View>
+                                                </InputAccessoryView>
+                                            )}
+                                            <View style={{ flexDirection: 'row', backgroundColor: '#1E1E1E', borderRadius: 12, borderWidth: 1, borderColor: '#333', overflow: 'hidden' }}>
+                                                <TouchableOpacity 
+                                                    style={[{ paddingHorizontal: 16, justifyContent: 'center' }, maturityUnit === 'Gün' && { backgroundColor: '#D4AF37' }]}
+                                                    onPress={() => setMaturityUnit('Gün')}
+                                                >
+                                                    <Text style={[{ color: '#888', fontWeight: 'bold' }, maturityUnit === 'Gün' && { color: '#000' }]}>GÜN</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity 
+                                                    style={[{ paddingHorizontal: 16, justifyContent: 'center' }, maturityUnit === 'Ay' && { backgroundColor: '#D4AF37' }]}
+                                                    onPress={() => setMaturityUnit('Ay')}
+                                                >
+                                                    <Text style={[{ color: '#888', fontWeight: 'bold' }, maturityUnit === 'Ay' && { color: '#000' }]}>AY</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
+                                        <Text style={[styles.suggestionCat, { marginTop: 8, opacity: 0.8 }]}>* Satıcılar tekliflerini bu vadeye göre düzenleyecektir.</Text>
+                                    </View>
+                                )}
                             </View>
                         </ScrollView>
                     )}
+                    </View>
                 </View>
 
                 {/* Footer Button */}
@@ -487,6 +573,8 @@ export default function MarketRequestScreen() {
                         {!isSubmitting && <Ionicons name={step === 3 ? "checkmark-done" : "arrow-forward"} size={20} color="#000" />}
                     </TouchableOpacity>
                 </View>
+                </View>
+                </TouchableWithoutFeedback>
 
                 {/* --- UNIT SELECTION MODAL --- */}
                 <Modal
