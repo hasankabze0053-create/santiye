@@ -13,7 +13,7 @@ const PAYMENT_LABELS = {
     'transfer': 'Havale / EFT'
 };
 
-const TERMS_OPTIONS = ['Peşin', '30 Gün Vade', '45 Gün Vade', '60 Gün Vade', '90 Gün Vade'];
+const TERMS_OPTIONS = ['EFT', '30 Gün Vade', '45 Gün Vade', '60 Gün Vade', '90 Gün Vade'];
 
 export default function SellerDashboardScreen() {
     const navigation = useNavigation();
@@ -58,7 +58,7 @@ export default function SellerDashboardScreen() {
         setVatIncluded(false);
         
         const reqVade = extractRequestedMaturity(req?.notes);
-        setPaymentTerm(reqVade || 'Peşin');
+        setPaymentTerm(reqVade || 'EFT');
         
         setModalVisible(true);
     };
@@ -289,21 +289,25 @@ export default function SellerDashboardScreen() {
                                                 const reqVade = extractRequestedMaturity(selectedRequest?.notes);
                                                 const optionsToRender = [...TERMS_OPTIONS];
                                                 if (reqVade && !optionsToRender.includes(reqVade)) {
-                                                    // Insert right after 'Peşin'
+                                                    // Insert right after 'EFT'
                                                     optionsToRender.splice(1, 0, reqVade);
                                                 }
                                                 return optionsToRender.map(opt => (
                                                     <TouchableOpacity
                                                         key={opt}
-                                                        style={[styles.chip, paymentTerm === opt && styles.chipActive]}
+                                                        style={[
+                                                            styles.chip, 
+                                                            paymentTerm === opt && styles.chipActive,
+                                                            reqVade === opt && paymentTerm !== opt && { borderColor: '#4ADE80', borderWidth: 1, backgroundColor: 'rgba(74, 222, 128, 0.1)' }
+                                                        ]}
                                                         onPress={() => {
-                                                            if (opt === 'Peşin' && reqVade && paymentTerm !== 'Peşin') {
+                                                            if (reqVade && opt !== reqVade && paymentTerm !== opt) {
                                                                 Alert.alert(
                                                                     "Vade Uyarısı",
-                                                                    `Alıcı bu talep için "${reqVade}" vade istemiştir. Siz peşin fiyatlı teklif veriyorsunuz, devam etmek istiyor musunuz?`,
+                                                                    `Alıcı bu talep için "${reqVade}" vade istemiştir. Siz farklı bir teklif (${opt}) veriyorsunuz, devam etmek istiyor musunuz?`,
                                                                     [
                                                                         { text: "Vazgeç", style: 'cancel' },
-                                                                        { text: "Evet, Peşin", onPress: () => setPaymentTerm(opt) }
+                                                                        { text: `Evet, ${opt}`, onPress: () => setPaymentTerm(opt) }
                                                                     ]
                                                                 );
                                                             } else {
@@ -311,7 +315,11 @@ export default function SellerDashboardScreen() {
                                                             }
                                                         }}
                                                     >
-                                                        <Text style={[styles.chipText, paymentTerm === opt && styles.chipTextActive]}>{opt}</Text>
+                                                        <Text style={[
+                                                            styles.chipText, 
+                                                            paymentTerm === opt && styles.chipTextActive,
+                                                            reqVade === opt && paymentTerm !== opt && { color: '#4ADE80', fontWeight: 'bold' }
+                                                        ]}>{opt}</Text>
                                                     </TouchableOpacity>
                                                 ));
                                             })()}

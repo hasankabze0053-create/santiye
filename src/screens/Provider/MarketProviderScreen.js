@@ -15,7 +15,7 @@ const PAYMENT_LABELS = {
     'transfer': 'Havale'
 };
 
-const TERMS_OPTIONS = ['Peşin', 'Kredi Kartı', '30 Gün', '45 Gün', '60 Gün', '90 Gün'];
+const TERMS_OPTIONS = ['EFT', 'Kredi Kartı', '30 Gün', '45 Gün', '60 Gün', '90 Gün'];
 
 export default function MarketProviderScreen() {
     const navigation = useNavigation();
@@ -78,7 +78,7 @@ export default function MarketProviderScreen() {
         setShippingIncluded(false);
         
         const reqVade = extractRequestedMaturity(req?.notes);
-        setPaymentTerm(reqVade || 'Peşin');
+        setPaymentTerm(reqVade || 'EFT');
 
         // Reset new fields
         setPumpFee('');
@@ -663,21 +663,27 @@ export default function MarketProviderScreen() {
                                                     const reqVade = extractRequestedMaturity(selectedRequest?.notes);
                                                     const optionsToRender = [...TERMS_OPTIONS];
                                                     if (reqVade && !optionsToRender.includes(reqVade)) {
-                                                        // Insert right after 'Peşin'
+                                                        // Insert right after 'EFT'
                                                         optionsToRender.splice(1, 0, reqVade);
                                                     }
                                                     return optionsToRender.map(opt => (
                                                         <TouchableOpacity
                                                             key={opt}
-                                                            style={[styles.chip, paymentTerm === opt && styles.chipActive]}
+                                                            style={[
+                                                                styles.chip, 
+                                                                paymentTerm === opt && styles.chipActive,
+                                                                // Highlight requested vade distinctly if it is not selected
+                                                                reqVade === opt && paymentTerm !== opt && { borderColor: '#4ADE80', borderWidth: 1, backgroundColor: 'rgba(74, 222, 128, 0.1)' }
+                                                            ]}
                                                             onPress={() => {
-                                                                if (opt === 'Peşin' && reqVade && paymentTerm !== 'Peşin') {
+                                                                // Alert if user selects anything other than the requested vade
+                                                                if (reqVade && opt !== reqVade && paymentTerm !== opt) {
                                                                     Alert.alert(
                                                                         "Vade Uyarısı",
-                                                                        `Alıcı bu talep için "${reqVade}" vade istemiştir. Siz peşin fiyatlı teklif veriyorsunuz, devam etmek istiyor musunuz?`,
+                                                                        `Alıcı bu talep için "${reqVade}" vade istemiştir. Siz farklı bir teklif (${opt}) veriyorsunuz, devam etmek istiyor musunuz?`,
                                                                         [
                                                                             { text: "Vazgeç", style: 'cancel' },
-                                                                            { text: "Evet, Peşin", onPress: () => setPaymentTerm(opt) }
+                                                                            { text: `Evet, ${opt}`, onPress: () => setPaymentTerm(opt) }
                                                                         ]
                                                                     );
                                                                 } else {
@@ -685,7 +691,11 @@ export default function MarketProviderScreen() {
                                                                 }
                                                             }}
                                                         >
-                                                            <Text style={[styles.chipText, paymentTerm === opt && styles.chipTextActive]}>{opt}</Text>
+                                                            <Text style={[
+                                                                styles.chipText, 
+                                                                paymentTerm === opt && styles.chipTextActive,
+                                                                reqVade === opt && paymentTerm !== opt && { color: '#4ADE80', fontWeight: 'bold' }
+                                                            ]}>{opt}</Text>
                                                         </TouchableOpacity>
                                                     ));
                                                 })()}
