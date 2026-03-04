@@ -28,7 +28,7 @@ export default function MarketRequestScreen() {
     // Form Data
     const [title, setTitle] = useState(''); // Step 2 or auto-gen
     const [items, setItems] = useState([
-        { id: Date.now(), name: '', qty: '', unit: 'Adet', suggestions: [] }
+        { id: Date.now(), name: '', qty: '', unit: 'Adet', suggestions: [], brand: '', techSpec: '' }
     ]);
     // Step 2 Data
     const [location, setLocation] = useState('İstanbul Bayrampaşa (Varsayılan)');
@@ -84,7 +84,7 @@ export default function MarketRequestScreen() {
 
     // --- HANDLERS ---
     const handleAddItem = () => {
-        setItems([...items, { id: Date.now() + Math.random(), name: '', qty: '', unit: 'Adet', suggestions: [] }]);
+        setItems([...items, { id: Date.now() + Math.random(), name: '', qty: '', unit: 'Adet', suggestions: [], brand: '', techSpec: '' }]);
     };
 
     const handleRemoveItem = (id) => {
@@ -159,10 +159,14 @@ export default function MarketRequestScreen() {
     };
 
     const handleSubmit = async () => {
-        // Auto-generate title if empty based on first item
+        // Auto-generate title if empty based on items
         let finalTitle = title.trim();
         if (!finalTitle && items.length > 0) {
-            finalTitle = `${items[0].name} ve Diğerleri`;
+            if (items.length === 1) {
+                finalTitle = items[0].name;
+            } else {
+                finalTitle = `${items[0].name} (+${items.length - 1} Kalem)`;
+            }
         }
 
         if (!paymentMethod) {
@@ -192,10 +196,15 @@ export default function MarketRequestScreen() {
 
             const result = await MarketService.createRequest({
                 title: finalTitle,
-                items: items.filter(i => i.name && i.qty).map(i => ({
-                    product_name: i.name,
-                    quantity: `${i.qty} ${i.unit}`
-                })),
+                items: items.filter(i => i.name && i.qty).map(i => {
+                    let finalName = i.name.trim();
+                    if (i.brand && i.brand.trim()) finalName += ` [Marka: ${i.brand.trim()}]`;
+                    if (i.techSpec && i.techSpec.trim()) finalName += ` [Özellik: ${i.techSpec.trim()}]`;
+                    return {
+                        product_name: finalName,
+                        quantity: `${i.qty} ${i.unit}`
+                    };
+                }),
                 delivery_time: deliveryTime,
                 location: location,
                 notes: finalNotes,
@@ -334,6 +343,28 @@ export default function MarketRequestScreen() {
                                     <Text style={styles.unitText}>{item.unit}</Text>
                                     <Ionicons name="chevron-down" size={14} color="#888" />
                                 </TouchableOpacity>
+                            </View>
+
+                            {/* Row 3: Optional Brand & Tech Spec */}
+                            <View style={{ flexDirection: 'row', gap: 12, marginTop: 4 }}>
+                                <View style={[styles.premiumInputContainer, { flex: 1 }]}>
+                                    <TextInput
+                                        style={styles.premiumInput}
+                                        placeholder="Marka (Opsiyonel)"
+                                        placeholderTextColor="#666"
+                                        value={item.brand}
+                                        onChangeText={(t) => updateItem(item.id, 'brand', t)}
+                                    />
+                                </View>
+                                <View style={[styles.premiumInputContainer, { flex: 1 }]}>
+                                    <TextInput
+                                        style={styles.premiumInput}
+                                        placeholder="Poz No / Özellik"
+                                        placeholderTextColor="#666"
+                                        value={item.techSpec}
+                                        onChangeText={(t) => updateItem(item.id, 'techSpec', t)}
+                                    />
+                                </View>
                             </View>
                         </View>
                     </View>
