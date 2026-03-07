@@ -9,7 +9,7 @@ export default function PrivacySecurityScreen() {
         <TouchableOpacity style={styles.itemContainer} onPress={onPress}>
             <View style={styles.leftContent}>
                 <Ionicons name={icon} size={22} color={isDestructive ? '#FF3B30' : '#FFD700'} />
-                <Text style={[styles.label, isDestructive && styles.destructiveText]}>{label}</Text>
+                <Text allowFontScaling={false} style={[styles.label, isDestructive && styles.destructiveText]}>{label}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#666" />
         </TouchableOpacity>
@@ -21,11 +21,11 @@ export default function PrivacySecurityScreen() {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color="#FFD700" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Gizlilik ve Güvenlik</Text>
+                <Text allowFontScaling={false} style={styles.headerTitle}>Gizlilik ve Güvenlik</Text>
             </View>
 
             <ScrollView contentContainerStyle={styles.content}>
-                <Text style={styles.sectionTitle}>HESAP GÜVENLİĞİ</Text>
+                <Text allowFontScaling={false} style={styles.sectionTitle}>HESAP GÜVENLİĞİ</Text>
                 <ActionItem
                     label="Şifre Değiştir"
                     icon="key-outline"
@@ -37,7 +37,7 @@ export default function PrivacySecurityScreen() {
                     onPress={() => Alert.alert('Yakında', 'Bu özellik yakında eklenecek.')}
                 />
 
-                <Text style={styles.sectionTitle}>GİZLİLİK</Text>
+                <Text allowFontScaling={false} style={styles.sectionTitle}>GİZLİLİK</Text>
                 <ActionItem
                     label="Gizlilik Politikası"
                     icon="document-text-outline"
@@ -49,7 +49,7 @@ export default function PrivacySecurityScreen() {
                     onPress={() => Alert.alert('Link', 'Kullanım koşulları sayfasına yönlendiriliyorsunuz.')}
                 />
 
-                <Text style={styles.sectionTitle}>VERİ YÖNETİMİ</Text>
+                <Text allowFontScaling={false} style={styles.sectionTitle}>VERİ YÖNETİMİ</Text>
                 <ActionItem
                     label="Hesabımı Dondur"
                     icon="snow-outline"

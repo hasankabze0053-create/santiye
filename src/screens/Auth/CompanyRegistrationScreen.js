@@ -78,41 +78,41 @@ export default function CompanyRegistrationScreen() {
 
     const renderStep1 = () => (
         <View style={styles.formContainer}>
-            <Text style={styles.stepTitle}>Firma Bilgileri</Text>
-            <Text style={styles.stepDesc}>Vergi levhanızda yer alan resmi bilgileri giriniz.</Text>
+            <Text allowFontScaling={false} style={styles.stepTitle}>Firma Bilgileri</Text>
+            <Text allowFontScaling={false} style={styles.stepDesc}>Vergi levhanızda yer alan resmi bilgileri giriniz.</Text>
 
             <View style={styles.inputGroup}>
-                <Text style={styles.label}>Firma Yasal Ünvanı</Text>
-                <TextInput style={styles.input} placeholder="Örn: Yıldız İnşaat Ltd. Şti." placeholderTextColor="#666" value={companyName} onChangeText={setCompanyName} />
+                <Text allowFontScaling={false} style={styles.label}>Firma Yasal Ünvanı</Text>
+                <TextInput allowFontScaling={false} style={styles.input} placeholder="Örn: Yıldız İnşaat Ltd. Şti." placeholderTextColor="#666" value={companyName} onChangeText={setCompanyName} />
             </View>
 
             <View style={styles.row}>
                 <View style={[styles.inputGroup, { flex: 1, marginRight: 10 }]}>
-                    <Text style={styles.label}>Vergi Numarası</Text>
-                    <TextInput style={styles.input} placeholder="10 Haneli No" placeholderTextColor="#666" keyboardType="numeric" maxLength={10} value={taxNumber} onChangeText={setTaxNumber} />
+                    <Text allowFontScaling={false} style={styles.label}>Vergi Numarası</Text>
+                    <TextInput allowFontScaling={false} style={styles.input} placeholder="10 Haneli No" placeholderTextColor="#666" keyboardType="numeric" maxLength={10} value={taxNumber} onChangeText={setTaxNumber} />
                 </View>
                 <View style={[styles.inputGroup, { flex: 1 }]}>
-                    <Text style={styles.label}>Vergi Dairesi</Text>
-                    <TextInput style={styles.input} placeholder="Vergi Dairesi" placeholderTextColor="#666" value={taxOffice} onChangeText={setTaxOffice} />
+                    <Text allowFontScaling={false} style={styles.label}>Vergi Dairesi</Text>
+                    <TextInput allowFontScaling={false} style={styles.input} placeholder="Vergi Dairesi" placeholderTextColor="#666" value={taxOffice} onChangeText={setTaxOffice} />
                 </View>
             </View>
 
             <View style={styles.inputGroup}>
-                <Text style={styles.label}>Firma Telefonu</Text>
-                <TextInput style={styles.input} placeholder="05XX XXX XX XX" placeholderTextColor="#666" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
+                <Text allowFontScaling={false} style={styles.label}>Firma Telefonu</Text>
+                <TextInput allowFontScaling={false} style={styles.input} placeholder="05XX XXX XX XX" placeholderTextColor="#666" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
             </View>
 
             <View style={styles.inputGroup}>
-                <Text style={styles.label}>Adres</Text>
-                <TextInput style={[styles.input, { height: 80, paddingTop: 12 }]} placeholder="Açık adres..." placeholderTextColor="#666" multiline value={address} onChangeText={setAddress} />
+                <Text allowFontScaling={false} style={styles.label}>Adres</Text>
+                <TextInput allowFontScaling={false} style={[styles.input, { height: 80, paddingTop: 12 }]} placeholder="Açık adres..." placeholderTextColor="#666" multiline value={address} onChangeText={setAddress} />
             </View>
         </View>
     );
 
     const renderStep2 = () => (
         <View style={styles.formContainer}>
-            <Text style={styles.stepTitle}>Hizmet Alanları</Text>
-            <Text style={styles.stepDesc}>Firmanızın hangi sektörlerde faaliyet göstereceğini seçiniz. Birden fazla seçim yapabilirsiniz.</Text>
+            <Text allowFontScaling={false} style={styles.stepTitle}>Hizmet Alanları</Text>
+            <Text allowFontScaling={false} style={styles.stepDesc}>Firmanızın hangi sektörlerde faaliyet göstereceğini seçiniz. Birden fazla seçim yapabilirsiniz.</Text>
 
             <View style={styles.servicesGrid}>
                 {SERVICE_OPTIONS.map((item) => {
@@ -127,7 +127,7 @@ export default function CompanyRegistrationScreen() {
                             <View style={[styles.iconBox, isSelected && styles.iconBoxSelected]}>
                                 <Ionicons name={item.icon} size={24} color={isSelected ? '#FFD700' : '#888'} />
                             </View>
-                            <Text style={[styles.serviceText, isSelected && styles.serviceTextSelected]}>{item.label}</Text>
+                            <Text allowFontScaling={false} style={[styles.serviceText, isSelected && styles.serviceTextSelected]}>{item.label}</Text>
                             <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
                                 {isSelected && <Ionicons name="checkmark" size={14} color="#000" />}
                             </View>
@@ -148,18 +148,18 @@ export default function CompanyRegistrationScreen() {
                     <TouchableOpacity onPress={() => step === 2 ? setStep(1) : navigation.goBack()} style={styles.backBtn}>
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Kurumsal Kayıt</Text>
+                    <Text allowFontScaling={false} style={styles.headerTitle}>Kurumsal Kayıt</Text>
                     <View style={{ width: 40 }} />
                 </View>
 
                 {/* Progress Bar */}
                 <View style={styles.progressContainer}>
                     <View style={[styles.stepDot, step >= 1 && styles.stepActive]}>
-                        <Text style={styles.stepNum}>1</Text>
+                        <Text allowFontScaling={false} style={styles.stepNum}>1</Text>
                     </View>
                     <View style={[styles.stepLine, step >= 2 && styles.lineActive]} />
                     <View style={[styles.stepDot, step >= 2 && styles.stepActive]}>
-                        <Text style={styles.stepNum}>2</Text>
+                        <Text allowFontScaling={false} style={styles.stepNum}>2</Text>
                     </View>
                 </View>
 
@@ -183,14 +183,14 @@ export default function CompanyRegistrationScreen() {
                             }}
                         >
                             <LinearGradient colors={['#D4AF37', '#AA8C2C']} style={styles.btnGradient}>
-                                <Text style={styles.btnText}>Devam Et</Text>
+                                <Text allowFontScaling={false} style={styles.btnText}>Devam Et</Text>
                                 <Ionicons name="arrow-forward" size={20} color="#000" />
                             </LinearGradient>
                         </TouchableOpacity>
                     ) : (
                         <TouchableOpacity style={styles.btn} onPress={handleSubmit} disabled={loading}>
                             <LinearGradient colors={['#D4AF37', '#AA8C2C']} style={styles.btnGradient}>
-                                {loading ? <Text style={styles.btnText}>Gönderiliyor...</Text> : <Text style={styles.btnText}>Başvuruyu Tamamla</Text>}
+                                {loading ? <Text allowFontScaling={false} style={styles.btnText}>Gönderiliyor...</Text> : <Text allowFontScaling={false} style={styles.btnText}>Başvuruyu Tamamla</Text>}
                             </LinearGradient>
                         </TouchableOpacity>
                     )}

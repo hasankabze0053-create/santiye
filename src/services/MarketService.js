@@ -134,8 +134,11 @@ export const MarketService = {
             
             if (vat_included !== undefined) enrichedNotes += `\nKDV: ${vat_included ? 'Dahil' : 'Hariç (+KDV)'}`;
             if (pump_fee) enrichedNotes += `\nPompa Ücreti: ${pump_fee} TL`;
-            if (shipping_cost) enrichedNotes += `\nKargo Ücreti: ${shipping_cost} TL`;
-            if (shipping_type) enrichedNotes += `\nKargo Türü: ${shipping_type === 'buyer_pays' ? 'Alıcı Öder' : shipping_type === 'included' ? 'Dahil' : shipping_type}`;
+            if (shipping_type) {
+                const fType = shipping_type === 'buyer_pays' ? 'Alıcı Öder' : shipping_type === 'included' ? 'Dahil' : shipping_type;
+                enrichedNotes += `\nNakliye Durumu: ${fType}`;
+            }
+            if (shipping_cost) enrichedNotes += `\n+ ${shipping_cost} TL Nakliye Ücreti`;
             if (delivery_date) enrichedNotes += `\nTeslimat/Döküm: ${delivery_date}`;
             if (stock_status) enrichedNotes += `\nStok Durumu: ${stock_status === 'immediate' ? 'Hemen Teslim' : stock_status === 'wait' ? '2-3 Gün' : stock_status}`;
             if (validity_duration) enrichedNotes += `\nTeklif Geçerlilik: ${validity_duration} Saat`;
@@ -157,6 +160,38 @@ export const MarketService = {
         } catch (error) {
             console.error('Submit Bid Error:', error);
             return { success: false, error };
+        }
+    },
+
+    // 6.5 Kullanıcının Kendi Verdiği Teklifleri Getir
+    getMyBids: async (category = null) => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return [];
+
+            let query = supabase
+                .from('market_bids')
+                .select(`
+                    *,
+                    request:market_requests(
+                        *,
+                        items:market_request_items(*)
+                    )
+                `)
+                .eq('provider_id', user.id)
+                .order('created_at', { ascending: false });
+
+            // If we wanted to filter bids by category of the request, we could do it here
+            // but PostgREST filter on nested foreign table requires inner join explicitly 
+            // or filtering client-side. For now, we'll fetch all and filter client-side if needed 
+            // or not filter at all if 'Tekliflerim' implies ALL bids across all categories.
+
+            const { data, error } = await query;
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            console.error('Get My Bids Error:', error);
+            return [];
         }
     },
 

@@ -26,8 +26,8 @@ const OptionCard = ({ title, description, icon, isSelected, onPress }) => (
                 <MaterialCommunityIcons name={icon} size={32} color={isSelected ? '#FFD700' : '#666'} />
             </View>
             <View style={styles.textContainer}>
-                <Text style={[styles.optionTitle, isSelected && styles.optionTitleSelected]}>{title}</Text>
-                <Text style={styles.optionDesc}>{description}</Text>
+                <Text allowFontScaling={false} style={[styles.optionTitle, isSelected && styles.optionTitleSelected]}>{title}</Text>
+                <Text allowFontScaling={false} style={styles.optionDesc}>{description}</Text>
             </View>
             <View style={styles.radioContainer}>
                 <View style={[styles.radioOuter, isSelected && styles.radioOuterSelected]}>
@@ -75,8 +75,8 @@ export default function OnboardingScreen() {
             <SafeAreaView style={{ flex: 1 }}>
 
                 <View style={styles.header}>
-                    <Text style={styles.title}>Hoş Geldiniz! 👋</Text>
-                    <Text style={styles.subtitle}>Size en uygun deneyimi sunabilmemiz için lütfen kullanım amacınızı seçin.</Text>
+                    <Text allowFontScaling={false} style={styles.title}>Hoş Geldiniz! 👋</Text>
+                    <Text allowFontScaling={false} style={styles.subtitle}>Size en uygun deneyimi sunabilmemiz için lütfen kullanım amacınızı seçin.</Text>
                 </View>
 
                 <View style={styles.content}>
@@ -109,7 +109,7 @@ export default function OnboardingScreen() {
                             colors={selectedType ? ['#D4AF37', '#AA8C2C'] : ['#333', '#333']}
                             style={styles.btnGradient}
                         >
-                            <Text style={[styles.btnText, !selectedType && styles.btnTextDisabled]}>
+                            <Text allowFontScaling={false} style={[styles.btnText, !selectedType && styles.btnTextDisabled]}>
                                 {loading ? 'İşleniyor...' : 'Devam Et'}
                             </Text>
                             <Ionicons name="arrow-forward" size={20} color={selectedType ? '#000' : '#666'} />

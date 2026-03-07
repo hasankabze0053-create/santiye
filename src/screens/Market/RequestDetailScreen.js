@@ -151,7 +151,7 @@ export default function RequestDetailScreen() {
     const StatusBadge = ({ status }) => (
         <View style={[styles.statusBadge, { borderColor: getStatusColor(status) }]}>
             <View style={[styles.statusDot, { backgroundColor: getStatusColor(status) }]} />
-            <Text style={[styles.statusText, { color: getStatusColor(status) }]}>
+            <Text allowFontScaling={false} style={[styles.statusText, { color: getStatusColor(status) }]}>
                 {status === 'OPEN' || status === 'pending' ? 'TEKLİF BEKLENİYOR' : status}
             </Text>
         </View>
@@ -195,7 +195,7 @@ export default function RequestDetailScreen() {
                         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                             <Ionicons name="arrow-back" size={24} color="#FFF" />
                         </TouchableOpacity>
-                        <Text style={styles.headerTitle}>PROJE DETAYI</Text>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>PROJE DETAYI</Text>
                         <View style={{ width: 40 }} />
                     </View>
 
@@ -205,39 +205,39 @@ export default function RequestDetailScreen() {
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                                         <MaterialCommunityIcons name="home-edit" size={28} color="#FFD700" />
-                                        <Text style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold' }}>Anahtar Teslim Tadilat</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold' }}>Anahtar Teslim Tadilat</Text>
                                     </View>
                                     <View style={{ backgroundColor: 'rgba(255, 215, 0, 0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
-                                        <Text style={{ color: '#FFD700', fontSize: 12, fontWeight: 'bold' }}>#{request.id?.slice(0, 8).toUpperCase()}</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 12, fontWeight: 'bold' }}>#{request.id?.slice(0, 8).toUpperCase()}</Text>
                                     </View>
                                 </View>
                                 
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
                                     <View style={{ flex: 1, minWidth: '30%', gap: 4 }}>
-                                        <Text style={{ color: '#A0A0A0', fontSize: 11, fontWeight: '600', letterSpacing: 0.5 }}>MEKAN</Text>
-                                        <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>{tadilatDetails.propertyType}</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 11, fontWeight: '600', letterSpacing: 0.5 }}>MEKAN</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>{tadilatDetails.propertyType}</Text>
                                     </View>
                                     <View style={{ flex: 1, minWidth: '30%', gap: 4 }}>
-                                        <Text style={{ color: '#A0A0A0', fontSize: 11, fontWeight: '600', letterSpacing: 0.5 }}>ALAN</Text>
-                                        <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>{tadilatDetails.areaSize}</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 11, fontWeight: '600', letterSpacing: 0.5 }}>ALAN</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>{tadilatDetails.areaSize}</Text>
                                     </View>
                                     <View style={{ flex: 1, minWidth: '30%', gap: 4 }}>
-                                        <Text style={{ color: '#A0A0A0', fontSize: 11, fontWeight: '600', letterSpacing: 0.5 }}>TARZ</Text>
-                                        <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>{tadilatDetails.style}</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 11, fontWeight: '600', letterSpacing: 0.5 }}>TARZ</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>{tadilatDetails.style}</Text>
                                     </View>
                                 </View>
 
                                 {request.description && (
                                     <View style={{ gap: 8 }}>
-                                        <Text style={{ color: '#FFD700', fontSize: 13, fontWeight: 'bold', textTransform: 'uppercase' }}>Ek Notlar</Text>
-                                        <Text style={{ color: '#DDD', fontSize: 14, lineHeight: 20 }}>
+                                        <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 13, fontWeight: 'bold', textTransform: 'uppercase' }}>Ek Notlar</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#DDD', fontSize: 14, lineHeight: 20 }}>
                                             {request.description.split('NOT:')[1]?.trim() || '-'}
                                         </Text>
                                     </View>
                                 )}
 
                                 <View style={{ gap: 12 }}>
-                                    <Text style={{ color: '#FFD700', fontSize: 13, fontWeight: 'bold', textTransform: 'uppercase' }}>Mevcut Alan & İlham</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 13, fontWeight: 'bold', textTransform: 'uppercase' }}>Mevcut Alan & İlham</Text>
                                     {request.document_urls && request.document_urls.length > 0 ? (
                                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
                                             {request.document_urls.map((url, idx) => (
@@ -249,7 +249,7 @@ export default function RequestDetailScreen() {
                                     ) : (
                                         <View style={{ height: 100, borderRadius: 12, borderWidth: 1, borderColor: '#333', borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center' }}>
                                             <MaterialCommunityIcons name="image-off-outline" size={24} color="#555" />
-                                            <Text style={{ color: '#A0A0A0', fontSize: 12, marginTop: 8 }}>Görsel yüklenmemiş</Text>
+                                            <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 12, marginTop: 8 }}>Görsel yüklenmemiş</Text>
                                         </View>
                                     )}
                                 </View>
@@ -277,7 +277,7 @@ export default function RequestDetailScreen() {
                                             }
                                         }}
                                     >
-                                        <Text style={{ color: '#121212', fontSize: 15, fontWeight: 'bold' }}>
+                                        <Text allowFontScaling={false} style={{ color: '#121212', fontSize: 15, fontWeight: 'bold' }}>
                                             {constructionOffers.length > 0 ? `${constructionOffers.length} Gelen Teklifi Gör` : 'Gelen Teklifleri Gör'}
                                         </Text>
                                     </TouchableOpacity>
@@ -294,8 +294,8 @@ export default function RequestDetailScreen() {
                                     size={32} color="#D4AF37" 
                                 />
                                 <View style={{ flex: 1, marginLeft: 12 }}>
-                                    <Text style={styles.title}>{request.offer_type === 'anahtar_teslim_tadilat' ? 'Mimari Dönüşüm Merkezi' : 'Kentsel Dönüşüm Projesi'}</Text>
-                                    <Text style={styles.date}>{request.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat & Yenileme' : `${request.district}, ${request.neighborhood}`}</Text>
+                                    <Text allowFontScaling={false} style={styles.title}>{request.offer_type === 'anahtar_teslim_tadilat' ? 'Mimari Dönüşüm Merkezi' : 'Kentsel Dönüşüm Projesi'}</Text>
+                                    <Text allowFontScaling={false} style={styles.date}>{request.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat & Yenileme' : `${request.district}, ${request.neighborhood}`}</Text>
                                 </View>
                             </View>
 
@@ -303,8 +303,8 @@ export default function RequestDetailScreen() {
 
                             <View style={styles.infoRow}>
                                 <View>
-                                    <Text style={styles.label}>PROJE NO</Text>
-                                    <Text style={styles.value}>#{request.id?.slice(0, 8).toUpperCase()}</Text>
+                                    <Text allowFontScaling={false} style={styles.label}>PROJE NO</Text>
+                                    <Text allowFontScaling={false} style={styles.value}>#{request.id?.slice(0, 8).toUpperCase()}</Text>
                                 </View>
                                 <StatusBadge status={request.status || 'pending'} />
                             </View>
@@ -317,7 +317,7 @@ export default function RequestDetailScreen() {
                                         size={20}
                                         color={request.is_campaign_active ? "#34C759" : "#EF4444"}
                                     />
-                                    <Text style={{ color: '#DDD', marginLeft: 8, fontWeight: 'bold' }}>
+                                    <Text allowFontScaling={false} style={{ color: '#DDD', marginLeft: 8, fontWeight: 'bold' }}>
                                         {request.is_campaign_active ? 'Yarısı Bizden Kampanyasından Faydalanılacağı Belirtildi' : 'Yarısı Bizden Kampanyası Yok'}
                                     </Text>
                                 </View>
@@ -327,15 +327,15 @@ export default function RequestDetailScreen() {
                         {/* 2. SPECS & UNITS (Conditionally Rendered) */}
                         {request.is_campaign_active && (
                             <View style={{ marginBottom: 20 }}>
-                                <Text style={styles.sectionTitle}>YARISI DEVLETTEN DESTEĞİNDEN FAYDALANILACAK KONUT / TİCARİ SAYISI</Text>
+                                <Text allowFontScaling={false} style={styles.sectionTitle}>YARISI DEVLETTEN DESTEĞİNDEN FAYDALANILACAK KONUT / TİCARİ SAYISI</Text>
                                 <View style={{ flexDirection: 'row', gap: 12 }}>
                                     <View style={[styles.card, { flex: 1, marginBottom: 0, padding: 15 }]}>
-                                        <Text style={[styles.label, { fontSize: 14 }]}>KONUT</Text>
-                                        <Text style={[styles.value, { fontSize: 24, color: '#FDCB58' }]}>{request.campaign_unit_count || 0}</Text>
+                                        <Text allowFontScaling={false} style={[styles.label, { fontSize: 14 }]}>KONUT</Text>
+                                        <Text allowFontScaling={false} style={[styles.value, { fontSize: 24, color: '#FDCB58' }]}>{request.campaign_unit_count || 0}</Text>
                                     </View>
                                     <View style={[styles.card, { flex: 1, marginBottom: 0, padding: 15 }]}>
-                                        <Text style={[styles.label, { fontSize: 14 }]}>TİCARİ</Text>
-                                        <Text style={[styles.value, { fontSize: 24, color: '#FDCB58' }]}>{request.campaign_commercial_count || 0}</Text>
+                                        <Text allowFontScaling={false} style={[styles.label, { fontSize: 14 }]}>TİCARİ</Text>
+                                        <Text allowFontScaling={false} style={[styles.value, { fontSize: 24, color: '#FDCB58' }]}>{request.campaign_commercial_count || 0}</Text>
                                     </View>
                                 </View>
                             </View>
@@ -343,13 +343,13 @@ export default function RequestDetailScreen() {
 
                         {/* 3. OFFER TYPE */}
                         <View style={styles.card}>
-                            <Text style={styles.sectionTitle}>TEKLİF MODELİ</Text>
+                            <Text allowFontScaling={false} style={styles.sectionTitle}>TEKLİF MODELİ</Text>
                             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
                                 <MaterialCommunityIcons name="handshake" size={24} color="#D4AF37" />
-                                <Text style={{ color: '#FFF', fontSize: 16, fontWeight: 'bold', marginLeft: 10 }}>{offerLabel}</Text>
+                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 16, fontWeight: 'bold', marginLeft: 10 }}>{offerLabel}</Text>
                             </View>
                             {request.offer_type === 'kat_karsiligi' && (
-                                <Text style={{ color: '#888', fontSize: 12, marginTop: 4, marginLeft: 34 }}>
+                                <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, marginTop: 4, marginLeft: 34 }}>
                                     Müteahhit firma arsa payı/daire karşılığında projeyi üstlenir.
                                 </Text>
                             )}
@@ -358,53 +358,53 @@ export default function RequestDetailScreen() {
                         {/* 4. DETAILS - DESCRIPTION */}
                         {request.description && (
                             <View style={styles.card}>
-                                <Text style={styles.sectionTitle}>PROJE NOTLARI & DETAYLAR</Text>
-                                <Text style={styles.noteText}>{request.description}</Text>
+                                <Text allowFontScaling={false} style={styles.sectionTitle}>PROJE NOTLARI & DETAYLAR</Text>
+                                <Text allowFontScaling={false} style={styles.noteText}>{request.description}</Text>
                             </View>
                         )}
 
                         {/* 5. LOCATION & LAND INFO */}
                         <View style={styles.card}>
-                            <Text style={styles.sectionTitle}>TAPU VE KONUM BİLGİLERİ</Text>
+                            <Text allowFontScaling={false} style={styles.sectionTitle}>TAPU VE KONUM BİLGİLERİ</Text>
                             <View style={{ marginTop: 10, gap: 12 }}>
                                 <View style={styles.infoRow}>
-                                    <Text style={{ color: '#888' }}>İl / İlçe:</Text>
-                                    <Text style={{ color: '#FFF', fontWeight: 'bold' }}>{request.city} / {request.district}</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#888' }}>İl / İlçe:</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontWeight: 'bold' }}>{request.city} / {request.district}</Text>
                                 </View>
                                 <View style={styles.infoRow}>
-                                    <Text style={{ color: '#888' }}>Mahalle:</Text>
-                                    <Text style={{ color: '#FFF', fontWeight: 'bold' }}>{request.neighborhood}</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#888' }}>Mahalle:</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontWeight: 'bold' }}>{request.neighborhood}</Text>
                                 </View>
                                 {request.offer_type !== 'anahtar_teslim_tadilat' && (
                                     <>
                                         <View style={[styles.divider, { marginVertical: 8, height: 1, backgroundColor: '#333' }]} />
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                             <View>
-                                                <Text style={styles.label}>ADA</Text>
-                                                <Text style={styles.value}>{request.ada}</Text>
+                                                <Text allowFontScaling={false} style={styles.label}>ADA</Text>
+                                                <Text allowFontScaling={false} style={styles.value}>{request.ada}</Text>
                                             </View>
                                             <View>
-                                                <Text style={styles.label}>PARSEL</Text>
-                                                <Text style={styles.value}>{request.parsel}</Text>
+                                                <Text allowFontScaling={false} style={styles.label}>PARSEL</Text>
+                                                <Text allowFontScaling={false} style={styles.value}>{request.parsel}</Text>
                                             </View>
                                             <View>
-                                                <Text style={styles.label}>PAFTA</Text>
-                                                <Text style={styles.value}>{request.pafta || '-'}</Text>
+                                                <Text allowFontScaling={false} style={styles.label}>PAFTA</Text>
+                                                <Text allowFontScaling={false} style={styles.value}>{request.pafta || '-'}</Text>
                                             </View>
                                         </View>
                                     </>
                                 )}
                                 {request.full_address && (
                                     <View style={{ marginTop: 12 }}>
-                                        <Text style={styles.label}>AÇIK ADRES</Text>
-                                        <Text style={{ color: '#CCC', fontSize: 13 }}>{request.full_address}</Text>
+                                        <Text allowFontScaling={false} style={styles.label}>AÇIK ADRES</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 13 }}>{request.full_address}</Text>
                                     </View>
                                 )}
                             </View>
                         </View>
 
                         {/* 6. DOCUMENTS & IMAGES */}
-                        <Text style={styles.sectionTitle}>BELGELER VE GÖRSELLER</Text>
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>BELGELER VE GÖRSELLER</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingBottom: 30 }}>
                             {request.deed_image_url && (
                                 <TouchableOpacity onPress={() => setSelectedImage(request.deed_image_url)} activeOpacity={0.8}>
@@ -412,7 +412,7 @@ export default function RequestDetailScreen() {
                                         source={{ uri: request.deed_image_url }}
                                         style={{ width: 140, height: 140, borderRadius: 12, borderWidth: 1, borderColor: '#333' }}
                                     />
-                                    <Text style={{ color: '#666', fontSize: 10, textAlign: 'center', marginTop: 4 }}>Tapu Görseli</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 10, textAlign: 'center', marginTop: 4 }}>Tapu Görseli</Text>
                                 </TouchableOpacity>
                             )}
 
@@ -422,14 +422,14 @@ export default function RequestDetailScreen() {
                                         source={{ uri: url }}
                                         style={{ width: 140, height: 140, borderRadius: 12, borderWidth: 1, borderColor: '#333' }}
                                     />
-                                    <Text style={{ color: '#666', fontSize: 10, textAlign: 'center', marginTop: 4 }}>Belge #{idx + 1}</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 10, textAlign: 'center', marginTop: 4 }}>Belge #{idx + 1}</Text>
                                 </TouchableOpacity>
                             ))}
 
                             {(!request.deed_image_url && (!request.document_urls || request.document_urls.length === 0)) && (
                                 <View style={{ width: '100%', padding: 20, alignItems: 'center', justifyContent: 'center', borderStyle: 'dashed', borderWidth: 1, borderColor: '#333', borderRadius: 12 }}>
                                     <MaterialCommunityIcons name="image-off-outline" size={32} color="#444" />
-                                    <Text style={{ color: '#666', marginTop: 8 }}>Belge yüklenmemiş</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#666', marginTop: 8 }}>Belge yüklenmemiş</Text>
                                 </View>
                             )}
                         </ScrollView>
@@ -437,11 +437,11 @@ export default function RequestDetailScreen() {
                         {/* 7. OFFERS SUMMARY */}
                         {isOwner && (
                             <View style={{ marginBottom: 30 }}>
-                                <Text style={styles.sectionTitle}>GELEN TEKLİFLER</Text>
+                                <Text allowFontScaling={false} style={styles.sectionTitle}>GELEN TEKLİFLER</Text>
                                 {constructionOffers.length === 0 ? (
                                     <View style={styles.emptyBids}>
                                         <MaterialCommunityIcons name="timer-sand" size={32} color="#666" />
-                                        <Text style={styles.emptyText}>Henüz teklif gelmedi. Müteahhitler projenizi inceliyor.</Text>
+                                        <Text allowFontScaling={false} style={styles.emptyText}>Henüz teklif gelmedi. Müteahhitler projenizi inceliyor.</Text>
                                     </View>
                                 ) : (
                                     <View style={styles.card}>
@@ -449,10 +449,10 @@ export default function RequestDetailScreen() {
                                             <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(212, 175, 55, 0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
                                                 <MaterialCommunityIcons name="email-multiple-outline" size={30} color="#D4AF37" />
                                             </View>
-                                            <Text style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold' }}>
+                                            <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold' }}>
                                                 {constructionOffers.length} Adet Teklifiniz Var
                                             </Text>
-                                            <Text style={{ color: '#888', textAlign: 'center', marginTop: 8, paddingHorizontal: 20 }}>
+                                            <Text allowFontScaling={false} style={{ color: '#888', textAlign: 'center', marginTop: 8, paddingHorizontal: 20 }}>
                                                 Gelen tekliflerin detaylarını incelemek için Gelen Kutusu'na gidiniz.
                                             </Text>
 
@@ -486,7 +486,7 @@ export default function RequestDetailScreen() {
                                                     }
                                                 }}
                                             >
-                                                <Text style={{ color: '#000', fontWeight: 'bold' }}>TEKLİFLERİ İNCELE</Text>
+                                                <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold' }}>TEKLİFLERİ İNCELE</Text>
                                                 <MaterialCommunityIcons name="arrow-right" size={20} color="#000" />
                                             </TouchableOpacity>
                                         </View>
@@ -514,7 +514,7 @@ export default function RequestDetailScreen() {
                                 >
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                         <MaterialCommunityIcons name="trash-can-outline" size={20} color="#EF4444" />
-                                        <Text style={{ color: '#EF4444', fontWeight: 'bold', fontSize: 16 }}>TALEBİ SİL</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#EF4444', fontWeight: 'bold', fontSize: 16 }}>TALEBİ SİL</Text>
                                     </View>
                                 </TouchableOpacity>
                             </View>
@@ -536,14 +536,14 @@ export default function RequestDetailScreen() {
                                 >
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                         <MaterialCommunityIcons name="file-document-edit-outline" size={20} color="#000" />
-                                        <Text style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>TEKLİF VER</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>TEKLİF VER</Text>
                                     </View>
                                 </TouchableOpacity>
 
                                 {isOwner && isAdmin && (
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: -20, marginBottom: 20, justifyContent: 'center', opacity: 0.7 }}>
                                         <MaterialCommunityIcons name="shield-account" size={14} color="#666" />
-                                        <Text style={{ color: '#666', fontSize: 11 }}>Admin Test Modu Aktif</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#666', fontSize: 11 }}>Admin Test Modu Aktif</Text>
                                     </View>
                                 )}
                             </View>
@@ -581,7 +581,7 @@ export default function RequestDetailScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>TALEP DETAYI</Text>
+                    <Text allowFontScaling={false} style={styles.headerTitle}>TALEP DETAYI</Text>
                     <View style={{ width: 40 }} />
                 </View>
 
@@ -590,64 +590,143 @@ export default function RequestDetailScreen() {
                         <View style={styles.cardHeader}>
                             <MaterialCommunityIcons name="cube-outline" size={32} color="#D4AF37" />
                             <View style={{ flex: 1, marginLeft: 12 }}>
-                                <Text style={styles.title}>{request?.title || 'Talep Başlığı'}</Text>
-                                <Text style={styles.date}>{new Date(request?.created_at).toLocaleDateString('tr-TR')} • {request?.location || 'Konum Belirtilmedi'}</Text>
+                                <Text allowFontScaling={false} style={styles.title}>{request?.title || 'Talep Başlığı'}</Text>
+                                <Text allowFontScaling={false} style={styles.date}>{new Date(request?.created_at).toLocaleDateString('tr-TR')} • {request?.location || 'Konum Belirtilmedi'}</Text>
                             </View>
                         </View>
                         <View style={styles.divider} />
                         <View style={styles.infoRow}>
                             <View>
-                                <Text style={styles.label}>BAŞVURU NO</Text>
-                                <Text style={styles.value}>#{request?.id?.slice(0, 8).toUpperCase()}</Text>
+                                <Text allowFontScaling={false} style={styles.label}>BAŞVURU NO</Text>
+                                <Text allowFontScaling={false} style={styles.value}>#{request?.id?.slice(0, 8).toUpperCase()}</Text>
                             </View>
                             <StatusBadge status={request?.status} />
                         </View>
                         {request?.image_url && (
                             <View style={{ marginTop: 16 }}>
-                                <Text style={styles.label}>EKLENEN FOTOĞRAF</Text>
+                                <Text allowFontScaling={false} style={styles.label}>EKLENEN FOTOĞRAF</Text>
                                 <Image source={{ uri: request.image_url }} style={{ width: '100%', height: 200, borderRadius: 12, marginTop: 4, borderWidth: 1, borderColor: '#333' }} resizeMode="cover" />
                             </View>
                         )}
                         {request?.notes && (
                             <View style={{ marginTop: 16 }}>
-                                <Text style={styles.label}>ÖZEL NOTLAR</Text>
-                                <Text style={styles.noteText}>{request.notes}</Text>
+                                <Text allowFontScaling={false} style={styles.label}>ÖZEL NOTLAR</Text>
+                                <Text allowFontScaling={false} style={styles.noteText}>{request.notes}</Text>
                             </View>
                         )}
                     </View>
 
-                    <Text style={styles.sectionTitle}>MALZEME LİSTESİ</Text>
+                    <Text allowFontScaling={false} style={styles.sectionTitle}>MALZEME LİSTESİ</Text>
                     {loading ? (
                         <ActivityIndicator color="#D4AF37" style={{ marginTop: 20 }} />
                     ) : (
                         <View style={styles.itemsContainer}>
-                            {items.map((item, index) => (
-                                <View key={item.id} style={[styles.itemRow, index !== items.length - 1 && styles.itemBorder]}>
-                                    <View style={styles.itemIndex}>
-                                        <Text style={styles.indexText}>{index + 1}</Text>
+                            {items.map((item, index) => {
+                                let displayName = item.product_name || '';
+                                let brand = null;
+                                let spec = null;
+                                
+                                const brandMatch = displayName.match(/\[Marka:\s(.*?)\]/);
+                                if (brandMatch) {
+                                    brand = brandMatch[1];
+                                    displayName = displayName.replace(brandMatch[0], '').trim();
+                                }
+                                
+                                const specMatch = displayName.match(/\[Özellik:\s(.*?)\]/);
+                                if (specMatch) {
+                                    spec = specMatch[1];
+                                    displayName = displayName.replace(specMatch[0], '').trim();
+                                }
+
+                                return (
+                                    <View key={item.id} style={[styles.itemRow, index !== items.length - 1 && styles.itemBorder, { flexDirection: 'column', alignItems: 'stretch', paddingVertical: 16 }]}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: (brand || spec || item.details) ? 12 : 0 }}>
+                                            <View style={styles.itemIndex}>
+                                                <Text allowFontScaling={false} style={styles.indexText}>{index + 1}</Text>
+                                            </View>
+                                            <View style={{ flex: 1, paddingRight: 10 }}>
+                                                <Text allowFontScaling={false} style={styles.itemName}>{displayName}</Text>
+                                            </View>
+                                            <Text allowFontScaling={false} style={styles.itemQty}>{item.quantity}</Text>
+                                        </View>
+                                        
+                                        {(brand || spec || item.details) && (
+                                            <View style={{ marginLeft: 36, padding: 12, backgroundColor: 'rgba(212, 175, 55, 0.05)', borderRadius: 8, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.15)', gap: 6 }}>
+                                                {brand && (
+                                                    <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                                                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, width: 60 }}>Marka:</Text>
+                                                        <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 12, fontWeight: 'bold', flex: 1 }}>{brand}</Text>
+                                                    </View>
+                                                )}
+                                                {spec && (
+                                                    <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                                                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, width: 60 }}>Özellik:</Text>
+                                                        <Text allowFontScaling={false} style={{ color: '#DDD', fontSize: 12, flex: 1 }}>{spec}</Text>
+                                                    </View>
+                                                )}
+                                                {item.details && (
+                                                    <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                                                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, width: 60 }}>Detaylar:</Text>
+                                                        <Text allowFontScaling={false} style={{ color: '#DDD', fontSize: 12, flex: 1 }}>{item.details}</Text>
+                                                    </View>
+                                                )}
+                                            </View>
+                                        )}
                                     </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={styles.itemName}>{item.product_name}</Text>
-                                        {item.details && <Text style={styles.itemDetail}>{item.details}</Text>}
-                                    </View>
-                                    <Text style={styles.itemQty}>{item.quantity}</Text>
-                                </View>
-                            ))}
+                                );
+                            })}
                         </View>
                     )}
 
-                    <Text style={styles.sectionTitle}>GELEN TEKLİFLER ({bids.length})</Text>
-                    {bids.length === 0 ? (
-                        <View style={styles.emptyBids}>
-                            <MaterialCommunityIcons name="timer-sand" size={32} color="#666" />
-                            <Text style={styles.emptyText}>Henüz teklif gelmedi.</Text>
-                        </View>
-                    ) : (
-                        bids.map(bid => (
-                            <View key={bid.id} style={styles.bidCard}>
-                                <Text style={{ color: '#fff' }}>Teklif: {bid.price} {bid.currency}</Text>
+                    {request?.status === 'COMPLETED' ? (
+                        <>
+                            <Text allowFontScaling={false} style={styles.sectionTitle}>GELEN TEKLİFLER</Text>
+                            <View style={styles.emptyBids}>
+                                <Text allowFontScaling={false} style={styles.emptyText}>Bu talep için alım tamamlanmış.</Text>
                             </View>
-                        ))
+                        </>
+                    ) : bids.length === 0 ? (
+                        <>
+                            <Text allowFontScaling={false} style={styles.sectionTitle}>GELEN TEKLİFLER</Text>
+                            <View style={styles.emptyBids}>
+                                <MaterialCommunityIcons name="timer-sand" size={32} color="#666" />
+                                <Text allowFontScaling={false} style={styles.emptyText}>Henüz teklif gelmedi.</Text>
+                            </View>
+                        </>
+                    ) : (
+                        <View style={{ marginBottom: 30 }}>
+                            <Text allowFontScaling={false} style={styles.sectionTitle}>GELEN TEKLİFLER</Text>
+                            <View style={styles.card}>
+                                <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                                    <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(212, 175, 55, 0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                                        <MaterialCommunityIcons name="email-multiple-outline" size={30} color="#D4AF37" />
+                                    </View>
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold' }}>
+                                        {bids.length} Adet Teklifiniz Var
+                                    </Text>
+                                    <Text allowFontScaling={false} style={{ color: '#888', textAlign: 'center', marginTop: 8, paddingHorizontal: 20 }}>
+                                        Gelen tekliflerin detaylarını ve alternatif seçenekleri incelemek için tıklayın.
+                                    </Text>
+
+                                    <TouchableOpacity
+                                        style={{
+                                            marginTop: 20,
+                                            backgroundColor: '#D4AF37',
+                                            paddingVertical: 12,
+                                            paddingHorizontal: 24,
+                                            borderRadius: 24,
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            gap: 8
+                                        }}
+                                        onPress={() => navigation.navigate('MarketOffers', { request, bids })}
+                                    >
+                                        <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold' }}>TEKLİFLERİ İNCELE</Text>
+                                        <MaterialCommunityIcons name="arrow-right" size={20} color="#000" />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
                     )}
                 </ScrollView>
             </SafeAreaView>

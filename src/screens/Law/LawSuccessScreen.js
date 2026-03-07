@@ -74,31 +74,31 @@ export default function LawSuccessScreen({ navigation, route }) {
                         </Animated.View>
                     </View>
 
-                    <Animated.View style={{ opacity: fadeVal, transform: [{ translateY: slideVal }] }}>
+                    <Animated.View style={{ opacity: fadeVal, transform: [{ translateY: slideVal }], width: '100%' }}>
 
-                        <Text style={styles.title}>Vaka Dosyası Oluşturuldu</Text>
-                        <Text style={styles.subtitle}>Yapay Zeka analizi tamamlandı ve avukatlara iletildi.</Text>
+                        <Text allowFontScaling={false} style={styles.title}>Vaka Dosyası Oluşturuldu</Text>
+                        <Text allowFontScaling={false} style={styles.subtitle}>Yapay Zeka analizi tamamlandı ve avukatlara iletildi.</Text>
 
                         {/* Case ID */}
                         <View style={styles.caseIdCard}>
-                            <Text style={styles.caseIdLabel}>VAKA NUMARASI</Text>
-                            <Text style={styles.caseIdValue}>{caseId}</Text>
-                            <Text style={styles.caseIdNote}>Bu numara ile durumunuzu takip edebilirsiniz</Text>
+                            <Text allowFontScaling={false} style={styles.caseIdLabel}>VAKA NUMARASI</Text>
+                            <Text allowFontScaling={false} style={styles.caseIdValue}>{caseId}</Text>
+                            <Text allowFontScaling={false} style={styles.caseIdNote}>Bu numara ile durumunuzu takip edebilirsiniz</Text>
                         </View>
 
                         {/* Matched Lawyer */}
                         {lawyer && (
                             <View style={styles.lawyerCard}>
                                 <View style={styles.lawyerBadge}>
-                                    <Text style={styles.lawyerBadgeText}>✦ EŞLEŞTİRİLEN AVUKAT</Text>
+                                    <Text allowFontScaling={false} style={styles.lawyerBadgeText}>✦ EŞLEŞTİRİLEN AVUKAT</Text>
                                 </View>
                                 <View style={styles.lawyerRow}>
                                     <View style={styles.lawyerAvatar}>
-                                        <Text style={{ fontSize: 26 }}>{lawyer.avatar}</Text>
+                                        <Text allowFontScaling={false} style={{ fontSize: 26 }}>{lawyer.avatar}</Text>
                                     </View>
                                     <View style={{ flex: 1 }}>
-                                        <Text style={styles.lawyerName}>{lawyer.name}</Text>
-                                        <Text style={styles.lawyerTitle}>{lawyer.title}</Text>
+                                        <Text allowFontScaling={false} style={styles.lawyerName}>{lawyer.name}</Text>
+                                        <Text allowFontScaling={false} style={styles.lawyerTitle}>{lawyer.title}</Text>
                                     </View>
                                     <View style={styles.onlineDot} />
                                 </View>
@@ -110,15 +110,15 @@ export default function LawSuccessScreen({ navigation, route }) {
                             <View style={styles.summaryCard}>
                                 <MaterialCommunityIcons name="robot-outline" size={16} color={GOLD_MAIN} />
                                 <View style={{ flex: 1 }}>
-                                    <Text style={styles.summaryLabel}>AI ÖZET</Text>
-                                    <Text style={styles.summaryText}>{caseData.kisa_ozet}</Text>
+                                    <Text allowFontScaling={false} style={styles.summaryLabel}>AI ÖZET</Text>
+                                    <Text allowFontScaling={false} style={styles.summaryText}>{caseData.kisa_ozet}</Text>
                                 </View>
                             </View>
                         )}
 
                         {/* Timeline */}
                         <View style={styles.timelineCard}>
-                            <Text style={styles.timelineTitle}>Süreç Adımları</Text>
+                            <Text allowFontScaling={false} style={styles.timelineTitle}>Süreç Adımları</Text>
                             {[
                                 { icon: 'check-circle', color: SUCCESS_GREEN, text: 'Yapay Zeka Analizi Tamamlandı', done: true },
                                 { icon: 'clock-outline', color: GOLD_MAIN, text: 'Avukat 24 saat içinde yanıt verecek', done: false },
@@ -126,7 +126,7 @@ export default function LawSuccessScreen({ navigation, route }) {
                             ].map((step, i) => (
                                 <View key={i} style={styles.timelineRow}>
                                     <MaterialCommunityIcons name={step.icon} size={18} color={step.color} />
-                                    <Text style={[styles.timelineText, !step.done && { color: '#777' }]}>{step.text}</Text>
+                                    <Text allowFontScaling={false} style={[styles.timelineText, !step.done && { color: '#777' }]}>{step.text}</Text>
                                 </View>
                             ))}
                         </View>
@@ -138,13 +138,13 @@ export default function LawSuccessScreen({ navigation, route }) {
                             onPress={() => navigation.navigate('MainTabs')}
                         >
                             <LinearGradient colors={[GOLD_MAIN, GOLD_DARK]} style={styles.primaryBtnGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                                <Text style={styles.primaryBtnText}>ANA SAYFAYA DÖN</Text>
+                                <Text allowFontScaling={false} style={styles.primaryBtnText}>ANA SAYFAYA DÖN</Text>
                                 <Ionicons name="home-outline" size={18} color="#000" />
                             </LinearGradient>
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation.goBack()}>
-                            <Text style={styles.secondaryBtnText}>Yeni Analiz Başlat</Text>
+                            <Text allowFontScaling={false} style={styles.secondaryBtnText}>Yeni Analiz Başlat</Text>
                         </TouchableOpacity>
 
                     </Animated.View>
@@ -156,7 +156,7 @@ export default function LawSuccessScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#000' },
-    content: { padding: 24, alignItems: 'center', paddingBottom: 48 },
+    content: { padding: 24, alignItems: 'center', paddingBottom: 48, width: '100%' },
 
     iconWrap: { alignItems: 'center', justifyContent: 'center', marginBottom: 32, marginTop: 20, width: 140, height: 140 },
     ring: { position: 'absolute', borderRadius: 999, borderWidth: 1 },
@@ -177,8 +177,8 @@ const styles = StyleSheet.create({
         borderWidth: 1, borderColor: '#222',
     },
     caseIdLabel: { color: '#555', fontSize: 10, fontWeight: '700', letterSpacing: 2 },
-    caseIdValue: { color: GOLD_MAIN, fontSize: 28, fontWeight: '900', letterSpacing: 3, marginVertical: 8 },
-    caseIdNote: { color: '#666', fontSize: 12 },
+    caseIdValue: { color: GOLD_MAIN, fontSize: 28, fontWeight: '900', letterSpacing: 3, marginVertical: 8, textAlign: 'center', width: '100%' },
+    caseIdNote: { color: '#666', fontSize: 12, textAlign: 'center' },
 
     lawyerCard: {
         width: '100%', backgroundColor: '#111', borderRadius: 20,
@@ -187,14 +187,14 @@ const styles = StyleSheet.create({
     },
     lawyerBadge: { marginBottom: 14 },
     lawyerBadgeText: { color: GOLD_MAIN, fontSize: 10, fontWeight: '800', letterSpacing: 1.5 },
-    lawyerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    lawyerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, width: '100%' },
     lawyerAvatar: {
         width: 50, height: 50, borderRadius: 25,
         backgroundColor: '#1E1E1E', borderWidth: 1, borderColor: '#333',
         alignItems: 'center', justifyContent: 'center',
     },
-    lawyerName: { color: '#fff', fontSize: 16, fontWeight: '700' },
-    lawyerTitle: { color: '#888', fontSize: 12, marginTop: 2 },
+    lawyerName: { color: '#fff', fontSize: 16, fontWeight: '700', flexShrink: 1 },
+    lawyerTitle: { color: '#888', fontSize: 12, marginTop: 2, flexShrink: 1 },
     onlineDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: SUCCESS_GREEN },
 
     summaryCard: {
@@ -214,6 +214,6 @@ const styles = StyleSheet.create({
     primaryBtnGradient: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
     primaryBtnText: { color: '#000', fontSize: 14, fontWeight: '900', letterSpacing: 1 },
 
-    secondaryBtn: { paddingVertical: 14, alignItems: 'center' },
+    secondaryBtn: { paddingVertical: 14, alignItems: 'center', width: '100%' },
     secondaryBtnText: { color: GOLD_MAIN, fontSize: 14, fontWeight: '700' },
 });

@@ -153,8 +153,8 @@ export default function EngineeringScreen() {
                         {/* HEADER */}
                         <View style={styles.header}>
                             <View>
-                                <Text style={styles.headerTitle}>PROJE & TEKNİK</Text>
-                                <Text style={styles.headerSubtitle}>DANIŞMANLIK OFİSİ</Text>
+                                <Text allowFontScaling={false} style={styles.headerTitle}>PROJE & TEKNİK</Text>
+                                <Text allowFontScaling={false} style={styles.headerSubtitle}>DANIŞMANLIK OFİSİ</Text>
                             </View>
                             <TouchableOpacity
                                 style={[styles.headerIconBtn, !isEngineer && !isAdmin && { opacity: 0.5 }]}
@@ -172,7 +172,7 @@ export default function EngineeringScreen() {
                         </View>
 
                         {/* 1. SECTION: PREMIUM SERVICES (Reference: Quick Tools) */}
-                        <Text style={styles.sectionHeader}>PROFESYONEL DESTEK</Text>
+                        <Text allowFontScaling={false} style={styles.sectionHeader}>PROFESYONEL DESTEK</Text>
 
                         <View style={styles.gridContainer}>
 
@@ -181,7 +181,7 @@ export default function EngineeringScreen() {
                                 <View style={styles.iconBox}>
                                     <BlinkingIcon name="message-text-clock-outline" size={32} color={SUCCESS_GREEN} />
                                 </View>
-                                <Text style={[styles.gridTitle, { color: '#FFF', fontWeight: 'bold' }]}>💬 SORU & CEVAP</Text>
+                                <Text allowFontScaling={false} style={[styles.gridTitle, { color: '#FFF', fontWeight: 'bold' }]}>💬 SORU & CEVAP</Text>
                             </GreenHighlightCard>
 
                             {/* 2. RUHSAT & RESMİ (Gold) */}
@@ -189,7 +189,7 @@ export default function EngineeringScreen() {
                                 <View style={styles.iconBox}>
                                     <FontAwesome5 name="file-signature" size={24} color={GOLD_MAIN} />
                                 </View>
-                                <Text style={styles.gridTitle}>🏛️ RUHSAT &{'\n'}RESMİ PROJE</Text>
+                                <Text allowFontScaling={false} style={styles.gridTitle}>🏛️ RUHSAT &{'\n'}RESMİ PROJE</Text>
                             </GoldCard>
 
                             {/* 3. MALİYET ANALİZİ (Gold) */}
@@ -197,7 +197,7 @@ export default function EngineeringScreen() {
                                 <View style={styles.iconBox}>
                                     <FontAwesome5 name="calculator" size={24} color={GOLD_MAIN} />
                                 </View>
-                                <Text style={styles.gridTitle}>📐 MALİYET &{'\n'}METRAJ</Text>
+                                <Text allowFontScaling={false} style={styles.gridTitle}>📐 MALİYET &{'\n'}METRAJ</Text>
                             </GoldCard>
 
                             {/* 4. MİMARİ TASARIM (Gold) */}
@@ -205,7 +205,7 @@ export default function EngineeringScreen() {
                                 <View style={styles.iconBox}>
                                     <MaterialCommunityIcons name="cube-outline" size={28} color={GOLD_MAIN} />
                                 </View>
-                                <Text style={styles.gridTitle}>🧊 MİMARİ &{'\n'}3D VİZYON</Text>
+                                <Text allowFontScaling={false} style={styles.gridTitle}>🧊 MİMARİ &{'\n'}3D VİZYON</Text>
                             </GoldCard>
 
                             {/* 5. YAPI SAĞLIĞI & DENETİM (Standard Gold) - Swapped */}
@@ -213,7 +213,7 @@ export default function EngineeringScreen() {
                                 <View style={styles.iconBox}>
                                     <MaterialCommunityIcons name="shield-check-outline" size={28} color={GOLD_MAIN} />
                                 </View>
-                                <Text style={[styles.gridTitle, { color: GOLD_MAIN, fontWeight: '600' }]}>🛡️ YAPI SAĞLIĞI{'\n'}& DENETİM</Text>
+                                <Text allowFontScaling={false} style={[styles.gridTitle, { color: GOLD_MAIN, fontWeight: '600' }]}>🛡️ YAPI SAĞLIĞI{'\n'}& DENETİM</Text>
                             </GoldCard>
 
                             {/* 6. YERİNDE KEŞİF (Gold) */}
@@ -221,7 +221,7 @@ export default function EngineeringScreen() {
                                 <View style={styles.iconBox}>
                                     <MaterialCommunityIcons name="map-marker-radius-outline" size={28} color={GOLD_MAIN} />
                                 </View>
-                                <Text style={styles.gridTitle}>📍 YERİNDE{'\n'}TEKNİK KEŞİF</Text>
+                                <Text allowFontScaling={false} style={styles.gridTitle}>📍 YERİNDE{'\n'}TEKNİK KEŞİF</Text>
                             </GoldCard>
 
                         </View>
@@ -234,11 +234,11 @@ export default function EngineeringScreen() {
                                 style={styles.heroGlow}
                             />
 
-                            <Text style={styles.aiTitle}>PROJE DANIŞMANLIK & ÇÖZÜM</Text>
-                            <Text style={styles.aiSubtitle}>Aklınızdaki projeyi, arsanızı veya sorununuzu detaylıca anlatın, uzman teknik kadromuz size dönüş yapsın.</Text>
+                            <Text allowFontScaling={false} style={styles.aiTitle}>PROJE DANIŞMANLIK & ÇÖZÜM</Text>
+                            <Text allowFontScaling={false} style={styles.aiSubtitle}>Aklınızdaki projeyi, arsanızı veya sorununuzu detaylıca anlatın, uzman teknik kadromuz size dönüş yapsın.</Text>
 
                             <View style={styles.aiInputContainer}>
-                                <TextInput
+                                <TextInput allowFontScaling={false}
                                     style={styles.aiInput}
                                     placeholder="Proje konumu, m2, yapı türü ve beklentilerinizi buraya yazın veya sesli anlatın..."
                                     placeholderTextColor="#999"
@@ -261,17 +261,17 @@ export default function EngineeringScreen() {
                             <View style={styles.actionButtonsContainer}>
                                 <TouchableOpacity style={styles.actionBtn}>
                                     <FontAwesome5 name="paperclip" size={14} color="#aaa" />
-                                    <Text style={styles.actionBtnText}>Dosya Yükle</Text>
+                                    <Text allowFontScaling={false} style={styles.actionBtnText}>Dosya Yükle</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity style={styles.actionBtn}>
                                     <FontAwesome5 name="camera" size={14} color="#aaa" />
-                                    <Text style={styles.actionBtnText}>Fotoğraf Çek</Text>
+                                    <Text allowFontScaling={false} style={styles.actionBtnText}>Fotoğraf Çek</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity style={styles.actionBtn}>
                                     <FontAwesome5 name="map-marker-alt" size={14} color="#aaa" />
-                                    <Text style={styles.actionBtnText}>Konum Paylaş</Text>
+                                    <Text allowFontScaling={false} style={styles.actionBtnText}>Konum Paylaş</Text>
                                 </TouchableOpacity>
                             </View>
 
@@ -282,7 +282,7 @@ export default function EngineeringScreen() {
                                     style={styles.bigBtnGradient}
                                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                                 >
-                                    <Text style={styles.bigBtnText}>İNCELEME BAŞLAT</Text>
+                                    <Text allowFontScaling={false} style={styles.bigBtnText}>İNCELEME BAŞLAT</Text>
                                     <MaterialCommunityIcons name="arrow-right-circle" size={24} color="#000" />
                                 </LinearGradient>
                             </TouchableOpacity>
@@ -296,7 +296,7 @@ export default function EngineeringScreen() {
                     <InputAccessoryView nativeID="DoneButton">
                         <View style={styles.accessory}>
                             <TouchableOpacity onPress={Keyboard.dismiss} style={styles.accessoryBtn}>
-                                <Text style={styles.accessoryText}>Bitti</Text>
+                                <Text allowFontScaling={false} style={styles.accessoryText}>Bitti</Text>
                             </TouchableOpacity>
                         </View>
                     </InputAccessoryView>

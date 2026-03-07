@@ -71,7 +71,7 @@ const SelectionModal = ({ visible, onClose, title, items, onSelect, lockedPredic
                 <Animated.View style={[styles.modalContent, { opacity: fadeAnim, transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [50, 0] }) }] }]}>
                     <LinearGradient colors={['#1a1a1a', '#0F0F0F']} style={styles.modalGradient}>
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>{title}</Text>
+                            <Text allowFontScaling={false} style={styles.modalTitle}>{title}</Text>
                             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                                 <Ionicons name="close" size={24} color="#D4AF37" />
                             </TouchableOpacity>
@@ -99,10 +99,10 @@ const SelectionModal = ({ visible, onClose, title, items, onSelect, lockedPredic
                                         }}
                                     >
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                            <Text style={[styles.modalItemText, isLocked && { color: '#888' }]}>{item}</Text>
+                                            <Text allowFontScaling={false} style={[styles.modalItemText, isLocked && { color: '#888' }]}>{item}</Text>
                                             {isLocked && (
                                                 <View style={{ backgroundColor: 'rgba(212, 175, 55, 0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginLeft: 8, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.3)' }}>
-                                                    <Text style={{ fontSize: 9, color: '#D4AF37', fontWeight: '600' }}>DETAYLI ANALİZ</Text>
+                                                    <Text allowFontScaling={false} style={{ fontSize: 9, color: '#D4AF37', fontWeight: '600' }}>DETAYLI ANALİZ</Text>
                                                 </View>
                                             )}
                                         </View>
@@ -275,12 +275,12 @@ export default function SimpleCostScreen({ navigation, route }) {
                         {/* Location Pills */}
                         <View style={styles.locationRow}>
                             <TouchableOpacity onPress={openCityModal} style={styles.locationPill}>
-                                <Text style={styles.locationPillText}>{city}</Text>
+                                <Text allowFontScaling={false} style={styles.locationPillText}>{city}</Text>
                                 <Ionicons name="chevron-down" size={12} color="#FFD700" />
                             </TouchableOpacity>
-                            <Text style={{ color: '#444', marginHorizontal: 5 }}>/</Text>
+                            <Text allowFontScaling={false} style={{ color: '#444', marginHorizontal: 5 }}>/</Text>
                             <TouchableOpacity onPress={openDistrictModal} style={styles.locationPill}>
-                                <Text style={styles.locationPillText}>{district || 'İlçe Seç'}</Text>
+                                <Text allowFontScaling={false} style={styles.locationPillText}>{district || 'İlçe Seç'}</Text>
                                 <Ionicons name="chevron-down" size={12} color="#FFD700" />
                             </TouchableOpacity>
                         </View>
@@ -291,10 +291,10 @@ export default function SimpleCostScreen({ navigation, route }) {
                                 <Ionicons name="arrow-back" size={24} color="#fff" />
                             </TouchableOpacity>
                             <View style={styles.headerTitleContainer}>
-                                <Text style={styles.headerTitle}>KONUT İNŞAATI</Text>
+                                <Text allowFontScaling={false} style={styles.headerTitle}>KONUT İNŞAATI</Text>
                             </View>
                             <View style={styles.currencyToggle}>
-                                <Text style={[styles.currencyLabel, !isUSD && styles.activeCurrency]}>₺</Text>
+                                <Text allowFontScaling={false} style={[styles.currencyLabel, !isUSD && styles.activeCurrency]}>₺</Text>
                                 <Switch
                                     trackColor={{ false: "#333", true: "#1C1C1E" }}
                                     thumbColor={isUSD ? "#FFD700" : "#f4f3f4"}
@@ -303,7 +303,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                                     value={isUSD}
                                     style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
                                 />
-                                <Text style={[styles.currencyLabel, isUSD && styles.activeCurrency]}>$</Text>
+                                <Text allowFontScaling={false} style={[styles.currencyLabel, isUSD && styles.activeCurrency]}>$</Text>
                             </View>
                         </View>
 
@@ -311,7 +311,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                         <GlassCard style={styles.card}>
                             <View style={styles.cardHeader}>
                                 <Ionicons name="resize" size={20} color="#FFD700" />
-                                <Text style={styles.cardTitle}>TOPLAM İNŞAAT ALANI</Text>
+                                <Text allowFontScaling={false} style={styles.cardTitle}>TOPLAM İNŞAAT ALANI</Text>
                             </View>
 
                             {/* Editable Box Perception: Matches LuxuryCard Border Radius and Style */}
@@ -332,7 +332,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                                 >
                                     <View style={styles.inputBoxContent}>
                                         <View style={styles.inputInner}>
-                                            <TextInput
+                                            <TextInput allowFontScaling={false}
                                                 ref={inputRef}
                                                 style={[
                                                     styles.mainInput,
@@ -363,7 +363,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                                                 onBlur={() => setIsInputFocused(false)}
                                                 inputAccessoryViewID="toolbar_area" // Unique toolbar for Area
                                             />
-                                            <Text style={styles.unitText}>m²</Text>
+                                            <Text allowFontScaling={false} style={styles.unitText}>m²</Text>
                                         </View>
 
                                         <View>
@@ -373,7 +373,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                                 </GoldBorderContainer>
                             </TouchableOpacity>
 
-                            <Text style={styles.helperText}>Yazarak veya sürükleyerek değiştirebilirsiniz</Text>
+                            <Text allowFontScaling={false} style={styles.helperText}>Yazarak veya sürükleyerek değiştirebilirsiniz</Text>
 
                             {/* Ruler Slider */}
                             <View style={styles.sliderContainer}>
@@ -460,8 +460,8 @@ export default function SimpleCostScreen({ navigation, route }) {
                             </View>
 
                             <View style={styles.sliderLabels}>
-                                <Text style={styles.sliderLabel}>10 m²</Text>
-                                <Text style={styles.sliderLabel}>5000 m²</Text>
+                                <Text allowFontScaling={false} style={styles.sliderLabel}>10 m²</Text>
+                                <Text allowFontScaling={false} style={styles.sliderLabel}>5000 m²</Text>
                             </View>
                         </GlassCard>
 
@@ -469,7 +469,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                         <GlassCard style={styles.card}>
                             <View style={styles.cardHeader}>
                                 <Ionicons name="pricetag" size={20} color="#FFD700" />
-                                <Text style={styles.cardTitle}>YAPI SINIFI VE FİYAT</Text>
+                                <Text allowFontScaling={false} style={styles.cardTitle}>YAPI SINIFI VE FİYAT</Text>
                             </View>
 
                             <LinearGradient
@@ -500,7 +500,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                                                     end={{ x: 0, y: 1 }} // Vertical brushed look
                                                 >
                                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                                        <Text style={[styles.presetLabel, { color: '#000', textShadowColor: 'rgba(255,255,255,0.5)', textShadowRadius: 2 }]}>
+                                                        <Text allowFontScaling={false} style={[styles.presetLabel, { color: '#000', textShadowColor: 'rgba(255,255,255,0.5)', textShadowRadius: 2 }]}>
                                                             {preset.label}
                                                         </Text>
                                                         {preset.label === 'Lüks' && (
@@ -515,7 +515,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                                                     start={{ x: 0, y: 0 }}
                                                     end={{ x: 0, y: 1 }} // Vertical lighting
                                                 >
-                                                    <Text style={[styles.presetLabel, { color: '#6B5B55', textShadowColor: 'rgba(0,0,0,1)', textShadowRadius: 1 }]}>
+                                                    <Text allowFontScaling={false} style={[styles.presetLabel, { color: '#6B5B55', textShadowColor: 'rgba(0,0,0,1)', textShadowRadius: 1 }]}>
                                                         {preset.label}
                                                     </Text>
                                                 </LinearGradient>
@@ -528,7 +528,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                             {/* Secondary Input with Thin Gold Border */}
                             <GoldBorderContainer style={{ borderRadius: 12, padding: 1 }} focused={true}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 16 }}>
-                                    <TextInput
+                                    <TextInput allowFontScaling={false}
                                         style={[styles.secondaryInput, { borderWidth: 0, marginTop: 0, flex: 1 }]} // Remove default border
                                         value={unitPrice}
                                         onChangeText={(text) => {
@@ -551,7 +551,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                                         inputAccessoryViewID="toolbar_price" // Unique toolbar for Price
                                     />
                                     {unitPrice.length > 0 && (
-                                        <Text style={{ color: '#FFD700', fontWeight: '600', marginLeft: 8 }}>
+                                        <Text allowFontScaling={false} style={{ color: '#FFD700', fontWeight: '600', marginLeft: 8 }}>
                                             {isUSD ? '$/m²' : 'TL/m²'}
                                         </Text>
                                     )}
@@ -561,31 +561,39 @@ export default function SimpleCostScreen({ navigation, route }) {
 
                         {/* Result Section */}
                         <View style={styles.resultContainer}>
-                            <Text style={styles.resultLabelSmall}>TAHMİNİ</Text>
-                            <Text style={styles.resultLabel}>ANAHTAR TESLİM KONUT MALİYETİ</Text>
+                            <Text allowFontScaling={false} style={styles.resultLabelSmall}>TAHMİNİ</Text>
+                            <Text allowFontScaling={false} style={styles.resultLabel}>ANAHTAR TESLİM KONUT MALİYETİ</Text>
                             <Animated.Text style={[styles.resultValue, { opacity: fadeResult, color: '#FFD700' }]}>
                                 {formatCurrency(result)}
                             </Animated.Text>
                         </View>
 
-                        <TouchableOpacity
-                            style={styles.saveButton}
-                            activeOpacity={0.9}
-                            onPress={() => navigation.navigate('ConstructionOffer', {
-                                location: { city, district: district }, // Pass current location
-                                initialArea: area // Pass current area
-                            })}
-                        >
-                            <LinearGradient
-                                colors={['#D6A023', '#D6A023']} // Reverted to Matte Gold
-                                start={{ x: 0, y: 0.5 }}
-                                end={{ x: 1, y: 0.5 }}
-                                style={styles.saveButtonGradient}
+                        <View style={styles.premiumActionCard}>
+                            <View style={styles.premiumActionHeader}>
+                                <View style={styles.premiumActionIconBox}>
+                                    <MaterialCommunityIcons name="crane" size={24} color="#000" />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text allowFontScaling={false} style={styles.premiumActionTitle}>Anahtar Teslim İnşaat Teklifi</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, marginTop: 4 }}>Lisanslı müteahhitlerden resmi teklif alın.</Text>
+                                </View>
+                            </View>
+                            <TouchableOpacity 
+                                activeOpacity={0.9} 
+                                onPress={() => navigation.navigate('ConstructionOffer', {
+                                    location: { city, district: district },
+                                    initialArea: area
+                                })}
                             >
-                                <Text style={styles.saveButtonText}>İNŞAAT FİRMALARINDAN TEKLİF AL</Text>
-                                <Ionicons name="arrow-forward" size={22} color="#000" />
-                            </LinearGradient>
-                        </TouchableOpacity>
+                                <LinearGradient
+                                    colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']}
+                                    style={styles.premiumActionButton}
+                                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                                >
+                                    <Text allowFontScaling={false} style={styles.premiumActionButtonText}>HEMEN TEKLİF AL</Text>
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
 
                     </ScrollView>
                 </KeyboardAvoidingView>
@@ -606,7 +614,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                     <InputAccessoryView nativeID="toolbar_area">
                         <View style={styles.accessoryContainer}>
                             <TouchableOpacity onPress={Keyboard.dismiss} style={styles.accessoryButton}>
-                                <Text style={styles.accessoryText}>Bitti</Text>
+                                <Text allowFontScaling={false} style={styles.accessoryText}>Bitti</Text>
                             </TouchableOpacity>
                         </View>
                     </InputAccessoryView>
@@ -617,7 +625,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                     <InputAccessoryView nativeID="toolbar_price">
                         <View style={styles.accessoryContainer}>
                             <TouchableOpacity onPress={Keyboard.dismiss} style={styles.accessoryButton}>
-                                <Text style={styles.accessoryText}>Bitti</Text>
+                                <Text allowFontScaling={false} style={styles.accessoryText}>Bitti</Text>
                             </TouchableOpacity>
                         </View>
                     </InputAccessoryView>
@@ -869,32 +877,13 @@ const styles = StyleSheet.create({
         textShadowOffset: { width: 0, height: 0 },
         textShadowRadius: 20,
     },
-    saveButton: {
-        marginTop: 10,
-        marginBottom: 40,
-        shadowColor: "#FFD700",
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.3,
-        shadowRadius: 20,
-        elevation: 10,
-    },
-    saveButtonGradient: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 18,
-        paddingHorizontal: 24,
-        borderRadius: 30, // Pill shape
-        gap: 8,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.2)', // Inner highlight attempt
-    },
-    saveButtonText: {
-        color: '#000',
-        fontSize: 16,
-        fontWeight: '700',
-        letterSpacing: 1,
-    },
+    // Premium Action Card Styles
+    premiumActionCard: { backgroundColor: '#0F0F0F', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#222', marginTop: 10, marginBottom: 40 },
+    premiumActionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+    premiumActionIconBox: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#D4AF37', justifyContent: 'center', alignItems: 'center', marginRight: 16 },
+    premiumActionTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+    premiumActionButton: { paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
+    premiumActionButtonText: { color: '#000', fontSize: 14, fontWeight: 'bold' },
     accessoryContainer: {
         flexDirection: 'row',
         justifyContent: 'flex-end',

@@ -120,7 +120,7 @@ export default function BulkRequestScreen() {
                                 isActive && styles.stepCircleActive,
                                 isCompleted && styles.stepCircleCompleted
                             ]}>
-                                <Text style={[
+                                <Text allowFontScaling={false} style={[
                                     styles.stepNumber,
                                     (isActive || isCompleted) && styles.stepNumberActive
                                 ]}>{stepNum}</Text>
@@ -141,7 +141,7 @@ export default function BulkRequestScreen() {
     const renderActionButtons = () => (
         <View style={styles.footer}>
             <TouchableOpacity style={[styles.footerBtn, styles.nextBtn]} onPress={wizardStep === 3 ? handleSubmit : handleNext}>
-                <Text style={styles.nextBtnText}>{wizardStep === 3 ? "TEKLİF İSTE" : "DEVAM ET"}</Text>
+                <Text allowFontScaling={false} style={styles.nextBtnText}>{wizardStep === 3 ? "TEKLİF İSTE" : "DEVAM ET"}</Text>
                 {wizardStep !== 3 && <MaterialCommunityIcons name="arrow-right" size={20} color="#000" />}
             </TouchableOpacity>
         </View>
@@ -162,8 +162,8 @@ export default function BulkRequestScreen() {
                             >
                                 <MaterialCommunityIcons name="camera-plus" size={20} color={inputTab === 'fast' ? '#000' : '#888'} />
                                 <View>
-                                    <Text style={[styles.tabTitle, inputTab === 'fast' && styles.tabTitleActive]}>HIZLI YÜKLE</Text>
-                                    <Text style={styles.tabSubtitle}>The Lazy Way</Text>
+                                    <Text allowFontScaling={false} style={[styles.tabTitle, inputTab === 'fast' && styles.tabTitleActive]}>HIZLI YÜKLE</Text>
+                                    <Text allowFontScaling={false} style={styles.tabSubtitle}>The Lazy Way</Text>
                                 </View>
                             </TouchableOpacity>
 
@@ -173,8 +173,8 @@ export default function BulkRequestScreen() {
                             >
                                 <MaterialCommunityIcons name="playlist-edit" size={20} color={inputTab === 'manual' ? '#000' : '#888'} />
                                 <View>
-                                    <Text style={[styles.tabTitle, inputTab === 'manual' && styles.tabTitleActive]}>MANUEL OLUŞTUR</Text>
-                                    <Text style={styles.tabSubtitle}>The Pro Way</Text>
+                                    <Text allowFontScaling={false} style={[styles.tabTitle, inputTab === 'manual' && styles.tabTitleActive]}>MANUEL OLUŞTUR</Text>
+                                    <Text allowFontScaling={false} style={styles.tabSubtitle}>The Pro Way</Text>
                                 </View>
                             </TouchableOpacity>
                         </View>
@@ -182,14 +182,14 @@ export default function BulkRequestScreen() {
                         {inputTab === 'manual' ? (
                             // MANUAL LIST VIEW
                             <>
-                                <Text style={styles.sectionHeader}>Malzeme Listesi</Text>
+                                <Text allowFontScaling={false} style={styles.sectionHeader}>Malzeme Listesi</Text>
                                 {rfqData.items.map((item, index) => (
                                     <View key={item.id} style={styles.itemRow}>
                                         <View style={styles.itemIndex}>
-                                            <Text style={styles.itemIndexText}>{index + 1}</Text>
+                                            <Text allowFontScaling={false} style={styles.itemIndexText}>{index + 1}</Text>
                                         </View>
                                         <View style={{ flex: 1 }}>
-                                            <TextInput
+                                            <TextInput allowFontScaling={false}
                                                 style={styles.input}
                                                 placeholder="Malzeme Adı (Örn: C30 Beton)"
                                                 placeholderTextColor="#666"
@@ -201,7 +201,7 @@ export default function BulkRequestScreen() {
                                                 onSubmitEditing={Keyboard.dismiss}
                                             />
                                             <View style={{ flexDirection: 'row', marginTop: 8, gap: 8 }}>
-                                                <TextInput
+                                                <TextInput allowFontScaling={false}
                                                     style={[styles.input, { flex: 1 }]}
                                                     placeholder="Miktar"
                                                     placeholderTextColor="#666"
@@ -215,7 +215,7 @@ export default function BulkRequestScreen() {
                                                     style={styles.unitBox}
                                                     onPress={() => openUnitModal(item.id)}
                                                 >
-                                                    <Text style={styles.unitText}>{item.unit}</Text>
+                                                    <Text allowFontScaling={false} style={styles.unitText}>{item.unit}</Text>
                                                     <MaterialCommunityIcons name="chevron-down" size={16} color="#888" />
                                                 </TouchableOpacity>
                                             </View>
@@ -227,15 +227,15 @@ export default function BulkRequestScreen() {
                                 ))}
                                 <TouchableOpacity style={styles.addItemBtn} onPress={handleAddItem}>
                                     <MaterialCommunityIcons name="plus" size={20} color="#000" />
-                                    <Text style={styles.addItemText}>SATIR EKLE</Text>
+                                    <Text allowFontScaling={false} style={styles.addItemText}>SATIR EKLE</Text>
                                 </TouchableOpacity>
                             </>
                         ) : (
                             // FAST LIST VIEW
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.sectionHeader}>Fotoğraf veya Metin</Text>
+                                <Text allowFontScaling={false} style={styles.sectionHeader}>Fotoğraf veya Metin</Text>
                                 <View style={styles.fastInputContainer}>
-                                    <TextInput
+                                    <TextInput allowFontScaling={false}
                                         style={[styles.textArea]}
                                         multiline
                                         placeholder="İhtiyaçlarınız buraya yazabilir veya kağıt listenizin fotoğrafını çekip yükleyebilirsiniz..."
@@ -247,7 +247,7 @@ export default function BulkRequestScreen() {
                                     />
                                     <TouchableOpacity style={styles.cameraBtn} onPress={() => Alert.alert("Kamera", "Fotoğraf modülü açılacak")}>
                                         <MaterialCommunityIcons name="camera" size={24} color="#000" />
-                                        <Text style={styles.cameraBtnText}>FOTOĞRAF EKLE</Text>
+                                        <Text allowFontScaling={false} style={styles.cameraBtnText}>FOTOĞRAF EKLE</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -260,15 +260,15 @@ export default function BulkRequestScreen() {
                 {
                     wizardStep === 2 && (
                         <View>
-                            <Text style={styles.stepTitle}>Lojistik & Teslimat</Text>
-                            <Text style={styles.stepDescription}>Nereye ve ne zaman lazım?</Text>
+                            <Text allowFontScaling={false} style={styles.stepTitle}>Lojistik & Teslimat</Text>
+                            <Text allowFontScaling={false} style={styles.stepDescription}>Nereye ve ne zaman lazım?</Text>
 
                             {/* Location */}
                             <View style={styles.formGroup}>
-                                <Text style={styles.label}>ŞANTİYE KONUMU</Text>
+                                <Text allowFontScaling={false} style={styles.label}>ŞANTİYE KONUMU</Text>
                                 <TouchableOpacity style={styles.locationBtn}>
                                     <MaterialCommunityIcons name="map-marker" size={20} color="#D4AF37" />
-                                    <TextInput
+                                    <TextInput allowFontScaling={false}
                                         style={[styles.inputNoBorder, { flex: 1 }]}
                                         placeholder="Adres veya Konum Seçin"
                                         placeholderTextColor="#666"
@@ -281,29 +281,29 @@ export default function BulkRequestScreen() {
 
                             {/* Date */}
                             <View style={styles.formGroup}>
-                                <Text style={styles.label}>TESLİMAT ZAMANI</Text>
+                                <Text allowFontScaling={false} style={styles.label}>TESLİMAT ZAMANI</Text>
                                 <View style={{ flexDirection: 'row', gap: 10 }}>
                                     <TouchableOpacity
                                         style={[styles.optionBtn, rfqData.deliveryType === 'immediate' && styles.optionBtnActive]}
                                         onPress={() => setRfqData({ ...rfqData, deliveryType: 'immediate' })}
                                     >
                                         <MaterialCommunityIcons name="lightning-bolt" size={20} color={rfqData.deliveryType === 'immediate' ? '#000' : '#888'} />
-                                        <Text style={[styles.optionText, rfqData.deliveryType === 'immediate' && styles.optionTextActive]}>Hemen / Acil</Text>
+                                        <Text allowFontScaling={false} style={[styles.optionText, rfqData.deliveryType === 'immediate' && styles.optionTextActive]}>Hemen / Acil</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity
                                         style={[styles.optionBtn, rfqData.deliveryType === 'date' && styles.optionBtnActive]}
                                         onPress={() => setRfqData({ ...rfqData, deliveryType: 'date' })}
                                     >
                                         <MaterialCommunityIcons name="calendar" size={20} color={rfqData.deliveryType === 'date' ? '#000' : '#888'} />
-                                        <Text style={[styles.optionText, rfqData.deliveryType === 'date' && styles.optionTextActive]}>Tarih Seç</Text>
+                                        <Text allowFontScaling={false} style={[styles.optionText, rfqData.deliveryType === 'date' && styles.optionTextActive]}>Tarih Seç</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
 
                             {/* Notes */}
                             <View style={styles.formGroup}>
-                                <Text style={styles.label}>ÖZEL NOTLAR / GEREKSİNİMLER</Text>
-                                <TextInput
+                                <Text allowFontScaling={false} style={styles.label}>ÖZEL NOTLAR / GEREKSİNİMLER</Text>
+                                <TextInput allowFontScaling={false}
                                     style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
                                     placeholder="Örn: 42m pompa gerekli, transmikser sahaya girebilir..."
                                     placeholderTextColor="#666"
@@ -320,8 +320,8 @@ export default function BulkRequestScreen() {
                 {
                     wizardStep === 3 && (
                         <View>
-                            <Text style={styles.stepTitle}>Ödeme Yöntemi</Text>
-                            <Text style={styles.stepDescription}>Size özel vadelendirme için seçiniz.</Text>
+                            <Text allowFontScaling={false} style={styles.stepTitle}>Ödeme Yöntemi</Text>
+                            <Text allowFontScaling={false} style={styles.stepDescription}>Size özel vadelendirme için seçiniz.</Text>
 
                             {['cash', 'credit_card', 'check_30', 'check_60'].map((method) => {
                                 const isSelected = rfqData.paymentMethod === method;
@@ -344,8 +344,8 @@ export default function BulkRequestScreen() {
                                             <MaterialCommunityIcons name={icon} size={24} color={isSelected ? '#000' : '#888'} />
                                         </View>
                                         <View style={{ flex: 1 }}>
-                                            <Text style={[styles.paymentTitle, isSelected && styles.paymentTitleActive]}>{title}</Text>
-                                            <Text style={styles.paymentSubtitle}>{subtitle}</Text>
+                                            <Text allowFontScaling={false} style={[styles.paymentTitle, isSelected && styles.paymentTitleActive]}>{title}</Text>
+                                            <Text allowFontScaling={false} style={styles.paymentSubtitle}>{subtitle}</Text>
                                         </View>
                                         {isSelected && <MaterialCommunityIcons name="check-circle" size={24} color="#D4AF37" />}
                                     </TouchableOpacity>
@@ -371,7 +371,7 @@ export default function BulkRequestScreen() {
                 onPress={() => setUnitModalVisible(false)}
             >
                 <View style={styles.modalContent}>
-                    <Text style={styles.modalTitle}>Birim Seç</Text>
+                    <Text allowFontScaling={false} style={styles.modalTitle}>Birim Seç</Text>
                     <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
                         {UNIT_OPTIONS.map((unit, index) => (
                             <TouchableOpacity
@@ -379,7 +379,7 @@ export default function BulkRequestScreen() {
                                 style={styles.modalOption}
                                 onPress={() => selectUnit(unit)}
                             >
-                                <Text style={styles.modalOptionText}>{unit}</Text>
+                                <Text allowFontScaling={false} style={styles.modalOptionText}>{unit}</Text>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
@@ -423,7 +423,7 @@ export default function BulkRequestScreen() {
                     <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>TEKLİF TOPLA</Text>
+                    <Text allowFontScaling={false} style={styles.headerTitle}>TEKLİF TOPLA</Text>
                     <View style={{ width: 40 }} />
                 </View>
 
@@ -448,7 +448,7 @@ export default function BulkRequestScreen() {
                 {isKeyboardVisible && (focusedInputType === 'numeric' || focusedInputType === 'multiline') && (
                     <View style={[styles.keyboardAccessoryBar, { bottom: keyboardHeight }]}>
                         <TouchableOpacity onPress={Keyboard.dismiss} style={styles.accessoryBtn}>
-                            <Text style={styles.accessoryBtnText}>BİTTİ</Text>
+                            <Text allowFontScaling={false} style={styles.accessoryBtnText}>BİTTİ</Text>
                         </TouchableOpacity>
                     </View>
                 )}

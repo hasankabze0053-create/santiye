@@ -142,8 +142,8 @@ export default function RenovationScreen({ navigation }) {
                         <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
                     </TouchableOpacity>
                     <View style={{ alignItems: 'center' }}>
-                        <Text style={styles.headerTitle}>MİMARLIK OFİSİ</Text>
-                        <Text style={styles.headerSubtitle}>Yaşam Alanınızı Yeniden Keşfedin</Text>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>MİMARLIK OFİSİ</Text>
+                        <Text allowFontScaling={false} style={styles.headerSubtitle}>Yaşam Alanınızı Yeniden Keşfedin</Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                         <TouchableOpacity
@@ -184,11 +184,11 @@ export default function RenovationScreen({ navigation }) {
                                         />
                                         <View style={styles.slideContent}>
                                             <View style={styles.tagContainer}>
-                                                <Text style={styles.tagText}>{slide.tag}</Text>
+                                                <Text allowFontScaling={false} style={styles.tagText}>{slide.tag}</Text>
                                             </View>
-                                            <Text style={styles.slideTitle}>{slide.title}</Text>
+                                            <Text allowFontScaling={false} style={styles.slideTitle}>{slide.title}</Text>
                                             <TouchableOpacity style={styles.offerBtn} onPress={() => handleAction('Teklif Al')}>
-                                                <Text style={styles.offerBtnText}>TEKLİF AL</Text>
+                                                <Text allowFontScaling={false} style={styles.offerBtnText}>TEKLİF AL</Text>
                                                 <MaterialCommunityIcons name="arrow-right" size={16} color="#000" />
                                             </TouchableOpacity>
                                         </View>
@@ -212,7 +212,7 @@ export default function RenovationScreen({ navigation }) {
 
                     {/* SERVICE GRID — Sayfalı slider */}
                     <View style={styles.sectionContainer}>
-                        <Text style={styles.sectionTitle}>HİZMETLERİMİZ</Text>
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>HİZMETLERİMİZ</Text>
                         <ScrollView
                             horizontal
                             pagingEnabled
@@ -238,8 +238,8 @@ export default function RenovationScreen({ navigation }) {
                                             )}
                                         </View>
                                         <View style={{ alignItems: 'center' }}>
-                                            <Text style={styles.gridItemTitle}>{item.title}</Text>
-                                            <Text style={styles.gridItemSubtitle}>{item.subtitle}</Text>
+                                            <Text allowFontScaling={false} style={styles.gridItemTitle}>{item.title}</Text>
+                                            <Text allowFontScaling={false} style={styles.gridItemSubtitle}>{item.subtitle}</Text>
                                         </View>
                                     </GoldCard>
                                 ))}
@@ -257,8 +257,8 @@ export default function RenovationScreen({ navigation }) {
                                             <MaterialCommunityIcons name={item.icon} size={28} color={GOLD_MAIN} />
                                         </View>
                                         <View style={{ alignItems: 'center' }}>
-                                            <Text style={styles.gridItemTitle}>{item.title}</Text>
-                                            <Text style={styles.gridItemSubtitle}>{item.subtitle}</Text>
+                                            <Text allowFontScaling={false} style={styles.gridItemTitle}>{item.title}</Text>
+                                            <Text allowFontScaling={false} style={styles.gridItemSubtitle}>{item.subtitle}</Text>
                                         </View>
                                     </GoldCard>
                                 ))}
@@ -282,11 +282,11 @@ export default function RenovationScreen({ navigation }) {
                         />
                         <View style={styles.smartHeader}>
                             <MaterialCommunityIcons name="cube-scan" size={24} color={GOLD_MAIN} />
-                            <Text style={styles.smartTitle}>Mimarım - Sanal Tasarım Stüdyosu</Text>
+                            <Text allowFontScaling={false} style={styles.smartTitle}>Mimarım - Sanal Tasarım Stüdyosu</Text>
                         </View>
 
-                        <Text style={styles.smartDesc}>
-                            Mevcut alanın fotoğrafını yükleyin; seçtiğiniz kalite sınıfına uygun olarak <Text style={{ color: GOLD_MAIN }}>3D tasarımınızı ve maliyet teklifinizi</Text> hazırlansın.
+                        <Text allowFontScaling={false} style={styles.smartDesc}>
+                            Mevcut alanın fotoğrafını yükleyin; seçtiğiniz kalite sınıfına uygun olarak <Text allowFontScaling={false} style={{ color: GOLD_MAIN }}>3D tasarımınızı ve maliyet teklifinizi</Text> hazırlansın.
                         </Text>
 
                         {/* Mood Tags (Radio Selection) */}
@@ -299,14 +299,14 @@ export default function RenovationScreen({ navigation }) {
                                         style={[styles.moodTag, isSelected ? styles.moodTagActive : {}]}
                                         onPress={() => setSelectedQuality(tag)}
                                     >
-                                        <Text style={[styles.moodTagText, isSelected ? styles.moodTagTextActive : {}]}>{tag}</Text>
+                                        <Text allowFontScaling={false} style={[styles.moodTagText, isSelected ? styles.moodTagTextActive : {}]}>{tag}</Text>
                                     </TouchableOpacity>
                                 )
                             })}
                         </View>
 
                         <View style={styles.inputContainer}>
-                            <TextInput
+                            <TextInput allowFontScaling={false}
                                 style={styles.textInput}
                                 placeholder="Dönüşümünüzdeki beklentilerinizi ve alanın fotoğrafını belirtin..."
                                 placeholderTextColor="#666"
@@ -323,8 +323,8 @@ export default function RenovationScreen({ navigation }) {
                                 <View style={{ position: 'absolute', top: -2, right: -2, width: 8, height: 8, borderRadius: 4, backgroundColor: GOLD_MAIN }} />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.photoUploadTitle}>Mevcut Alanın Fotoğrafını Yükle</Text>
-                                <Text style={styles.photoUploadSub}>Mimarlarımız dönüşümü başlatsın</Text>
+                                <Text allowFontScaling={false} style={styles.photoUploadTitle}>Mevcut Alanın Fotoğrafını Yükle</Text>
+                                <Text allowFontScaling={false} style={styles.photoUploadSub}>Mimarlarımız dönüşümü başlatsın</Text>
                             </View>
                             <MaterialCommunityIcons name="chevron-right" size={24} color="#666" />
                         </TouchableOpacity>
@@ -335,7 +335,7 @@ export default function RenovationScreen({ navigation }) {
                                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                                 style={styles.submitGradient}
                             >
-                                <Text style={styles.submitText}>TASARIM VE TEKLİF İSTE</Text>
+                                <Text allowFontScaling={false} style={styles.submitText}>TASARIM VE TEKLİF İSTE</Text>
                                 <MaterialCommunityIcons name="magic-staff" size={24} color="#000" />
                             </LinearGradient>
                         </TouchableOpacity>
@@ -352,11 +352,11 @@ export default function RenovationScreen({ navigation }) {
                                         <MaterialCommunityIcons name="face-agent" size={24} color={GOLD_MAIN} />
                                     </View>
                                     <View style={{ flex: 1 }}>
-                                        <Text style={styles.consultantTitle}>Karar veremediniz mi?</Text>
-                                        <Text style={styles.consultantSub}>Profesyonel destek için tıklayın.</Text>
+                                        <Text allowFontScaling={false} style={styles.consultantTitle}>Karar veremediniz mi?</Text>
+                                        <Text allowFontScaling={false} style={styles.consultantSub}>Profesyonel destek için tıklayın.</Text>
                                     </View>
                                     <View style={styles.consultantBtn}>
-                                        <Text style={styles.consultantBtnText}>Mimarınızla Görüş</Text>
+                                        <Text allowFontScaling={false} style={styles.consultantBtnText}>Mimarınızla Görüş</Text>
                                         <MaterialCommunityIcons name="chevron-right" size={16} color="#000" />
                                     </View>
                                 </View>
@@ -389,12 +389,12 @@ export default function RenovationScreen({ navigation }) {
                         <View style={styles.aiCardLeft}>
                             <View style={styles.aiTagRow}>
                                 <MaterialCommunityIcons name="chef-hat" size={13} color="#000" />
-                                <Text style={styles.aiTagText}>CepteŞef AI</Text>
+                                <Text allowFontScaling={false} style={styles.aiTagText}>CepteŞef AI</Text>
                             </View>
-                            <Text style={styles.aiCardTitle}>İstediğini Bulamadın mı?</Text>
-                            <Text style={styles.aiCardSub}>Mekanının fotoğrafını yükle ve hayalini anlat — yapay zeka teknik listeni çıkarsın.</Text>
+                            <Text allowFontScaling={false} style={styles.aiCardTitle}>İstediğini Bulamadın mı?</Text>
+                            <Text allowFontScaling={false} style={styles.aiCardSub}>Mekanının fotoğrafını yükle ve hayalini anlat — yapay zeka teknik listeni çıkarsın.</Text>
                             <View style={styles.aiBtn}>
-                                <Text style={styles.aiBtnText}>Şefle Konuş</Text>
+                                <Text allowFontScaling={false} style={styles.aiBtnText}>Şefle Konuş</Text>
                                 <MaterialCommunityIcons name="arrow-right" size={14} color={GOLD_MAIN} />
                             </View>
                         </View>

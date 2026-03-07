@@ -60,7 +60,7 @@ export default function ArchitectRequestDetailScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>PROJE DETAYI</Text>
+                    <Text allowFontScaling={false} style={styles.headerTitle}>PROJE DETAYI</Text>
                     <View style={{ width: 40 }} />
                 </View>
 
@@ -71,33 +71,33 @@ export default function ArchitectRequestDetailScreen() {
                         <View style={styles.titleRow}>
                             <View style={styles.titleLeft}>
                                 <MaterialCommunityIcons name={iconName} size={28} color="#FFD700" />
-                                <Text style={styles.titleText}>{projeTipi}</Text>
+                                <Text allowFontScaling={false} style={styles.titleText}>{projeTipi}</Text>
                             </View>
                             <View style={styles.badge}>
-                                <Text style={styles.badgeText}>#{request.id?.slice(0, 8).toUpperCase()}</Text>
+                                <Text allowFontScaling={false} style={styles.badgeText}>#{request.id?.slice(0, 8).toUpperCase()}</Text>
                             </View>
                         </View>
                         
                         {/* Metrics Grid */}
                         <View style={styles.gridRow}>
                             <View style={styles.gridCol}>
-                                <Text style={styles.gridLabel}>MEKAN</Text>
-                                <Text style={styles.gridValue}>{tadilatDetails.propertyType}</Text>
+                                <Text allowFontScaling={false} style={styles.gridLabel}>MEKAN</Text>
+                                <Text allowFontScaling={false} style={styles.gridValue}>{tadilatDetails.propertyType}</Text>
                             </View>
                             <View style={styles.gridCol}>
-                                <Text style={styles.gridLabel}>ALAN</Text>
-                                <Text style={styles.gridValue}>{tadilatDetails.areaSize}</Text>
+                                <Text allowFontScaling={false} style={styles.gridLabel}>ALAN</Text>
+                                <Text allowFontScaling={false} style={styles.gridValue}>{tadilatDetails.areaSize}</Text>
                             </View>
                             <View style={styles.gridCol}>
-                                <Text style={styles.gridLabel}>TARZ</Text>
-                                <Text style={styles.gridValue}>{tadilatDetails.style}</Text>
+                                <Text allowFontScaling={false} style={styles.gridLabel}>TARZ</Text>
+                                <Text allowFontScaling={false} style={styles.gridValue}>{tadilatDetails.style}</Text>
                             </View>
                         </View>
 
                         {/* Extra Notes */}
                         <View style={styles.notesSection}>
-                            <Text style={styles.sectionTitle}>EK NOTLAR</Text>
-                            <Text style={styles.notesText}>
+                            <Text allowFontScaling={false} style={styles.sectionTitle}>EK NOTLAR</Text>
+                            <Text allowFontScaling={false} style={styles.notesText}>
                                 {request.description && request.description.includes('NOT:') 
                                     ? request.description.split('NOT:')[1]?.trim() 
                                     : '-'}
@@ -106,7 +106,7 @@ export default function ArchitectRequestDetailScreen() {
 
                         {/* Photos Section */}
                         <View style={styles.photosSection}>
-                            <Text style={styles.sectionTitle}>MEVCUT ALAN & İLHAM</Text>
+                            <Text allowFontScaling={false} style={styles.sectionTitle}>MEVCUT ALAN & İLHAM</Text>
                             
                             {hasPhotos ? (
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photosScroll}>
@@ -120,7 +120,7 @@ export default function ArchitectRequestDetailScreen() {
                                 <View style={styles.emptyPhotoContainer}>
                                     <View style={styles.emptyPhotoBox}>
                                         <MaterialCommunityIcons name="image-off-outline" size={24} color="#555" />
-                                        <Text style={styles.emptyPhotoText}>Görsel yüklenmemiş</Text>
+                                        <Text allowFontScaling={false} style={styles.emptyPhotoText}>Görsel yüklenmemiş</Text>
                                     </View>
                                 </View>
                             )}
@@ -131,7 +131,7 @@ export default function ArchitectRequestDetailScreen() {
                             style={styles.primaryButton}
                             onPress={() => navigation.navigate('ConstructionOfferSubmit', { request })}
                         >
-                            <Text style={styles.primaryButtonText}>Teklif Ver</Text>
+                            <Text allowFontScaling={false} style={styles.primaryButtonText}>Teklif Ver</Text>
                         </TouchableOpacity>
 
                     </View>

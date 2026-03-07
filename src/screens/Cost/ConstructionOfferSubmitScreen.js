@@ -35,7 +35,7 @@ import OfferSummaryCard from '../../components/OfferSummaryCard';
 // USER ASKED FOR FLOOREDITOR EXTRACTION. StepperInput is small helper.
 const StepperInput = ({ value, onChange, min = 0, max = 100, label }) => (
     <View style={styles.premiumStepperContainer}>
-        {label && <Text style={styles.stepperLabel}>{label}</Text>}
+        {label && <Text allowFontScaling={false} style={styles.stepperLabel}>{label}</Text>}
         <View style={styles.stepperControls}>
             <TouchableOpacity
                 style={styles.stepperBtn}
@@ -47,7 +47,7 @@ const StepperInput = ({ value, onChange, min = 0, max = 100, label }) => (
                 <MaterialCommunityIcons name="minus" size={20} color="#D4AF37" />
             </TouchableOpacity>
             <View style={styles.stepperValueContainer}>
-                <Text style={styles.stepperValue}>{value}</Text>
+                <Text allowFontScaling={false} style={styles.stepperValue}>{value}</Text>
             </View>
             <TouchableOpacity
                 style={styles.stepperBtn}
@@ -615,12 +615,12 @@ export default function ConstructionOfferSubmitScreen() {
 
     const renderFinancialDetails = () => (
         <>
-            <Text style={styles.sectionHeader}>FİNANSAL DETAYLAR</Text>
+            <Text allowFontScaling={false} style={styles.sectionHeader}>FİNANSAL DETAYLAR</Text>
             <GlassCard style={styles.card}>
                 <View style={styles.inputRow}>
                     <View style={styles.inputWrapper}>
-                        <Text style={styles.inputLabel}>TAHMİNİ FİYAT (TL)</Text>
-                        <TextInput
+                        <Text allowFontScaling={false} style={styles.inputLabel}>TAHMİNİ FİYAT (TL)</Text>
+                        <TextInput allowFontScaling={false}
                             style={styles.input}
                             placeholder="0"
                             placeholderTextColor="#555"
@@ -630,8 +630,8 @@ export default function ConstructionOfferSubmitScreen() {
                         />
                     </View>
                     <View style={styles.inputWrapper}>
-                        <Text style={styles.inputLabel}>TOPLAM ALAN (m²)</Text>
-                        <TextInput
+                        <Text allowFontScaling={false} style={styles.inputLabel}>TOPLAM ALAN (m²)</Text>
+                        <TextInput allowFontScaling={false}
                             style={styles.input}
                             placeholder="0"
                             placeholderTextColor="#555"
@@ -644,15 +644,15 @@ export default function ConstructionOfferSubmitScreen() {
 
                 {/* Amount in Words */}
                 {price ? (
-                    <Text style={{ color: '#D4AF37', fontSize: 12, marginTop: 4, marginBottom: 16, fontStyle: 'italic', paddingHorizontal: 4 }}>
+                    <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 12, marginTop: 4, marginBottom: 16, fontStyle: 'italic', paddingHorizontal: 4 }}>
                         {numberToTurkishWords(parseCurrency(price))}
                     </Text>
                 ) : null}
 
                 <View style={styles.inputWrapper}>
-                    <Text style={styles.inputLabel}>BİRİM FİYAT (TL/m²)</Text>
+                    <Text allowFontScaling={false} style={styles.inputLabel}>BİRİM FİYAT (TL/m²)</Text>
                     <View style={styles.inputRow}>
-                        <TextInput
+                        <TextInput allowFontScaling={false}
                             style={[styles.input, { flex: 1, color: '#FFD700', fontWeight: 'bold' }]}
                             placeholder="0.00"
                             placeholderTextColor="#555"
@@ -665,7 +665,7 @@ export default function ConstructionOfferSubmitScreen() {
 
                 {request?.is_campaign_active && (
                     <View style={{ marginTop: 20 }}>
-                        <Text style={styles.inputLabel}>HİBE + KREDİ DURUMU</Text>
+                        <Text allowFontScaling={false} style={styles.inputLabel}>HİBE + KREDİ DURUMU</Text>
                         <View style={styles.segmentContainer}>
                             {['included', 'excluded'].map((option) => (
                                 <TouchableOpacity
@@ -676,7 +676,7 @@ export default function ConstructionOfferSubmitScreen() {
                                     ]}
                                     onPress={() => setCampaignPolicy(option)}
                                 >
-                                    <Text style={[
+                                    <Text allowFontScaling={false} style={[
                                         styles.segmentText,
                                         campaignPolicy === option && styles.segmentTextActive
                                     ]}>
@@ -689,15 +689,15 @@ export default function ConstructionOfferSubmitScreen() {
                         {/* Grant Deduction Logic */}
                         {campaignPolicy === 'included' && price && (
                             <View style={{ marginTop: 16, backgroundColor: 'rgba(50, 205, 50, 0.1)', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(50, 205, 50, 0.3)' }}>
-                                <Text style={{ color: '#4CAF50', fontWeight: 'bold', marginBottom: 8, fontSize: 13 }}>DEVLET DESTEĞİ DETAYI</Text>
+                                <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold', marginBottom: 8, fontSize: 13 }}>DEVLET DESTEĞİ DETAYI</Text>
 
                                 {/* Housing Grant */}
                                 {(request.campaign_unit_count || 0) > 0 && (
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-                                        <Text style={{ color: '#CCC', fontSize: 12 }}>
+                                        <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 12 }}>
                                             {request.campaign_unit_count} Konut (x 1.750.000 TL)
                                         </Text>
-                                        <Text style={{ color: '#FFF', fontSize: 12, fontWeight: 'bold' }}>
+                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: 'bold' }}>
                                             {formatCurrency(((request.campaign_unit_count || 0) * 1750000).toString())} TL
                                         </Text>
                                     </View>
@@ -706,10 +706,10 @@ export default function ConstructionOfferSubmitScreen() {
                                 {/* Commercial Grant */}
                                 {(request.campaign_commercial_count || 0) > 0 && (
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-                                        <Text style={{ color: '#CCC', fontSize: 12 }}>
+                                        <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 12 }}>
                                             {request.campaign_commercial_count} Dükkan (x 875.000 TL)
                                         </Text>
-                                        <Text style={{ color: '#FFF', fontSize: 12, fontWeight: 'bold' }}>
+                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: 'bold' }}>
                                             {formatCurrency(((request.campaign_commercial_count || 0) * 875000).toString())} TL
                                         </Text>
                                     </View>
@@ -719,10 +719,10 @@ export default function ConstructionOfferSubmitScreen() {
 
                                 {/* Net Payable */}
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text style={{ color: '#D4AF37', fontSize: 12, fontWeight: 'bold', flex: 1 }}>
+                                    <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 12, fontWeight: 'bold', flex: 1 }}>
                                         DEVLET DESTEĞİ HARİÇ ÖDENECEK TUTAR
                                     </Text>
-                                    <Text style={{ color: '#D4AF37', fontSize: 16, fontWeight: 'bold' }}>
+                                    <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 16, fontWeight: 'bold' }}>
                                         {formatCurrency((
                                             parseCurrency(price) -
                                             ((request.campaign_unit_count || 0) * 1750000) -
@@ -740,27 +740,27 @@ export default function ConstructionOfferSubmitScreen() {
 
     const renderFlatForLandDetails = () => (
         <>
-            <Text style={styles.sectionHeader}>PAYLAŞIM VE FİNANSAL YAPI</Text>
+            <Text allowFontScaling={false} style={styles.sectionHeader}>PAYLAŞIM VE FİNANSAL YAPI</Text>
             <GlassCard style={styles.card}>
                 <View style={{ marginBottom: 16 }}>
-                    <Text style={styles.inputLabel}>DAİRE PAYLAŞIMI</Text>
-                    <Text style={{ color: '#DDD', fontSize: 13, marginBottom: 8 }}>
-                        Aşağıdaki şemadan <Text style={{ color: '#D4AF37', fontWeight: 'bold' }}>MÜTEAHHİT OLARAK SİZE KALACAK</Text> daireleri seçiniz.
+                    <Text allowFontScaling={false} style={styles.inputLabel}>DAİRE PAYLAŞIMI</Text>
+                    <Text allowFontScaling={false} style={{ color: '#DDD', fontSize: 13, marginBottom: 8 }}>
+                        Aşağıdaki şemadan <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>MÜTEAHHİT OLARAK SİZE KALACAK</Text> daireleri seçiniz.
                     </Text>
                 </View>
 
                 {/* Grant Display (Read-Only) */}
                 {request?.is_campaign_active && (
                     <View style={{ marginBottom: 20 }}>
-                        <Text style={styles.inputLabel}>DEVLET HİBE VE KREDİ DESTEĞİ</Text>
+                        <Text allowFontScaling={false} style={styles.inputLabel}>DEVLET HİBE VE KREDİ DESTEĞİ</Text>
                         <GlassCard style={{ backgroundColor: 'rgba(50, 205, 50, 0.1)', borderColor: 'rgba(50, 205, 50, 0.3)', padding: 12 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
                                 <MaterialCommunityIcons name="bank-transfer" size={24} color="#4CAF50" style={{ marginRight: 8 }} />
-                                <Text style={{ color: '#4CAF50', fontWeight: 'bold', fontSize: 13 }}>HAKEDİŞ: MÜTEAHHİT HESABINA</Text>
+                                <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold', fontSize: 13 }}>HAKEDİŞ: MÜTEAHHİT HESABINA</Text>
                             </View>
 
-                            <Text style={{ color: '#CCC', fontSize: 12, marginBottom: 8 }}>
-                                Kentsel dönüşüm kapsamında devlet tarafından sağlanan aşağıdaki toplam tutar, inşaat ilerlemesine hak ediş olarak <Text style={{ fontWeight: 'bold', color: '#FFF' }}>sizin hesabınıza</Text> yatırılacaktır.
+                            <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 12, marginBottom: 8 }}>
+                                Kentsel dönüşüm kapsamında devlet tarafından sağlanan aşağıdaki toplam tutar, inşaat ilerlemesine hak ediş olarak <Text allowFontScaling={false} style={{ fontWeight: 'bold', color: '#FFF' }}>sizin hesabınıza</Text> yatırılacaktır.
                             </Text>
 
                             <View style={{ height: 1, backgroundColor: 'rgba(50, 205, 50, 0.3)', marginVertical: 8 }} />
@@ -768,10 +768,10 @@ export default function ConstructionOfferSubmitScreen() {
                             {/* Housing Grant Calculation */}
                             {(request.campaign_unit_count || 0) > 0 && (
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-                                    <Text style={{ color: '#DDD', fontSize: 12 }}>
+                                    <Text allowFontScaling={false} style={{ color: '#DDD', fontSize: 12 }}>
                                         {request.campaign_unit_count} Konut (x 1.750.000 TL)
                                     </Text>
-                                    <Text style={{ color: '#FFF', fontSize: 12, fontWeight: 'bold' }}>
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: 'bold' }}>
                                         {formatCurrency(((request.campaign_unit_count || 0) * 1750000).toString())} TL
                                     </Text>
                                 </View>
@@ -780,10 +780,10 @@ export default function ConstructionOfferSubmitScreen() {
                             {/* Commercial Grant Calculation */}
                             {(request.campaign_commercial_count || 0) > 0 && (
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-                                    <Text style={{ color: '#DDD', fontSize: 12 }}>
+                                    <Text allowFontScaling={false} style={{ color: '#DDD', fontSize: 12 }}>
                                         {request.campaign_commercial_count} Dükkan (x 875.000 TL)
                                     </Text>
-                                    <Text style={{ color: '#FFF', fontSize: 12, fontWeight: 'bold' }}>
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: 'bold' }}>
                                         {formatCurrency(((request.campaign_commercial_count || 0) * 875000).toString())} TL
                                     </Text>
                                 </View>
@@ -793,8 +793,8 @@ export default function ConstructionOfferSubmitScreen() {
 
                             {/* Total */}
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Text style={{ color: '#4CAF50', fontSize: 12, fontWeight: 'bold' }}>TOPLAM DESTEK TUTARI</Text>
-                                <Text style={{ color: '#4CAF50', fontSize: 16, fontWeight: 'bold' }}>
+                                <Text allowFontScaling={false} style={{ color: '#4CAF50', fontSize: 12, fontWeight: 'bold' }}>TOPLAM DESTEK TUTARI</Text>
+                                <Text allowFontScaling={false} style={{ color: '#4CAF50', fontSize: 16, fontWeight: 'bold' }}>
                                     {formatCurrency((
                                         ((request.campaign_unit_count || 0) * 1750000) +
                                         ((request.campaign_commercial_count || 0) * 875000)
@@ -808,7 +808,7 @@ export default function ConstructionOfferSubmitScreen() {
                 <View style={styles.divider} />
 
                 <View>
-                    <Text style={styles.inputLabel}>NAKİT DENGESİ (ÜSTE PARA)</Text>
+                    <Text allowFontScaling={false} style={styles.inputLabel}>NAKİT DENGESİ (ÜSTE PARA)</Text>
                     <View style={styles.segmentContainer}>
                         {['request', 'payment'].map((option) => (
                             <TouchableOpacity
@@ -819,7 +819,7 @@ export default function ConstructionOfferSubmitScreen() {
                                 ]}
                                 onPress={() => setCashAdjustmentType(option)}
                             >
-                                <Text style={[
+                                <Text allowFontScaling={false} style={[
                                     styles.segmentText,
                                     cashAdjustmentType === option && styles.segmentTextActive
                                 ]}>
@@ -830,7 +830,7 @@ export default function ConstructionOfferSubmitScreen() {
                     </View>
 
                     <View style={{ marginTop: 12 }}>
-                        <TextInput
+                        <TextInput allowFontScaling={false}
                             style={[styles.input, { color: cashAdjustmentType === 'request' ? '#4CAF50' : '#FF5252' }]}
                             placeholder="0"
                             placeholderTextColor="#555"
@@ -838,7 +838,7 @@ export default function ConstructionOfferSubmitScreen() {
                             value={cashAdjustmentAmount}
                             onChangeText={(t) => setCashAdjustmentAmount(formatCurrency(t))}
                         />
-                        <Text style={{ color: '#D4AF37', fontSize: 12, marginTop: 4, fontStyle: 'italic' }}>
+                        <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 12, marginTop: 4, fontStyle: 'italic' }}>
                             {numberToTurkishWords(parseCurrency(cashAdjustmentAmount))}
                         </Text>
                     </View>
@@ -855,7 +855,7 @@ export default function ConstructionOfferSubmitScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <Ionicons name="chevron-back" size={24} color="#D4AF37" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>TEKLİF OLUŞTUR</Text>
+                    <Text allowFontScaling={false} style={styles.headerTitle}>TEKLİF OLUŞTUR</Text>
                     <View style={{ width: 44 }} />
                 </View>
 
@@ -876,28 +876,28 @@ export default function ConstructionOfferSubmitScreen() {
                                         <MaterialCommunityIcons name="file-document-outline" size={20} color="#D4AF37" />
                                     </View>
                                     <View>
-                                        <Text style={styles.summaryLabel}>PROJE NO</Text>
-                                        <Text style={styles.summaryValue}>#{request?.id?.slice(0, 8).toUpperCase()}</Text>
+                                        <Text allowFontScaling={false} style={styles.summaryLabel}>PROJE NO</Text>
+                                        <Text allowFontScaling={false} style={styles.summaryValue}>#{request?.id?.slice(0, 8).toUpperCase()}</Text>
                                     </View>
                                 </View>
                                 <View style={styles.summaryDivider} />
 
                                 <View style={styles.summaryGrid}>
                                     <View style={styles.summaryItem}>
-                                        <Text style={styles.summaryLabel}>KONUM</Text>
-                                        <Text style={styles.summaryValue} numberOfLines={1}>{request?.district}</Text>
+                                        <Text allowFontScaling={false} style={styles.summaryLabel}>KONUM</Text>
+                                        <Text allowFontScaling={false} style={styles.summaryValue} numberOfLines={1}>{request?.district}</Text>
                                     </View>
                                     <View style={styles.summaryItem}>
-                                        <Text style={styles.summaryLabel}>MODEL</Text>
-                                        <Text style={styles.summaryValue}>{request?.offer_type === 'kat_karsiligi' ? 'Kat Karşılığı' : 'Anahtar Teslim'}</Text>
+                                        <Text allowFontScaling={false} style={styles.summaryLabel}>MODEL</Text>
+                                        <Text allowFontScaling={false} style={styles.summaryValue}>{request?.offer_type === 'kat_karsiligi' ? 'Kat Karşılığı' : 'Anahtar Teslim'}</Text>
                                     </View>
                                 </View>
 
                                 {/* Ada / Parsel / Pafta Row - Always Visible */}
                                 <View style={[styles.summaryGrid, { marginTop: 12 }]}>
                                     <View style={styles.summaryItem}>
-                                        <Text style={styles.summaryLabel}>ADA / PARSEL</Text>
-                                        <Text style={[
+                                        <Text allowFontScaling={false} style={styles.summaryLabel}>ADA / PARSEL</Text>
+                                        <Text allowFontScaling={false} style={[
                                             styles.summaryValue,
                                             (!request?.ada && !request?.parsel) && { color: '#666', fontStyle: 'italic' }
                                         ]}>
@@ -905,8 +905,8 @@ export default function ConstructionOfferSubmitScreen() {
                                         </Text>
                                     </View>
                                     <View style={styles.summaryItem}>
-                                        <Text style={styles.summaryLabel}>PAFTA</Text>
-                                        <Text style={[
+                                        <Text allowFontScaling={false} style={styles.summaryLabel}>PAFTA</Text>
+                                        <Text allowFontScaling={false} style={[
                                             styles.summaryValue,
                                             !request?.pafta && { color: '#666', fontStyle: 'italic' }
                                         ]}>
@@ -917,8 +917,8 @@ export default function ConstructionOfferSubmitScreen() {
 
                                 {/* Full Address - Always Visible */}
                                 <View style={{ marginTop: 12 }}>
-                                    <Text style={styles.summaryLabel}>ADRES</Text>
-                                    <Text style={[
+                                    <Text allowFontScaling={false} style={styles.summaryLabel}>ADRES</Text>
+                                    <Text allowFontScaling={false} style={[
                                         styles.summaryValue,
                                         { fontSize: 12 },
                                         !request?.full_address && { color: '#666', fontStyle: 'italic' }
@@ -930,13 +930,13 @@ export default function ConstructionOfferSubmitScreen() {
                                 {/* Campaign Units (Hibe/Kredi) */}
                                 {request?.is_campaign_active && (
                                     <View style={{ marginTop: 12, backgroundColor: 'rgba(212, 175, 55, 0.1)', padding: 8, borderRadius: 8 }}>
-                                        <Text style={[styles.summaryLabel, { color: '#D4AF37', marginBottom: 4 }]}>HİBE / KREDİ KAPSAMI ({request?.campaign_unit_count + request?.campaign_commercial_count} Bağımsız Bölüm)</Text>
+                                        <Text allowFontScaling={false} style={[styles.summaryLabel, { color: '#D4AF37', marginBottom: 4 }]}>HİBE / KREDİ KAPSAMI ({request?.campaign_unit_count + request?.campaign_commercial_count} Bağımsız Bölüm)</Text>
                                         <View style={{ flexDirection: 'row', gap: 12 }}>
                                             {request?.campaign_unit_count > 0 && (
-                                                <Text style={[styles.summaryValue, { fontSize: 13 }]}>• {request.campaign_unit_count} Konut</Text>
+                                                <Text allowFontScaling={false} style={[styles.summaryValue, { fontSize: 13 }]}>• {request.campaign_unit_count} Konut</Text>
                                             )}
                                             {request?.campaign_commercial_count > 0 && (
-                                                <Text style={[styles.summaryValue, { fontSize: 13 }]}>• {request.campaign_commercial_count} Dükkan/Ticari</Text>
+                                                <Text allowFontScaling={false} style={[styles.summaryValue, { fontSize: 13 }]}>• {request.campaign_commercial_count} Dükkan/Ticari</Text>
                                             )}
                                         </View>
                                     </View>
@@ -944,12 +944,12 @@ export default function ConstructionOfferSubmitScreen() {
                             </GlassCard>
 
                             {/* Project Notes & Details */}
-                            <Text style={styles.sectionHeader}>PROJE NOTLARI</Text>
+                            <Text allowFontScaling={false} style={styles.sectionHeader}>PROJE NOTLARI</Text>
                             <GlassCard style={styles.card}>
                                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
                                     <MaterialCommunityIcons name="comment-text-outline" size={24} color="#D4AF37" style={{ marginTop: 2 }} />
                                     <View style={{ flex: 1 }}>
-                                        <Text style={[
+                                        <Text allowFontScaling={false} style={[
                                             styles.summaryValue,
                                             { fontSize: 13, lineHeight: 20, color: '#DDD' },
                                             !request?.description && { color: '#666', fontStyle: 'italic' }
@@ -962,12 +962,12 @@ export default function ConstructionOfferSubmitScreen() {
 
                             {isFlatForLand ? renderFlatForLandDetails() : renderFinancialDetails()}
 
-                            <Text style={styles.sectionHeader}>MİMARİ YAPILANDIRMA</Text>
+                            <Text allowFontScaling={false} style={styles.sectionHeader}>MİMARİ YAPILANDIRMA</Text>
                             <GlassCard style={styles.card}>
                                 <View style={styles.inputRow}>
                                     <View style={styles.inputWrapper}>
-                                        <Text style={styles.inputLabel}>KAT SAYISI</Text>
-                                        <TextInput
+                                        <Text allowFontScaling={false} style={styles.inputLabel}>KAT SAYISI</Text>
+                                        <TextInput allowFontScaling={false}
                                             style={styles.input}
                                             placeholder="Zemin Üstü"
                                             placeholderTextColor="#555"
@@ -978,8 +978,8 @@ export default function ConstructionOfferSubmitScreen() {
                                         />
                                     </View>
                                     <View style={styles.inputWrapper}>
-                                        <Text style={styles.inputLabel}>STANDART DAİRE</Text>
-                                        <TextInput
+                                        <Text allowFontScaling={false} style={styles.inputLabel}>STANDART DAİRE</Text>
+                                        <TextInput allowFontScaling={false}
                                             style={styles.input}
                                             placeholder="Kat Başına"
                                             placeholderTextColor="#555"
@@ -1024,8 +1024,8 @@ export default function ConstructionOfferSubmitScreen() {
                                         >
                                             <MaterialCommunityIcons name="floor-plan" size={24} color="#000" />
                                             <View style={{ flex: 1 }}>
-                                                <Text style={styles.configButtonTitle}>DETAYLI KAT PLANI DÜZENLE</Text>
-                                                <Text style={styles.configButtonSubtitle}>Dükkan, Daire m² ve İsim Ekleme</Text>
+                                                <Text allowFontScaling={false} style={styles.configButtonTitle}>DETAYLI KAT PLANI DÜZENLE</Text>
+                                                <Text allowFontScaling={false} style={styles.configButtonSubtitle}>Dükkan, Daire m² ve İsim Ekleme</Text>
                                             </View>
                                             <MaterialCommunityIcons name="chevron-right" size={24} color="#000" />
                                         </LinearGradient>
@@ -1075,9 +1075,9 @@ export default function ConstructionOfferSubmitScreen() {
                             />
 
 
-                            <Text style={styles.sectionHeader}>AÇIKLAMA VE DETAYLAR</Text>
+                            <Text allowFontScaling={false} style={styles.sectionHeader}>AÇIKLAMA VE DETAYLAR</Text>
                             <GlassCard style={styles.card}>
-                                <TextInput
+                                <TextInput allowFontScaling={false}
                                     style={styles.textArea}
                                     placeholder="Teklifinizin kapsamı, malzeme kalitesi ve diğer detayları buraya yazınız..."
                                     placeholderTextColor="#555"
@@ -1091,9 +1091,9 @@ export default function ConstructionOfferSubmitScreen() {
                                         <View style={{ backgroundColor: 'rgba(212, 175, 55, 0.1)', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#D4AF37' }}>
                                             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
                                                 <MaterialCommunityIcons name="pencil-circle" size={24} color="#D4AF37" style={{ marginRight: 8 }} />
-                                                <Text style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 14 }}>DÜZENLEME MODU AKTİF</Text>
+                                                <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 14 }}>DÜZENLEME MODU AKTİF</Text>
                                             </View>
-                                            <Text style={{ color: '#DDD', fontSize: 13, marginBottom: 16 }}>
+                                            <Text allowFontScaling={false} style={{ color: '#DDD', fontSize: 13, marginBottom: 16 }}>
                                                 Şu an kayıtlı bir teklifi düzenliyorsunuz. Değişiklikleri kaydetmek için aşağıdaki güncelleme butonunu kullanın.
                                             </Text>
 
@@ -1102,14 +1102,14 @@ export default function ConstructionOfferSubmitScreen() {
                                                 onPress={handleCancelEdit}
                                             >
                                                 <MaterialCommunityIcons name="close-circle-outline" size={20} color="#FFF" style={{ marginRight: 6 }} />
-                                                <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 12 }}>VAZGEÇ / YENİ EKLE</Text>
+                                                <Text allowFontScaling={false} style={{ color: '#FFF', fontWeight: 'bold', fontSize: 12 }}>VAZGEÇ / YENİ EKLE</Text>
                                             </TouchableOpacity>
                                         </View>
                                     ) : (
                                         <>
-                                            <Text style={styles.sectionHeader}>KAYDEDİLEN TEKLİFLER (STRATEJİLER)</Text>
+                                            <Text allowFontScaling={false} style={styles.sectionHeader}>KAYDEDİLEN TEKLİFLER (STRATEJİLER)</Text>
                                             {(!savedStrategies || savedStrategies.length === 0) ? (
-                                                <Text style={{ color: '#666', fontStyle: 'italic', textAlign: 'center', marginVertical: 10 }}>Henüz kaydedilmiş bir seçenek yok.</Text>
+                                                <Text allowFontScaling={false} style={{ color: '#666', fontStyle: 'italic', textAlign: 'center', marginVertical: 10 }}>Henüz kaydedilmiş bir seçenek yok.</Text>
                                             ) : (
                                                 savedStrategies.map((offer, index) => {
                                                     const breakdown = offer.unit_breakdown || {};
@@ -1128,7 +1128,7 @@ export default function ConstructionOfferSubmitScreen() {
                                                                 activeOpacity={0.7}
                                                             >
                                                                 <View style={[styles.summaryIcon, { backgroundColor: '#333', marginRight: 12 }]}>
-                                                                    <Text style={{ color: '#D4AF37', fontWeight: 'bold' }}>{savedStrategies.length - index}</Text>
+                                                                    <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>{savedStrategies.length - index}</Text>
                                                                 </View>
 
                                                                 <View style={{ marginRight: 12, backgroundColor: 'rgba(212, 175, 55, 0.1)', padding: 6, borderRadius: 20 }}>
@@ -1136,11 +1136,11 @@ export default function ConstructionOfferSubmitScreen() {
                                                                 </View>
 
                                                                 <View style={{ flex: 1 }}>
-                                                                    <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 13 }}>
+                                                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontWeight: 'bold', fontSize: 13 }}>
                                                                         {unitCount > 0 ? `${unitCount} Daire` : 'Daire Yok'}
                                                                         {cash > 0 ? (type === 'request' ? ` + ${formatCurrency(cash.toString())} TL (Alacak)` : ` - ${formatCurrency(cash.toString())} TL (Ödeme)`) : ''}
                                                                     </Text>
-                                                                    <Text style={{ color: '#888', fontSize: 11 }}>
+                                                                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11 }}>
                                                                         {new Date(offer.created_at).toLocaleString('tr-TR')}
                                                                     </Text>
                                                                 </View>
@@ -1178,7 +1178,7 @@ export default function ConstructionOfferSubmitScreen() {
                                     >
                                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                                             <MaterialCommunityIcons name={editingStrategy ? "content-save-edit" : "content-save-plus"} size={20} color={editingStrategy ? "#4CAF50" : "#D4AF37"} />
-                                            <Text style={[styles.secondaryActionText, editingStrategy && { color: '#4CAF50' }]}>
+                                            <Text allowFontScaling={false} style={[styles.secondaryActionText, editingStrategy && { color: '#4CAF50' }]}>
                                                 {loading ? 'İŞLEM YAPILIYOR...' : (editingStrategy ? 'TEKLİFİ GÜNCELLE' : 'SEÇENEK OLARAK KAYDET')}
                                             </Text>
                                         </View>
@@ -1200,7 +1200,7 @@ export default function ConstructionOfferSubmitScreen() {
                                                 {loading ? (
                                                     <ActivityIndicator color="#000" />
                                                 ) : (
-                                                    <Text style={styles.submitBtnText}>
+                                                    <Text allowFontScaling={false} style={styles.submitBtnText}>
                                                         {savedStrategies.length > 0
                                                             ? `${savedStrategies.length} FARKLI SEÇENEK İLE GÖNDER`
                                                             : 'TEKLİFİ GÖNDER VE ÇIK'}
@@ -1225,12 +1225,12 @@ export default function ConstructionOfferSubmitScreen() {
                                 <TouchableOpacity onPress={() => setFloorConfigModalVisible(false)} style={styles.closeButton}>
                                     <Ionicons name="close" size={24} color="#FFF" />
                                 </TouchableOpacity>
-                                <Text style={styles.modalTitle}>KAT PLANLAMASI</Text>
+                                <Text allowFontScaling={false} style={styles.modalTitle}>KAT PLANLAMASI</Text>
                                 <View style={{ width: 40 }} />
                             </View>
 
                             <ScrollView style={{ padding: 20 }}>
-                                <Text style={styles.helperText}>Düzenlemek istediğiniz kata dokunun.</Text>
+                                <Text allowFontScaling={false} style={styles.helperText}>Düzenlemek istediğiniz kata dokunun.</Text>
 
                                 {/* Upper Floors */}
                                 {Array.from({ length: parseInt(floorCount) || 0 }).map((_, index) => {
@@ -1258,11 +1258,11 @@ export default function ConstructionOfferSubmitScreen() {
                                             onPress={() => setEditingFloor({ num: floorNum, data: floorDetails[floorNum] })}
                                         >
                                             <View style={styles.floorBadge}>
-                                                <Text style={styles.floorBadgeText}>{floorNum}</Text>
+                                                <Text allowFontScaling={false} style={styles.floorBadgeText}>{floorNum}</Text>
                                             </View>
                                             <View style={{ flex: 1, marginLeft: 12 }}>
-                                                <Text style={styles.floorListTitle}>{floorNum}. Normal Kat</Text>
-                                                <Text style={styles.floorListSubtitle}>{summary || 'Boş'}</Text>
+                                                <Text allowFontScaling={false} style={styles.floorListTitle}>{floorNum}. Normal Kat</Text>
+                                                <Text allowFontScaling={false} style={styles.floorListSubtitle}>{summary || 'Boş'}</Text>
                                             </View>
                                             <MaterialCommunityIcons name="pencil-circle" size={28} color="#D4AF37" />
                                         </TouchableOpacity>
@@ -1275,11 +1275,11 @@ export default function ConstructionOfferSubmitScreen() {
                                     onPress={() => setEditingFloor({ num: 0, data: floorDetails[0] })}
                                 >
                                     <View style={[styles.floorBadge, { backgroundColor: '#D4AF37' }]}>
-                                        <Text style={[styles.floorBadgeText, { color: '#000' }]}>Z</Text>
+                                        <Text allowFontScaling={false} style={[styles.floorBadgeText, { color: '#000' }]}>Z</Text>
                                     </View>
                                     <View style={{ flex: 1, marginLeft: 12 }}>
-                                        <Text style={[styles.floorListTitle, { color: '#D4AF37' }]}>Zemin Kat</Text>
-                                        <Text style={styles.floorListSubtitle}>
+                                        <Text allowFontScaling={false} style={[styles.floorListTitle, { color: '#D4AF37' }]}>Zemin Kat</Text>
+                                        <Text allowFontScaling={false} style={styles.floorListSubtitle}>
                                             {Array.isArray(floorDetails[0]) ? `${floorDetails[0].length} Birim` : 'Boş'}
                                         </Text>
                                     </View>
@@ -1298,11 +1298,11 @@ export default function ConstructionOfferSubmitScreen() {
                                             onPress={() => setEditingFloor({ num: bIdx, data: floorDetails[bIdx] })}
                                         >
                                             <View style={[styles.floorBadge, { backgroundColor: '#444' }]}>
-                                                <Text style={styles.floorBadgeText}>-{bNum}</Text>
+                                                <Text allowFontScaling={false} style={styles.floorBadgeText}>-{bNum}</Text>
                                             </View>
                                             <View style={{ flex: 1, marginLeft: 12 }}>
-                                                <Text style={styles.floorListTitle}>{bNum}. Bodrum Kat</Text>
-                                                <Text style={styles.floorListSubtitle}>
+                                                <Text allowFontScaling={false} style={styles.floorListTitle}>{bNum}. Bodrum Kat</Text>
+                                                <Text allowFontScaling={false} style={styles.floorListSubtitle}>
                                                     {Array.isArray(floorData) ? `${floorData.length} Birim` : 'Boş'}
                                                 </Text>
                                             </View>
@@ -1317,7 +1317,7 @@ export default function ConstructionOfferSubmitScreen() {
                                 style={styles.floatingDoneBtn}
                                 onPress={() => setFloorConfigModalVisible(false)}
                             >
-                                <Text style={styles.floatingDoneBtnText}>TAMAMLA</Text>
+                                <Text allowFontScaling={false} style={styles.floatingDoneBtnText}>TAMAMLA</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

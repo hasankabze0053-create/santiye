@@ -19,7 +19,7 @@ export default function MachineryProviderScreen() {
 
             {/* 1. TOP: FLEET AVAILABILITY DASHBOARD */}
             <GlassCard>
-                <Text style={{ color: '#aaa', fontSize: 12, marginBottom: 10, textAlign: 'center' }}>FİLO DURUMU</Text>
+                <Text allowFontScaling={false} style={{ color: '#aaa', fontSize: 12, marginBottom: 10, textAlign: 'center' }}>FİLO DURUMU</Text>
                 <View style={{ alignItems: 'center' }}>
                     <PieChart
                         data={pieData}
@@ -44,17 +44,17 @@ export default function MachineryProviderScreen() {
                         <MaterialCommunityIcons name="excavator" size={24} color={THEME.accent} />
                     </View>
                     <View style={{ flex: 1, paddingHorizontal: 12 }}>
-                        <Text style={styles.reqTitle}>30 Ton Ekskavatör</Text>
-                        <Text style={styles.reqDetail}>3 Gün • Operatörlü</Text>
+                        <Text allowFontScaling={false} style={styles.reqTitle}>30 Ton Ekskavatör</Text>
+                        <Text allowFontScaling={false} style={styles.reqDetail}>3 Gün • Operatörlü</Text>
                         <View style={styles.locRow}>
                             <MaterialCommunityIcons name="map-marker-outline" size={12} color="#666" />
-                            <Text style={styles.locText}>Sancaktepe, İst (15km)</Text>
+                            <Text allowFontScaling={false} style={styles.locText}>Sancaktepe, İst (15km)</Text>
                         </View>
                     </View>
                     <View style={styles.actionCol}>
-                        <Text style={styles.priceText}>₺35.000</Text>
+                        <Text allowFontScaling={false} style={styles.priceText}>₺35.000</Text>
                         <View style={styles.approveBtn}>
-                            <Text style={styles.btnText}>ONAYLA</Text>
+                            <Text allowFontScaling={false} style={styles.btnText}>ONAYLA</Text>
                         </View>
                     </View>
                 </View>
@@ -67,17 +67,17 @@ export default function MachineryProviderScreen() {
                         <MaterialCommunityIcons name="bullldozer" size={24} color={THEME.accent} />
                     </View>
                     <View style={{ flex: 1, paddingHorizontal: 12 }}>
-                        <Text style={styles.reqTitle}>Dozer D6</Text>
-                        <Text style={styles.reqDetail}>1 Hafta • Yakıt Hariç</Text>
+                        <Text allowFontScaling={false} style={styles.reqTitle}>Dozer D6</Text>
+                        <Text allowFontScaling={false} style={styles.reqDetail}>1 Hafta • Yakıt Hariç</Text>
                         <View style={styles.locRow}>
                             <MaterialCommunityIcons name="map-marker-outline" size={12} color="#666" />
-                            <Text style={styles.locText}>Gebze, Kocaeli (42km)</Text>
+                            <Text allowFontScaling={false} style={styles.locText}>Gebze, Kocaeli (42km)</Text>
                         </View>
                     </View>
                     <View style={styles.actionCol}>
-                        <Text style={styles.priceText}>₺80.000</Text>
+                        <Text allowFontScaling={false} style={styles.priceText}>₺80.000</Text>
                         <View style={styles.approveBtn}>
-                            <Text style={styles.btnText}>ONAYLA</Text>
+                            <Text allowFontScaling={false} style={styles.btnText}>ONAYLA</Text>
                         </View>
                     </View>
                 </View>
@@ -90,8 +90,8 @@ export default function MachineryProviderScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                     <MaterialCommunityIcons name="wrench-clock" size={28} color="#EF4444" />
                     <View>
-                        <Text style={{ color: '#EF4444', fontWeight: 'bold' }}>BAKIM ZAMANI GELDİ</Text>
-                        <Text style={{ color: '#ccc', fontSize: 13 }}>CAT 336 (Seri No: #4829) - 5 Saat Geçti</Text>
+                        <Text allowFontScaling={false} style={{ color: '#EF4444', fontWeight: 'bold' }}>BAKIM ZAMANI GELDİ</Text>
+                        <Text allowFontScaling={false} style={{ color: '#ccc', fontSize: 13 }}>CAT 336 (Seri No: #4829) - 5 Saat Geçti</Text>
                     </View>
                 </View>
             </GlassCard>
@@ -101,8 +101,8 @@ export default function MachineryProviderScreen() {
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                         <MaterialCommunityIcons name="calendar-check" size={24} color={THEME.accent} />
                         <View>
-                            <Text style={{ color: '#fff', fontWeight: 'bold' }}>Yarın Dönecekler</Text>
-                            <Text style={{ color: '#aaa', fontSize: 12 }}>2 Makine (JCB, Silindir)</Text>
+                            <Text allowFontScaling={false} style={{ color: '#fff', fontWeight: 'bold' }}>Yarın Dönecekler</Text>
+                            <Text allowFontScaling={false} style={{ color: '#aaa', fontSize: 12 }}>2 Makine (JCB, Silindir)</Text>
                         </View>
                     </View>
                     <MaterialCommunityIcons name="chevron-right" size={24} color="#666" />

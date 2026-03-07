@@ -82,13 +82,13 @@ function SmartProcurementWizardScreen() {
 
     const renderInputStep = () => (
         <View style={styles.stepContainer}>
-            <Text style={styles.promptTitle}>Size Nasıl Yardımcı Olabilirim?</Text>
-            <Text style={styles.promptSubtitle}>
+            <Text allowFontScaling={false} style={styles.promptTitle}>Size Nasıl Yardımcı Olabilirim?</Text>
+            <Text allowFontScaling={false} style={styles.promptSubtitle}>
                 İhtiyacınızı doğal bir dille anlatın, teknik detayları ben hallederim.
             </Text>
 
             <View style={styles.inputCard}>
-                <TextInput
+                <TextInput allowFontScaling={false}
                     style={styles.textInput}
                     placeholder="Örnek: Yarın Maslak'taki şantiyem için 500 m3 C30 beton lazım, pompalı döküm olacak."
                     placeholderTextColor="#666"
@@ -103,11 +103,11 @@ function SmartProcurementWizardScreen() {
             </View>
 
             <View style={styles.suggestionContainer}>
-                <Text style={styles.suggestionTitle}>Hızlı Örnekler:</Text>
+                <Text allowFontScaling={false} style={styles.suggestionTitle}>Hızlı Örnekler:</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     {['C30 Beton', '10 ton 12\'lik Demir', 'Dış Cephe Boyası', 'Yük Asansörü'].map((item, i) => (
                         <TouchableOpacity key={i} style={styles.suggestionChip} onPress={() => setInputText(item)}>
-                            <Text style={styles.suggestionText}>{item}</Text>
+                            <Text allowFontScaling={false} style={styles.suggestionText}>{item}</Text>
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
@@ -119,7 +119,7 @@ function SmartProcurementWizardScreen() {
                     style={styles.gradientButton}
                 >
                     <MaterialCommunityIcons name="auto-fix" size={24} color="#000" />
-                    <Text style={styles.buttonText}>ANALİZ ET</Text>
+                    <Text allowFontScaling={false} style={styles.buttonText}>ANALİZ ET</Text>
                 </LinearGradient>
             </TouchableOpacity>
         </View>
@@ -128,32 +128,32 @@ function SmartProcurementWizardScreen() {
     const renderProcessingStep = () => (
         <View style={[styles.stepContainer, { justifyContent: 'center', alignItems: 'center' }]}>
             <ActivityIndicator size="large" color="#D4AF37" />
-            <Text style={styles.processingText}>Yapay Zeka Talebinizi İnceliyor...</Text>
-            <Text style={styles.processingSubText}>Teknik şartname oluşturuluyor ve tedarikçiler taranıyor.</Text>
+            <Text allowFontScaling={false} style={styles.processingText}>Yapay Zeka Talebinizi İnceliyor...</Text>
+            <Text allowFontScaling={false} style={styles.processingSubText}>Teknik şartname oluşturuluyor ve tedarikçiler taranıyor.</Text>
         </View>
     );
 
     const renderConfirmationStep = () => (
         <View style={styles.stepContainer}>
-            <Text style={styles.promptTitle}>Bunu mu Demek İstediniz?</Text>
-            <Text style={styles.promptSubtitle}>Talebinizden şu teknik detayları çıkardım.</Text>
+            <Text allowFontScaling={false} style={styles.promptTitle}>Bunu mu Demek İstediniz?</Text>
+            <Text allowFontScaling={false} style={styles.promptSubtitle}>Talebinizden şu teknik detayları çıkardım.</Text>
 
             <View style={styles.resultCard}>
                 <View style={styles.resultRow}>
-                    <Text style={styles.resultLabel}>KATEGORİ:</Text>
-                    <Text style={styles.resultValue}>{parsedData?.category}</Text>
+                    <Text allowFontScaling={false} style={styles.resultLabel}>KATEGORİ:</Text>
+                    <Text allowFontScaling={false} style={styles.resultValue}>{parsedData?.category}</Text>
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.resultRow}>
-                    <Text style={styles.resultLabel}>MİKTAR:</Text>
-                    <Text style={styles.resultValue}>
+                    <Text allowFontScaling={false} style={styles.resultLabel}>MİKTAR:</Text>
+                    <Text allowFontScaling={false} style={styles.resultValue}>
                         {parsedData?.quantity ? `${parsedData.quantity} ${parsedData.unit}` : 'Belirtilmedi'}
                     </Text>
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.resultRow}>
-                    <Text style={styles.resultLabel}>ACİLİYET:</Text>
-                    <Text style={[styles.resultValue, parsedData?.urgency.includes('Yüksek') && { color: '#FF4444' }]}>
+                    <Text allowFontScaling={false} style={styles.resultLabel}>ACİLİYET:</Text>
+                    <Text allowFontScaling={false} style={[styles.resultValue, parsedData?.urgency.includes('Yüksek') && { color: '#FF4444' }]}>
                         {parsedData?.urgency}
                     </Text>
                 </View>
@@ -161,8 +161,8 @@ function SmartProcurementWizardScreen() {
                     <>
                         <View style={styles.divider} />
                         <View style={styles.resultRow}>
-                            <Text style={styles.resultLabel}>EKİPMAN:</Text>
-                            <Text style={styles.resultValue}>{parsedData.requirements.join(', ')}</Text>
+                            <Text allowFontScaling={false} style={styles.resultLabel}>EKİPMAN:</Text>
+                            <Text allowFontScaling={false} style={styles.resultValue}>{parsedData.requirements.join(', ')}</Text>
                         </View>
                     </>
                 )}
@@ -171,18 +171,18 @@ function SmartProcurementWizardScreen() {
             <View style={styles.aiNoteBoxContainer}>
                 <View style={styles.aiNoteHeaderRow}>
                     <MaterialCommunityIcons name="robot-outline" size={24} color="#D4AF37" />
-                    <Text style={styles.aiNoteHeader}>CEPTEŞEF UZMAN TAVSİYESİ</Text>
+                    <Text allowFontScaling={false} style={styles.aiNoteHeader}>CEPTEŞEF UZMAN TAVSİYESİ</Text>
                 </View>
-                <Text style={styles.aiNoteTextBig}>{parsedData?.ai_notes}</Text>
+                <Text allowFontScaling={false} style={styles.aiNoteTextBig}>{parsedData?.ai_notes}</Text>
             </View>
 
             <View style={styles.actionRow}>
                 <TouchableOpacity style={styles.secondaryButton} onPress={() => setStep(0)}>
-                    <Text style={styles.secondaryButtonText}>DÜZENLE</Text>
+                    <Text allowFontScaling={false} style={styles.secondaryButtonText}>DÜZENLE</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.analyzeButton, { flex: 1, marginTop: 0 }]} onPress={handleConfirm}>
                     <LinearGradient colors={['#D4AF37', '#996515']} style={styles.gradientButton}>
-                        <Text style={styles.buttonText}>İLAN YAYINLA</Text>
+                        <Text allowFontScaling={false} style={styles.buttonText}>İLAN YAYINLA</Text>
                         <MaterialCommunityIcons name="send-check" size={24} color="#000" />
                     </LinearGradient>
                 </TouchableOpacity>
@@ -202,7 +202,7 @@ function SmartProcurementWizardScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <Ionicons name="close" size={24} color="#FFF" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>CEPTEŞEF AI</Text>
+                    <Text allowFontScaling={false} style={styles.headerTitle}>CEPTEŞEF AI</Text>
                     <View style={{ width: 44 }} />
                 </View>
 

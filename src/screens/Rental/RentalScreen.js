@@ -243,8 +243,8 @@ export default function RentalScreen() {
                         <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
                     </TouchableOpacity>
                     <View style={{ alignItems: 'center' }}>
-                        <Text style={styles.headerTitle}>İŞ MAKİNESİ KİRALAMA</Text>
-                        <Text style={styles.headerSubtitle}>Projeniz İçin Güçlü Çözümler</Text>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>İŞ MAKİNESİ KİRALAMA</Text>
+                        <Text allowFontScaling={false} style={styles.headerSubtitle}>Projeniz İçin Güçlü Çözümler</Text>
                     </View>
                     <TouchableOpacity
                         style={[styles.headerIconBtn, !isTransporter && !isAdmin && { opacity: 0.5 }]}
@@ -280,11 +280,11 @@ export default function RentalScreen() {
                                             <Image source={typeof slide.image === 'string' ? { uri: slide.image } : slide.image} style={StyleSheet.absoluteFill} contentFit="cover" transition={500} />
                                             <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={StyleSheet.absoluteFill} />
                                             <View style={styles.showcaseTag}>
-                                                <Text style={styles.showcaseTagText}>{slide.tag}</Text>
+                                                <Text allowFontScaling={false} style={styles.showcaseTagText}>{slide.tag}</Text>
                                             </View>
                                             <View style={styles.showcaseTextContent}>
-                                                <Text style={styles.showcaseTitle}>{slide.title}</Text>
-                                                <Text style={styles.showcaseSubtitle}>{slide.subtitle}</Text>
+                                                <Text allowFontScaling={false} style={styles.showcaseTitle}>{slide.title}</Text>
+                                                <Text allowFontScaling={false} style={styles.showcaseSubtitle}>{slide.subtitle}</Text>
                                             </View>
                                         </View>
                                     </View>
@@ -320,8 +320,8 @@ export default function RentalScreen() {
                                         <MaterialCommunityIcons name="clock-time-four" size={24} color="#000" />
                                     </View>
                                     <View>
-                                        <Text style={[styles.typeCardTitle, { color: '#D4AF37' }]}>SÜRELİ KİRALAMA</Text>
-                                        <Text style={styles.typeCardSub}>Saatlik / Günlük</Text>
+                                        <Text allowFontScaling={false} style={[styles.typeCardTitle, { color: '#D4AF37' }]}>SÜRELİ KİRALAMA</Text>
+                                        <Text allowFontScaling={false} style={styles.typeCardSub}>Saatlik / Günlük</Text>
                                     </View>
                                 </LinearGradient>
                             </TouchableOpacity>
@@ -339,8 +339,8 @@ export default function RentalScreen() {
                                         <MaterialCommunityIcons name="domain" size={24} color="#D4AF37" />
                                     </View>
                                     <View>
-                                        <Text style={[styles.typeCardTitle, { color: '#D4AF37' }]}>PROJE BAZLI KİRALAMA</Text>
-                                        <Text style={styles.typeCardSub}>Uzun Dönem / Yıkım / Proje</Text>
+                                        <Text allowFontScaling={false} style={[styles.typeCardTitle, { color: '#D4AF37' }]}>PROJE BAZLI KİRALAMA</Text>
+                                        <Text allowFontScaling={false} style={styles.typeCardSub}>Uzun Dönem / Yıkım / Proje</Text>
                                     </View>
                                 </LinearGradient>
                             </TouchableOpacity>
@@ -357,11 +357,11 @@ export default function RentalScreen() {
                                 activeOpacity={0.8}
                             >
                                 <MaterialCommunityIcons name="magnify" size={24} color="#D4AF37" />
-                                <Text style={styles.searchText}>Makine Parkurunda Ara...</Text>
+                                <Text allowFontScaling={false} style={styles.searchText}>Makine Parkurunda Ara...</Text>
                             </TouchableOpacity>
 
                             {/* CATEGORY GRID (2-Column) */}
-                            <Text style={styles.sectionHeader}>MAKİNE PARKURU</Text>
+                            <Text allowFontScaling={false} style={styles.sectionHeader}>MAKİNE PARKURU</Text>
                             <View style={styles.gridContainer}>
                                 {rentalCategories.map((cat) => (
                                     <TouchableOpacity
@@ -383,7 +383,7 @@ export default function RentalScreen() {
                                             </View>
                                             <View style={styles.gridContent}>
                                                 <View style={{ flex: 1, paddingRight: 4 }}>
-                                                    <Text style={styles.gridTitle} numberOfLines={2}>{cat.title}</Text>
+                                                    <Text allowFontScaling={false} style={styles.gridTitle} numberOfLines={2}>{cat.title}</Text>
                                                 </View>
                                                 <MaterialCommunityIcons name="chevron-right" size={20} color="#D4AF37" />
                                             </View>
@@ -403,7 +403,7 @@ export default function RentalScreen() {
                             <View style={styles.detailHeader}>
                                 <Image source={{ uri: selectedCategory.image }} style={styles.detailHeaderImage} contentFit="cover" transition={500} />
                                 <LinearGradient colors={['transparent', '#000']} style={StyleSheet.absoluteFill} />
-                                <Text style={styles.detailCategoryTitle}>{selectedCategory.title}</Text>
+                                <Text allowFontScaling={false} style={styles.detailCategoryTitle}>{selectedCategory.title}</Text>
                             </View>
                             {selectedCategory.items.map((item, idx) => {
                                 const isExpanded = expandedItemIndex === idx;
@@ -427,14 +427,14 @@ export default function RentalScreen() {
                                                         />
                                                     </View>
                                                     <View style={{ flex: 1, paddingRight: 8 }}>
-                                                        <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
-                                                        <Text style={styles.itemType}>{item.type}</Text>
+                                                        <Text allowFontScaling={false} style={styles.itemName} numberOfLines={2}>{item.name}</Text>
+                                                        <Text allowFontScaling={false} style={styles.itemType}>{item.type}</Text>
                                                     </View>
                                                 </View>
 
                                                 {/* Price Info Button */}
                                                 <View style={styles.priceInfoBtn}>
-                                                    <Text style={styles.priceInfoText}>FİYATLAR</Text>
+                                                    <Text allowFontScaling={false} style={styles.priceInfoText}>FİYATLAR</Text>
                                                     <MaterialCommunityIcons name={isExpanded ? "chevron-up" : "chevron-down"} size={18} color="#D4AF37" />
                                                 </View>
                                             </LinearGradient>
@@ -443,7 +443,7 @@ export default function RentalScreen() {
                                         {/* ACCORDION CONTENT: Supplier List */}
                                         {isExpanded && (
                                             <View style={styles.accordionContent}>
-                                                <Text style={styles.accordionTitle}>Firma Teklifleri</Text>
+                                                <Text allowFontScaling={false} style={styles.accordionTitle}>Firma Teklifleri</Text>
                                                 {MOCK_ITEM_SUPPLIERS.map((supplier) => (
                                                     <LinearGradient
                                                         key={supplier.id}
@@ -462,7 +462,7 @@ export default function RentalScreen() {
                                                                     location: 'İstanbul',
                                                                     isRental: true
                                                                 })}>
-                                                                    <Text style={[styles.supplierName, { textDecorationLine: 'underline', color: '#FFF' }]}>{supplier.name}</Text>
+                                                                    <Text allowFontScaling={false} style={[styles.supplierName, { textDecorationLine: 'underline', color: '#FFF' }]}>{supplier.name}</Text>
                                                                 </TouchableOpacity>
                                                             </View>
                                                             {supplier.verified && (
@@ -475,12 +475,12 @@ export default function RentalScreen() {
                                                             {/* Left Side: Short Term */}
                                                             <View style={{ flex: 1 }}>
                                                                 <View style={{ marginBottom: 12 }}>
-                                                                    <Text style={styles.priceLabel}>Saatlik</Text>
-                                                                    <Text style={[styles.priceValue, { fontSize: 15 }]}>{supplier.prices.hourly}</Text>
+                                                                    <Text allowFontScaling={false} style={styles.priceLabel}>Saatlik</Text>
+                                                                    <Text allowFontScaling={false} style={[styles.priceValue, { fontSize: 15 }]}>{supplier.prices.hourly}</Text>
                                                                 </View>
                                                                 <View>
-                                                                    <Text style={styles.priceLabel}>Günlük</Text>
-                                                                    <Text style={[styles.priceValue, { fontSize: 15 }]}>{supplier.prices.daily}</Text>
+                                                                    <Text allowFontScaling={false} style={styles.priceLabel}>Günlük</Text>
+                                                                    <Text allowFontScaling={false} style={[styles.priceValue, { fontSize: 15 }]}>{supplier.prices.daily}</Text>
                                                                 </View>
                                                             </View>
 
@@ -490,19 +490,19 @@ export default function RentalScreen() {
                                                             {/* Right Side: Long Term */}
                                                             <View style={{ flex: 1, alignItems: 'flex-end' }}>
                                                                 <View style={{ marginBottom: 12, alignItems: 'flex-end' }}>
-                                                                    <Text style={styles.priceLabel}>Haftalık</Text>
-                                                                    <Text style={[styles.priceValue, { fontSize: 15 }]}>{supplier.prices.weekly}</Text>
+                                                                    <Text allowFontScaling={false} style={styles.priceLabel}>Haftalık</Text>
+                                                                    <Text allowFontScaling={false} style={[styles.priceValue, { fontSize: 15 }]}>{supplier.prices.weekly}</Text>
                                                                 </View>
                                                                 <View style={{ alignItems: 'flex-end' }}>
-                                                                    <Text style={styles.priceLabel}>Aylık</Text>
-                                                                    <Text style={[styles.priceValue, { fontSize: 15 }]}>{supplier.prices.monthly}</Text>
+                                                                    <Text allowFontScaling={false} style={styles.priceLabel}>Aylık</Text>
+                                                                    <Text allowFontScaling={false} style={[styles.priceValue, { fontSize: 15 }]}>{supplier.prices.monthly}</Text>
                                                                 </View>
                                                             </View>
                                                         </View>
 
                                                         {/* Select Button */}
                                                         <TouchableOpacity style={styles.selectSupplierBtn} onPress={() => handleRentRequest(item, supplier.name)}>
-                                                            <Text style={styles.selectSupplierText}>FİRMA SEÇ</Text>
+                                                            <Text allowFontScaling={false} style={styles.selectSupplierText}>FİRMA SEÇ</Text>
                                                         </TouchableOpacity>
                                                     </LinearGradient>
                                                 ))}
@@ -521,7 +521,7 @@ export default function RentalScreen() {
                 {viewMode === 'list' && (
                     <View style={styles.stickyFooter}>
                         <TouchableOpacity style={styles.quickOfferBtn} onPress={() => Alert.alert('Hızlı Teklif', 'Müşteri temsilcimize bağlanıyorsunuz...')}>
-                            <Text style={styles.quickOfferText}>HIZLI TEKLİF İSTE</Text>
+                            <Text allowFontScaling={false} style={styles.quickOfferText}>HIZLI TEKLİF İSTE</Text>
                             <MaterialCommunityIcons name="lightning-bolt" size={20} color="#000" />
                         </TouchableOpacity>
                     </View>
@@ -538,7 +538,7 @@ export default function RentalScreen() {
                         <View style={styles.modalContainer}>
                             <View style={styles.modalContent}>
                                 <View style={styles.modalHeader}>
-                                    <Text style={styles.modalTitle}>Makine Ara</Text>
+                                    <Text allowFontScaling={false} style={styles.modalTitle}>Makine Ara</Text>
                                     <TouchableOpacity onPress={() => setSearchVisible(false)} style={styles.closeBtn}>
                                         <Ionicons name="close" size={24} color="#fff" />
                                     </TouchableOpacity>
@@ -546,7 +546,7 @@ export default function RentalScreen() {
 
                                 <View style={styles.searchInputContainer}>
                                     <Ionicons name="search" size={20} color="#D4AF37" style={{ marginRight: 10 }} />
-                                    <TextInput
+                                    <TextInput allowFontScaling={false}
                                         style={styles.searchInput}
                                         placeholder="Makine adı veya kategori..."
                                         placeholderTextColor="#666"
@@ -568,7 +568,7 @@ export default function RentalScreen() {
                                     contentContainerStyle={{ paddingBottom: 20 }}
                                     ListEmptyComponent={
                                         searchQuery.length > 1 ? (
-                                            <Text style={{ color: '#666', textAlign: 'center', marginTop: 20 }}>Sonuç bulunamadı.</Text>
+                                            <Text allowFontScaling={false} style={{ color: '#666', textAlign: 'center', marginTop: 20 }}>Sonuç bulunamadı.</Text>
                                         ) : null
                                     }
                                     renderItem={({ item }) => (
@@ -577,8 +577,8 @@ export default function RentalScreen() {
                                                 <MaterialCommunityIcons name={item.categoryIcon} size={24} color="#D4AF37" />
                                             </View>
                                             <View style={{ flex: 1 }}>
-                                                <Text style={styles.itemName}>{item.name}</Text>
-                                                <Text style={styles.itemType}>{item.categoryTitle} • {item.type}</Text>
+                                                <Text allowFontScaling={false} style={styles.itemName}>{item.name}</Text>
+                                                <Text allowFontScaling={false} style={styles.itemType}>{item.categoryTitle} • {item.type}</Text>
                                             </View>
                                             <TouchableOpacity
                                                 style={styles.rentButton}
@@ -607,7 +607,7 @@ export default function RentalScreen() {
                     <View style={styles.modalOverlay}>
                         <View style={styles.modalContent}>
                             <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>Makine Seç</Text>
+                                <Text allowFontScaling={false} style={styles.modalTitle}>Makine Seç</Text>
                                 <TouchableOpacity onPress={() => setMachineModalVisible(false)}>
                                     <Ionicons name="close" size={24} color="#fff" />
                                 </TouchableOpacity>
@@ -618,7 +618,7 @@ export default function RentalScreen() {
                                     <View key={cat.id} style={styles.modalCategory}>
                                         <View style={styles.modalCatHeader}>
                                             <MaterialCommunityIcons name={cat.icon} size={20} color="#D4AF37" style={{ marginRight: 8 }} />
-                                            <Text style={styles.modalCatTitle}>{cat.title}</Text>
+                                            <Text allowFontScaling={false} style={styles.modalCatTitle}>{cat.title}</Text>
                                         </View>
                                         <View style={styles.modalItemsRow}>
                                             {cat.items.map((item, idx) => (
@@ -627,7 +627,7 @@ export default function RentalScreen() {
                                                     style={styles.modalItemBadge}
                                                     onPress={() => handleAddMachine(item, cat.icon)}
                                                 >
-                                                    <Text style={styles.modalItemText}>{item}</Text>
+                                                    <Text allowFontScaling={false} style={styles.modalItemText}>{item}</Text>
                                                 </TouchableOpacity>
                                             ))}
                                         </View>

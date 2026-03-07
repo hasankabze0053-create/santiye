@@ -22,11 +22,11 @@ export default function RenovationSuccessScreen({ navigation }) {
                     <MaterialCommunityIcons name="check-decagram" size={120} color={THEME.goldPrimary} />
                 </View>
 
-                <Text style={styles.title}>Talebiniz Alındı!</Text>
-                <Text style={styles.subtitle}>
-                    Keşif detaylarınız ve hayalinizdeki tasarım talebi, bölgenizdeki en iyi <Text style={{ color: THEME.goldPrimary }}>Mimarlık & Tadilat</Text> ofislerine başarıyla iletildi.
+                <Text allowFontScaling={false} style={styles.title}>Talebiniz Alındı!</Text>
+                <Text allowFontScaling={false} style={styles.subtitle}>
+                    Keşif detaylarınız ve hayalinizdeki tasarım talebi, bölgenizdeki en iyi <Text allowFontScaling={false} style={{ color: THEME.goldPrimary }}>Mimarlık & Tadilat</Text> ofislerine başarıyla iletildi.
                 </Text>
-                <Text style={styles.info}>
+                <Text allowFontScaling={false} style={styles.info}>
                     Ofisler projeni inceleyip en kısa sürede seninle iletişime geçecekler.
                 </Text>
             </SafeAreaView>
@@ -41,7 +41,7 @@ export default function RenovationSuccessScreen({ navigation }) {
                         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                         style={styles.gradientButton}
                     >
-                        <Text style={styles.buttonText}>ANA SAYFAYA DÖN</Text>
+                        <Text allowFontScaling={false} style={styles.buttonText}>ANA SAYFAYA DÖN</Text>
                         <Ionicons name="home" size={18} color="#1a1a1a" style={{ marginLeft: 8 }} />
                     </LinearGradient>
                 </TouchableOpacity>

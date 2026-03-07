@@ -39,6 +39,8 @@ import {
 
 
 
+
+
     FlatList,
     ScrollView,
     StatusBar,
@@ -132,7 +134,7 @@ const SegmentedTab = ({ tabs, activeTab, onTabChange, theme, badges }) => (
                     activeOpacity={0.8}
                 >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={[
+                        <Text allowFontScaling={false} style={[
                             styles.tabText,
                             { color: isActive ? (theme.isDark ? '#000' : '#FFF') : theme.subText }
                         ]}>
@@ -140,7 +142,7 @@ const SegmentedTab = ({ tabs, activeTab, onTabChange, theme, badges }) => (
                         </Text>
                         {badgeCount > 0 && (
                             <View style={{ backgroundColor: '#FF3B30', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10 }}>
-                                <Text style={{ color: '#FFF', fontSize: 10, fontWeight: 'bold' }}>{badgeCount}</Text>
+                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 10, fontWeight: 'bold' }}>{badgeCount}</Text>
                             </View>
                         )}
                     </View>
@@ -190,10 +192,29 @@ export const RequestsScreen = () => {
                 // Add other fields as needed
             }));
 
-            const formattedMarketData = (marketData || []).map(item => ({
-                ...item,
-                category: 'İlan & Market'
-            }));
+            const formattedMarketData = (marketData || []).map(item => {
+                let displayTitle = item.title;
+                if (!displayTitle || displayTitle.trim() === '') {
+                    displayTitle = 'Toptan Malzeme Talebi';
+                }
+                
+                let displaySubtitle = item.subtitle;
+                if (!displaySubtitle && item.items && item.items.length > 0) {
+                    displaySubtitle = item.items.map(i => {
+                        // Extract just the core name without Brand/Spec brackets for the concise subtitle
+                        let cleanName = i.product_name || '';
+                        cleanName = cleanName.replace(/\[.*?\]/g, '').trim();
+                        return `${i.quantity} ${cleanName}`;
+                    }).join(' • ');
+                }
+
+                return {
+                    ...item,
+                    title: displayTitle,
+                    subtitle: displaySubtitle || (item.location ? item.location.replace('(Varsayılan)', '').trim() : 'Detay belirtilmedi'),
+                    category: 'İlan & Market'
+                };
+            });
 
             // Merge and sort
             const allRequests = [...formattedMarketData, ...formattedConstructionData];
@@ -227,13 +248,13 @@ export const RequestsScreen = () => {
                             <MaterialCommunityIcons name="home-edit" size={24} color="#FFD700" />
                         </View>
                         <View style={{ flex: 1, justifyContent: 'center', gap: 4 }}>
-                            <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' }} numberOfLines={1}>{item.title}</Text>
-                            <Text style={{ color: '#A0A0A0', fontSize: 12 }}>
+                            <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' }} numberOfLines={1}>{item.title}</Text>
+                            <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 12 }}>
                                 {new Date(item.created_at).toLocaleDateString('tr-TR')}
                             </Text>
                         </View>
                         <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, justifyContent: 'center', alignItems: 'center', backgroundColor: isWaiting ? 'rgba(255, 255, 255, 0.1)' : '#FFD700' }}>
-                            <Text style={{ fontSize: 12, fontWeight: 'bold', color: isWaiting ? '#A0A0A0' : '#121212' }}>
+                            <Text allowFontScaling={false} style={{ fontSize: 12, fontWeight: 'bold', color: isWaiting ? '#A0A0A0' : '#121212' }}>
                                 {isWaiting ? "Bekleniyor" : `${item.bids.length} Teklif`}
                             </Text>
                         </View>
@@ -256,13 +277,13 @@ export const RequestsScreen = () => {
                     )}
                 </View>
                 <View style={styles.cardContent}>
-                    <Text style={[styles.cardTitle, { color: theme.text }]}>{item.title}</Text>
-                    <Text style={[styles.cardSubtitle, { color: theme.subText }]}>
+                    <Text allowFontScaling={false} style={[styles.cardTitle, { color: theme.text }]}>{item.title}</Text>
+                    <Text allowFontScaling={false} style={[styles.cardSubtitle, { color: theme.subText }]}>
                         {new Date(item.created_at).toLocaleDateString('tr-TR')}
                     </Text>
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: item.bids && item.bids.length > 0 ? theme.accent : theme.iconBg }]}>
-                    <Text style={[styles.statusText, { color: item.bids && item.bids.length > 0 ? '#000' : theme.subText }]}>
+                    <Text allowFontScaling={false} style={[styles.statusText, { color: item.bids && item.bids.length > 0 ? '#000' : theme.subText }]}>
                         {item.bids && item.bids.length > 0 ? `${item.bids.length} Teklif` : 'Bekleniyor'}
                     </Text>
                 </View>
@@ -273,12 +294,12 @@ export const RequestsScreen = () => {
     const EmptyState = () => (
         <View style={{ alignItems: 'center', marginTop: 40 }}>
             <MaterialCommunityIcons name="clipboard-text-off-outline" size={48} color={theme.subText} style={{ marginBottom: 10 }} />
-            <Text style={{ color: theme.subText, textAlign: 'center', marginBottom: 20 }}>Henüz bir talebiniz yok.</Text>
+            <Text allowFontScaling={false} style={{ color: theme.subText, textAlign: 'center', marginBottom: 20 }}>Henüz bir talebiniz yok.</Text>
             <TouchableOpacity
                 style={[styles.createBtn, { backgroundColor: theme.accent }]}
                 onPress={() => navigation.navigate('MarketRequest')}
             >
-                <Text style={{ color: '#000', fontWeight: 'bold' }}>YENİ TALEP OLUŞTUR</Text>
+                <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold' }}>YENİ TALEP OLUŞTUR</Text>
             </TouchableOpacity>
         </View>
     );
@@ -305,7 +326,7 @@ export const RequestsScreen = () => {
                                     borderColor: isSelected ? '#D4AF37' : '#3A3A3C'
                                 }}
                             >
-                                <Text style={{ color: isSelected ? '#000' : '#E5E5EA', fontWeight: 'bold', fontSize: 13 }}>{cat}</Text>
+                                <Text allowFontScaling={false} style={{ color: isSelected ? '#000' : '#E5E5EA', fontWeight: 'bold', fontSize: 13 }}>{cat}</Text>
                             </TouchableOpacity>
                         );
                     })}
@@ -346,12 +367,12 @@ export const OffersScreen = () => {
                 <MaterialCommunityIcons name="file-document-outline" size={24} color={theme.accent} />
             </View>
             <View style={styles.cardContent}>
-                <Text style={[styles.cardTitle, { color: theme.text }]}>{item.title}</Text>
-                <Text style={[styles.cardSubtitle, { color: theme.subText }]}>{item.subtitle}</Text>
-                <Text style={[styles.priceText, { color: theme.accent }]}>{item.price}</Text>
+                <Text allowFontScaling={false} style={[styles.cardTitle, { color: theme.text }]}>{item.title}</Text>
+                <Text allowFontScaling={false} style={[styles.cardSubtitle, { color: theme.subText }]}>{item.subtitle}</Text>
+                <Text allowFontScaling={false} style={[styles.priceText, { color: theme.accent }]}>{item.price}</Text>
             </View>
             <View style={styles.rightCol}>
-                <Text style={[styles.statusSimple, { color: item.statusColor }]}>{item.status}</Text>
+                <Text allowFontScaling={false} style={[styles.statusSimple, { color: item.statusColor }]}>{item.status}</Text>
             </View>
         </View>
     );
@@ -490,36 +511,36 @@ export const InboxScreen = () => {
                                     <Image source={{ uri: item.profiles.avatar_url }} style={styles.premiumAvatar} />
                                 ) : (
                                     <View style={styles.premiumAvatarPlaceholder}>
-                                        <Text style={styles.avatarInitial}>
+                                        <Text allowFontScaling={false} style={styles.avatarInitial}>
                                             {item.title?.charAt(0).toUpperCase() || '?'}
                                         </Text>
                                     </View>
                                 )}
                                 <View style={{ marginLeft: 12, flex: 1 }}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <Text style={styles.premiumCompanyName} numberOfLines={1}>
+                                        <Text allowFontScaling={false} style={styles.premiumCompanyName} numberOfLines={1}>
                                             {item.title}
                                         </Text>
                                         <MaterialCommunityIcons name="check-decagram" size={14} color="#D4AF37" style={{ marginLeft: 4 }} />
                                     </View>
-                                    <Text style={styles.premiumLocationText} numberOfLines={1}>
+                                    <Text allowFontScaling={false} style={styles.premiumLocationText} numberOfLines={1}>
                                         Sohbet • {item.request?.title || 'Genel'}
                                     </Text>
                                 </View>
                             </View>
                             <View style={{ alignItems: 'flex-end' }}>
-                                <Text style={styles.premiumTimeText}>
+                                <Text allowFontScaling={false} style={styles.premiumTimeText}>
                                     {item.created_at ? new Date(item.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
                                 </Text>
                                 {isUnread && (
                                     <View style={styles.premiumUnreadBadge}>
-                                        <Text style={styles.premiumUnreadText}>YENİ</Text>
+                                        <Text allowFontScaling={false} style={styles.premiumUnreadText}>YENİ</Text>
                                     </View>
                                 )}
                             </View>
                         </View>
 
-                        <Text numberOfLines={2} style={[
+                        <Text allowFontScaling={false} numberOfLines={2} style={[
                             styles.premiumChatPreview,
                             isUnread && { color: '#FFF', fontWeight: '600' }
                         ]}>
@@ -553,17 +574,17 @@ export const InboxScreen = () => {
                     {/* Header: Company & Time */}
                     <View style={styles.premiumHeader}>
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.premiumCompanyName}>
+                            <Text allowFontScaling={false} style={styles.premiumCompanyName}>
                                 {item.companyName || item.profiles?.company_name || 'İsimsiz Firma'}
                             </Text>
                             <View style={styles.locationContainer}>
                                 <MaterialCommunityIcons name="map-marker" size={12} color="#D4AF37" />
-                                <Text style={styles.premiumLocationText}>
+                                <Text allowFontScaling={false} style={styles.premiumLocationText}>
                                     {item.location || 'İstanbul / Çatalca'}
                                 </Text>
                             </View>
                         </View>
-                        <Text style={styles.premiumTimeText}>
+                        <Text allowFontScaling={false} style={styles.premiumTimeText}>
                             {new Date(item.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                         </Text>
                     </View>
@@ -573,8 +594,8 @@ export const InboxScreen = () => {
                     {/* Body: Request Type & Price */}
                     <View style={styles.premiumBody}>
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.premiumLabelText}>TALEP TÜRÜ</Text>
-                            <Text style={styles.premiumValueText}>
+                            <Text allowFontScaling={false} style={styles.premiumLabelText}>TALEP TÜRÜ</Text>
+                            <Text allowFontScaling={false} style={styles.premiumValueText}>
                                 {item.requestType || 'Kat Karşılığı'}
                             </Text>
                         </View>
@@ -585,14 +606,14 @@ export const InboxScreen = () => {
                             end={{ x: 1, y: 1 }}
                             style={styles.premiumActionButton}
                         >
-                            <Text style={styles.premiumActionText}>+ İNCELE</Text>
+                            <Text allowFontScaling={false} style={styles.premiumActionText}>+ İNCELE</Text>
                         </LinearGradient>
                     </View>
 
                     {/* Footer: Price or Offer Count */}
                     <View style={styles.premiumFooter}>
                         <MaterialCommunityIcons name="cube-send" size={14} color="rgba(212, 175, 55, 0.6)" />
-                        <Text style={styles.premiumFooterText}>
+                        <Text allowFontScaling={false} style={styles.premiumFooterText}>
                             {item.price || 'Fiyat Teklifi'}
                         </Text>
                     </View>
@@ -604,7 +625,7 @@ export const InboxScreen = () => {
     const EmptyState = () => (
         <View style={{ alignItems: 'center', marginTop: 40, padding: 20 }}>
             <MaterialCommunityIcons name="email-off-outline" size={48} color={theme.subText} style={{ marginBottom: 10 }} />
-            <Text style={{ color: theme.subText, textAlign: 'center' }}>Henüz gelen bir mesaj veya teklif yok.</Text>
+            <Text allowFontScaling={false} style={{ color: theme.subText, textAlign: 'center' }}>Henüz gelen bir mesaj veya teklif yok.</Text>
         </View>
     );
 
@@ -641,21 +662,30 @@ const getTheme = (isDarkMode) => ({
     iconBg: isDarkMode ? '#2C2C2E' : '#E5E5EA',
 });
 
-const ScreenLayout = ({ title, theme, activeTab, setActiveTab, tabs, children, icon = "filter-variant", badges = {} }) => (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-        <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
-        <View style={styles.header}>
-            <Text style={[styles.headerTitle, { color: theme.text }]}>{title}</Text>
-            <TouchableOpacity style={[styles.iconBtn, { backgroundColor: theme.iconBg }]}>
-                <MaterialCommunityIcons name={icon} size={24} color={theme.text} />
-            </TouchableOpacity>
-        </View>
-        <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-            <SegmentedTab tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} theme={theme} badges={badges} />
-        </View>
-        {children}
-    </SafeAreaView>
-);
+const ScreenLayout = ({ title, theme, activeTab, setActiveTab, tabs, children, icon = "filter-variant", badges = {} }) => {
+    const navigation = useNavigation();
+    
+    return (
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+            <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
+            <View style={styles.header}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Ana Sayfa')} style={[styles.iconBtn, { backgroundColor: theme.iconBg }]}>
+                        <MaterialCommunityIcons name="arrow-left" size={24} color={theme.text} />
+                    </TouchableOpacity>
+                    <Text allowFontScaling={false} style={[styles.headerTitle, { color: theme.text }]}>{title}</Text>
+                </View>
+                <TouchableOpacity style={[styles.iconBtn, { backgroundColor: theme.iconBg }]}>
+                    <MaterialCommunityIcons name={icon} size={24} color={theme.text} />
+                </TouchableOpacity>
+            </View>
+            <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+                <SegmentedTab tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} theme={theme} badges={badges} />
+            </View>
+            {children}
+        </SafeAreaView>
+    );
+};
 
 const styles = StyleSheet.create({
     container: { flex: 1 },

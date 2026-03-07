@@ -2,7 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Alert, Image, InputAccessoryView, Keyboard, Modal, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MarketService } from '../../services/MarketService';
@@ -15,6 +15,136 @@ const PAYMENT_METHODS = [
     { id: 'credit_card', title: 'Kredi Kartı', icon: 'card-outline', desc: 'Teslimatta veya online güvenli ödeme' },
     { id: 'check', title: 'Çek / Senet', icon: 'document-text-outline', desc: 'Vadeli ödeme seçenekleri' },
 ];
+
+const areEqual = (prevProps, nextProps) => {
+    return prevProps.item === nextProps.item &&
+           prevProps.index === nextProps.index &&
+           prevProps.itemsLength === nextProps.itemsLength;
+};
+
+const MemoizedItemCard = React.memo(({ item, index, itemsLength, handleRemoveItem, updateItem, clearSuggestions, selectCatalogItem, openUnitPicker, styles }) => {
+    return (
+        <View style={[styles.itemCard, { zIndex: 1000 - index }]}>
+            {itemsLength > 1 && (
+                <TouchableOpacity onPress={() => handleRemoveItem(item.id)} style={{ position: 'absolute', top: 16, right: 16, zIndex: 20 }}>
+                    <MaterialCommunityIcons name="trash-can-outline" size={22} color="#EF4444" />
+                </TouchableOpacity>
+            )}
+            <View style={{ flexDirection: 'row', gap: 12, marginTop: itemsLength > 1 ? 32 : 0 }}>
+                {/* Index Indicator */}
+                <View style={styles.indexCircle}>
+                    <Text allowFontScaling={false} style={styles.indexText}>{index + 1}</Text>
+                </View>
+
+                {/* Form Fields */}
+                <View style={{ flex: 1, gap: 12 }}>
+                    {/* Row 1: Name Input + Autocomplete Suggestions */}
+                    <View style={{ zIndex: 10 }}>
+                        <View style={styles.premiumInputContainer}>
+                            <TextInput allowFontScaling={false}
+                                style={styles.premiumInput}
+                                placeholder="Malzeme (Örn: C30, Tuğla)"
+                                placeholderTextColor="#888"
+                                value={item.name}
+                                onChangeText={(t) => updateItem(item.id, 'name', t)}
+                            />
+                            {item.name.length > 0 && (
+                                <TouchableOpacity onPress={() => updateItem(item.id, 'name', '')} style={styles.deleteBtn}>
+                                    <Ionicons name="close-circle" size={20} color="#666" />
+                                </TouchableOpacity>
+                            )}
+                        </View>
+
+                        {/* Suggestions Dropdown */}
+                        {item.suggestions && item.suggestions.length > 0 && (
+                            <View style={[styles.suggestionsCard, { zIndex: 100 }]}>
+                                {/* Pinned Custom Option at the Top */}
+                                <TouchableOpacity 
+                                    style={[styles.suggestionItem, { borderBottomWidth: 1, borderBottomColor: '#333', backgroundColor: 'rgba(212,175,55,0.05)' }]}
+                                    onPress={() => clearSuggestions(item.id)}
+                                >
+                                    <Ionicons name="pencil-outline" size={14} color="#D4AF37" style={{ marginRight: 8 }} />
+                                    <View style={{ flex: 1 }}>
+                                        <Text allowFontScaling={false} style={[styles.suggestionName, { color: '#D4AF37' }]}>"{item.name}" Olarak Kullan</Text>
+                                        <Text allowFontScaling={false} style={styles.suggestionCat}>Özel Malzeme Girişi</Text>
+                                    </View>
+                                    <View style={[styles.suggestionUnitBadge, { backgroundColor: 'transparent', paddingHorizontal: 0 }]}>
+                                        <Ionicons name="chevron-forward" size={16} color="#D4AF37" />
+                                    </View>
+                                </TouchableOpacity>
+
+                                {/* Scrollable Catalog Options */}
+                                <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled={true} style={{ maxHeight: 200 }}>
+                                    {item.suggestions.map((sug, i) => (
+                                        <TouchableOpacity 
+                                            key={i} 
+                                            style={styles.suggestionItem}
+                                            onPress={() => selectCatalogItem(item.id, sug)}
+                                        >
+                                            <Ionicons name="search" size={14} color="#D4AF37" style={{ marginRight: 8 }} />
+                                            <View style={{ flex: 1 }}>
+                                                <Text allowFontScaling={false} style={styles.suggestionName}>{sug.name}</Text>
+                                                <Text allowFontScaling={false} style={styles.suggestionCat}>{sug.category}</Text>
+                                            </View>
+                                            <View style={styles.suggestionUnitBadge}>
+                                                <Text allowFontScaling={false} style={styles.suggestionUnitText}>{sug.unit}</Text>
+                                            </View>
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
+                            </View>
+                        )}
+                    </View>
+
+                    {/* Row 2: Quantity + Unit */}
+                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                        <View style={[styles.premiumInputContainer, { flex: 1, flexDirection: 'column', justifyContent: 'center' }]}>
+                            <TextInput allowFontScaling={false}
+                                style={[styles.premiumInput, { width: '100%' }]}
+                                placeholder="Miktar"
+                                placeholderTextColor="#888"
+                                keyboardType="numeric"
+                                value={item.qty}
+                                onChangeText={(t) => updateItem(item.id, 'qty', t)}
+                                inputAccessoryViewID="DoneKeyboard"
+                            />
+                        </View>
+
+                        <TouchableOpacity
+                            style={styles.unitButton}
+                            onPress={() => openUnitPicker(item.id)}
+                        >
+                            <Text allowFontScaling={false} style={styles.unitText}>{item.unit}</Text>
+                            <Ionicons name="chevron-down" size={14} color="#888" />
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* Row 3: Optional Brand & Tech Spec */}
+                    <View style={{ flexDirection: 'row', gap: 12, marginTop: 4 }}>
+                        <View style={[styles.premiumInputContainer, { flex: 1 }]}>
+                            <TextInput allowFontScaling={false}
+                                style={styles.premiumInput}
+                                placeholder="Marka (Opsiyonel)"
+                                placeholderTextColor="#666"
+                                value={item.brand}
+                                onChangeText={(t) => updateItem(item.id, 'brand', t)}
+                            />
+                        </View>
+                        <View style={[styles.premiumInputContainer, { flex: 1 }]}>
+                            <TextInput allowFontScaling={false}
+                                style={styles.premiumInput}
+                                placeholder="Poz No / Özellik"
+                                placeholderTextColor="#666"
+                                value={item.techSpec}
+                                onChangeText={(t) => updateItem(item.id, 'techSpec', t)}
+                            />
+                        </View>
+                    </View>
+                </View>
+            </View>
+        </View>
+    );
+}, areEqual);
 
 export default function MarketRequestScreen() {
     const navigation = useNavigation();
@@ -83,32 +213,30 @@ export default function MarketRequestScreen() {
     };
 
     // --- HANDLERS ---
-    const handleAddItem = () => {
-        setItems([...items, { id: Date.now() + Math.random(), name: '', qty: '', unit: 'Adet', suggestions: [], brand: '', techSpec: '' }]);
-    };
+    const handleAddItem = useCallback(() => {
+        setItems(prev => [...prev, { id: Date.now() + Math.random(), name: '', qty: '', unit: 'Adet', suggestions: [], brand: '', techSpec: '' }]);
+    }, []);
 
-    const handleRemoveItem = (id) => {
-        if (items.length > 1) {
-            setItems(items.filter(i => i.id !== id));
-        } else {
-            // If only 1 item, just clear it
-            setItems([{ id: Date.now(), name: '', qty: '', unit: 'Adet' }]);
-        }
-    };
+    const handleRemoveItem = useCallback((id) => {
+        setItems(prev => {
+            if (prev.length > 1) {
+                return prev.filter(i => i.id !== id);
+            }
+            return [{ id: Date.now(), name: '', qty: '', unit: 'Adet', suggestions: [], brand: '', techSpec: '' }];
+        });
+    }, []);
 
-    const updateItem = (id, field, value) => {
-        setItems(items.map(item => {
+    const updateItem = useCallback((id, field, value) => {
+        setItems(prev => prev.map(item => {
             if (item.id === id) {
                 const updatedItem = { ...item, [field]: value };
                 
-                // Eğer değiştirilen alan "name" ise (autocomplete)
                 if (field === 'name') {
-                    // 2 harften fazlaysa arama yap
                     if (value.length >= 2) {
                          const results = searchMaterials(value);
                          updatedItem.suggestions = results;
                     } else {
-                         updatedItem.suggestions = []; // Listeyi temizle
+                         updatedItem.suggestions = []; 
                     }
                 }
                 
@@ -116,29 +244,33 @@ export default function MarketRequestScreen() {
             }
             return item;
         }));
-    };
+    }, []);
 
-    const selectCatalogItem = (id, catalogItem) => {
-        // Katalogdan seçilen malzemenin adı ve BİRİMİ otomatik atanır!
-        setItems(items.map(item => 
+    const selectCatalogItem = useCallback((id, catalogItem) => {
+        setItems(prev => prev.map(item => 
             item.id === id 
                 ? { ...item, name: catalogItem.name, unit: catalogItem.unit, suggestions: [] } 
                 : item
         ));
-    };
+    }, []);
 
-    const openUnitPicker = (id) => {
+    // Custom clear function for memoized card
+    const clearSuggestions = useCallback((id) => {
+        setItems(prev => prev.map(it => it.id === id ? { ...it, suggestions: [] } : it));
+    }, []);
+
+    const openUnitPicker = useCallback((id) => {
         setActiveItemId(id);
         setUnitModalVisible(true);
-    };
+    }, []);
 
-    const selectUnit = (unit) => {
+    const selectUnit = useCallback((unit) => {
         if (activeItemId) {
             updateItem(activeItemId, 'unit', unit);
         }
         setUnitModalVisible(false);
         setActiveItemId(null);
-    };
+    }, [activeItemId, updateItem]);
 
     const handleNext = () => {
         // Validation
@@ -159,14 +291,10 @@ export default function MarketRequestScreen() {
     };
 
     const handleSubmit = async () => {
-        // Auto-generate title if empty based on items
+        // Uniform premium title for all market requests
         let finalTitle = title.trim();
-        if (!finalTitle && items.length > 0) {
-            if (items.length === 1) {
-                finalTitle = items[0].name;
-            } else {
-                finalTitle = `${items[0].name} (+${items.length - 1} Kalem)`;
-            }
+        if (!finalTitle) {
+            finalTitle = 'Toptan Malzeme Talebi';
         }
 
         if (!paymentMethod) {
@@ -231,11 +359,11 @@ export default function MarketRequestScreen() {
 
     const renderStepIndicator = () => (
         <View style={styles.stepContainer}>
-            <View style={[styles.stepDot, step >= 1 && styles.stepDotActive]}><Text style={[styles.stepText, step >= 1 && styles.stepTextActive]}>1</Text></View>
+            <View style={[styles.stepDot, step >= 1 && styles.stepDotActive]}><Text allowFontScaling={false} style={[styles.stepText, step >= 1 && styles.stepTextActive]}>1</Text></View>
             <View style={[styles.stepLine, step >= 2 && styles.stepLineActive]} />
-            <View style={[styles.stepDot, step >= 2 && styles.stepDotActive]}><Text style={[styles.stepText, step >= 2 && styles.stepTextActive]}>2</Text></View>
+            <View style={[styles.stepDot, step >= 2 && styles.stepDotActive]}><Text allowFontScaling={false} style={[styles.stepText, step >= 2 && styles.stepTextActive]}>2</Text></View>
             <View style={[styles.stepLine, step >= 3 && styles.stepLineActive]} />
-            <View style={[styles.stepDot, step >= 3 && styles.stepDotActive]}><Text style={[styles.stepText, step >= 3 && styles.stepTextActive]}>3</Text></View>
+            <View style={[styles.stepDot, step >= 3 && styles.stepDotActive]}><Text allowFontScaling={false} style={[styles.stepText, step >= 3 && styles.stepTextActive]}>3</Text></View>
         </View>
     );
 
@@ -247,133 +375,26 @@ export default function MarketRequestScreen() {
             nestedScrollEnabled={true} 
             contentContainerStyle={{ paddingBottom: 100 }}
         >
-            <Text style={styles.sectionTitle}>MALZEME LİSTESİ</Text>
+            <Text allowFontScaling={false} style={styles.sectionTitle}>MALZEME LİSTESİ</Text>
 
             {items.map((item, index) => (
-                <View key={item.id} style={[styles.itemCard, { zIndex: 1000 - index }]}>
-                    {items.length > 1 && (
-                        <TouchableOpacity onPress={() => handleRemoveItem(item.id)} style={{ position: 'absolute', top: 16, right: 16, zIndex: 20 }}>
-                            <MaterialCommunityIcons name="trash-can-outline" size={22} color="#EF4444" />
-                        </TouchableOpacity>
-                    )}
-                    <View style={{ flexDirection: 'row', gap: 12, marginTop: items.length > 1 ? 32 : 0 }}>
-                        {/* Index Indicator */}
-                        <View style={styles.indexCircle}>
-                            <Text style={styles.indexText}>{index + 1}</Text>
-                        </View>
-
-                        {/* Form Fields */}
-                        <View style={{ flex: 1, gap: 12 }}>
-                            {/* Row 1: Name Input + Autocomplete Suggestions */}
-                            <View style={{ zIndex: 10 }}>
-                                <View style={styles.premiumInputContainer}>
-                                    <TextInput
-                                        style={styles.premiumInput}
-                                        placeholder="Malzeme (Örn: C30, Tuğla)"
-                                        placeholderTextColor="#888"
-                                        value={item.name}
-                                        onChangeText={(t) => updateItem(item.id, 'name', t)}
-                                    />
-                                    {item.name.length > 0 && (
-                                        <TouchableOpacity onPress={() => updateItem(item.id, 'name', '')} style={styles.deleteBtn}>
-                                            <Ionicons name="close-circle" size={20} color="#666" />
-                                        </TouchableOpacity>
-                                    )}
-                                </View>
-
-                                {/* Suggestions Dropdown */}
-                                {item.suggestions && item.suggestions.length > 0 && (
-                                    <View style={[styles.suggestionsCard, { zIndex: 100 }]}>
-                                        {/* Pinned Custom Option at the Top */}
-                                        <TouchableOpacity 
-                                            style={[styles.suggestionItem, { borderBottomWidth: 1, borderBottomColor: '#333', backgroundColor: 'rgba(212,175,55,0.05)' }]}
-                                            onPress={() => setItems(items.map(it => it.id === item.id ? { ...it, suggestions: [] } : it))}
-                                        >
-                                            <Ionicons name="pencil-outline" size={14} color="#D4AF37" style={{ marginRight: 8 }} />
-                                            <View style={{ flex: 1 }}>
-                                                <Text style={[styles.suggestionName, { color: '#D4AF37' }]}>"{item.name}" Olarak Kullan</Text>
-                                                <Text style={styles.suggestionCat}>Özel Malzeme Girişi</Text>
-                                            </View>
-                                            <View style={[styles.suggestionUnitBadge, { backgroundColor: 'transparent', paddingHorizontal: 0 }]}>
-                                                <Ionicons name="chevron-forward" size={16} color="#D4AF37" />
-                                            </View>
-                                        </TouchableOpacity>
-
-                                        {/* Scrollable Catalog Options */}
-                                        <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled={true} style={{ maxHeight: 200 }}>
-                                            {item.suggestions.map((sug, i) => (
-                                                <TouchableOpacity 
-                                                    key={i} 
-                                                    style={styles.suggestionItem}
-                                                    onPress={() => selectCatalogItem(item.id, sug)}
-                                                >
-                                                    <Ionicons name="search" size={14} color="#D4AF37" style={{ marginRight: 8 }} />
-                                                    <View style={{ flex: 1 }}>
-                                                        <Text style={styles.suggestionName}>{sug.name}</Text>
-                                                        <Text style={styles.suggestionCat}>{sug.category}</Text>
-                                                    </View>
-                                                    <View style={styles.suggestionUnitBadge}>
-                                                        <Text style={styles.suggestionUnitText}>{sug.unit}</Text>
-                                                    </View>
-                                                </TouchableOpacity>
-                                            ))}
-                                        </ScrollView>
-                                    </View>
-                                )}
-                            </View>
-
-                            {/* Row 2: Quantity + Unit */}
-                            <View style={{ flexDirection: 'row', gap: 12 }}>
-                                <View style={[styles.premiumInputContainer, { flex: 1, flexDirection: 'column', justifyContent: 'center' }]}>
-                                    <TextInput
-                                        style={[styles.premiumInput, { width: '100%' }]}
-                                        placeholder="Miktar"
-                                        placeholderTextColor="#888"
-                                        keyboardType="numeric"
-                                        value={item.qty}
-                                        onChangeText={(t) => updateItem(item.id, 'qty', t)}
-                                        inputAccessoryViewID="DoneKeyboard"
-                                    />
-                                </View>
-
-                                <TouchableOpacity
-                                    style={styles.unitButton}
-                                    onPress={() => openUnitPicker(item.id)}
-                                >
-                                    <Text style={styles.unitText}>{item.unit}</Text>
-                                    <Ionicons name="chevron-down" size={14} color="#888" />
-                                </TouchableOpacity>
-                            </View>
-
-                            {/* Row 3: Optional Brand & Tech Spec */}
-                            <View style={{ flexDirection: 'row', gap: 12, marginTop: 4 }}>
-                                <View style={[styles.premiumInputContainer, { flex: 1 }]}>
-                                    <TextInput
-                                        style={styles.premiumInput}
-                                        placeholder="Marka (Opsiyonel)"
-                                        placeholderTextColor="#666"
-                                        value={item.brand}
-                                        onChangeText={(t) => updateItem(item.id, 'brand', t)}
-                                    />
-                                </View>
-                                <View style={[styles.premiumInputContainer, { flex: 1 }]}>
-                                    <TextInput
-                                        style={styles.premiumInput}
-                                        placeholder="Poz No / Özellik"
-                                        placeholderTextColor="#666"
-                                        value={item.techSpec}
-                                        onChangeText={(t) => updateItem(item.id, 'techSpec', t)}
-                                    />
-                                </View>
-                            </View>
-                        </View>
-                    </View>
-                </View>
+                <MemoizedItemCard 
+                    key={item.id} 
+                    item={item} 
+                    index={index} 
+                    itemsLength={items.length}
+                    handleRemoveItem={handleRemoveItem}
+                    updateItem={updateItem}
+                    clearSuggestions={clearSuggestions}
+                    selectCatalogItem={selectCatalogItem}
+                    openUnitPicker={openUnitPicker}
+                    styles={styles}
+                />
             ))}
 
             <TouchableOpacity style={styles.addBtn} onPress={handleAddItem}>
                 <Ionicons name="add" size={20} color="#D4AF37" />
-                <Text style={styles.addBtnText}>SATIR EKLE</Text>
+                <Text allowFontScaling={false} style={styles.addBtnText}>SATIR EKLE</Text>
             </TouchableOpacity>
         </ScrollView>
     );
@@ -389,7 +410,7 @@ export default function MarketRequestScreen() {
                     <TouchableOpacity onPress={() => step > 1 ? setStep(step - 1) : navigation.goBack()} style={styles.backBtn}>
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>TEKLİF TOPLA</Text>
+                    <Text allowFontScaling={false} style={styles.headerTitle}>TEKLİF TOPLA</Text>
                     <View style={{ width: 40 }} />
                 </View>
 
@@ -405,8 +426,8 @@ export default function MarketRequestScreen() {
                             >
                                 <MaterialCommunityIcons name="camera-outline" size={28} color={mode === 'fast' ? '#000' : '#888'} />
                                 <View style={{ marginLeft: 10 }}>
-                                    <Text style={[styles.modeTitle, mode === 'fast' && { color: '#000' }]}>HIZLI YÜKLE</Text>
-                                    <Text style={[styles.modeSub, mode === 'fast' && { color: '#333' }]}>Fotoğraf ile hızlıca</Text>
+                                    <Text allowFontScaling={false} style={[styles.modeTitle, mode === 'fast' && { color: '#000' }]}>HIZLI YÜKLE</Text>
+                                    <Text allowFontScaling={false} style={[styles.modeSub, mode === 'fast' && { color: '#333' }]}>Fotoğraf ile hızlıca</Text>
                                 </View>
                             </LinearGradient>
                         </TouchableOpacity>
@@ -418,8 +439,8 @@ export default function MarketRequestScreen() {
                             >
                                 <MaterialCommunityIcons name="playlist-edit" size={28} color={mode === 'manual' ? '#000' : '#888'} />
                                 <View style={{ marginLeft: 10 }}>
-                                    <Text style={[styles.modeTitle, mode === 'manual' && { color: '#000' }]}>DİJİTAL TALEP</Text>
-                                    <Text style={[styles.modeSub, mode === 'manual' && { color: '#333' }]}>Gelişmiş Giriş</Text>
+                                    <Text allowFontScaling={false} style={[styles.modeTitle, mode === 'manual' && { color: '#000' }]}>DİJİTAL TALEP</Text>
+                                    <Text allowFontScaling={false} style={[styles.modeSub, mode === 'manual' && { color: '#333' }]}>Gelişmiş Giriş</Text>
                                 </View>
                             </LinearGradient>
                         </TouchableOpacity>
@@ -449,7 +470,7 @@ export default function MarketRequestScreen() {
                                             <MaterialCommunityIcons name="trash-can-outline" size={24} color="#EF4444" />
                                         </TouchableOpacity>
                                         <TouchableOpacity onPress={() => setCapturedImage(null)} style={{ padding: 12, backgroundColor: '#D4AF37', borderRadius: 12, paddingHorizontal: 32 }}>
-                                            <Text style={{ fontWeight: 'bold' }}>YENİDEN ÇEK</Text>
+                                            <Text allowFontScaling={false} style={{ fontWeight: 'bold' }}>YENİDEN ÇEK</Text>
                                         </TouchableOpacity>
                                     </View>
                                 </View>
@@ -461,11 +482,11 @@ export default function MarketRequestScreen() {
                                     >
                                         <MaterialCommunityIcons name="camera" size={40} color="#D4AF37" />
                                     </TouchableOpacity>
-                                    <Text style={{ color: '#DDD', fontSize: 16, fontWeight: 'bold', marginBottom: 4 }}>Fotoğraf Çek</Text>
-                                    <Text style={{ color: '#666', textAlign: 'center', maxWidth: 250 }}>İhtiyacınız olan malzemenin veya yapılacak işin fotoğrafını çekin, gerisini bize bırakın.</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#DDD', fontSize: 16, fontWeight: 'bold', marginBottom: 4 }}>Fotoğraf Çek</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#666', textAlign: 'center', maxWidth: 250 }}>İhtiyacınız olan malzemenin veya yapılacak işin fotoğrafını çekin, gerisini bize bırakın.</Text>
 
                                     <TouchableOpacity onPress={pickImage} style={{ marginTop: 30 }}>
-                                        <Text style={{ color: '#666', textDecorationLine: 'underline' }}>Galeriden Seç</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#666', textDecorationLine: 'underline' }}>Galeriden Seç</Text>
                                     </TouchableOpacity>
                                 </>
                             )}
@@ -475,14 +496,14 @@ export default function MarketRequestScreen() {
                     {step === 2 && (
                         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 10, paddingBottom: 100 }}>
 
-                            <Text style={styles.stepTitle}>Lojistik & Teslimat</Text>
-                            <Text style={styles.stepSubtitle}>Nereye ve ne zaman lazım?</Text>
+                            <Text allowFontScaling={false} style={styles.stepTitle}>Lojistik & Teslimat</Text>
+                            <Text allowFontScaling={false} style={styles.stepSubtitle}>Nereye ve ne zaman lazım?</Text>
 
                             {/* Location */}
-                            <Text style={styles.labelSmall}>ŞANTİYE KONUMU</Text>
+                            <Text allowFontScaling={false} style={styles.labelSmall}>ŞANTİYE KONUMU</Text>
                             <View style={styles.locationInput}>
                                 <Ionicons name="location" size={20} color="#D4AF37" />
-                                <TextInput
+                                <TextInput allowFontScaling={false}
                                     style={{ flex: 1, color: '#fff', marginLeft: 10 }}
                                     value={location}
                                     onChangeText={setLocation}
@@ -492,14 +513,14 @@ export default function MarketRequestScreen() {
                             </View>
 
                             {/* Delivery Time - REMOVED AS REQUESTED
-                            <Text style={[styles.labelSmall, { marginTop: 24 }]}>TESLİMAT ZAMANI</Text>
+                            <Text allowFontScaling={false} style={[styles.labelSmall, { marginTop: 24 }]}>TESLİMAT ZAMANI</Text>
                             <View style={styles.toggleContainer}>
                                 <TouchableOpacity
                                     style={[styles.toggleBtn, deliveryTime === 'urgent' && styles.toggleBtnActive]}
                                     onPress={() => setDeliveryTime('urgent')}
                                 >
                                     <Ionicons name="flash" size={18} color={deliveryTime === 'urgent' ? '#000' : '#666'} />
-                                    <Text style={deliveryTime === 'urgent' ? styles.toggleTextActive : styles.toggleText}>Hemen / Acil</Text>
+                                    <Text allowFontScaling={false} style={deliveryTime === 'urgent' ? styles.toggleTextActive : styles.toggleText}>Hemen / Acil</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
@@ -507,14 +528,14 @@ export default function MarketRequestScreen() {
                                     onPress={() => setDeliveryTime('scheduled')}
                                 >
                                     <Ionicons name="calendar" size={18} color={deliveryTime === 'scheduled' ? '#000' : '#666'} />
-                                    <Text style={deliveryTime === 'scheduled' ? styles.toggleTextActive : styles.toggleText}>Tarih Seç</Text>
+                                    <Text allowFontScaling={false} style={deliveryTime === 'scheduled' ? styles.toggleTextActive : styles.toggleText}>Tarih Seç</Text>
                                 </TouchableOpacity>
                             </View>
                             */}
 
                             {/* Notes */}
-                            <Text style={[styles.labelSmall, { marginTop: 24 }]}>ÖZEL NOTLAR / GEREKSİNİMLER</Text>
-                            <TextInput
+                            <Text allowFontScaling={false} style={[styles.labelSmall, { marginTop: 24 }]}>ÖZEL NOTLAR / GEREKSİNİMLER</Text>
+                            <TextInput allowFontScaling={false}
                                 style={styles.notesInput}
                                 placeholder="Örn: 42m pompa gerekli, transmikser sahaya girebilir..."
                                 placeholderTextColor="#555"
@@ -527,8 +548,8 @@ export default function MarketRequestScreen() {
 
                     {step === 3 && (
                         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 10, paddingBottom: 100 }}>
-                            <Text style={styles.stepTitle}>Ödeme Yöntemi</Text>
-                            <Text style={styles.stepSubtitle}>Tercih ettiğiniz ödeme şekli</Text>
+                            <Text allowFontScaling={false} style={styles.stepTitle}>Ödeme Yöntemi</Text>
+                            <Text allowFontScaling={false} style={styles.stepSubtitle}>Tercih ettiğiniz ödeme şekli</Text>
 
                             <View style={{ gap: 12 }}>
                                 {PAYMENT_METHODS.map((pm) => (
@@ -541,8 +562,8 @@ export default function MarketRequestScreen() {
                                             <Ionicons name={pm.icon} size={24} color={paymentMethod === pm.id ? '#000' : '#666'} />
                                         </View>
                                         <View style={{ flex: 1 }}>
-                                            <Text style={[styles.paymentTitle, paymentMethod === pm.id && { color: '#D4AF37' }]}>{pm.title}</Text>
-                                            <Text style={styles.paymentDesc}>{pm.desc}</Text>
+                                            <Text allowFontScaling={false} style={[styles.paymentTitle, paymentMethod === pm.id && { color: '#D4AF37' }]}>{pm.title}</Text>
+                                            <Text allowFontScaling={false} style={styles.paymentDesc}>{pm.desc}</Text>
                                         </View>
                                         {paymentMethod === pm.id && (
                                             <Ionicons name="checkmark-circle" size={24} color="#D4AF37" />
@@ -553,9 +574,9 @@ export default function MarketRequestScreen() {
                                 {/* Conditional Vade (Maturity) Input for Check/Senet */}
                                 {paymentMethod === 'check' && (
                                     <View style={styles.maturityContainer}>
-                                        <Text style={styles.labelSmall}>VADE SÜRESİ</Text>
+                                        <Text allowFontScaling={false} style={styles.labelSmall}>VADE SÜRESİ</Text>
                                         <View style={{ flexDirection: 'row', gap: 10, marginTop: 4, height: 50 }}>
-                                            <TextInput
+                                            <TextInput allowFontScaling={false}
                                                 style={[styles.premiumInput, { backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 16, textAlign: 'center', fontSize: 18, fontWeight: 'bold' }]}
                                                 placeholder="Örn: 30"
                                                 placeholderTextColor="#666"
@@ -568,7 +589,7 @@ export default function MarketRequestScreen() {
                                                 <InputAccessoryView nativeID="DoneKeyboard">
                                                     <View style={{ backgroundColor: '#1E1E1E', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#333' }}>
                                                         <TouchableOpacity onPress={() => Keyboard.dismiss()}>
-                                                            <Text style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 16 }}>Bitti</Text>
+                                                            <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 16 }}>Bitti</Text>
                                                         </TouchableOpacity>
                                                     </View>
                                                 </InputAccessoryView>
@@ -578,17 +599,17 @@ export default function MarketRequestScreen() {
                                                     style={[{ paddingHorizontal: 16, justifyContent: 'center' }, maturityUnit === 'Gün' && { backgroundColor: '#D4AF37' }]}
                                                     onPress={() => setMaturityUnit('Gün')}
                                                 >
-                                                    <Text style={[{ color: '#888', fontWeight: 'bold' }, maturityUnit === 'Gün' && { color: '#000' }]}>GÜN</Text>
+                                                    <Text allowFontScaling={false} style={[{ color: '#888', fontWeight: 'bold' }, maturityUnit === 'Gün' && { color: '#000' }]}>GÜN</Text>
                                                 </TouchableOpacity>
                                                 <TouchableOpacity 
                                                     style={[{ paddingHorizontal: 16, justifyContent: 'center' }, maturityUnit === 'Ay' && { backgroundColor: '#D4AF37' }]}
                                                     onPress={() => setMaturityUnit('Ay')}
                                                 >
-                                                    <Text style={[{ color: '#888', fontWeight: 'bold' }, maturityUnit === 'Ay' && { color: '#000' }]}>AY</Text>
+                                                    <Text allowFontScaling={false} style={[{ color: '#888', fontWeight: 'bold' }, maturityUnit === 'Ay' && { color: '#000' }]}>AY</Text>
                                                 </TouchableOpacity>
                                             </View>
                                         </View>
-                                        <Text style={[styles.suggestionCat, { marginTop: 8, opacity: 0.8 }]}>* Satıcılar tekliflerini bu vadeye göre düzenleyecektir.</Text>
+                                        <Text allowFontScaling={false} style={[styles.suggestionCat, { marginTop: 8, opacity: 0.8 }]}>* Satıcılar tekliflerini bu vadeye göre düzenleyecektir.</Text>
                                     </View>
                                 )}
                             </View>
@@ -600,7 +621,7 @@ export default function MarketRequestScreen() {
                 {/* Footer Button */}
                 <View style={styles.footer}>
                     <TouchableOpacity style={styles.nextBtn} onPress={handleNext} disabled={isSubmitting}>
-                        <Text style={styles.nextBtnText}>{isSubmitting ? 'GÖNDERİLİYOR...' : step === 3 ? 'TEKLİF İSTE' : 'DEVAM ET'}</Text>
+                        <Text allowFontScaling={false} style={styles.nextBtnText}>{isSubmitting ? 'GÖNDERİLİYOR...' : step === 3 ? 'TEKLİF İSTE' : 'DEVAM ET'}</Text>
                         {!isSubmitting && <Ionicons name={step === 3 ? "checkmark-done" : "arrow-forward"} size={20} color="#000" />}
                     </TouchableOpacity>
                 </View>
@@ -621,7 +642,7 @@ export default function MarketRequestScreen() {
                     >
                         <View style={styles.modalContainer}>
                             <View style={styles.modalHandle} />
-                            <Text style={styles.modalHeaderTitle}>Birim Seçiniz</Text>
+                            <Text allowFontScaling={false} style={styles.modalHeaderTitle}>Birim Seçiniz</Text>
 
                             <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
                                 {UNITS.map((u, i) => (
@@ -630,7 +651,7 @@ export default function MarketRequestScreen() {
                                         style={styles.modalOption}
                                         onPress={() => selectUnit(u)}
                                     >
-                                        <Text style={styles.modalOptionText}>{u}</Text>
+                                        <Text allowFontScaling={false} style={styles.modalOptionText}>{u}</Text>
                                         {activeItemId && items.find(it => it.id === activeItemId)?.unit === u && (
                                             <Ionicons name="checkmark" size={20} color="#D4AF37" />
                                         )}

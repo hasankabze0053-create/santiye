@@ -71,7 +71,7 @@ const SelectionModal = ({ visible, onClose, title, items, onSelect }) => {
                     >
                         {/* Header */}
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>{title}</Text>
+                            <Text allowFontScaling={false} style={styles.modalTitle}>{title}</Text>
                             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                                 <Ionicons name="close" size={24} color="#D4AF37" />
                             </TouchableOpacity>
@@ -90,7 +90,7 @@ const SelectionModal = ({ visible, onClose, title, items, onSelect }) => {
                                         onClose();
                                     }}
                                 >
-                                    <Text style={styles.modalItemText}>{item}</Text>
+                                    <Text allowFontScaling={false} style={styles.modalItemText}>{item}</Text>
                                     <Ionicons name="chevron-forward" size={16} color="rgba(212, 175, 55, 0.3)" />
                                 </TouchableOpacity>
                             )}
@@ -147,8 +147,8 @@ const LocationSelector = ({ city, onOpenCity }) => (
         <LuxuryCard style={styles.locationCard} onPress={onOpenCity} variant="dark">
             <View style={styles.locationContent}>
                 <View>
-                    <Text style={styles.locationLabel}>İL SEÇİN</Text>
-                    <Text style={[styles.locationValue, !city && styles.placeholder]}>
+                    <Text allowFontScaling={false} style={styles.locationLabel}>İL SEÇİN</Text>
+                    <Text allowFontScaling={false} style={[styles.locationValue, !city && styles.placeholder]}>
                         {city || 'Seçiniz...'}
                     </Text>
                 </View>
@@ -302,8 +302,8 @@ export default function MaliyetScreen({ navigation }) {
                                 <Ionicons name="arrow-back" size={24} color="#FFF" />
                             </TouchableOpacity>
                             <View>
-                                <Text style={styles.headerTitle}>MALİYET MERKEZİ</Text>
-                                <Text style={styles.headerSubtitle}>Proje bütçe ve analiz araçları</Text>
+                                <Text allowFontScaling={false} style={styles.headerTitle}>MALİYET MERKEZİ</Text>
+                                <Text allowFontScaling={false} style={styles.headerSubtitle}>Proje bütçe ve analiz araçları</Text>
                             </View>
                         </View>
                         <MaterialCommunityIcons name="calculator-variant" size={32} color="#D4AF37" style={{ opacity: 0.2 }} />
@@ -377,8 +377,8 @@ export default function MaliyetScreen({ navigation }) {
                                                         </View>
 
                                                         <View style={styles.textWrapper}>
-                                                            <Text style={styles.menuTitle}>{section.title || meta.defaultTitle}</Text>
-                                                            <Text style={styles.menuSubtitle}>{meta.defaultSubtitle}</Text>
+                                                            <Text allowFontScaling={false} style={styles.menuTitle}>{section.title || meta.defaultTitle}</Text>
+                                                            <Text allowFontScaling={false} style={styles.menuSubtitle}>{meta.defaultSubtitle}</Text>
                                                         </View>
 
                                                         <MaterialCommunityIcons name="chevron-right" size={28} color="#D4AF37" style={{ opacity: 0.5 }} />

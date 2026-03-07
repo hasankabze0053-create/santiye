@@ -107,7 +107,7 @@ export default function ProfileScreen() {
                 <MaterialCommunityIcons name={icon} size={28} color={theme.icon} />
                 {badge && <View style={styles.badge} />}
             </View>
-            <Text style={[styles.quickActionText, { color: theme.text }]}>{label}</Text>
+            <Text allowFontScaling={false} style={[styles.quickActionText, { color: theme.text }]}>{label}</Text>
         </TouchableOpacity>
     );
 
@@ -125,7 +125,7 @@ export default function ProfileScreen() {
                     color={isDestructive ? '#FF3B30' : theme.icon}
                 />
             </View>
-            <Text style={[styles.menuText, { color: isDestructive ? '#FF3B30' : theme.text }]}>{label}</Text>
+            <Text allowFontScaling={false} style={[styles.menuText, { color: isDestructive ? '#FF3B30' : theme.text }]}>{label}</Text>
 
             {hasSwitch ? (
                 <Switch
@@ -171,10 +171,10 @@ export default function ProfileScreen() {
                                 <ActivityIndicator size="small" color={theme.text} />
                             ) : (
                                 <>
-                                    <Text style={[styles.userName, { color: theme.text }]}>
+                                    <Text allowFontScaling={false} style={[styles.userName, { color: theme.text }]}>
                                         {profile ? profile.full_name : 'Misafir Kullanıcı'}
                                     </Text>
-                                    <Text style={[styles.userType, { color: theme.subText }]}>
+                                    <Text allowFontScaling={false} style={[styles.userType, { color: theme.subText }]}>
                                         {profile
                                             ? (profile.user_type === 'corporate' ? 'Kurumsal Üye' : 'Bireysel Kullanıcı')
                                             : 'Giriş Yapılmadı'}
@@ -207,15 +207,15 @@ export default function ProfileScreen() {
                                         <MaterialCommunityIcons name="domain" size={28} color={corporateTheme.icon} />
                                     </View>
                                     <View style={styles.corporateTextContainer}>
-                                        <Text style={[styles.corporateTitle, { color: corporateTheme.text }]}>
+                                        <Text allowFontScaling={false} style={[styles.corporateTitle, { color: corporateTheme.text }]}>
                                             Firma Paneli
                                         </Text>
-                                        <Text style={[styles.corporateSubtitle, { color: corporateTheme.subText }]}>
+                                        <Text allowFontScaling={false} style={[styles.corporateSubtitle, { color: corporateTheme.subText }]}>
                                             Hizmetlerinizi ve tekliflerinizi yönetin.
                                         </Text>
                                     </View>
                                     <View style={styles.corporateArrow}>
-                                        <Text style={styles.manageText}>GİT</Text>
+                                        <Text allowFontScaling={false} style={styles.manageText}>GİT</Text>
                                         <Ionicons name="chevron-forward" size={16} color={corporateTheme.icon} />
                                     </View>
                                 </View>
@@ -270,13 +270,13 @@ export default function ProfileScreen() {
                                     />
                                 </View>
                                 <View style={styles.corporateTextContainer}>
-                                    <Text style={[styles.corporateTitle, { color: '#fff' }]}>
+                                    <Text allowFontScaling={false} style={[styles.corporateTitle, { color: '#fff' }]}>
                                         {profile.approval_status === 'rejected' ? 'Başvurunuz Reddedildi' :
                                             profile.approval_status === 'incomplete' ? 'Eksik Bilgi/Belge Talebi' :
                                                 'Başvurunuz İnceleniyor'}
                                     </Text>
 
-                                    <Text style={[styles.corporateSubtitle, { color: '#94a3b8' }]}>
+                                    <Text allowFontScaling={false} style={[styles.corporateSubtitle, { color: '#94a3b8' }]}>
                                         {profile.approval_status === 'rejected'
                                             ? 'Başvurunuz kriterlerimize uygun görülmedi.'
                                             : profile.approval_status === 'incomplete'
@@ -287,7 +287,7 @@ export default function ProfileScreen() {
                                     {/* Rejection Reason / Note */}
                                     {profile.rejection_reason && (
                                         <View style={{ marginTop: 8, padding: 8, backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 8 }}>
-                                            <Text style={{ color: '#fff', fontSize: 13, fontStyle: 'italic' }}>
+                                            <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 13, fontStyle: 'italic' }}>
                                                 "{profile.rejection_reason}"
                                             </Text>
                                         </View>
@@ -323,7 +323,7 @@ export default function ProfileScreen() {
 
                 {/* 4. Settings List */}
                 <View style={styles.sectionContainer}>
-                    <Text style={[styles.sectionHeader, { color: theme.subText }]}>HESAP VE AYARLAR</Text>
+                    <Text allowFontScaling={false} style={[styles.sectionHeader, { color: theme.subText }]}>HESAP VE AYARLAR</Text>
                     <View style={[styles.menuContainer, { backgroundColor: theme.card }]}>
                         <MenuItem
                             icon="person-outline"
@@ -353,7 +353,7 @@ export default function ProfileScreen() {
                 {/* 4.5. ADMIN SECTION */}
                 {profile?.is_admin && (
                     <View style={styles.sectionContainer}>
-                        <Text style={[styles.sectionHeader, { color: theme.subText }]}>YÖNETİCİ</Text>
+                        <Text allowFontScaling={false} style={[styles.sectionHeader, { color: theme.subText }]}>YÖNETİCİ</Text>
                         <View style={[styles.menuContainer, { backgroundColor: theme.card }]}>
                             <MenuItem
                                 icon="shield-checkmark"
@@ -366,7 +366,7 @@ export default function ProfileScreen() {
 
                 {/* 5. Support List */}
                 <View style={[styles.sectionContainer, { marginBottom: 40 }]}>
-                    <Text style={[styles.sectionHeader, { color: theme.subText }]}>DESTEK</Text>
+                    <Text allowFontScaling={false} style={[styles.sectionHeader, { color: theme.subText }]}>DESTEK</Text>
                     <View style={[styles.menuContainer, { backgroundColor: theme.card }]}>
                         <MenuItem
                             icon="help-circle-outline"
@@ -393,22 +393,22 @@ export default function ProfileScreen() {
             < View style={[styles.bottomBar, { backgroundColor: theme.card, borderTopColor: theme.border }]} >
                 <TouchableOpacity style={styles.tabItem}>
                     <MaterialCommunityIcons name="home-variant-outline" size={26} color={theme.subText} />
-                    <Text style={[styles.tabLabel, { color: theme.subText }]}>Ana Sayfa</Text>
+                    <Text allowFontScaling={false} style={[styles.tabLabel, { color: theme.subText }]}>Ana Sayfa</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.tabItem}>
                     <MaterialCommunityIcons name="clipboard-list-outline" size={26} color={theme.subText} />
-                    <Text style={[styles.tabLabel, { color: theme.subText }]}>Taleplerim</Text>
+                    <Text allowFontScaling={false} style={[styles.tabLabel, { color: theme.subText }]}>Taleplerim</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.tabItem}>
                     <View>
                         <MaterialCommunityIcons name="bell-outline" size={26} color={theme.subText} />
                         <View style={styles.tabBadge} />
                     </View>
-                    <Text style={[styles.tabLabel, { color: theme.subText }]}>Gelenler</Text>
+                    <Text allowFontScaling={false} style={[styles.tabLabel, { color: theme.subText }]}>Gelenler</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.tabItem}>
                     <MaterialCommunityIcons name="account" size={26} color={theme.icon} />
-                    <Text style={[styles.tabLabel, { color: theme.icon, fontWeight: 'bold' }]}>Profil</Text>
+                    <Text allowFontScaling={false} style={[styles.tabLabel, { color: theme.icon, fontWeight: 'bold' }]}>Profil</Text>
                 </TouchableOpacity>
             </View >
         </SafeAreaView >

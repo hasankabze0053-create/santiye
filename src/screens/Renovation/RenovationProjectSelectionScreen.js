@@ -189,8 +189,8 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
                             style={[styles.cardGradient, { height: '100%', justifyContent: 'flex-end', paddingBottom: 30 }]}
                             pointerEvents="none"
                         >
-                            <Text style={styles.cardTitle}>{item.title}</Text>
-                            <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
+                            <Text allowFontScaling={false} style={styles.cardTitle}>{item.title}</Text>
+                            <Text allowFontScaling={false} style={styles.cardSubtitle}>{item.subtitle}</Text>
                         </LinearGradient>
 
                     </View>
@@ -245,14 +245,14 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <View style={styles.logoContainer}>
-                        <Text style={styles.logoText}>Cepte</Text>
-                        <Text style={[styles.logoText, { color: THEME.goldPrimary }]}>Şef</Text>
+                        <Text allowFontScaling={false} style={styles.logoText}>Cepte</Text>
+                        <Text allowFontScaling={false} style={[styles.logoText, { color: THEME.goldPrimary }]}>Şef</Text>
                     </View>
                     <View style={{ width: 40 }} />
                 </View>
 
                 <View style={styles.titleContainer}>
-                    <Text style={styles.mainTitle}>Dönüşüm Nerede Başlayacak?</Text>
+                    <Text allowFontScaling={false} style={styles.mainTitle}>Dönüşüm Nerede Başlayacak?</Text>
                 </View>
 
                 <View style={styles.carouselContainer}>
@@ -280,9 +280,9 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
                 </View>
 
                 <View style={styles.sliderSection}>
-                    <Text style={styles.sliderLabel}>MODERN DÖNÜŞÜM ALANI (m²)</Text>
+                    <Text allowFontScaling={false} style={styles.sliderLabel}>MODERN DÖNÜŞÜM ALANI (m²)</Text>
 
-                    <Text style={[styles.sliderValue, { color: THEME.goldHighlight }]}>{area} m²</Text>
+                    <Text allowFontScaling={false} style={[styles.sliderValue, { color: THEME.goldHighlight }]}>{area} m²</Text>
 
                     <View style={{ width: '100%', alignItems: 'center' }}>
                         <Slider
@@ -298,9 +298,9 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
                         />
                         {renderRulerTicks()}
                         <View style={styles.sliderMarks}>
-                            <Text style={styles.markText}>0</Text>
-                            <Text style={[styles.markText, { color: THEME.goldShadow }]}>150</Text>
-                            <Text style={styles.markText}>300</Text>
+                            <Text allowFontScaling={false} style={styles.markText}>0</Text>
+                            <Text allowFontScaling={false} style={[styles.markText, { color: THEME.goldShadow }]}>150</Text>
+                            <Text allowFontScaling={false} style={styles.markText}>300</Text>
                         </View>
                     </View>
                 </View>
@@ -329,7 +329,7 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
                             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                             style={styles.gradientButton}
                         >
-                            <Text style={styles.buttonText}>DEVAM ET</Text>
+                            <Text allowFontScaling={false} style={styles.buttonText}>DEVAM ET</Text>
                             <Ionicons name="arrow-forward" size={18} color="#1a1a1a" style={{ marginLeft: 6 }} />
                         </LinearGradient>
                     </TouchableOpacity>

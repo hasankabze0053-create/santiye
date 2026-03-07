@@ -26,158 +26,155 @@ import { uploadImageToSupabase } from '../../services/PhotoUploadService';
 
 const { width } = Dimensions.get('window');
 
-// --- THEME ---
-const GOLD_MAIN = '#D4AF37';
-const GOLD_DARK = '#B8860B';
-const DANGER_RED = '#EF4444';
+// ─── THEME ───────────────────────────────────────────────────────
+const TH = {
+    bg: '#000000', // True Black
+    cardLight: '#1C1C1E', // Elevated dark gray
+    cardDark: '#0A0A0A',
+    gold: '#FFD700', // Premium Gold
+    goldDark: '#CCAC00',
+    goldMuted: 'rgba(255, 215, 0, 0.1)',
+    textPrimary: '#FFFFFF',
+    textMuted: '#8E8E93',
+    border: '#2C2C2E',
+    borderLight: '#3A3A3C',
+    danger: '#EF4444',
+    warningBg: 'rgba(255, 215, 0, 0.08)',
+};
 
 // ─── DATA ────────────────────────────────────────────────────
 
 const SCOPE_OPTIONS = [
-    { id: 'kitchen', title: 'Sadece Mutfak', image: 'https://images.unsplash.com/photo-1556909172-54557c7e4fb7?q=80&w=800&auto=format&fit=crop' },
-    { id: 'bath', title: 'Sadece Banyo', image: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?q=80&w=800&auto=format&fit=crop' },
-    { id: 'both', title: 'Mutfak ve Banyo', image: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?q=80&w=800&auto=format&fit=crop' },
+    { id: 'kitchen', title: 'Sadece Mutfak', image: require('../../../assets/renovation/kitchen_luxury.png') },
+    { id: 'bath', title: 'Sadece Banyo', image: require('../../../assets/renovation/bath_luxury.png') },
+    { id: 'both', title: 'Mutfak ve Banyo', image: require('../../../assets/renovation/kitchen_bath_split.png') },
 ];
 
 const WORK_LEVELS = [
     {
         id: 'light',
         title: 'Yüzeysel Dokunuş',
-        desc: 'Dolap kapakları, tezgah veya seramik yenilenir — yapı açılmaz, tesisat dokunulmaz. Hızlı ve bütçe dostu.',
-        icon: 'brush-variant',
-        warning: null,
+        desc: 'Dolap kapakları, tezgah veya seramik yenilenir — yapı açılmaz. Hızlı ve bütçe dostu.',
+        icon: 'format-paint',
     },
     {
         id: 'full',
         title: 'Kapsamlı Yenileme',
-        desc: 'Kırım dahil. Elektrik & su tesisatı yenilenir, duvarlar açılır. Sonuç: tamamen yeni bir mekan.',
-        icon: 'hammer',
-        warning: null,
+        desc: 'Kırım dahil. Tesisat yenilenir, duvarlar açılır. Temelden yepyeni bir mekan.',
+        icon: 'hammer-wrench',
     },
     {
         id: 'premium',
         title: 'Premium Mimari Tasarım',
-        desc: 'İç mimar 3D projesi + A kalite malzeme + uygulama garantisi. Yalnızca en iyisini isteyenler için.',
-        icon: 'diamond-stone',
-        warning: null,
+        desc: 'İç mimar 3D projesi + A kalite malzeme + tam kapsam garanti.',
+        icon: 'diamond',
     },
 ];
 
-const BUDGET_OPTIONS = [
-    { id: 'eco', label: 'Ekonomik', sub: '50.000 ₺ ve altı', color: '#4CAF50' },
-    { id: 'std', label: 'Standart', sub: '50.000 – 150.000 ₺', color: GOLD_MAIN },
-    { id: 'prem', label: 'Premium', sub: '150.000 – 400.000 ₺', color: '#E91E63' },
-    { id: 'lux', label: 'Lüks', sub: '400.000 ₺ ve üzeri', color: '#9C27B0' },
-];
-
-// Style catalogue — per room (kitchen / bath)
 const STYLE_CATALOG = {
     kitchen: [
-        { id: 'modern', title: 'Modern & Minimalist', desc: 'Düz çizgiler, gizli kulplar, mat yüzeyler', image: 'https://images.unsplash.com/photo-1556909172-54557c7e4fb7?q=80&w=800&auto=format&fit=crop' },
+        { id: 'modern', title: 'Modern & Minimalist', desc: 'Düz çizgiler, gizli kulplar, mat yüzeyler', image: require('../../../assets/renovation/kitchen_modern.png') },
         { id: 'rustic', title: 'Doğal & Rustik', desc: 'Açık ahşap, sıcak tonlar, doğal taş tezgah', image: 'https://images.unsplash.com/photo-1556909220-e15b29be8c8f?q=80&w=800&auto=format&fit=crop' },
         { id: 'classic', title: 'Klasik & Avangart', desc: 'Mermer tezgah, oymalı dolap, lak yüzey', image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=800&auto=format&fit=crop' },
         { id: 'loft', title: 'Endüstriyel (Loft)', desc: 'Koyu renk, metal detay, açık tuğla', image: 'https://images.unsplash.com/photo-1556909075-0ba5f7b1dff7?q=80&w=800&auto=format&fit=crop' },
         { id: 'undecided', title: 'Mimar Yönlendirsin', desc: 'Bütçeme en uygun trendi siz belirleyin', image: '' },
     ],
     bath: [
-        { id: 'modern', title: 'Modern & Minimalist', desc: 'Yüzer lavabo, gizli raf, mono renkler', image: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?q=80&w=800&auto=format&fit=crop' },
-        { id: 'rustic', title: 'Doğal & Rustik', desc: 'Doğal taş kaplama, bambu aksesuarlar', image: 'https://images.unsplash.com/photo-1584622781867-1c5fe959a80e?q=80&w=800&auto=format&fit=crop' },
-        { id: 'classic', title: 'Klasik & Avangart', desc: 'Küvet, altın armatür, mermer zemin', image: 'https://images.unsplash.com/photo-1620626011761-996317702b9f?q=80&w=800&auto=format&fit=crop' },
-        { id: 'loft', title: 'Endüstriyel (Loft)', desc: 'Beton görünüm, siyah armatür, pirinç detay', image: 'https://images.unsplash.com/photo-1604709177225-055f99402ea3?q=80&w=800&auto=format&fit=crop' },
+        { id: 'modern', title: 'Modern & Minimalist', desc: 'Yüzer lavabo, gizli raf, mono renkler', image: require('../../../assets/renovation/bath_modern.png') },
+        { id: 'rustic', title: 'Doğal & Rustik', desc: 'Doğal taş kaplama, bambu aksesuarlar', image: require('../../../assets/renovation/bath_rustic.png') },
+        { id: 'classic', title: 'Klasik & Avangart', desc: 'Küvet, altın armatür, büyük seramik', image: require('../../../assets/renovation/bath_classic.png') },
+        { id: 'loft', title: 'Endüstriyel (Loft)', desc: 'Beton görünüm, siyah metal, brütal detay', image: require('../../../assets/renovation/bath_loft.png') },
         { id: 'undecided', title: 'Mimar Yönlendirsin', desc: 'Bütçeme en uygun trendi siz belirleyin', image: '' },
     ],
 };
 
-// ─── SMALL SHARED COMPONENTS ────────────────────────────────
+const BUDGET_OPTIONS = [
+    { id: 'eco', label: 'Ekonomik', sub: '50.000 ₺ ve altı' },
+    { id: 'std', label: 'Standart', sub: '50.000 – 150.000 ₺' },
+    { id: 'prem', label: 'Premium', sub: '150.000 – 400.000 ₺' },
+    { id: 'lux', label: 'Lüks', sub: '400.000 ₺ ve üzeri' },
+];
 
-const SectionTitle = ({ icon, title, sub }) => (
-    <View style={{ marginBottom: sub ? 6 : 12 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <MaterialCommunityIcons name={icon} size={20} color={GOLD_MAIN} />
-            <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold' }}>{title}</Text>
-        </View>
-        {sub ? <Text style={{ color: '#888', fontSize: 12, marginTop: 4, marginLeft: 28 }}>{sub}</Text> : null}
+// ─── SHARED COMPONENTS ───────────────────────────────────────
+
+const SLabel = ({ text, sub }) => (
+    <View style={{ marginBottom: 14 }}>
+        <Text allowFontScaling={false} style={{ color: TH.textPrimary, fontSize: 16, fontWeight: '700' }}>{text}</Text>
+        {sub && <Text allowFontScaling={false} style={{ color: TH.textMuted, fontSize: 13, marginTop: 4 }}>{sub}</Text>}
     </View>
 );
 
-const StyleGrid = ({ styles: styleList, selected, onSelect }) => (
-    <View style={sgStyles.grid}>
-        {styleList.map(s => {
-            const isSel = selected === s.id;
-            const isUndecided = s.id === 'undecided';
-            return (
-                <TouchableOpacity
-                    key={s.id}
-                    onPress={() => onSelect(s.id)}
-                    activeOpacity={0.88}
-                    style={[sgStyles.card, isSel && sgStyles.cardActive, isUndecided && sgStyles.cardUndecided]}
-                >
-                    {!isUndecided && s.image ? (
-                        <Image source={{ uri: s.image }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
-                    ) : null}
-                    <LinearGradient colors={['transparent', 'rgba(0,0,0,0.92)']} style={StyleSheet.absoluteFillObject} />
-                    {isUndecided && (
-                        <MaterialCommunityIcons name="star-circle-outline" size={32} color={GOLD_MAIN} style={{ marginBottom: 8 }} />
-                    )}
-                    {isSel && !isUndecided && (
-                        <View style={sgStyles.checkBadge}>
-                            <MaterialCommunityIcons name="check" size={14} color="#000" />
-                        </View>
-                    )}
-                    <View style={sgStyles.cardTextWrap}>
-                        <Text style={[sgStyles.cardTitle, isSel && { color: GOLD_MAIN }]} numberOfLines={1}>{s.title}</Text>
-                        <Text style={sgStyles.cardDesc} numberOfLines={2}>{s.desc}</Text>
-                    </View>
-                </TouchableOpacity>
-            );
-        })}
-    </View>
-);
-
-const sgStyles = StyleSheet.create({
-    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-    card: { width: (width - 40 - 12) / 2, height: 175, borderRadius: 16, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent', backgroundColor: '#1a1a1a', alignItems: 'center', justifyContent: 'flex-end' },
-    cardActive: { borderColor: GOLD_MAIN },
-    cardUndecided: { alignItems: 'center', justifyContent: 'center', borderColor: '#444', borderStyle: 'dashed' },
-    checkBadge: { position: 'absolute', top: 10, right: 10, width: 24, height: 24, borderRadius: 12, backgroundColor: GOLD_MAIN, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-    cardTextWrap: { padding: 10, width: '100%' },
-    cardTitle: { color: '#FFF', fontSize: 12, fontWeight: 'bold', marginBottom: 3 },
-    cardDesc: { color: '#aaa', fontSize: 10, lineHeight: 13 },
-});
-
-const UploadBox = ({ icon, label, sub, images, onPick, onRemove }) => (
-    <View style={ubStyles.container}>
-        <SectionTitle icon={icon} title={label} sub={sub} />
+const UploadZone = ({ iconName, label, images, onPick, onRemove }) => (
+    <View style={uz.wrap}>
+        <SLabel text={label} />
         {images.length > 0 ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 6 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
                 {images.map((img, i) => (
-                    <View key={i} style={ubStyles.imgWrap}>
+                    <View key={i} style={uz.imgWrap}>
                         <Image source={{ uri: img.uri }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
-                        <TouchableOpacity style={ubStyles.removeBtn} onPress={() => onRemove(i)}>
-                            <Ionicons name="close" size={13} color="#FFF" />
+                        <TouchableOpacity style={uz.removeBtn} onPress={() => onRemove(i)}>
+                            <Ionicons name="close" size={14} color="#FFF" />
                         </TouchableOpacity>
                     </View>
                 ))}
-                <TouchableOpacity style={ubStyles.addBtn} onPress={onPick}>
-                    <Ionicons name="add" size={26} color={GOLD_MAIN} />
+                <TouchableOpacity style={uz.addMoreBtn} onPress={onPick}>
+                    <Ionicons name="add" size={24} color={TH.textMuted} />
                 </TouchableOpacity>
             </ScrollView>
         ) : (
-            <TouchableOpacity style={ubStyles.uploadEmpty} onPress={onPick}>
-                <MaterialCommunityIcons name={icon} size={32} color={GOLD_MAIN} />
-                <Text style={ubStyles.uploadText}>{label}</Text>
+            <TouchableOpacity style={uz.dropzone} onPress={onPick} activeOpacity={0.7}>
+                <View style={uz.dropIcon}>
+                    <MaterialCommunityIcons name={iconName} size={28} color={TH.textMuted} />
+                </View>
+                <Text allowFontScaling={false} style={uz.dropText}>Görsel Yüklemek İçin Dokun</Text>
             </TouchableOpacity>
         )}
     </View>
 );
 
-const ubStyles = StyleSheet.create({
-    container: { marginBottom: 20 },
-    imgWrap: { width: 90, height: 90, borderRadius: 12, marginRight: 10, overflow: 'hidden', position: 'relative', backgroundColor: '#222' },
-    removeBtn: { position: 'absolute', top: 5, right: 5, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center' },
-    addBtn: { width: 90, height: 90, borderRadius: 12, borderWidth: 1, borderColor: GOLD_MAIN, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: '#111' },
-    uploadEmpty: { height: 100, borderRadius: 14, borderWidth: 1.5, borderColor: '#333', borderStyle: 'dashed', backgroundColor: '#111', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 8 },
-    uploadText: { color: GOLD_MAIN, fontSize: 13, fontWeight: '600' },
+const uz = StyleSheet.create({
+    wrap: { marginBottom: 24 },
+    dropzone: { height: 110, borderRadius: 16, borderWidth: 1.5, borderColor: TH.border, borderStyle: 'dashed', backgroundColor: '#1A1A1C', alignItems: 'center', justifyContent: 'center', gap: 10 },
+    dropIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#222', alignItems: 'center', justifyContent: 'center' },
+    dropText: { color: TH.textMuted, fontSize: 14, fontWeight: '500' },
+    imgWrap: { width: 100, height: 100, borderRadius: 16, overflow: 'hidden', backgroundColor: '#222' },
+    removeBtn: { position: 'absolute', top: 6, right: 6, width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
+    addMoreBtn: { width: 100, height: 100, borderRadius: 16, borderWidth: 1.5, borderColor: TH.border, borderStyle: 'dashed', backgroundColor: '#1A1A1C', alignItems: 'center', justifyContent: 'center' },
+});
+
+// Custom Slider Component
+const CustomSlider = ({ label, value, min, max, onChange, suffix = 'm²' }) => (
+    <View style={{ marginBottom: 24 }}>
+        <View style={slStyle.header}>
+            <Text allowFontScaling={false} style={slStyle.label}>{label}</Text>
+            <View style={slStyle.valBadge}>
+                <Text allowFontScaling={false} style={slStyle.valText}>{value} {suffix}</Text>
+            </View>
+        </View>
+        <Slider
+            style={{ width: '100%', height: 40 }}
+            minimumValue={min}
+            maximumValue={max}
+            step={1}
+            value={value}
+            onValueChange={onChange}
+            minimumTrackTintColor={TH.gold}
+            maximumTrackTintColor={TH.border}
+            thumbTintColor={TH.gold}
+        />
+        <View style={slStyle.rangeRow}>
+            <Text allowFontScaling={false} style={slStyle.rangeText}>{min} {suffix}</Text>
+            <Text allowFontScaling={false} style={slStyle.rangeText}>{max} {suffix}</Text>
+        </View>
+    </View>
+);
+const slStyle = StyleSheet.create({
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: -4 },
+    label: { color: TH.textMuted, fontSize: 14, fontWeight: '500' },
+    valBadge: { backgroundColor: 'rgba(255,215,0,0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: TH.gold },
+    valText: { color: TH.gold, fontSize: 13, fontWeight: '700' },
+    rangeRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 },
+    rangeText: { color: TH.textMuted, fontSize: 11 },
 });
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────
@@ -185,56 +182,56 @@ const ubStyles = StyleSheet.create({
 export default function KitchenBathWizardScreen() {
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
-    const scrollViewRef = useRef(null);
+    const scrollRef = useRef(null);
     const [step, setStep] = useState(1);
 
-    // Step 1
+    // Flow State
     const [selectedScope, setSelectedScope] = useState(null);
-
-    // Step 2 – Kitchen
-    const [kitchenArea, setKitchenArea] = useState(15);
-    const [kitchenType, setKitchenType] = useState(null);
-    // Step 2 – Bath
-    const [bathCount, setBathCount] = useState(1);
-    const [bathAreas, setBathAreas] = useState({ 0: 8, 1: 5, 2: 4 });
-    const [occupancy, setOccupancy] = useState(null); // 'empty' | 'occupied'
-
-    // Step 3
-    const [workLevel, setWorkLevel] = useState(null);
-    const [buildingAge, setBuildingAge] = useState(null);
-
-    // Step 4
-    const [kitchenStyle, setKitchenStyle] = useState(null);
-    const [bathStyle, setBathStyle] = useState(null);
-
-    // Step 5
-    const [currentPhotos, setCurrentPhotos] = useState([]);
-    const [inspirationPhotos, setInspirationPhotos] = useState([]);
-    const [details, setDetails] = useState('');
-    const [budget, setBudget] = useState(null);
-    const [isRecording, setIsRecording] = useState(false);
-    const [loading, setLoading] = useState(false);
 
     const showKitchen = selectedScope === 'kitchen' || selectedScope === 'both';
     const showBath = selectedScope === 'bath' || selectedScope === 'both';
     const isBoth = selectedScope === 'both';
 
-    const STEP_TITLES = {
+    // Step 2 State
+    const [occupancy, setOccupancy] = useState(null); // 'empty' | 'occupied'
+    const [kitchenArea, setKitchenArea] = useState(15);
+    const [kitchenType, setKitchenType] = useState('Kapalı Mutfak');
+    const [bathCount, setBathCount] = useState(1);
+    const [bathAreas, setBathAreas] = useState({ 0: 6, 1: 5, 2: 4 });
+
+    // Step 3 State
+    const [workLevel, setWorkLevel] = useState(null);
+    const [buildingAge, setBuildingAge] = useState(null);
+
+    // Step 4 State
+    const [kitchenStyle, setKitchenStyle] = useState(null);
+    const [bathStyle, setBathStyle] = useState(null);
+
+    // Step 5 State
+    const [budget, setBudget] = useState(null);
+    const [currentPhotos, setCurrentPhotos] = useState([]);
+    const [inspirationPhotos, setInspirationPhotos] = useState([]);
+    const [details, setDetails] = useState('');
+    const [isRecording, setIsRecording] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const TITLES = {
         1: "Yenilenme Neresi\nİçin Yapılacak?",
-        2: "Metraj ve\nMekan Detayları",
-        3: "Kapsam &\nBina Bilgisi",
+        2: "Mekan Durumu\n& Alanlar",
+        3: "İşin Boyutu\n& Bina Yaşı",
         4: "Hayalindeki\nAtmosfer",
-        5: "Detayları\nBizimle Paylaş",
-    };
-    const STEP_SUBS = {
-        1: "İhtiyacına en uygun alanı seç.",
-        2: "Alan ve mekan koşullarını belirleyelim.",
-        3: "İşin boyutu ve binanın yaşı teklifi doğrudan etkiler.",
-        4: selectedScope === 'both' ? "Mutfak ve banyo için ayrı ayrı tarz seçebilirsin." : "Sana en uygun tasarım dilini seçelim.",
-        5: "Mimar için fotoğraflar ve bütçe bilgisi ekle.",
+        5: "Detayları\nPaylaş",
     };
 
-    const scrollTop = () => scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    const SUBS = {
+        1: "İhtiyacına en uygun alanı seç.",
+        2: "Gerçekçi metrajlarla çalışmaya başlayalım.",
+        3: "Yapılacak işin çapı teklifi doğrudan etkiler.",
+        4: isBoth ? "Mutfak ve banyo için ayrı ayrı tarz seçebilirsin." : "Sana en uygun tasarım dilini seçelim.",
+        5: "Mimar için bütçe opsiyonu ve referans fotoğrafları ekle.",
+    };
+
+    const scrollTop = () => scrollRef.current?.scrollTo({ y: 0, animated: true });
 
     const handleNext = () => {
         if (step < 5) { setStep(s => s + 1); scrollTop(); }
@@ -244,67 +241,53 @@ export default function KitchenBathWizardScreen() {
         if (step > 1) { setStep(s => s - 1); scrollTop(); }
         else navigation.goBack();
     };
+
     const handleFinalSubmit = async () => {
         setLoading(true);
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                Alert.alert("Hata", "Lütfen önce giriş yapın.");
-                setLoading(false);
-                return;
-            }
+            if (!user) { Alert.alert("Hata", "Lütfen önce giriş yapın."); setLoading(false); return; }
 
             const getScopeTitle = () => SCOPE_OPTIONS.find(s => s.id === selectedScope)?.title || selectedScope;
             const getWorkLevel = () => WORK_LEVELS.find(w => w.id === workLevel)?.title || workLevel;
-            const getBuildingAge = () => buildingAge === '0-5' ? '0 - 5 Yıl' : buildingAge === '5-15' ? '5 - 15 Yıl' : '15+ Yıl';
+            const getAge = () => buildingAge === '0-5' ? '0-5 Yıl' : buildingAge === '5-15' ? '5-15 Yıl' : '15+ Yıl';
             const getBudget = () => BUDGET_OPTIONS.find(b => b.id === budget)?.label || 'Belirtilmedi';
 
             const kStyle = kitchenStyle ? STYLE_CATALOG.kitchen.find(s => s.id === kitchenStyle)?.title || kitchenStyle : null;
             const bStyle = bathStyle ? STYLE_CATALOG.bath.find(s => s.id === bathStyle)?.title || bathStyle : null;
 
             let fullDescription = `PROJE TİPİ: Mutfak & Banyo Yenileme\n`;
-            fullDescription += `KAPSAM: ${getScopeTitle() || '-'}\n`;
-            
-            let mekanDetails = [];
-            if (showKitchen) mekanDetails.push(`Mutfak (${kitchenArea} m², ${kitchenType || 'Tip Belirtilmedi'})`);
+            fullDescription += `KAPSAM: ${getScopeTitle()}\n`;
+
+            let areaDet = [];
+            if (showKitchen) areaDet.push(`Mutfak (${kitchenArea} m², ${kitchenType})`);
             if (showBath) {
-                const bAreas = Array.from({ length: bathCount }).map((_, i) => bathAreas[i] || 5).join(' m², ') + ' m²';
-                mekanDetails.push(`${bathCount} Banyo (${bAreas})`);
+                const bAreasStr = Array.from({ length: bathCount }).map((_, i) => bathAreas[i] || 5).join('m², ') + 'm²';
+                areaDet.push(`${bathCount} Banyo (${bAreasStr})`);
             }
-            fullDescription += `MEKAN: ${mekanDetails.join(' + ')}\n`;
+            fullDescription += `MEKAN: ${areaDet.join(' + ')}\n`;
             
-            let tarzDetails = [];
-            if (showKitchen && kStyle) tarzDetails.push(`Mutfak: ${kStyle}`);
-            if (showBath && bStyle) tarzDetails.push(`Banyo: ${bStyle}`);
-            fullDescription += `TARZ: ${tarzDetails.join(' | ') || 'Belirtilmedi'}\n`;
-            
-            fullDescription += `İŞ SEVİYESİ: ${getWorkLevel()} (${occupancy === 'occupied' ? 'Eşyalı' : 'Boş'} Ev, Bina Yaşı: ${getBuildingAge()})\n`;
+            let styleDet = [];
+            if (showKitchen && kStyle) styleDet.push(`Mutfak: ${kStyle}`);
+            if (showBath && bStyle) styleDet.push(`Banyo: ${bStyle}`);
+            fullDescription += `TARZ: ${styleDet.join(' | ') || 'Belirtilmedi'}\n`;
+
+            fullDescription += `YENİLEME: ${getWorkLevel()} (${occupancy === 'occupied' ? 'Eşyalı' : 'Boş'} Ev, Bina: ${getAge()})\n`;
             fullDescription += `BÜTÇE: ${getBudget()}\n\n`;
-            
             if (details) fullDescription += `NOT:\n${details}\n`;
 
             const currentUrls = await Promise.all(currentPhotos.map(img => uploadImageToSupabase(img.uri)));
             const inspirationUrls = await Promise.all(inspirationPhotos.map(img => uploadImageToSupabase(img.uri)));
             const allDocumentUrls = [...currentUrls, ...inspirationUrls];
 
-            const { error } = await supabase
-                .from('construction_requests')
-                .insert({
-                    user_id: user.id,
-                    city: 'Türkiye Geneli',
-                    district: 'Tümü', 
-                    neighborhood: 'Tümü',
-                    ada: '', parsel: '', pafta: '',
-                    full_address: 'Mutfak & Banyo Talebi',
-                    offer_type: 'anahtar_teslim_tadilat',
-                    description: fullDescription,
-                    status: 'pending',
-                    document_urls: allDocumentUrls,
-                    deed_image_url: allDocumentUrls.length > 0 ? allDocumentUrls[0] : null
-                });
+            const { error } = await supabase.from('construction_requests').insert({
+                user_id: user.id, city: 'Türkiye Geneli', district: 'Tümü', neighborhood: 'Tümü',
+                ada: '', parsel: '', pafta: '', full_address: 'Mutfak & Banyo Talebi',
+                offer_type: 'anahtar_teslim_tadilat', description: fullDescription, status: 'pending',
+                document_urls: allDocumentUrls, deed_image_url: allDocumentUrls.length > 0 ? allDocumentUrls[0] : null
+            });
 
             if (error) throw error;
-
             navigation.navigate('RenovationSuccess');
         } catch (error) {
             console.error('Submit Error:', error);
@@ -316,8 +299,8 @@ export default function KitchenBathWizardScreen() {
 
     const pickImages = async (setter) => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') { Alert.alert('İzin Gerekli', 'Galeri erişimi için izin vermeniz gerekiyor.'); return; }
-        const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsMultipleSelection: true, quality: 0.85 });
+        if (status !== 'granted') { Alert.alert('İzin Gerekli', 'Galeri erişimi gerekiyor.'); return; }
+        const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsMultipleSelection: true, quality: 0.8 });
         if (!result.canceled) setter(prev => [...prev, ...result.assets]);
     };
 
@@ -332,20 +315,23 @@ export default function KitchenBathWizardScreen() {
         return false;
     };
 
-    // ── STEP 1: SCOPE ────────────────────────────────────────
+    // ── STEP RENDERERS ───────────────────────────────────────
+
     const renderStep1 = () => (
-        <View style={st.stepWrap}>
-            {SCOPE_OPTIONS.map(item => {
-                const isSel = selectedScope === item.id;
+        <View style={s.stepBlock}>
+            {SCOPE_OPTIONS.map(opt => {
+                const isSel = selectedScope === opt.id;
                 return (
-                    <TouchableOpacity key={item.id} style={[st.scopeCard, isSel && st.scopeCardActive]} onPress={() => setSelectedScope(item.id)} activeOpacity={0.9}>
-                        <Image source={{ uri: item.image }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
-                        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.88)']} style={StyleSheet.absoluteFillObject} />
-                        {isSel && <LinearGradient colors={['rgba(212,175,55,0.25)', 'transparent']} style={StyleSheet.absoluteFillObject} />}
-                        <View style={st.scopeRow}>
-                            <Text style={[st.scopeTitle, isSel && { color: GOLD_MAIN }]}>{item.title}</Text>
-                            <View style={[st.radio, isSel && st.radioActive]}>
-                                {isSel && <View style={st.radioInner} />}
+                    <TouchableOpacity key={opt.id} style={[s1.card, isSel && s1.cardActive]} onPress={() => setSelectedScope(opt.id)} activeOpacity={0.9}>
+                        <Image source={typeof opt.image === 'string' ? { uri: opt.image } : opt.image} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+                        {/* Critical gradient for text legibility */}
+                        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.95)']} style={StyleSheet.absoluteFillObject} start={{ x: 0, y: 0.3 }} end={{ x: 0, y: 1 }} />
+                        {isSel && <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(255,215,0,0.08)' }]} />}
+
+                        <View style={s1.contentWrap}>
+                            <Text allowFontScaling={false} style={s1.title}>{opt.title}</Text>
+                            <View style={[s1.radio, isSel && s1.radioActive]}>
+                                {isSel && <View style={s1.radioInner} />}
                             </View>
                         </View>
                     </TouchableOpacity>
@@ -354,266 +340,289 @@ export default function KitchenBathWizardScreen() {
         </View>
     );
 
-    // ── STEP 2: METRAJ + OCCUPANCY ───────────────────────────
     const renderStep2 = () => (
-        <View style={st.stepWrap}>
-
-            {/* Mekan Durumu */}
-            <View style={st.block}>
-                <SectionTitle icon="home-account" title="Mekan Durumu" sub="Çalışma takvimi ve maliyet buna göre belirlenir." />
-                <View style={st.chipRow}>
-                    {[{ id: 'empty', label: '🏚️  Boş / Kimse Yaşamıyor' }, { id: 'occupied', label: '🏠  İçinde Yaşanıyor' }].map(opt => (
-                        <TouchableOpacity key={opt.id} style={[st.chipFull, occupancy === opt.id && st.chipActive]} onPress={() => setOccupancy(opt.id)}>
-                            <Text style={[st.chipText, occupancy === opt.id && st.chipTextActive]}>{opt.label}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-                {occupancy === 'occupied' && (
-                    <View style={st.warningBox}>
-                        <MaterialCommunityIcons name="alert-circle" size={18} color={DANGER_RED} />
-                        <Text style={st.warningText}>İçinde yaşanan mekanlarda toz koruması, gün kısıtlamaları ve maliyette yaklaşık %20 ek öngörülmektedir.</Text>
-                    </View>
-                )}
-            </View>
-
-            {/* Mutfak */}
-            {showKitchen && (
-                <View style={[st.block, { marginTop: 20 }]}>
-                    <SectionTitle icon="countertop" title="Mutfak Alanı" />
-                    <View style={st.sliderRow}>
-                        <Text style={st.sliderLabel}>Alan (Yaklaşık)</Text>
-                        <View style={st.valueBadge}><Text style={st.valueText}>{kitchenArea} m²</Text></View>
-                    </View>
-                    <Slider style={{ width: '100%', height: 40 }} minimumValue={5} maximumValue={60} step={1} value={kitchenArea} onValueChange={v => setKitchenArea(Math.round(v))} minimumTrackTintColor={GOLD_MAIN} maximumTrackTintColor="#333" thumbTintColor={GOLD_MAIN} />
-                    <View style={st.rangeRow}><Text style={st.rangeText}>5 m²</Text><Text style={st.rangeText}>60 m²</Text></View>
-                    <Text style={[st.subLabel, { marginTop: 16 }]}>Mutfak Tipi</Text>
-                    <View style={st.chipRow}>
-                        {['Kapalı Mutfak', 'Açık / Ada Mutfak'].map(t => (
-                            <TouchableOpacity key={t} style={[st.chip, kitchenType === t && st.chipActive]} onPress={() => setKitchenType(t)}>
-                                <Text style={[st.chipText, kitchenType === t && st.chipTextActive]}>{t}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                </View>
-            )}
-
-            {/* Banyo */}
-            {showBath && (
-                <View style={[st.block, { marginTop: 20 }]}>
-                    <SectionTitle icon="shower-head" title="Banyo Detayları" />
-                    <Text style={st.subLabel}>Kaç banyo yenilenecek?</Text>
-                    <View style={[st.chipRow, { marginBottom: 20 }]}>
-                        {[1, 2, 3].map(n => (
-                            <TouchableOpacity key={n} style={[st.chip, bathCount === n && st.chipActive]} onPress={() => setBathCount(n)}>
-                                <Text style={[st.chipText, bathCount === n && st.chipTextActive]}>{n}{n === 3 ? '+' : ''}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-
-                    {Array.from({ length: bathCount }).map((_, i) => {
-                        const labels = ['Ebeveyn Banyosu', 'İkinci Banyo', 'Misafir WC / Banyo'];
+        <View style={s.stepBlock}>
+            {/* Occupancy - Segmented Pill */}
+            <View style={s2.cardBlock}>
+                <SLabel text="Mekan Durumu" sub="Çalışma takvimi ve maliyetini belirler." />
+                <View style={s2.pillWrap}>
+                    {[
+                        { id: 'empty', label: 'Boş Konut', icon: 'home-outline' },
+                        { id: 'occupied', label: 'Eşyalı Ev', icon: 'sofa-outline' }
+                    ].map(opt => {
+                        const isSel = occupancy === opt.id;
                         return (
-                            <View key={i} style={[st.bathItem, i > 0 && { marginTop: 18 }]}>
-                                <View style={st.sliderRow}>
-                                    <Text style={st.sliderLabel}>{bathCount === 1 ? 'Banyo Alanı' : labels[i] || `Banyo ${i + 1}`}</Text>
-                                    <View style={st.valueBadge}><Text style={st.valueText}>{bathAreas[i] || 5} m²</Text></View>
-                                </View>
-                                <Slider
-                                    style={{ width: '100%', height: 40 }}
-                                    minimumValue={2} maximumValue={25} step={1}
-                                    value={bathAreas[i] || 5}
-                                    onValueChange={v => setBathAreas(prev => ({ ...prev, [i]: Math.round(v) }))}
-                                    minimumTrackTintColor={GOLD_MAIN} maximumTrackTintColor="#333" thumbTintColor={GOLD_MAIN}
-                                />
-                                <View style={st.rangeRow}><Text style={st.rangeText}>2 m²</Text><Text style={st.rangeText}>25 m²</Text></View>
-                            </View>
+                            <TouchableOpacity key={opt.id} style={[s2.pillBtn, isSel && s2.pillBtnActive]} onPress={() => setOccupancy(opt.id)} activeOpacity={0.8}>
+                                <MaterialCommunityIcons name={opt.icon} size={20} color={isSel ? TH.bg : TH.textMuted} />
+                                <Text allowFontScaling={false} style={[s2.pillText, isSel && { color: TH.bg, fontWeight: '700' }]}>{opt.label}</Text>
+                            </TouchableOpacity>
                         );
                     })}
                 </View>
+            </View>
+
+            {/* Kitchen */}
+            {showKitchen && (
+                <View style={s2.cardBlock}>
+                    <View style={s.rowHeader}>
+                        <MaterialCommunityIcons name="countertop" size={20} color={TH.gold} />
+                        <Text allowFontScaling={false} style={s.rowTitle}>Mutfak Alanı</Text>
+                    </View>
+                    <CustomSlider label="Alan (Yaklaşık)" value={kitchenArea} min={5} max={60} onChange={v => setKitchenArea(Math.round(v))} />
+
+                    <Text allowFontScaling={false} style={s2.subLabel}>Mutfak Tipi</Text>
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                        {['Kapalı', 'Açık / Ada'].map(t => {
+                            const isSel = kitchenType === t;
+                            return (
+                                <TouchableOpacity key={t} style={[s2.typeBtn, isSel && s2.typeBtnActive]} onPress={() => setKitchenType(t)} activeOpacity={0.8}>
+                                    <Text allowFontScaling={false} style={[s2.typeBtnText, isSel && { color: TH.gold }]}>{t}</Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+                </View>
+            )}
+
+            {/* Bathroom */}
+            {showBath && (
+                <View style={s2.cardBlock}>
+                    <View style={s.rowHeader}>
+                        <MaterialCommunityIcons name="shower-head" size={20} color={TH.gold} />
+                        <Text allowFontScaling={false} style={s.rowTitle}>Banyo Detayları</Text>
+                    </View>
+
+                    <Text allowFontScaling={false} style={s2.subLabel}>Kaç banyo yenilenecek?</Text>
+                    <View style={s2.circRow}>
+                        {[1, 2, 3].map(n => {
+                            const isSel = bathCount === n;
+                            return (
+                                <TouchableOpacity key={n} style={[s2.circBtn, isSel && s2.circBtnActive]} onPress={() => setBathCount(n)} activeOpacity={0.8}>
+                                    <Text allowFontScaling={false} style={[s2.circText, isSel && { color: TH.bg, fontWeight: '800' }]}>{n}{n === 3 ? '+' : ''}</Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+
+                    {Array.from({ length: bathCount }).map((_, i) => (
+                        <View key={i} style={{ marginTop: 20 }}>
+                            <CustomSlider label={bathCount === 1 ? 'Banyo Alanı' : `Banyo ${i + 1} Alanı`} value={bathAreas[i] || 5} min={2} max={25} onChange={v => setBathAreas(prev => ({ ...prev, [i]: Math.round(v) }))} />
+                        </View>
+                    ))}
+                </View>
             )}
         </View>
     );
 
-    // ── STEP 3: KAPSAM + BİNA YAŞI ──────────────────────────
     const renderStep3 = () => (
-        <View style={st.stepWrap}>
+        <View style={s.stepBlock}>
             {WORK_LEVELS.map(level => {
                 const isSel = workLevel === level.id;
+                const isPrem = level.id === 'premium';
                 return (
-                    <TouchableOpacity key={level.id} style={[st.levelCard, isSel && st.levelCardActive]} onPress={() => setWorkLevel(level.id)} activeOpacity={0.85}>
-                        <View style={st.levelHeader}>
-                            <View style={[st.levelIcon, isSel && { backgroundColor: 'rgba(212,175,55,0.15)' }]}>
-                                <MaterialCommunityIcons name={level.icon} size={22} color={isSel ? GOLD_MAIN : '#666'} />
+                    <TouchableOpacity key={level.id} style={[s3.scopeCard, isPrem && s3.scopePrem, isSel && s3.scopeCardActive, isSel && isPrem && s3.scopePremActive]} onPress={() => setWorkLevel(level.id)} activeOpacity={0.85}>
+                        <View style={s3.scopeRow}>
+                            <MaterialCommunityIcons name={level.icon} size={28} color={isPrem ? TH.gold : (isSel ? TH.gold : '#FFF')} />
+                            <View style={{ flex: 1, paddingLeft: 14 }}>
+                                <Text allowFontScaling={false} style={[s3.scopeTitle, isSel && { color: TH.gold }]}>{level.title}</Text>
+                                <Text allowFontScaling={false} style={s3.scopeDesc}>{level.desc}</Text>
                             </View>
-                            <Text style={[st.levelTitle, isSel && { color: GOLD_MAIN }]}>{level.title}</Text>
-                            {isSel && <MaterialCommunityIcons name="check-circle" size={20} color={GOLD_MAIN} />}
+                            <View style={[s1.radio, isSel && s1.radioActive]}>
+                                {isSel && <View style={s1.radioInner} />}
+                            </View>
                         </View>
-                        <Text style={st.levelDesc}>{level.desc}</Text>
                     </TouchableOpacity>
                 );
             })}
 
-            {/* Bina Yaşı */}
-            <View style={[st.block, { marginTop: 24 }]}>
-                <SectionTitle icon="office-building-outline" title="Bina Yaşı" sub="Binanın yaşı, kaplama altındaki tesisat maliyetini doğrudan belirler." />
-                <View style={st.chipRow}>
-                    {[{ id: '0-5', label: '0 – 5 Yıl' }, { id: '5-15', label: '5 – 15 Yıl' }, { id: '15+', label: '15+ Yıl' }].map(opt => (
-                        <TouchableOpacity key={opt.id} style={[st.chip, buildingAge === opt.id && st.chipActive]} onPress={() => setBuildingAge(opt.id)}>
-                            <Text style={[st.chipText, buildingAge === opt.id && st.chipTextActive]}>{opt.label}</Text>
-                        </TouchableOpacity>
-                    ))}
+            <View style={s2.cardBlock}>
+                <View style={s.rowHeader}>
+                    <MaterialCommunityIcons name="office-building-marker" size={20} color={TH.gold} />
+                    <Text allowFontScaling={false} style={s.rowTitle}>Bina Yaşı</Text>
                 </View>
-                {buildingAge === '15+' && workLevel === 'light' && (
-                    <View style={st.warningBox}>
-                        <MaterialCommunityIcons name="alert" size={18} color={DANGER_RED} />
-                        <Text style={st.warningText}>15+ yıllık binalarda sadece yüzeysel dokunuş yapılması teknik risk taşımaktadır. Mimar bu konuda sizi bilgilendirecektir.</Text>
-                    </View>
-                )}
+                <Text allowFontScaling={false} style={[s2.subLabel, { marginBottom: 16 }]}>Altyapı tesisat maliyetini belirler.</Text>
+
+                <View style={s3.ageWrap}>
+                    {[{ id: '0-5', l: '0-5 Yıl' }, { id: '5-15', l: '5-15 Yıl' }, { id: '15+', l: '15+ Yıl' }].map(opt => {
+                        const isSel = buildingAge === opt.id;
+                        return (
+                            <TouchableOpacity key={opt.id} style={[s3.ageBtn, isSel && s3.ageBtnActive]} onPress={() => setBuildingAge(opt.id)} activeOpacity={0.8}>
+                                <Text allowFontScaling={false} style={[s3.ageText, isSel && { color: TH.bg, fontWeight: '700' }]}>{opt.l}</Text>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
             </View>
         </View>
     );
 
-    // ── STEP 4: TAR & STYLE ──────────────────────────────────
+    const renderStyleGrid = (stylesList, selected, onSelect) => (
+        <View style={s4.grid}>
+            {stylesList.map(item => {
+                const isSel = selected === item.id;
+                const isUndecided = item.id === 'undecided';
+
+                if (isUndecided) {
+                    return (
+                        <TouchableOpacity key={item.id} style={[s4.unCard, isSel && s4.unCardActive]} onPress={() => onSelect(item.id)} activeOpacity={0.85}>
+                            <MaterialCommunityIcons name={isSel ? "star" : "star-outline"} size={34} color={TH.gold} />
+                            <Text allowFontScaling={false} style={[s4.unTitle, isSel && { color: TH.gold }]}>{item.title}</Text>
+                            <Text allowFontScaling={false} style={s4.unSub}>En uygun trendi mimar seçsin</Text>
+                        </TouchableOpacity>
+                    );
+                }
+
+                return (
+                    <TouchableOpacity key={item.id} style={[s4.imgCard, isSel && s4.imgCardActive]} onPress={() => onSelect(item.id)} activeOpacity={0.85}>
+                        <Image source={typeof item.image === 'string' ? { uri: item.image } : item.image} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+                        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.95)']} style={StyleSheet.absoluteFillObject} start={{ x: 0, y: 0.2 }} end={{ x: 0, y: 1 }} />
+                        
+                        {isSel && (
+                            <View style={s4.checkBadge}>
+                                <MaterialCommunityIcons name="check" size={16} color="#000" />
+                            </View>
+                        )}
+                        <View style={s4.imgTextWrap}>
+                            <Text allowFontScaling={false} style={s4.imgTitle}>{item.title}</Text>
+                            <Text allowFontScaling={false} style={s4.imgDesc} numberOfLines={2}>{item.desc}</Text>
+                        </View>
+                    </TouchableOpacity>
+                );
+            })}
+        </View>
+    );
+
     const renderStep4 = () => (
-        <View style={st.stepWrap}>
+        <View style={s.stepBlock}>
             {showKitchen && (
-                <View style={isBoth && { marginBottom: 30 }}>
-                    {isBoth && <SectionTitle icon="countertop" title="Mutfak Tarzi" sub="Mütfağın tasarım dili" />}
-                    <StyleGrid styles={STYLE_CATALOG.kitchen} selected={kitchenStyle} onSelect={setKitchenStyle} />
+                <View style={showBath && { marginBottom: 36 }}>
+                    {isBoth && (
+                        <View style={s.rowHeader}>
+                            <MaterialCommunityIcons name="countertop" size={20} color={TH.gold} />
+                            <Text allowFontScaling={false} style={s.rowTitle}>Mutfak Tarzı</Text>
+                        </View>
+                    )}
+                    {renderStyleGrid(STYLE_CATALOG.kitchen, kitchenStyle, setKitchenStyle)}
                 </View>
             )}
             {showBath && (
                 <View>
-                    {isBoth && <SectionTitle icon="shower-head" title="Banyo Tarzi" sub="Banyo için ayrı bir tarz seçebilirsin" />}
-                    <StyleGrid styles={STYLE_CATALOG.bath} selected={bathStyle} onSelect={setBathStyle} />
+                    {isBoth && (
+                        <View style={[s.rowHeader, { marginTop: 10 }]}>
+                            <MaterialCommunityIcons name="shower-head" size={20} color={TH.gold} />
+                            <Text allowFontScaling={false} style={s.rowTitle}>Banyo Tarzı</Text>
+                        </View>
+                    )}
+                    {renderStyleGrid(STYLE_CATALOG.bath, bathStyle, setBathStyle)}
                 </View>
             )}
         </View>
     );
 
-    // ── STEP 5: PHOTOS + BUDGET + NOTES ─────────────────────
     const renderStep5 = () => (
-        <View style={st.stepWrap}>
-            <UploadBox
-                icon="camera"
-                label="Mevcut Durumu Yükle"
-                sub="Şu anki mutfak/banyo fotoğrafları"
-                images={currentPhotos}
-                onPick={() => pickImages(setCurrentPhotos)}
-                onRemove={i => setCurrentPhotos(p => p.filter((_, idx) => idx !== i))}
-            />
-            <UploadBox
-                icon="image-search"
-                label="İlham Görsellerini Yükle"
-                sub="Pinterest, dergi, referans fotoğrafları"
-                images={inspirationPhotos}
-                onPick={() => pickImages(setInspirationPhotos)}
-                onRemove={i => setInspirationPhotos(p => p.filter((_, idx) => idx !== i))}
-            />
+        <View style={s.stepBlock}>
+            <UploadZone iconName="camera-plus-outline" label="Mevcut Durum Görselleri" images={currentPhotos} onPick={() => pickImages(setCurrentPhotos)} onRemove={i => setCurrentPhotos(p => p.filter((_, idx) => idx !== i))} />
+            <UploadZone iconName="image-multiple-outline" label="Referans Görselleri" images={inspirationPhotos} onPick={() => pickImages(setInspirationPhotos)} onRemove={i => setInspirationPhotos(p => p.filter((_, idx) => idx !== i))} />
 
-            {/* BÜTÇE */}
-            <View style={[st.block, { marginBottom: 24 }]}>
-                <SectionTitle icon="currency-try" title="Planlanan Bütçe" sub="Opsiyonel — Mimar teklif süresini ve kalite sınıfını buna göre belirler." />
-                <View style={st.budgetGrid}>
+            <View style={{ marginBottom: 24 }}>
+                <SLabel text="Planlanan Bütçe Segmenti" sub="Mimar kalite sınıfını buna göre projelendirir." />
+                <View style={s5.grid}>
                     {BUDGET_OPTIONS.map(opt => {
                         const isSel = budget === opt.id;
                         return (
-                            <TouchableOpacity key={opt.id} style={[st.budgetCard, isSel && { borderColor: opt.color, backgroundColor: `${opt.color}15` }]} onPress={() => setBudget(opt.id)}>
-                                <View style={[st.budgetDot, { backgroundColor: opt.color }]} />
-                                <Text style={[st.budgetLabel, isSel && { color: opt.color }]}>{opt.label}</Text>
-                                <Text style={st.budgetSub}>{opt.sub}</Text>
+                            <TouchableOpacity key={opt.id} style={[s5.budgCard, isSel && s5.budgCardActive]} onPress={() => setBudget(opt.id)} activeOpacity={0.8}>
+                                <View style={[s1.radio, { width: 22, height: 22 }, isSel && s1.radioActive]}>
+                                    {isSel && <View style={[s1.radioInner, { width: 10, height: 10 }]} />}
+                                </View>
+                                <View style={{ marginLeft: 10 }}>
+                                    <Text allowFontScaling={false} style={[s5.budgTitle, isSel && { color: TH.gold }]}>{opt.label}</Text>
+                                    <Text allowFontScaling={false} style={s5.budgSub}>{opt.sub}</Text>
+                                </View>
                             </TouchableOpacity>
                         );
                     })}
                 </View>
             </View>
 
-            {/* NOTLAR */}
-            <View>
-                <SectionTitle icon="text-box-edit-outline" title="Özel İstekleriniz" sub='"Ankastre fırın, çift lavabo olsun" gibi detaylar mimar için kritik.' />
-                <View style={st.inputWrap}>
-                    <TextInput
-                        style={st.textInput}
-                        placeholder="Özel isteklerinizi buraya yazın..."
-                        placeholderTextColor="#666"
+            <View style={{ marginBottom: 10 }}>
+                <SLabel text="Özel İstekleriniz" sub="Evin mimarisine dair kritik notları ekleyin." />
+                <View style={s5.textAreaWrap}>
+                    <TextInput allowFontScaling={false}
+                        style={s5.textArea}
+                        placeholder="Örn: Ankastre ürünüm var ölçüsü..."
+                        placeholderTextColor={TH.textMuted}
                         multiline
+                        textAlignVertical="top"
                         value={details}
                         onChangeText={setDetails}
-                        inputAccessoryViewID="WizardDone"
-                        onFocus={() => setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150)}
+                        inputAccessoryViewID="KBDecor"
                     />
-                    <TouchableOpacity
-                        style={[st.micBtn, isRecording && { backgroundColor: DANGER_RED }]}
-                        onPress={() => setIsRecording(r => !r)}
-                    >
-                        <Ionicons name={isRecording ? "stop" : "mic"} size={22} color={isRecording ? "#FFF" : GOLD_MAIN} />
+                    <TouchableOpacity style={[s5.micBtn, isRecording && { backgroundColor: TH.danger }]} onPress={() => setIsRecording(!isRecording)}>
+                        <Ionicons name={isRecording ? 'stop' : 'mic'} size={20} color={isRecording ? '#FFF' : TH.gold} />
                     </TouchableOpacity>
                 </View>
             </View>
         </View>
     );
 
-    // ── MAIN RETURN ──────────────────────────────────────────
-    const disabled = isNextDisabled();
+
+    // ── MAIN LAYOUT ─────────────────────────────────────────
+
     return (
-        <View style={st.container}>
-            <StatusBar barStyle="light-content" backgroundColor="#000" />
-            <LinearGradient colors={['#000000', '#0D0D0D']} style={StyleSheet.absoluteFillObject} />
-
+        <View style={styles.container}>
+            <StatusBar barStyle="light-content" backgroundColor={TH.bg} />
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-                <View style={{ flex: 1 }}>
 
-                    {/* Header — insets ile status bar çakışması giderildi */}
-                    <View style={[st.header, { paddingTop: insets.top + 12 }]}>
-                        <TouchableOpacity onPress={handleBack} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                            <View style={st.backBtnCircle}>
-                                <Ionicons name="arrow-back" size={20} color="#FFF" />
-                            </View>
-                        </TouchableOpacity>
-                        <View style={st.progress}>
-                            {[1, 2, 3, 4, 5].map(s => (
-                                <View key={s} style={[st.dot, s <= step && st.dotActive]} />
-                            ))}
-                        </View>
-                        <Text style={st.stepLabel}>{step} / 5</Text>
+                {/* Header */}
+                <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+                    <TouchableOpacity onPress={handleBack} style={styles.backBtn} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
+                        <Ionicons name="arrow-back" size={24} color={TH.textPrimary} />
+                    </TouchableOpacity>
+                    <View style={styles.progressWrap}>
+                        {[1, 2, 3, 4, 5].map(idx => (
+                            <View key={idx} style={[styles.progSeg, idx <= step && styles.progSegActive]} />
+                        ))}
+                    </View>
+                    <Text allowFontScaling={false} style={styles.stepIndicator}>Adım {step}/5</Text>
+                </View>
+
+                {/* Body */}
+                <ScrollView ref={scrollRef} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                    <View style={styles.headerTitles}>
+                        <Text allowFontScaling={false} style={styles.mainTitle}>{TITLES[step]}</Text>
+                        <Text allowFontScaling={false} style={styles.subTitle}>{SUBS[step]}</Text>
                     </View>
 
-                    <ScrollView ref={scrollViewRef} contentContainerStyle={st.scroll} showsVerticalScrollIndicator={false}>
-                        <View style={st.titleSection}>
-                            <Text style={st.title}>{STEP_TITLES[step]}</Text>
-                            <Text style={st.subtitle}>{STEP_SUBS[step]}</Text>
-                        </View>
-                        {step === 1 && renderStep1()}
-                        {step === 2 && renderStep2()}
-                        {step === 3 && renderStep3()}
-                        {step === 4 && renderStep4()}
-                        {step === 5 && renderStep5()}
-                    </ScrollView>
+                    {step === 1 && renderStep1()}
+                    {step === 2 && renderStep2()}
+                    {step === 3 && renderStep3()}
+                    {step === 4 && renderStep4()}
+                    {step === 5 && renderStep5()}
+                </ScrollView>
 
-                    <LinearGradient colors={['transparent', 'rgba(0,0,0,0.97)', '#000']} style={[st.footer, { paddingBottom: insets.bottom + 16 }]}>
-                        <TouchableOpacity style={[st.actionBtn, (disabled || loading) && { opacity: 0.4 }]} onPress={handleNext} disabled={disabled || loading} activeOpacity={0.8}>
-                            <LinearGradient
-                                colors={disabled ? ['#2a2a2a', '#222'] : [GOLD_MAIN, GOLD_DARK]}
-                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                                style={st.actionGrad}
-                            >
-                                <Text style={[st.actionText, disabled && { color: '#555' }]}>
-                                    {loading ? 'GÖNDERİLİYOR...' : step === 5 ? 'KEŞİF & TEKLİF İSTE' : 'DEVAM ET'}
-                                </Text>
-                                <MaterialCommunityIcons name={step === 5 ? "check-decagram" : "arrow-right"} size={22} color={disabled ? '#555' : '#000'} />
-                            </LinearGradient>
+                {/* Fixed Bottom Bar */}
+                <View style={[styles.bottomBar, { paddingBottom: insets.bottom > 0 ? insets.bottom : 20 }]}>
+                    {step > 1 && (
+                        <TouchableOpacity style={styles.bottomBackBtn} onPress={handleBack} activeOpacity={0.8}>
+                            <Text allowFontScaling={false} style={styles.bottomBackText}>Geri</Text>
                         </TouchableOpacity>
-                    </LinearGradient>
-
+                    )}
+                    <TouchableOpacity style={[styles.primaryBtn, (isNextDisabled() || loading) && { opacity: 0.5 }]} disabled={isNextDisabled() || loading} onPress={handleNext} activeOpacity={0.9}>
+                        <LinearGradient colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+                        <Text allowFontScaling={false} style={styles.primaryBtnText}>
+                            {loading ? 'YÜKLENİYOR...' : (step === 5 ? 'KEŞİF & TEKLİF İSTE' : 'DEVAM ET')}
+                        </Text>
+                        {step < 5 && !loading && <MaterialCommunityIcons name="arrow-right" size={18} color="#000" style={{ marginLeft: 6 }} />}
+                        {step === 5 && !loading && <MaterialCommunityIcons name="check-decagram" size={20} color="#000" style={{ marginLeft: 8 }} />}
+                    </TouchableOpacity>
                 </View>
+
             </KeyboardAvoidingView>
 
             {Platform.OS === 'ios' && (
-                <InputAccessoryView nativeID="WizardDone">
-                    <View style={st.accessory}>
-                        <TouchableOpacity onPress={Keyboard.dismiss}>
-                            <Text style={st.accessoryText}>Bitti</Text>
-                        </TouchableOpacity>
+                <InputAccessoryView nativeID="KBDecor">
+                    <View style={s5.accessory}>
+                        <TouchableOpacity onPress={Keyboard.dismiss}><Text allowFontScaling={false} style={s5.accessoryBtn}>Bitti</Text></TouchableOpacity>
                     </View>
                 </InputAccessoryView>
             )}
@@ -623,81 +632,99 @@ export default function KitchenBathWizardScreen() {
 
 // ─── STYLES ──────────────────────────────────────────────────
 
-const st = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#000' },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16 },
-    backBtnCircle: { width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-    progress: { flexDirection: 'row', gap: 6 },
-    dot: { width: 28, height: 4, borderRadius: 2, backgroundColor: '#2a2a2a' },
-    dotActive: { backgroundColor: GOLD_MAIN },
-    stepLabel: { color: '#666', fontSize: 13, fontWeight: 'bold', width: 32, textAlign: 'right' },
-    scroll: { paddingHorizontal: 20, paddingBottom: 30 },
-    titleSection: { marginBottom: 26 },
-    title: { color: '#FFF', fontSize: 26, fontWeight: 'bold', lineHeight: 34, marginBottom: 8 },
-    subtitle: { color: '#888', fontSize: 14, lineHeight: 21 },
-    stepWrap: { width: '100%' },
+const styles = StyleSheet.create({
+    container: { flex: 1, backgroundColor: TH.bg },
+    header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16, backgroundColor: TH.bg, zIndex: 10 },
+    backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: TH.cardLight, alignItems: 'center', justifyContent: 'center' },
+    progressWrap: { flex: 1, flexDirection: 'row', gap: 6, marginHorizontal: 16, height: 4 },
+    progSeg: { flex: 1, height: '100%', borderRadius: 2, backgroundColor: TH.border },
+    progSegActive: { backgroundColor: TH.gold },
+    stepIndicator: { color: TH.textMuted, fontSize: 13, fontWeight: '700' },
+    scrollContent: { paddingHorizontal: 20, paddingBottom: 40, paddingTop: 10 },
+    headerTitles: { marginBottom: 30 },
+    mainTitle: { color: TH.textPrimary, fontSize: 28, fontWeight: '800', lineHeight: 36, letterSpacing: -0.5 },
+    subTitle: { color: TH.textMuted, fontSize: 14, marginTop: 8 },
+    bottomBar: { flexDirection: 'row', paddingHorizontal: 20, paddingTop: 16, borderTopWidth: 1, borderTopColor: TH.border, backgroundColor: TH.bg, gap: 12 },
+    bottomBackBtn: { height: 56, paddingHorizontal: 24, borderRadius: 30, borderWidth: 1, borderColor: '#444', alignItems: 'center', justifyContent: 'center' },
+    bottomBackText: { color: '#CCC', fontSize: 15, fontWeight: '600' },
+    primaryBtn: { flex: 1, height: 56, borderRadius: 30, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', overflow: 'hidden' },
+    primaryBtnText: { color: '#1A1A1A', fontSize: 16, fontWeight: '900', letterSpacing: 1, zIndex: 2 },
+});
 
-    // Scope
-    scopeCard: { height: 150, borderRadius: 20, overflow: 'hidden', marginBottom: 14, borderWidth: 2, borderColor: 'transparent', backgroundColor: '#111' },
-    scopeCardActive: { borderColor: GOLD_MAIN },
-    scopeRow: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 18 },
-    scopeTitle: { color: '#FFF', fontSize: 22, fontWeight: 'bold' },
-    radio: { width: 26, height: 26, borderRadius: 13, borderWidth: 2, borderColor: '#FFF', alignItems: 'center', justifyContent: 'center' },
-    radioActive: { borderColor: GOLD_MAIN },
-    radioInner: { width: 13, height: 13, borderRadius: 7, backgroundColor: GOLD_MAIN },
+const s = StyleSheet.create({
+    stepBlock: { width: '100%' },
+    rowHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
+    rowTitle: { color: TH.textPrimary, fontSize: 18, fontWeight: '700' },
+});
 
-    // Block
-    block: { backgroundColor: '#111', borderRadius: 20, padding: 18, borderWidth: 1, borderColor: '#222' },
-    bathItem: {},
+// Step 1
+const s1 = StyleSheet.create({
+    card: { height: 160, borderRadius: 20, overflow: 'hidden', marginBottom: 16, borderWidth: 2, borderColor: 'transparent', backgroundColor: TH.cardLight },
+    cardActive: { borderColor: TH.gold },
+    contentWrap: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, zIndex: 10 },
+    title: { color: TH.textPrimary, fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
+    radio: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: '#FFF', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.3)' },
+    radioActive: { borderColor: TH.gold },
+    radioInner: { width: 14, height: 14, borderRadius: 7, backgroundColor: TH.gold },
+});
 
-    // Slider
-    sliderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-    sliderLabel: { color: '#888', fontSize: 14 },
-    valueBadge: { backgroundColor: 'rgba(212,175,55,0.12)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: GOLD_MAIN },
-    valueText: { color: GOLD_MAIN, fontWeight: 'bold', fontSize: 13 },
-    rangeRow: { flexDirection: 'row', justifyContent: 'space-between' },
-    rangeText: { color: '#555', fontSize: 11 },
+// Step 2
+const s2 = StyleSheet.create({
+    cardBlock: { backgroundColor: TH.cardLight, borderRadius: 24, padding: 20, marginBottom: 20, borderWidth: 1, borderColor: TH.borderLight },
+    subLabel: { color: TH.textMuted, fontSize: 13, marginBottom: 10, fontWeight: '500' },
+    pillWrap: { flexDirection: 'row', backgroundColor: '#111', borderRadius: 16, padding: 6, borderWidth: 1, borderColor: TH.borderLight },
+    pillBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 12 },
+    pillBtnActive: { backgroundColor: '#FFF' },
+    pillText: { color: TH.textMuted, fontSize: 14, fontWeight: '600' },
+    typeBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 14, backgroundColor: '#111', borderWidth: 1, borderColor: TH.borderLight },
+    typeBtnActive: { borderColor: TH.gold, backgroundColor: TH.warningBg },
+    typeBtnText: { color: TH.textMuted, fontSize: 14, fontWeight: '600' },
+    circRow: { flexDirection: 'row', gap: 14, marginBottom: 10 },
+    circBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#111', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: TH.borderLight },
+    circBtnActive: { backgroundColor: TH.gold, borderColor: TH.gold },
+    circText: { color: TH.textMuted, fontSize: 16, fontWeight: '600' },
+});
 
-    // Chips
-    subLabel: { color: '#888', fontSize: 13, marginBottom: 8 },
-    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-    chip: { backgroundColor: '#1a1a1a', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 30, borderWidth: 1, borderColor: '#333' },
-    chipFull: { width: '100%', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14, borderWidth: 1, borderColor: '#333', backgroundColor: '#1a1a1a' },
-    chipActive: { backgroundColor: 'rgba(212,175,55,0.1)', borderColor: GOLD_MAIN },
-    chipText: { color: '#bbb', fontSize: 14 },
-    chipTextActive: { color: GOLD_MAIN, fontWeight: 'bold' },
+// Step 3
+const s3 = StyleSheet.create({
+    scopeCard: { backgroundColor: TH.cardLight, borderRadius: 20, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: TH.borderLight },
+    scopeCardActive: { borderColor: TH.gold, backgroundColor: TH.warningBg },
+    scopePrem: { borderColor: TH.gold, borderWidth: 1 },
+    scopePremActive: { backgroundColor: 'rgba(255,215,0,0.1)' },
+    scopeRow: { flexDirection: 'row', alignItems: 'center' },
+    scopeTitle: { color: TH.textPrimary, fontSize: 16, fontWeight: '700', marginBottom: 4 },
+    scopeDesc: { color: TH.textMuted, fontSize: 13, lineHeight: 18 },
+    ageWrap: { flexDirection: 'row', backgroundColor: '#111', borderRadius: 14, padding: 6, borderWidth: 1, borderColor: TH.borderLight },
+    ageBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderRadius: 10 },
+    ageBtnActive: { backgroundColor: '#FFF' },
+    ageText: { color: TH.textMuted, fontSize: 14, fontWeight: '600' },
+});
 
-    // Warning
-    warningBox: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: 'rgba(239,68,68,0.08)', borderRadius: 10, padding: 12, marginTop: 12, borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)' },
-    warningText: { color: '#f87171', fontSize: 12, lineHeight: 18, flex: 1 },
+// Step 4
+const s4 = StyleSheet.create({
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+    imgCard: { width: (width - 40 - 12) / 2, height: 210, borderRadius: 20, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent' },
+    imgCardActive: { borderColor: TH.gold },
+    checkBadge: { position: 'absolute', top: 12, right: 12, width: 28, height: 28, borderRadius: 14, backgroundColor: TH.gold, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+    imgTextWrap: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, zIndex: 5 },
+    imgTitle: { color: '#FFF', fontSize: 15, fontWeight: '800', marginBottom: 4 },
+    imgDesc: { color: 'rgba(255,255,255,0.7)', fontSize: 11, lineHeight: 16 },
+    unCard: { width: '100%', height: 110, borderRadius: 20, borderWidth: 1.5, borderColor: TH.border, borderStyle: 'dashed', backgroundColor: '#111', alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+    unCardActive: { borderColor: TH.gold, backgroundColor: 'rgba(255, 215, 0, 0.05)' },
+    unTitle: { color: TH.textMuted, fontSize: 16, fontWeight: '700', marginTop: 8, marginBottom: 2 },
+    unSub: { color: '#666', fontSize: 13 },
+});
 
-    // Work levels
-    levelCard: { backgroundColor: '#111', borderRadius: 16, padding: 18, marginBottom: 12, borderWidth: 1, borderColor: '#2a2a2a' },
-    levelCardActive: { borderColor: GOLD_MAIN, backgroundColor: 'rgba(212,175,55,0.04)' },
-    levelHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
-    levelIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#1a1a1a', alignItems: 'center', justifyContent: 'center' },
-    levelTitle: { color: '#FFF', fontSize: 15, fontWeight: 'bold', flex: 1 },
-    levelDesc: { color: '#888', fontSize: 13, lineHeight: 19, paddingLeft: 52 },
-
-    // Budget
-    budgetGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 10 },
-    budgetCard: { width: (width - 40 - 40 - 10) / 2, padding: 14, borderRadius: 14, borderWidth: 1.5, borderColor: '#2a2a2a', backgroundColor: '#111', gap: 4 },
-    budgetDot: { width: 10, height: 10, borderRadius: 5 },
-    budgetLabel: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
-    budgetSub: { color: '#888', fontSize: 11 },
-
-    // Input
-    inputWrap: { position: 'relative', marginTop: 10 },
-    textInput: { height: 140, backgroundColor: '#111', borderRadius: 16, borderWidth: 1, borderColor: '#2a2a2a', color: '#FFF', padding: 15, paddingRight: 55, textAlignVertical: 'top', fontSize: 14 },
-    micBtn: { position: 'absolute', right: 12, bottom: 12, width: 40, height: 40, borderRadius: 20, backgroundColor: '#222', alignItems: 'center', justifyContent: 'center' },
-
-    // Footer
-    footer: { paddingHorizontal: 20, paddingTop: 20 },
-    actionBtn: { borderRadius: 16, overflow: 'hidden', height: 58 },
-    actionGrad: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
-    actionText: { color: '#000', fontSize: 15, fontWeight: '900', letterSpacing: 0.5 },
-
-    // Accessory
-    accessory: { backgroundColor: '#1a1a1a', alignItems: 'flex-end', paddingHorizontal: 15, paddingVertical: 10 },
-    accessoryText: { color: GOLD_MAIN, fontSize: 16, fontWeight: 'bold' },
+// Step 5
+const s5 = StyleSheet.create({
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+    budgCard: { width: (width - 40 - 12) / 2, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: TH.border, backgroundColor: TH.cardLight, flexDirection: 'row', alignItems: 'center' },
+    budgCardActive: { borderColor: TH.gold },
+    budgTitle: { color: TH.textPrimary, fontSize: 13, fontWeight: '700', marginBottom: 2 },
+    budgSub: { color: TH.textMuted, fontSize: 11 },
+    textAreaWrap: { position: 'relative' },
+    textArea: { height: 150, backgroundColor: TH.cardLight, borderRadius: 16, borderWidth: 1, borderColor: TH.border, color: TH.textPrimary, fontSize: 15, padding: 16, paddingRight: 50, textAlignVertical: 'top' },
+    micBtn: { position: 'absolute', right: 12, bottom: 12, width: 44, height: 44, borderRadius: 22, backgroundColor: '#222', alignItems: 'center', justifyContent: 'center' },
+    accessory: { backgroundColor: '#1A1A1C', padding: 12, alignItems: 'flex-end', borderTopWidth: 1, borderTopColor: TH.border },
+    accessoryBtn: { color: TH.gold, fontSize: 16, fontWeight: '800', marginRight: 10 },
 });

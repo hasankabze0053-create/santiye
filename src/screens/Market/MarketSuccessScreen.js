@@ -65,21 +65,21 @@ export default function MarketSuccessScreen() {
 
                 {/* Text Content */}
                 <Animated.View style={[styles.textContainer, { opacity: fadeAnim }]}>
-                    <Text style={styles.title}>TEKLİF HAVUZU{'\n'}OLUŞTURULUYOR!</Text>
-                    <Text style={styles.subtitle}>
+                    <Text allowFontScaling={false} style={styles.title}>TEKLİF HAVUZU{'\n'}OLUŞTURULUYOR!</Text>
+                    <Text allowFontScaling={false} style={styles.subtitle}>
                         Talebiniz başarıyla alındı. Yapay zeka destekli sistemimiz, en uygun tedarikçilerden fiyatları toplayıp size sunacak.
                     </Text>
 
                     <View style={styles.infoBox}>
                         <MaterialCommunityIcons name="clock-fast" size={24} color="#D4AF37" />
-                        <Text style={styles.infoText}>Ortalama 15-30 dakika içinde teklifler panelinize düşecektir.</Text>
+                        <Text allowFontScaling={false} style={styles.infoText}>Ortalama 15-30 dakika içinde teklifler panelinize düşecektir.</Text>
                     </View>
                 </Animated.View>
 
                 {/* Bottom Action */}
                 <Animated.View style={[styles.footer, { opacity: fadeAnim }]}>
                     <TouchableOpacity style={styles.homeBtn} onPress={handleGoHome} activeOpacity={0.8}>
-                        <Text style={styles.homeBtnText}>ANA SAYFAYA DÖN</Text>
+                        <Text allowFontScaling={false} style={styles.homeBtnText}>ANA SAYFAYA DÖN</Text>
                         <MaterialCommunityIcons name="home" size={20} color="#000" />
                     </TouchableOpacity>
                 </Animated.View>

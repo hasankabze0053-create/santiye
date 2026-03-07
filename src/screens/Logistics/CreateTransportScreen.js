@@ -106,8 +106,8 @@ export default function CreateTransportScreen({ navigation }) {
                         <MaterialCommunityIcons name="lightning-bolt" size={20} color={COLORS.neon} />
                     </View>
                     <View style={{ flex: 1 }}>
-                        <Text style={styles.fastTriggerTitle}>HIZLI TALEP OLUŞTUR</Text>
-                        <Text style={styles.fastTriggerSub}>Form doldurmakla uğraşma, yaz biz bulalım.</Text>
+                        <Text allowFontScaling={false} style={styles.fastTriggerTitle}>HIZLI TALEP OLUŞTUR</Text>
+                        <Text allowFontScaling={false} style={styles.fastTriggerSub}>Form doldurmakla uğraşma, yaz biz bulalım.</Text>
                     </View>
                     <Ionicons name="arrow-forward" size={18} color={COLORS.neon} />
                 </LinearGradient>
@@ -116,15 +116,15 @@ export default function CreateTransportScreen({ navigation }) {
 
             <View style={{ height: 20 }} />
 
-            <Text style={styles.stepTitle}>1. ROTA BELİRLEME</Text>
-            <Text style={styles.stepSub}>Nereden nereye gidilecek?</Text>
+            <Text allowFontScaling={false} style={styles.stepTitle}>1. ROTA BELİRLEME</Text>
+            <Text allowFontScaling={false} style={styles.stepSub}>Nereden nereye gidilecek?</Text>
 
             {/* Map Placeholder */}
             <View style={styles.mapPlaceholder}>
                 <LinearGradient colors={['#1a1a1a', '#000']} style={StyleSheet.absoluteFill} />
                 <View style={styles.mapGrid} />
                 <MaterialCommunityIcons name="map-marker-radius" size={40} color={COLORS.neon} />
-                <Text style={{ color: '#666', marginTop: 10, fontSize: 12, fontStyle: 'italic' }}>Canlı Harita (Demo Modu)</Text>
+                <Text allowFontScaling={false} style={{ color: '#666', marginTop: 10, fontSize: 12, fontStyle: 'italic' }}>Canlı Harita (Demo Modu)</Text>
             </View>
 
             {/* Inputs */}
@@ -132,8 +132,8 @@ export default function CreateTransportScreen({ navigation }) {
                 <View style={styles.inputRow}>
                     <Ionicons name="location" size={20} color={COLORS.neon} />
                     <View style={{ flex: 1 }}>
-                        <Text style={styles.label}>ÇIKIŞ NOKTASI</Text>
-                        <TextInput
+                        <Text allowFontScaling={false} style={styles.label}>ÇIKIŞ NOKTASI</Text>
+                        <TextInput allowFontScaling={false}
                             style={styles.input}
                             value={route.from}
                             onChangeText={(t) => setRoute({ ...route, from: t })}
@@ -150,8 +150,8 @@ export default function CreateTransportScreen({ navigation }) {
                         <View style={styles.inputRow}>
                             <MaterialCommunityIcons name="flag-triangle" size={20} color="#FFD700" />
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.label}>{index + 1}. DURAK</Text>
-                                <TextInput
+                                <Text allowFontScaling={false} style={styles.label}>{index + 1}. DURAK</Text>
+                                <TextInput allowFontScaling={false}
                                     style={styles.input}
                                     value={stop.address}
                                     onChangeText={(t) => {
@@ -178,8 +178,8 @@ export default function CreateTransportScreen({ navigation }) {
                 <View style={styles.inputRow}>
                     <Ionicons name="navigate-circle" size={20} color={COLORS.accent} />
                     <View style={{ flex: 1 }}>
-                        <Text style={styles.label}>VARIŞ NOKTASI</Text>
-                        <TextInput
+                        <Text allowFontScaling={false} style={styles.label}>VARIŞ NOKTASI</Text>
+                        <TextInput allowFontScaling={false}
                             style={styles.input}
                             value={route.to}
                             onChangeText={(t) => {
@@ -209,8 +209,8 @@ export default function CreateTransportScreen({ navigation }) {
                         >
                             <Ionicons name="time-outline" size={16} color="#666" />
                             <View>
-                                <Text style={styles.sugTitle}>{s.title}</Text>
-                                <Text style={styles.sugSub}>{s.sub}</Text>
+                                <Text allowFontScaling={false} style={styles.sugTitle}>{s.title}</Text>
+                                <Text allowFontScaling={false} style={styles.sugSub}>{s.sub}</Text>
                             </View>
                         </TouchableOpacity>
                     ))}
@@ -222,12 +222,12 @@ export default function CreateTransportScreen({ navigation }) {
                 onPress={() => setStops([...stops, { id: Date.now(), address: '' }])}
             >
                 <Ionicons name="add-circle-outline" size={20} color="#888" />
-                <Text style={{ color: '#888' }}>+ Durak Ekle</Text>
+                <Text allowFontScaling={false} style={{ color: '#888' }}>+ Durak Ekle</Text>
             </TouchableOpacity>
 
             <View style={styles.infoRow}>
-                <Text style={styles.infoText}>Tahmini Mesafe: <Text style={{ color: '#fff', fontWeight: 'bold' }}>{route.dist}</Text></Text>
-                <Text style={styles.infoText}>Süre: <Text style={{ color: '#fff', fontWeight: 'bold' }}>{route.time}</Text></Text>
+                <Text allowFontScaling={false} style={styles.infoText}>Tahmini Mesafe: <Text allowFontScaling={false} style={{ color: '#fff', fontWeight: 'bold' }}>{route.dist}</Text></Text>
+                <Text allowFontScaling={false} style={styles.infoText}>Süre: <Text allowFontScaling={false} style={{ color: '#fff', fontWeight: 'bold' }}>{route.time}</Text></Text>
             </View>
         </View>
     );
@@ -235,8 +235,8 @@ export default function CreateTransportScreen({ navigation }) {
     // --- STEP 2: LOAD ---
     const renderStep2 = () => (
         <View style={styles.stepContainer}>
-            <Text style={styles.stepTitle}>2. YÜK TİPİ VE DETAYLAR</Text>
-            <Text style={styles.stepSub}>Ne taşıyoruz?</Text>
+            <Text allowFontScaling={false} style={styles.stepTitle}>2. YÜK TİPİ VE DETAYLAR</Text>
+            <Text allowFontScaling={false} style={styles.stepSub}>Ne taşıyoruz?</Text>
 
             <View style={styles.gridContainer}>
                 {LOAD_TYPES.map(item => {
@@ -248,7 +248,7 @@ export default function CreateTransportScreen({ navigation }) {
                             onPress={() => setLoad({ ...load, type: item.id })}
                         >
                             <MaterialCommunityIcons name={item.icon} size={28} color={isSelected ? '#000' : COLORS.accent} />
-                            <Text style={[styles.gridTitle, isSelected && { color: '#000' }]}>{item.title}</Text>
+                            <Text allowFontScaling={false} style={[styles.gridTitle, isSelected && { color: '#000' }]}>{item.title}</Text>
                         </TouchableOpacity>
                     )
                 })}
@@ -257,8 +257,8 @@ export default function CreateTransportScreen({ navigation }) {
             {/* Conditional Inputs */}
             {load.type === 'long' && (
                 <View style={styles.questionBox}>
-                    <Text style={styles.qText}>Malzeme boyu kaç metre?</Text>
-                    <TextInput
+                    <Text allowFontScaling={false} style={styles.qText}>Malzeme boyu kaç metre?</Text>
+                    <TextInput allowFontScaling={false}
                         style={styles.subInput}
                         placeholder="Örn: 6m - 12m"
                         placeholderTextColor="#555"
@@ -271,27 +271,27 @@ export default function CreateTransportScreen({ navigation }) {
 
             {load.type === 'pallet' && (
                 <View style={styles.questionBox}>
-                    <Text style={styles.qText}>İndirme için Vinç (Hi-Up) gerekli mi?</Text>
+                    <Text allowFontScaling={false} style={styles.qText}>İndirme için Vinç (Hi-Up) gerekli mi?</Text>
                     <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
                         <TouchableOpacity
                             style={[styles.choiceBtn, load.crane && styles.choiceBtnActive]}
                             onPress={() => setLoad({ ...load, crane: true })}
                         >
-                            <Text style={[styles.choiceText, load.crane && { color: '#000' }]}>EVET (Gerekli)</Text>
+                            <Text allowFontScaling={false} style={[styles.choiceText, load.crane && { color: '#000' }]}>EVET (Gerekli)</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.choiceBtn, !load.crane && styles.choiceBtnActive]}
                             onPress={() => setLoad({ ...load, crane: false })}
                         >
-                            <Text style={[styles.choiceText, !load.crane && { color: '#000' }]}>HAYIR</Text>
+                            <Text allowFontScaling={false} style={[styles.choiceText, !load.crane && { color: '#000' }]}>HAYIR</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
             )}
 
             <View style={{ marginTop: 20 }}>
-                <Text style={styles.label}>TAHMİNİ AĞIRLIK (KG/TON)</Text>
-                <TextInput
+                <Text allowFontScaling={false} style={styles.label}>TAHMİNİ AĞIRLIK (KG/TON)</Text>
+                <TextInput allowFontScaling={false}
                     style={styles.input}
                     placeholder="Örn: 500 kg"
                     placeholderTextColor="#555"
@@ -303,7 +303,7 @@ export default function CreateTransportScreen({ navigation }) {
                 {/* Photo Upload Mock */}
                 <TouchableOpacity style={styles.photoBtn} onPress={() => Alert.alert("Kamera", "Fotoğraf çekme modülü açılıyor...")}>
                     <MaterialCommunityIcons name="camera-plus-outline" size={24} color={COLORS.accent} />
-                    <Text style={styles.photoText}>Yük Fotoğrafı Ekle</Text>
+                    <Text allowFontScaling={false} style={styles.photoText}>Yük Fotoğrafı Ekle</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -312,8 +312,8 @@ export default function CreateTransportScreen({ navigation }) {
     // --- STEP 3: VEHICLE ---
     const renderStep3 = () => (
         <View style={styles.stepContainer}>
-            <Text style={styles.stepTitle}>3. ARAÇ SEÇİMİ</Text>
-            <Text style={styles.stepSub}>Yüke uygun aracı seçin.</Text>
+            <Text allowFontScaling={false} style={styles.stepTitle}>3. ARAÇ SEÇİMİ</Text>
+            <Text allowFontScaling={false} style={styles.stepSub}>Yüke uygun aracı seçin.</Text>
 
             <ScrollView style={{ flex: 1 }}>
                 {VEHICLES.map(v => {
@@ -328,11 +328,11 @@ export default function CreateTransportScreen({ navigation }) {
                                 <MaterialCommunityIcons name={v.icon} size={32} color={isSelected ? COLORS.neon : COLORS.accent} />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.vTitle}>{v.title}</Text>
-                                <Text style={styles.vDesc}>{v.desc}</Text>
-                                <Text style={styles.vCap}>Kapasite: {v.cap}</Text>
+                                <Text allowFontScaling={false} style={styles.vTitle}>{v.title}</Text>
+                                <Text allowFontScaling={false} style={styles.vDesc}>{v.desc}</Text>
+                                <Text allowFontScaling={false} style={styles.vCap}>Kapasite: {v.cap}</Text>
                             </View>
-                            <Text style={styles.vPrice}>{v.price}₺</Text>
+                            <Text allowFontScaling={false} style={styles.vPrice}>{v.price}₺</Text>
                         </TouchableOpacity>
                     )
                 })}
@@ -344,7 +344,7 @@ export default function CreateTransportScreen({ navigation }) {
     const renderStep4 = () => {
         const Toggle = ({ label, value, onToggle }) => (
             <TouchableOpacity style={styles.toggleRow} onPress={onToggle}>
-                <Text style={styles.toggleLabel}>{label}</Text>
+                <Text allowFontScaling={false} style={styles.toggleLabel}>{label}</Text>
                 <View style={[styles.switch, value && { backgroundColor: COLORS.success }]}>
                     <View style={[styles.switchKnob, value && { transform: [{ translateX: 20 }] }]} />
                 </View>
@@ -353,8 +353,8 @@ export default function CreateTransportScreen({ navigation }) {
 
         return (
             <View style={styles.stepContainer}>
-                <Text style={styles.stepTitle}>4. EK HİZMETLER & İLETİŞİM</Text>
-                <Text style={styles.stepSub}>Operasyon detayları.</Text>
+                <Text allowFontScaling={false} style={styles.stepTitle}>4. EK HİZMETLER & İLETİŞİM</Text>
+                <Text allowFontScaling={false} style={styles.stepSub}>Operasyon detayları.</Text>
 
                 <View style={styles.sectionBox}>
                     <Toggle
@@ -376,14 +376,14 @@ export default function CreateTransportScreen({ navigation }) {
                     />
                 </View>
 
-                <Text style={[styles.label, { marginTop: 20 }]}>MALZEMEYİ KİM TESLİM ALACAK?</Text>
+                <Text allowFontScaling={false} style={[styles.label, { marginTop: 20 }]}>MALZEMEYİ KİM TESLİM ALACAK?</Text>
                 <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
                     <TouchableOpacity
                         style={[styles.contactBtn, contact === 'me' && styles.contactBtnActive]}
                         onPress={() => setContact('me')}
                     >
                         <MaterialCommunityIcons name="account" size={20} color={contact === 'me' ? '#000' : '#ccc'} />
-                        <Text style={[styles.contactText, contact === 'me' && { color: '#000' }]}>Ben Alacağım</Text>
+                        <Text allowFontScaling={false} style={[styles.contactText, contact === 'me' && { color: '#000' }]}>Ben Alacağım</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -391,12 +391,12 @@ export default function CreateTransportScreen({ navigation }) {
                         onPress={() => setContact('chief')}
                     >
                         <MaterialCommunityIcons name="hard-hat" size={20} color={contact === 'chief' ? '#000' : '#ccc'} />
-                        <Text style={[styles.contactText, contact === 'chief' && { color: '#000' }]}>Şantiye Şefi</Text>
+                        <Text allowFontScaling={false} style={[styles.contactText, contact === 'chief' && { color: '#000' }]}>Şantiye Şefi</Text>
                     </TouchableOpacity>
                 </View>
 
-                <Text style={[styles.label, { marginTop: 20 }]}>İLETİŞİM NUMARASI</Text>
-                <TextInput
+                <Text allowFontScaling={false} style={[styles.label, { marginTop: 20 }]}>İLETİŞİM NUMARASI</Text>
+                <TextInput allowFontScaling={false}
                     style={styles.input}
                     placeholder="0532 999 88 77"
                     placeholderTextColor="#555"
@@ -411,7 +411,7 @@ export default function CreateTransportScreen({ navigation }) {
 
     // --- STEP 5: SUMMARY ---
     const renderStep5 = () => {
-        if (!selectedVehicle) return <Text style={{ color: '#fff' }}>Lütfen araç seçiniz.</Text>;
+        if (!selectedVehicle) return <Text allowFontScaling={false} style={{ color: '#fff' }}>Lütfen araç seçiniz.</Text>;
 
         // API Endpoint: /calculate-price-step-by-step 
         const basePrice = selectedVehicle.price;
@@ -420,21 +420,21 @@ export default function CreateTransportScreen({ navigation }) {
 
         return (
             <View style={styles.stepContainer}>
-                <Text style={styles.stepTitle}>5. ÖZET VE ONAY</Text>
-                <Text style={styles.stepSub}>Siparişi kontrol et ve onayla.</Text>
+                <Text allowFontScaling={false} style={styles.stepTitle}>5. ÖZET VE ONAY</Text>
+                <Text allowFontScaling={false} style={styles.stepSub}>Siparişi kontrol et ve onayla.</Text>
 
                 <View style={styles.summaryCard}>
                     <View style={styles.sumRow}>
                         <Ionicons name="location-outline" size={18} color="#888" />
-                        <Text style={styles.sumText} numberOfLines={1}>{route.from} {'>'} {route.to || 'Seçilmedi'}</Text>
+                        <Text allowFontScaling={false} style={styles.sumText} numberOfLines={1}>{route.from} {'>'} {route.to || 'Seçilmedi'}</Text>
                     </View>
                     <View style={styles.sumRow}>
                         <MaterialCommunityIcons name="truck-outline" size={18} color="#888" />
-                        <Text style={styles.sumText}>{selectedVehicle.title}</Text>
+                        <Text allowFontScaling={false} style={styles.sumText}>{selectedVehicle.title}</Text>
                     </View>
                     <View style={styles.sumRow}>
                         <MaterialCommunityIcons name="cube-outline" size={18} color="#888" />
-                        <Text style={styles.sumText}>
+                        <Text allowFontScaling={false} style={styles.sumText}>
                             {load.type ? LOAD_TYPES.find(x => x.id === load.type).title : 'Seçilmedi'}
                             {load.weight ? ` (${load.weight})` : ''}
                         </Text>
@@ -442,16 +442,16 @@ export default function CreateTransportScreen({ navigation }) {
                 </View>
 
                 <View style={styles.priceBox}>
-                    <View style={styles.priceRow}><Text style={styles.pLabel}>Araç Bedeli</Text><Text style={styles.pValue}>{basePrice} ₺</Text></View>
-                    <View style={styles.priceRow}><Text style={styles.pLabel}>KDV (%20)</Text><Text style={styles.pValue}>{tax} ₺</Text></View>
+                    <View style={styles.priceRow}><Text allowFontScaling={false} style={styles.pLabel}>Araç Bedeli</Text><Text allowFontScaling={false} style={styles.pValue}>{basePrice} ₺</Text></View>
+                    <View style={styles.priceRow}><Text allowFontScaling={false} style={styles.pLabel}>KDV (%20)</Text><Text allowFontScaling={false} style={styles.pValue}>{tax} ₺</Text></View>
                     <View style={styles.div} />
                     <View style={styles.priceRow}>
-                        <Text style={[styles.pLabel, { color: COLORS.neon }]}>TOPLAM</Text>
-                        <Text style={[styles.pValue, { fontSize: 24, color: COLORS.neon }]}>{total} ₺</Text>
+                        <Text allowFontScaling={false} style={[styles.pLabel, { color: COLORS.neon }]}>TOPLAM</Text>
+                        <Text allowFontScaling={false} style={[styles.pValue, { fontSize: 24, color: COLORS.neon }]}>{total} ₺</Text>
                     </View>
                 </View>
 
-                <Text style={[styles.label, { marginTop: 20, marginBottom: 10 }]}>ÖDEME YÖNTEMİ</Text>
+                <Text allowFontScaling={false} style={[styles.label, { marginTop: 20, marginBottom: 10 }]}>ÖDEME YÖNTEMİ</Text>
                 <View style={styles.paymentMethods}>
                     {['Kredi Kartı', 'Cari Hesap', 'Nakit'].map((m) => {
                         const id = m === 'Kredi Kartı' ? 'card' : m === 'Cari Hesap' ? 'account' : 'cash';
@@ -462,7 +462,7 @@ export default function CreateTransportScreen({ navigation }) {
                                 style={[styles.payMethod, isActive && styles.payMethodActive]}
                                 onPress={() => setPayment(id)}
                             >
-                                <Text style={[styles.payMethodText, isActive && { color: '#000' }]}>{m}</Text>
+                                <Text allowFontScaling={false} style={[styles.payMethodText, isActive && { color: '#000' }]}>{m}</Text>
                             </TouchableOpacity>
                         )
                     })}
@@ -482,7 +482,7 @@ export default function CreateTransportScreen({ navigation }) {
                 >
                     <LinearGradient colors={[COLORS.neon, '#AACC00']} style={styles.payGradient}>
                         <MaterialCommunityIcons name="whatsapp" size={24} color="#000" />
-                        <Text style={styles.payText}>WHATSAPP İLE ÇAĞIR</Text>
+                        <Text allowFontScaling={false} style={styles.payText}>WHATSAPP İLE ÇAĞIR</Text>
                     </LinearGradient>
                 </TouchableOpacity>
             </View>
@@ -534,7 +534,7 @@ export default function CreateTransportScreen({ navigation }) {
                 {step < 5 && !isKeyboardVisible && (
                     <View style={styles.footer}>
                         <TouchableOpacity style={styles.nextBtn} onPress={nextStep}>
-                            <Text style={styles.nextText}>DEVAM ET</Text>
+                            <Text allowFontScaling={false} style={styles.nextText}>DEVAM ET</Text>
                             <Ionicons name="arrow-forward" size={20} color="#000" />
                         </TouchableOpacity>
                     </View>
@@ -566,18 +566,18 @@ export default function CreateTransportScreen({ navigation }) {
 
                         <View style={styles.modalContent}>
                             <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>⚡ HIZLI ASİSTAN</Text>
+                                <Text allowFontScaling={false} style={styles.modalTitle}>⚡ HIZLI ASİSTAN</Text>
                                 <TouchableOpacity onPress={() => setFastModalVisible(false)}>
                                     <Ionicons name="close-circle" size={28} color="#666" />
                                 </TouchableOpacity>
                             </View>
 
                             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                                <Text style={styles.modalSub}>
+                                <Text allowFontScaling={false} style={styles.modalSub}>
                                     Yükünüzü, nereden nereye gideceğini ve ne zaman araç lazım olduğunu kısaca yazın.
                                 </Text>
 
-                                <TextInput
+                                <TextInput allowFontScaling={false}
                                     style={styles.textArea}
                                     placeholder="Örn: Kartal şantiyesinden Tuzla depoya 3 palet seramik gidecek. Saat 14:00'te araç lazım..."
                                     placeholderTextColor="#555"
@@ -587,8 +587,8 @@ export default function CreateTransportScreen({ navigation }) {
                                     onChangeText={setFastRequestText}
                                 />
 
-                                <Text style={[styles.modalSub, { marginBottom: 10 }]}>İletişim Numaranız:</Text>
-                                <TextInput
+                                <Text allowFontScaling={false} style={[styles.modalSub, { marginBottom: 10 }]}>İletişim Numaranız:</Text>
+                                <TextInput allowFontScaling={false}
                                     style={[styles.textArea, { height: 50, marginBottom: 30 }]}
                                     placeholder="0532 999 88 77"
                                     placeholderTextColor="#555"
@@ -599,7 +599,7 @@ export default function CreateTransportScreen({ navigation }) {
 
                                 <TouchableOpacity style={styles.modalSubmitBtn} onPress={handleFastSubmit}>
                                     <LinearGradient colors={[COLORS.neon, '#AACC00']} style={styles.submitGradient}>
-                                        <Text style={styles.submitText}>TALEBİ GÖNDER</Text>
+                                        <Text allowFontScaling={false} style={styles.submitText}>TALEBİ GÖNDER</Text>
                                         <MaterialCommunityIcons name="send" size={20} color="#000" />
                                     </LinearGradient>
                                 </TouchableOpacity>
@@ -613,7 +613,7 @@ export default function CreateTransportScreen({ navigation }) {
                     <InputAccessoryView nativeID="toolbar_create_transport">
                         <View style={styles.accessoryContainer}>
                             <TouchableOpacity onPress={() => Keyboard.dismiss()} style={styles.accessoryButton}>
-                                <Text style={styles.accessoryText}>Bitti</Text>
+                                <Text allowFontScaling={false} style={styles.accessoryText}>Bitti</Text>
                             </TouchableOpacity>
                         </View>
                     </InputAccessoryView>

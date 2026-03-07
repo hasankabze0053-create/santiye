@@ -22,8 +22,8 @@ export default function AiArchitectScreen() {
         return (
             <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
                 <ActivityIndicator size="large" color={COLORS.accent} />
-                <Text style={{ marginTop: 20, color: COLORS.white, fontSize: 18 }}>Oda Analiz Ediliyor...</Text>
-                <Text style={{ marginTop: 10, color: 'rgba(255,255,255,0.7)' }}>Duvar m² ve zemin yapısı taranıyor</Text>
+                <Text allowFontScaling={false} style={{ marginTop: 20, color: COLORS.white, fontSize: 18 }}>Oda Analiz Ediliyor...</Text>
+                <Text allowFontScaling={false} style={{ marginTop: 10, color: 'rgba(255,255,255,0.7)' }}>Duvar m² ve zemin yapısı taranıyor</Text>
             </SafeAreaView>
         );
     }
@@ -35,31 +35,31 @@ export default function AiArchitectScreen() {
                     <View style={styles.resultCard}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15 }}>
                             <MaterialCommunityIcons name="check-decagram" size={30} color={COLORS.success} />
-                            <Text style={styles.resultTitle}>Analiz Tamamlandı</Text>
+                            <Text allowFontScaling={false} style={styles.resultTitle}>Analiz Tamamlandı</Text>
                         </View>
 
                         <View style={styles.statRow}>
-                            <Text style={styles.statLabel}>Tespit Edilen Alan:</Text>
-                            <Text style={styles.statValue}>24 m²</Text>
+                            <Text allowFontScaling={false} style={styles.statLabel}>Tespit Edilen Alan:</Text>
+                            <Text allowFontScaling={false} style={styles.statValue}>24 m²</Text>
                         </View>
                         <View style={styles.statRow}>
-                            <Text style={styles.statLabel}>Duvar Tipi:</Text>
-                            <Text style={styles.statValue}>Alçıpan + Saten Boya</Text>
+                            <Text allowFontScaling={false} style={styles.statLabel}>Duvar Tipi:</Text>
+                            <Text allowFontScaling={false} style={styles.statValue}>Alçıpan + Saten Boya</Text>
                         </View>
                         <View style={styles.divider} />
 
-                        <Text style={styles.costTitle}>Tahmini Tadilat Bütçesi</Text>
-                        <Text style={styles.costValue}>₺12.500 - ₺15.000</Text>
-                        <Text style={styles.disclaimer}>* Malzeme + İşçilik dahildir.</Text>
+                        <Text allowFontScaling={false} style={styles.costTitle}>Tahmini Tadilat Bütçesi</Text>
+                        <Text allowFontScaling={false} style={styles.costValue}>₺12.500 - ₺15.000</Text>
+                        <Text allowFontScaling={false} style={styles.disclaimer}>* Malzeme + İşçilik dahildir.</Text>
 
                         <TouchableOpacity style={styles.actionButton}>
-                            <Text style={styles.actionBtnText}>Ustalardan Teklif Al</Text>
+                            <Text allowFontScaling={false} style={styles.actionBtnText}>Ustalardan Teklif Al</Text>
                         </TouchableOpacity>
                     </View>
 
                     <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
                         <Ionicons name="refresh" size={20} color={COLORS.white} />
-                        <Text style={{ color: COLORS.white, marginLeft: 5 }}>Yeni Analiz</Text>
+                        <Text allowFontScaling={false} style={{ color: COLORS.white, marginLeft: 5 }}>Yeni Analiz</Text>
                     </TouchableOpacity>
                 </ScrollView>
             </SafeAreaView>
@@ -72,17 +72,17 @@ export default function AiArchitectScreen() {
                 <View style={styles.iconContainer}>
                     <MaterialCommunityIcons name="camera-iris" size={60} color={COLORS.primary} />
                 </View>
-                <Text style={styles.title}>Cebimdeki Mimar</Text>
-                <Text style={styles.text}>Odanızın fotoğrafını çekin veya yükleyin. Yapay zeka anında ölçü çıkarsın ve maliyet hesaplasın.</Text>
+                <Text allowFontScaling={false} style={styles.title}>Cebimdeki Mimar</Text>
+                <Text allowFontScaling={false} style={styles.text}>Odanızın fotoğrafını çekin veya yükleyin. Yapay zeka anında ölçü çıkarsın ve maliyet hesaplasın.</Text>
 
                 <TouchableOpacity style={styles.button} onPress={handleAnalyze}>
                     <Ionicons name="camera" size={24} color={COLORS.primary} />
-                    <Text style={styles.btnText}>Fotoğraf Çek</Text>
+                    <Text allowFontScaling={false} style={styles.btnText}>Fotoğraf Çek</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={[styles.button, { backgroundColor: 'transparent', borderWidth: 1, borderColor: COLORS.white, marginTop: 15 }]}>
                     <Ionicons name="images" size={24} color={COLORS.white} />
-                    <Text style={[styles.btnText, { color: COLORS.white }]}>Galeriden Yükle</Text>
+                    <Text allowFontScaling={false} style={[styles.btnText, { color: COLORS.white }]}>Galeriden Yükle</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>

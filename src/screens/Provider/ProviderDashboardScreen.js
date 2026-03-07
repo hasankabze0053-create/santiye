@@ -18,8 +18,8 @@ export default function ProviderDashboardScreen() {
                 <LinearGradient colors={['#0f172a', '#1e293b']} style={StyleSheet.absoluteFillObject} />
 
                 <Ionicons name="time-outline" size={64} color="#F59E0B" style={{ marginBottom: 20 }} />
-                <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>Hesabınız Onay Aşamasında</Text>
-                <Text style={{ color: '#94a3b8', textAlign: 'center', marginBottom: 30 }}>
+                <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>Hesabınız Onay Aşamasında</Text>
+                <Text allowFontScaling={false} style={{ color: '#94a3b8', textAlign: 'center', marginBottom: 30 }}>
                     Firma paneline erişebilmek için hesap başvurunuzun onaylanması gerekmektedir.
                 </Text>
 
@@ -27,7 +27,7 @@ export default function ProviderDashboardScreen() {
                     style={{ backgroundColor: '#334155', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 10 }}
                     onPress={() => navigation.goBack()}
                 >
-                    <Text style={{ color: '#fff', fontWeight: 'bold' }}>Geri Dön</Text>
+                    <Text allowFontScaling={false} style={{ color: '#fff', fontWeight: 'bold' }}>Geri Dön</Text>
                 </TouchableOpacity>
             </View>
         );
@@ -42,15 +42,15 @@ export default function ProviderDashboardScreen() {
                 {/* Header */}
                 <View style={styles.header}>
                     <View>
-                        <Text style={styles.headerTitle}>Hizmet Paneli</Text>
-                        <Text style={styles.headerSubtitle}>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>Hizmet Paneli</Text>
+                        <Text allowFontScaling={false} style={styles.headerSubtitle}>
                             Hoşgeldin, {profile ? profile.full_name.split(' ')[0] : 'Misafir'}
                         </Text>
                     </View>
 
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                         <View style={styles.availabilityBadge}>
-                            <Text style={[styles.availabilityText, { color: isAvailable ? '#4ADE80' : '#94a3b8' }]}>
+                            <Text allowFontScaling={false} style={[styles.availabilityText, { color: isAvailable ? '#4ADE80' : '#94a3b8' }]}>
                                 {isAvailable ? 'Müsait' : 'Meşgul'}
                             </Text>
                             <Switch
@@ -83,22 +83,22 @@ export default function ProviderDashboardScreen() {
                             <View style={[styles.iconBox, { backgroundColor: 'rgba(74, 222, 128, 0.2)' }]}>
                                 <Ionicons name="wallet-outline" size={20} color="#4ADE80" />
                             </View>
-                            <Text style={styles.statValue}>₺12.500</Text>
-                            <Text style={styles.statLabel}>Bu Ayki Kazanç</Text>
+                            <Text allowFontScaling={false} style={styles.statValue}>₺12.500</Text>
+                            <Text allowFontScaling={false} style={styles.statLabel}>Bu Ayki Kazanç</Text>
                         </View>
                         <View style={styles.statCard}>
                             <View style={[styles.iconBox, { backgroundColor: 'rgba(56, 189, 248, 0.2)' }]}>
                                 <Ionicons name="calendar-outline" size={20} color="#38bdf8" />
                             </View>
-                            <Text style={styles.statValue}>5</Text>
-                            <Text style={styles.statLabel}>Bekleyen Randevu</Text>
+                            <Text allowFontScaling={false} style={styles.statValue}>5</Text>
+                            <Text allowFontScaling={false} style={styles.statLabel}>Bekleyen Randevu</Text>
                         </View>
                     </View>
 
                     {/* Upcoming Appointments */}
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Yaklaşan Randevular</Text>
-                        <TouchableOpacity><Text style={styles.seeAll}>Tümü</Text></TouchableOpacity>
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>Yaklaşan Randevular</Text>
+                        <TouchableOpacity><Text allowFontScaling={false} style={styles.seeAll}>Tümü</Text></TouchableOpacity>
                     </View>
 
                     <View style={styles.appointmentList}>
@@ -120,7 +120,7 @@ export default function ProviderDashboardScreen() {
 
                     {/* Quick Actions */}
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Hızlı İşlemler</Text>
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>Hızlı İşlemler</Text>
                     </View>
 
                     <View style={styles.actionsGrid}>
@@ -138,15 +138,15 @@ export default function ProviderDashboardScreen() {
 const AppointmentCard = ({ name, type, date, status, price }) => (
     <View style={styles.aptCard}>
         <View style={styles.aptInfo}>
-            <Text style={styles.aptName}>{name}</Text>
-            <Text style={styles.aptType}>{type} • {price}</Text>
+            <Text allowFontScaling={false} style={styles.aptName}>{name}</Text>
+            <Text allowFontScaling={false} style={styles.aptType}>{type} • {price}</Text>
             <View style={styles.dateRow}>
                 <Ionicons name="time-outline" size={14} color="#94a3b8" />
-                <Text style={styles.aptDate}>{date}</Text>
+                <Text allowFontScaling={false} style={styles.aptDate}>{date}</Text>
             </View>
         </View>
         <View style={[styles.statusBadge, status === 'Bekliyor' && styles.statusPending]}>
-            <Text style={[styles.statusText, status === 'Bekliyor' && styles.statusTextPending]}>{status}</Text>
+            <Text allowFontScaling={false} style={[styles.statusText, status === 'Bekliyor' && styles.statusTextPending]}>{status}</Text>
         </View>
     </View>
 );
@@ -155,9 +155,9 @@ const QuickAction = ({ icon, label, onPress, badge }) => (
     <TouchableOpacity style={styles.actionCard} onPress={onPress}>
         <View style={styles.actionIcon}>
             <Ionicons name={icon} size={24} color="#f8fafc" />
-            {badge > 0 && <View style={styles.badge}><Text style={styles.badgeText}>{badge}</Text></View>}
+            {badge > 0 && <View style={styles.badge}><Text allowFontScaling={false} style={styles.badgeText}>{badge}</Text></View>}
         </View>
-        <Text style={styles.actionLabel}>{label}</Text>
+        <Text allowFontScaling={false} style={styles.actionLabel}>{label}</Text>
     </TouchableOpacity>
 );
 

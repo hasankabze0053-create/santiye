@@ -159,10 +159,10 @@ export default function TransformationExpertChatScreen() {
                     styles.messageContent,
                     isUser ? styles.userContent : styles.systemContent
                 ]}>
-                    <Text style={[styles.messageText, isUser ? styles.userText : styles.systemText]}>
+                    <Text allowFontScaling={false} style={[styles.messageText, isUser ? styles.userText : styles.systemText]}>
                         {item.text}
                     </Text>
-                    <Text style={styles.timestamp}>
+                    <Text allowFontScaling={false} style={styles.timestamp}>
                         {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Text>
                 </View>
@@ -183,8 +183,8 @@ export default function TransformationExpertChatScreen() {
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <View>
-                        <Text style={styles.headerTitle}>UZMANA DANIŞIN</Text>
-                        <Text style={styles.headerSubtitle}>Kentsel Dönüşüm Destek</Text>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>UZMANA DANIŞIN</Text>
+                        <Text allowFontScaling={false} style={styles.headerSubtitle}>Kentsel Dönüşüm Destek</Text>
                     </View>
                     <View style={{ width: 44 }} />
                 </View>
@@ -201,7 +201,7 @@ export default function TransformationExpertChatScreen() {
                         !loading && (
                             <View style={{ alignItems: 'center', marginTop: 50, opacity: 0.5 }}>
                                 <MaterialCommunityIcons name="message-text-outline" size={48} color="#FFD700" />
-                                <Text style={{ color: '#FFF', marginTop: 10 }}>Merak ettiklerinizi sorun.</Text>
+                                <Text allowFontScaling={false} style={{ color: '#FFF', marginTop: 10 }}>Merak ettiklerinizi sorun.</Text>
                             </View>
                         )
                     }
@@ -213,7 +213,7 @@ export default function TransformationExpertChatScreen() {
                     keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
                 >
                     <View style={styles.inputContainer}>
-                        <TextInput
+                        <TextInput allowFontScaling={false}
                             style={styles.input}
                             placeholder="Sorunuzu yazın..."
                             placeholderTextColor="#666"

@@ -37,7 +37,7 @@ export default function ProviderOnboardingScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color="#fff" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Uzman Doğrulama</Text>
+                    <Text allowFontScaling={false} style={styles.headerTitle}>Uzman Doğrulama</Text>
                 </View>
 
                 <ScrollView contentContainerStyle={styles.content}>
@@ -47,8 +47,8 @@ export default function ProviderOnboardingScreen() {
                         </View>
                     </View>
 
-                    <Text style={styles.title}>Güvenlik ve Doğrulama</Text>
-                    <Text style={styles.subtitle}>
+                    <Text allowFontScaling={false} style={styles.title}>Güvenlik ve Doğrulama</Text>
+                    <Text allowFontScaling={false} style={styles.subtitle}>
                         Uzman rozetini almak ve hizmet vermeye başlamak için lütfen aşağıdaki belgeleri doğrulayın. Bu bilgiler sadece admin onayı için kullanılır.
                     </Text>
 
@@ -79,7 +79,7 @@ export default function ProviderOnboardingScreen() {
 
                 <View style={styles.footer}>
                     <TouchableOpacity style={styles.btn} onPress={handleContinue}>
-                        <Text style={styles.btnText}>Devam Et</Text>
+                        <Text allowFontScaling={false} style={styles.btnText}>Devam Et</Text>
                         <Ionicons name="arrow-forward" size={20} color="#000" />
                     </TouchableOpacity>
                 </View>
@@ -94,11 +94,11 @@ const UploadItem = ({ title, desc, icon, isUploaded, onPress }) => (
             <Ionicons name={isUploaded ? "checkmark" : icon} size={24} color={isUploaded ? "#000" : "#94a3b8"} />
         </View>
         <View style={styles.cardContent}>
-            <Text style={[styles.cardTitle, isUploaded && styles.textUploaded]}>{title}</Text>
-            <Text style={styles.cardDesc}>{desc}</Text>
+            <Text allowFontScaling={false} style={[styles.cardTitle, isUploaded && styles.textUploaded]}>{title}</Text>
+            <Text allowFontScaling={false} style={styles.cardDesc}>{desc}</Text>
         </View>
         {isUploaded ? (
-            <Text style={styles.statusText}>Yüklendi</Text>
+            <Text allowFontScaling={false} style={styles.statusText}>Yüklendi</Text>
         ) : (
             <Ionicons name="cloud-upload-outline" size={24} color="#94a3b8" />
         )}

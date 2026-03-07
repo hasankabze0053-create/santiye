@@ -71,12 +71,12 @@ export default function ContractorRequestsScreen() {
                         size={18} 
                         color="#D4AF37" 
                     />
-                    <Text style={styles.districtText}>
+                    <Text allowFontScaling={false} style={styles.districtText}>
                         {item.district}, {item.neighborhood}
                     </Text>
                 </View>
                 <View style={styles.dateContainer}>
-                    <Text style={styles.dateText}>{formatDate(item.created_at)}</Text>
+                    <Text allowFontScaling={false} style={styles.dateText}>{formatDate(item.created_at)}</Text>
                 </View>
             </View>
 
@@ -84,14 +84,14 @@ export default function ContractorRequestsScreen() {
 
             <View style={styles.detailsRow}>
                 <View style={styles.detailItem}>
-                    <Text style={styles.detailLabel}>TÜR</Text>
-                    <Text style={styles.detailValue}>
+                    <Text allowFontScaling={false} style={styles.detailLabel}>TÜR</Text>
+                    <Text allowFontScaling={false} style={styles.detailValue}>
                         {item.offer_type === 'anahtar_teslim' ? 'Komple Yapım' : 'Kat Karşılığı'}
                     </Text>
                 </View>
                 <View style={styles.detailItem}>
-                    <Text style={styles.detailLabel}>ADA / PARSEL</Text>
-                    <Text style={styles.detailValue}>
+                    <Text allowFontScaling={false} style={styles.detailLabel}>ADA / PARSEL</Text>
+                    <Text allowFontScaling={false} style={styles.detailValue}>
                         {item.ada} / {item.parsel}
                     </Text>
                 </View>
@@ -100,23 +100,23 @@ export default function ContractorRequestsScreen() {
             {item.is_campaign_active && (
                 <View style={styles.campaignBadge}>
                     <MaterialCommunityIcons name="star-circle" size={16} color="#000" />
-                    <Text style={styles.campaignText}>Yarısı Bizden Kampanyalı</Text>
+                    <Text allowFontScaling={false} style={styles.campaignText}>Yarısı Bizden Kampanyalı</Text>
                 </View>
             )}
 
             {/* If My Bids tab, show my offer price if available */}
             {activeTab === 'Tekliflerim' && item.my_offer && (
                 <View style={{ marginTop: 10, padding: 10, backgroundColor: 'rgba(212, 175, 55, 0.1)', borderRadius: 8, borderWidth: 1, borderColor: '#D4AF37' }}>
-                    <Text style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 12 }}>TEKLİFİNİZ</Text>
-                    <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>
+                    <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 12 }}>TEKLİFİNİZ</Text>
+                    <Text allowFontScaling={false} style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>
                         {item.my_offer.price_estimate ? item.my_offer.price_estimate.toLocaleString('tr-TR') + ' ₺' : 'Kat Karşılığı'}
                     </Text>
-                    <Text style={{ color: '#BBB', fontSize: 10 }}>{item.my_offer.status === 'pending' ? 'Değerlendiriliyor' : (item.my_offer.status === 'approved' ? 'Onaylandı' : 'Reddedildi')}</Text>
+                    <Text allowFontScaling={false} style={{ color: '#BBB', fontSize: 10 }}>{item.my_offer.status === 'pending' ? 'Değerlendiriliyor' : (item.my_offer.status === 'approved' ? 'Onaylandı' : 'Reddedildi')}</Text>
                 </View>
             )}
 
             <View style={styles.footer}>
-                <Text style={styles.viewDetailsText}>{activeTab === 'İhaleler' ? 'DETAYLARI GÖR & TEKLİF VER' : 'TEKLİFİNİ İNCELE'}</Text>
+                <Text allowFontScaling={false} style={styles.viewDetailsText}>{activeTab === 'İhaleler' ? 'DETAYLARI GÖR & TEKLİF VER' : 'TEKLİFİNİ İNCELE'}</Text>
                 <MaterialCommunityIcons name="arrow-right" size={20} color="#D4AF37" />
             </View>
         </GlassCard>
@@ -132,7 +132,7 @@ export default function ContractorRequestsScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>MÜTEAHHİT PANELİ</Text>
+                    <Text allowFontScaling={false} style={styles.headerTitle}>MÜTEAHHİT PANELİ</Text>
                     <View style={{ width: 44 }} />
                 </View>
 
@@ -142,13 +142,13 @@ export default function ContractorRequestsScreen() {
                         style={[styles.tabButton, activeTab === 'İhaleler' && styles.activeTabButton]}
                         onPress={() => setActiveTab('İhaleler')}
                     >
-                        <Text style={[styles.tabText, activeTab === 'İhaleler' && styles.activeTabText]}>İHALELER</Text>
+                        <Text allowFontScaling={false} style={[styles.tabText, activeTab === 'İhaleler' && styles.activeTabText]}>İHALELER</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.tabButton, activeTab === 'Tekliflerim' && styles.activeTabButton]}
                         onPress={() => setActiveTab('Tekliflerim')}
                     >
-                        <Text style={[styles.tabText, activeTab === 'Tekliflerim' && styles.activeTabText]}>TEKLİFLERİM</Text>
+                        <Text allowFontScaling={false} style={[styles.tabText, activeTab === 'Tekliflerim' && styles.activeTabText]}>TEKLİFLERİM</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -169,7 +169,7 @@ export default function ContractorRequestsScreen() {
                         ListEmptyComponent={
                             <View style={styles.emptyState}>
                                 <MaterialCommunityIcons name={activeTab === 'İhaleler' ? "clipboard-text-off-outline" : "file-document-edit-outline"} size={64} color="#666" />
-                                <Text style={styles.emptyText}>
+                                <Text allowFontScaling={false} style={styles.emptyText}>
                                     {activeTab === 'İhaleler' ? 'Bekleyen açık ihale bulunmuyor.' : 'Henüz bir teklif vermediniz.'}
                                 </Text>
                             </View>

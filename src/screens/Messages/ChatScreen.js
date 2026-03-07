@@ -191,8 +191,8 @@ export default function ChatScreen() {
                 styles.messageBubble,
                 isMe ? styles.myMessage : styles.theirMessage
             ]}>
-                <Text style={[styles.messageText, { color: isMe ? '#000' : '#FFF' }]}>{item.content}</Text>
-                <Text style={[styles.timeText, { color: isMe ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)' }]}>
+                <Text allowFontScaling={false} style={[styles.messageText, { color: isMe ? '#000' : '#FFF' }]}>{item.content}</Text>
+                <Text allowFontScaling={false} style={[styles.timeText, { color: isMe ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)' }]}>
                     {new Date(item.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                 </Text>
             </View>
@@ -217,14 +217,14 @@ export default function ChatScreen() {
                                 <Image source={{ uri: receiver_avatar }} style={styles.avatar} />
                             ) : (
                                 <View style={[styles.avatar, { backgroundColor: '#222', alignItems: 'center', justifyContent: 'center' }]}>
-                                    <Text style={{ color: '#D4AF37', fontWeight: 'bold' }}>
+                                    <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>
                                         {receiver_name ? receiver_name.charAt(0).toUpperCase() : '?'}
                                     </Text>
                                 </View>
                             )}
                             <View style={{ marginLeft: 12, flex: 1 }}>
-                                <Text style={styles.headerTitle} numberOfLines={1}>{receiver_name || 'Sohbet'}</Text>
-                                <Text style={styles.headerSubtitle} numberOfLines={1}>
+                                <Text allowFontScaling={false} style={styles.headerTitle} numberOfLines={1}>{receiver_name || 'Sohbet'}</Text>
+                                <Text allowFontScaling={false} style={styles.headerSubtitle} numberOfLines={1}>
                                     {request_title || 'GENEL PROJE'}
                                 </Text>
                             </View>
@@ -241,7 +241,7 @@ export default function ChatScreen() {
                                         });
                                     }}
                                 >
-                                    <Text style={styles.quoteBtnText}>TEKLİFİ GÖR</Text>
+                                    <Text allowFontScaling={false} style={styles.quoteBtnText}>TEKLİFİ GÖR</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -267,7 +267,7 @@ export default function ChatScreen() {
                             ListEmptyComponent={
                                 <View style={{ alignItems: 'center', marginTop: 50, opacity: 0.5 }}>
                                     <MaterialCommunityIcons name="message-text-outline" size={48} color="#666" />
-                                    <Text style={{ color: '#666', marginTop: 10 }}>Henüz mesaj yok.</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#666', marginTop: 10 }}>Henüz mesaj yok.</Text>
                                 </View>
                             }
                         />
@@ -279,7 +279,7 @@ export default function ChatScreen() {
                             <Ionicons name="add" size={24} color="#D4AF37" />
                         </TouchableOpacity>
 
-                        <TextInput
+                        <TextInput allowFontScaling={false}
                             style={styles.input}
                             placeholder="Mesajınızı yazın..."
                             placeholderTextColor="#666"

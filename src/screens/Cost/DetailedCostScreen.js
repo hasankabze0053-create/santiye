@@ -58,19 +58,19 @@ const SectionHeader = ({ title, icon }) => (
         <View style={styles.sectionIconBox}>
             <MaterialCommunityIcons name={icon} size={20} color="#121212" />
         </View>
-        <Text style={styles.sectionTitle}>{title}</Text>
+        <Text allowFontScaling={false} style={styles.sectionTitle}>{title}</Text>
         <View style={styles.sectionLine} />
     </View>
 );
 
 const CounterRow = ({ label, value, onDecrement, onIncrement, suffix = '' }) => (
     <View style={styles.counterRow}>
-        <Text style={styles.counterLabel}>{label}</Text>
+        <Text allowFontScaling={false} style={styles.counterLabel}>{label}</Text>
         <View style={styles.counterControls}>
             <TouchableOpacity style={styles.counterBtn} onPress={onDecrement}>
                 <Ionicons name="remove" size={20} color="#D4AF37" />
             </TouchableOpacity>
-            <Text style={styles.counterValue}>{value} {suffix}</Text>
+            <Text allowFontScaling={false} style={styles.counterValue}>{value} {suffix}</Text>
             <TouchableOpacity style={styles.counterBtn} onPress={onIncrement}>
                 <Ionicons name="add" size={20} color="#D4AF37" />
             </TouchableOpacity>
@@ -97,7 +97,7 @@ const SelectionGrid = ({ options, selectedId, onSelect, columns = 3 }) => (
                         size={24}
                         color={isSelected ? '#121212' : (opt.color || '#D4AF37')}
                     />
-                    <Text style={[styles.gridItemText, isSelected && styles.gridItemTextSelected]}>
+                    <Text allowFontScaling={false} style={[styles.gridItemText, isSelected && styles.gridItemTextSelected]}>
                         {opt.title}
                     </Text>
                 </TouchableOpacity>
@@ -110,7 +110,7 @@ const ToggleRow = ({ label, icon, value, onToggle }) => (
     <TouchableOpacity style={styles.toggleRow} onPress={() => onToggle(!value)} activeOpacity={0.8}>
         <View style={styles.toggleLeft}>
             <MaterialCommunityIcons name={icon} size={24} color="#888" style={{ marginRight: 12 }} />
-            <Text style={[styles.toggleLabel, value && styles.toggleLabelActive]}>{label}</Text>
+            <Text allowFontScaling={false} style={[styles.toggleLabel, value && styles.toggleLabelActive]}>{label}</Text>
         </View>
         <View style={[styles.customToggle, value && styles.customToggleActive]}>
             <View style={[styles.toggleKnob, value && styles.toggleKnobActive]} />
@@ -160,12 +160,12 @@ export default function DetailedCostScreen({ navigation }) {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color="#D4AF37" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>DETAYLI ANALİZ</Text>
+                    <Text allowFontScaling={false} style={styles.headerTitle}>DETAYLI ANALİZ</Text>
                     <View style={{ width: 24 }} />
                 </View>
 
                 <ScrollView contentContainerStyle={styles.content}>
-                    <Text style={styles.introText}>
+                    <Text allowFontScaling={false} style={styles.introText}>
                         Projenizin gerçek maliyetini hesaplamak için detayları aşağıdan belirleyin.
                     </Text>
 
@@ -180,33 +180,33 @@ export default function DetailedCostScreen({ navigation }) {
                             suffix="Kat"
                         />
                         <View style={styles.divider} />
-                        <Text style={styles.subLabel}>Arazi Eğim Durumu</Text>
+                        <Text allowFontScaling={false} style={styles.subLabel}>Arazi Eğim Durumu</Text>
                         <SelectionGrid options={TERRAIN_OPTIONS} selectedId={terrain} onSelect={setTerrain} />
 
                         <View style={styles.divider} />
-                        <Text style={styles.subLabel}>Taşıyıcı Sistem</Text>
+                        <Text allowFontScaling={false} style={styles.subLabel}>Taşıyıcı Sistem</Text>
                         <SelectionGrid options={STRUCTURE_OPTIONS} selectedId={structure} onSelect={setStructure} />
                     </LuxuryCard>
 
                     {/* 2. DIŞ CEPHE & ÇATI */}
                     <SectionHeader title="DIŞ KABUK" icon="home-roof" />
                     <LuxuryCard style={styles.card}>
-                        <Text style={styles.subLabel}>Çatı Tipi</Text>
+                        <Text allowFontScaling={false} style={styles.subLabel}>Çatı Tipi</Text>
                         <SelectionGrid options={ROOF_OPTIONS} selectedId={roof} onSelect={setRoof} />
 
                         <View style={styles.divider} />
-                        <Text style={styles.subLabel}>Cephe Kaplaması</Text>
+                        <Text allowFontScaling={false} style={styles.subLabel}>Cephe Kaplaması</Text>
                         <SelectionGrid options={FACADE_OPTIONS} selectedId={facade} onSelect={setFacade} />
                     </LuxuryCard>
 
                     {/* 3. TEKNİK & LOJİSTİK */}
                     <SectionHeader title="TEKNİK & LOJİSTİK" icon="cogs" />
                     <LuxuryCard style={styles.card}>
-                        <Text style={styles.subLabel}>Isıtma Sistemi</Text>
+                        <Text allowFontScaling={false} style={styles.subLabel}>Isıtma Sistemi</Text>
                         <SelectionGrid options={HEATING_OPTIONS} selectedId={heating} onSelect={setHeating} />
 
                         <View style={styles.divider} />
-                        <Text style={styles.subLabel}>Sokak/Ulaşım Durumu</Text>
+                        <Text allowFontScaling={false} style={styles.subLabel}>Sokak/Ulaşım Durumu</Text>
                         <SelectionGrid options={LOGISTICS_OPTIONS} selectedId={logistics} onSelect={setLogistics} />
                     </LuxuryCard>
 
@@ -231,7 +231,7 @@ export default function DetailedCostScreen({ navigation }) {
                     {/* 6. PEYZAJ & ENERJİ */}
                     <SectionHeader title="BAHÇE & ENERJİ" icon="tree" />
                     <LuxuryCard style={styles.card}>
-                        <Text style={styles.subLabel}>Peyzaj Düzenleme</Text>
+                        <Text allowFontScaling={false} style={styles.subLabel}>Peyzaj Düzenleme</Text>
                         <SelectionGrid options={LANDSCAPE_OPTIONS} selectedId={landscape} onSelect={setLandscape} />
 
                         <View style={styles.divider} />
@@ -258,7 +258,7 @@ export default function DetailedCostScreen({ navigation }) {
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
                         >
-                            <Text style={styles.btnText}>MALİYETİ HESAPLA</Text>
+                            <Text allowFontScaling={false} style={styles.btnText}>MALİYETİ HESAPLA</Text>
                             <Ionicons name="calculator" size={24} color="#000" />
                         </LinearGradient>
                     </TouchableOpacity>

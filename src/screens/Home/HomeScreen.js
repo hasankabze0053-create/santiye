@@ -247,10 +247,10 @@ export default function HomeScreen({ navigation }) {
             </View>
             <View>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={styles.tickerLabel}>{item.label} </Text>
+                    <Text allowFontScaling={false} style={styles.tickerLabel}>{item.label} </Text>
                     <Ionicons name="chevron-down" size={8} color="#666" />
                 </View>
-                <Text style={[styles.tickerValue, { color: '#fff' }]}>
+                <Text allowFontScaling={false} style={[styles.tickerValue, { color: '#fff' }]}>
                     {item.value}
                 </Text>
             </View>
@@ -290,10 +290,10 @@ export default function HomeScreen({ navigation }) {
                                     </View>
 
                                     {/* Text Logo with Emoji */}
-                                    <Text style={{ fontSize: 30, fontWeight: '900', letterSpacing: -1, lineHeight: 34 }}>
-                                        <Text style={{ color: '#ffffff' }}>Cepte</Text>
-                                        <Text style={{ color: '#D4AF37' }}>Şef</Text>
-                                        <Text style={{ fontSize: 24 }}> 👷🏼</Text>
+                                    <Text allowFontScaling={false} style={{ fontSize: 30, fontWeight: '900', letterSpacing: -1, lineHeight: 34 }}>
+                                        <Text allowFontScaling={false} style={{ color: '#ffffff' }}>Cepte</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#D4AF37' }}>Şef</Text>
+                                        <Text allowFontScaling={false} style={{ fontSize: 24 }}> 👷🏼</Text>
                                     </Text>
 
                                     {/* Bricks Construction */}
@@ -329,7 +329,7 @@ export default function HomeScreen({ navigation }) {
                                             colors={['#1a1a1a', '#333']}
                                             style={styles.modeToggleGradient}
                                         >
-                                            <Text style={styles.modeToggleText}>Hizmet Paneli</Text>
+                                            <Text allowFontScaling={false} style={styles.modeToggleText}>Hizmet Paneli</Text>
                                             <View style={styles.modeToggleIcon}>
                                                 <MaterialCommunityIcons name="briefcase-outline" size={14} color="#D4AF37" />
                                             </View>
@@ -339,7 +339,7 @@ export default function HomeScreen({ navigation }) {
 
                                 <TouchableOpacity style={styles.profileBtn} onPress={() => navigation.navigate('ProfileMain')}>
                                     <View style={styles.initialsContainer}>
-                                        <Text style={styles.initialsText}>
+                                        <Text allowFontScaling={false} style={styles.initialsText}>
                                             {profile?.full_name ? profile.full_name.substring(0, 2).toUpperCase() : 'CŞ'}
                                         </Text>
                                     </View>
@@ -396,10 +396,10 @@ export default function HomeScreen({ navigation }) {
                                                 </View>
                                                 <View>
                                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                        <Text style={styles.tickerLabel}>İSTANBUL</Text>
+                                                        <Text allowFontScaling={false} style={styles.tickerLabel}>İSTANBUL</Text>
                                                         <Ionicons name="caret-up" size={10} color="#4ADE80" style={{ marginLeft: 4 }} />
                                                     </View>
-                                                    <Text style={styles.tickerValue}>18°C</Text>
+                                                    <Text allowFontScaling={false} style={styles.tickerValue}>18°C</Text>
                                                 </View>
                                             </View>
                                             <View style={styles.tickerSeparator} />
@@ -420,10 +420,10 @@ export default function HomeScreen({ navigation }) {
                                             </View>
                                             <View>
                                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                    <Text style={styles.tickerLabel}>İSTANBUL</Text>
+                                                    <Text allowFontScaling={false} style={styles.tickerLabel}>İSTANBUL</Text>
                                                     <Ionicons name="caret-up" size={10} color="#4ADE80" style={{ marginLeft: 4 }} />
                                                 </View>
-                                                <Text style={styles.tickerValue}>18°C</Text>
+                                                <Text allowFontScaling={false} style={styles.tickerValue}>18°C</Text>
                                             </View>
                                         </View>
                                         <View style={styles.tickerSeparator} />
@@ -480,8 +480,8 @@ export default function HomeScreen({ navigation }) {
                                                 <View style={styles.cardTextContent}>
                                                     <View style={styles.verticalGoldLine} />
                                                     <View>
-                                                        <Text style={[styles.cardTitle, cat.id === 8 && { fontSize: 10 }]}>{cat.title}</Text>
-                                                        <Text style={[styles.cardSubtitle, cat.title === 'MARKET' && marketCount > 0 && { color: '#D4AF37', fontWeight: 'bold' }]}>{subtitle}</Text>
+                                                        <Text allowFontScaling={false} style={[styles.cardTitle, cat.id === 8 && { fontSize: 10 }]}>{cat.title}</Text>
+                                                        <Text allowFontScaling={false} style={[styles.cardSubtitle, cat.title === 'MARKET' && marketCount > 0 && { color: '#D4AF37', fontWeight: 'bold' }]}>{subtitle}</Text>
                                                     </View>
                                                 </View>
                                                 <Ionicons name="chevron-forward" size={18} color="#D4AF37" />
@@ -525,7 +525,7 @@ export default function HomeScreen({ navigation }) {
                             </View>
 
                             <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>
+                                <Text allowFontScaling={false} style={styles.modalTitle}>
                                     {activeCategory ? MARKET_OPTS[activeCategory].title : 'SEÇİM YAPIN'}
                                 </Text>
                                 <TouchableOpacity onPress={closeModal} style={styles.closeBtn}>
@@ -543,9 +543,9 @@ export default function HomeScreen({ navigation }) {
                                         onPress={() => handleSelectOption(item)}
                                         activeOpacity={0.7}
                                     >
-                                        <Text style={styles.modalItemLabel}>{item.label}</Text>
+                                        <Text allowFontScaling={false} style={styles.modalItemLabel}>{item.label}</Text>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                            <Text style={styles.modalItemValue}>{item.value}</Text>
+                                            <Text allowFontScaling={false} style={styles.modalItemValue}>{item.value}</Text>
                                             {item.trend === 'up' && <Ionicons name="caret-up" size={14} color="#4ADE80" style={{ marginLeft: 8 }} />}
                                             {item.trend === 'down' && <Ionicons name="caret-down" size={14} color="#EF4444" style={{ marginLeft: 8 }} />}
                                             {item.trend === 'neutral' && <Ionicons name="remove" size={14} color="#9CA3AF" style={{ marginLeft: 8 }} />}

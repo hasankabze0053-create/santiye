@@ -64,14 +64,14 @@ export default function EmptyReturnSuccessScreen({ navigation }) {
                     </View>
 
                     {/* Messages */}
-                    <Text style={styles.title}>Tebrikler!{'\n'}Araç Bağlandı.</Text>
+                    <Text allowFontScaling={false} style={styles.title}>Tebrikler!{'\n'}Araç Bağlandı.</Text>
 
                     <View style={styles.infoCard}>
                         <View style={styles.driverInfo}>
-                            <View style={styles.avatar}><Text style={styles.avatarText}>AY</Text></View>
+                            <View style={styles.avatar}><Text allowFontScaling={false} style={styles.avatarText}>AY</Text></View>
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.infoText}>Sürücü <Text style={{ fontWeight: 'bold' }}>Ahmet Y.</Text> bilgilendirildi.</Text>
-                                <Text style={styles.subText}>Plaka: TR-34 VR 1**</Text>
+                                <Text allowFontScaling={false} style={styles.infoText}>Sürücü <Text allowFontScaling={false} style={{ fontWeight: 'bold' }}>Ahmet Y.</Text> bilgilendirildi.</Text>
+                                <Text allowFontScaling={false} style={styles.subText}>Plaka: TR-34 VR 1**</Text>
                             </View>
                             {/* Call Button */}
                             <TouchableOpacity onPress={handleCallDriver} style={styles.callBtn}>
@@ -81,12 +81,12 @@ export default function EmptyReturnSuccessScreen({ navigation }) {
                         <View style={styles.divider} />
                         <View style={styles.timeInfo}>
                             <MaterialCommunityIcons name="clock-outline" size={16} color="#D4AF37" />
-                            <Text style={styles.timeText}>Tahmini Varış: <Text style={{ color: '#fff' }}>Yarın 08:45</Text></Text>
+                            <Text allowFontScaling={false} style={styles.timeText}>Tahmini Varış: <Text allowFontScaling={false} style={{ color: '#fff' }}>Yarın 08:45</Text></Text>
                         </View>
                         <View style={{ height: 16 }} />
                         <View style={styles.timeInfo}>
                             <MaterialCommunityIcons name="information-outline" size={16} color="#888" />
-                            <Text style={{ color: '#888', fontSize: 12, marginLeft: 6 }}>Lojistik firması bilgilendirilmiştir.</Text>
+                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, marginLeft: 6 }}>Lojistik firması bilgilendirilmiştir.</Text>
                         </View>
                     </View>
 
@@ -94,11 +94,11 @@ export default function EmptyReturnSuccessScreen({ navigation }) {
                     <View style={styles.actionsContainer}>
                         <TouchableOpacity style={styles.secondaryBtn} onPress={() => { }}>
                             <MaterialCommunityIcons name="file-document-outline" size={20} color="#D4AF37" />
-                            <Text style={styles.secondaryBtnText}>İRSALİYE OLUŞTUR</Text>
+                            <Text allowFontScaling={false} style={styles.secondaryBtnText}>İRSALİYE OLUŞTUR</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.primaryBtn} onPress={() => navigation.navigate('MainTabs')}>
-                            <Text style={styles.primaryBtnText}>ANA SAYFAYA DÖN</Text>
+                            <Text allowFontScaling={false} style={styles.primaryBtnText}>ANA SAYFAYA DÖN</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

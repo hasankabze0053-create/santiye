@@ -12,7 +12,7 @@ export default function GradientButton({ title, onPress, style, icon }) {
                 style={styles.gradient}
             >
                 {icon}
-                <Text style={[styles.text, icon ? { marginLeft: 8 } : null]}>{title}</Text>
+                <Text allowFontScaling={false} style={[styles.text, icon ? { marginLeft: 8 } : null]}>{title}</Text>
             </LinearGradient>
         </TouchableOpacity>
     );

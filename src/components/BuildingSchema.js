@@ -122,7 +122,7 @@ export default function BuildingSchema({
                 {icon && (
                     <MaterialCommunityIcons name={icon} size={14} color={textColor} style={{ marginBottom: 2 }} />
                 )}
-                <Text style={[
+                <Text allowFontScaling={false} style={[
                     styles.unitText,
                     { color: textColor },
                     (unit.type === 'shop' || isSelected) && { fontWeight: 'bold' }
@@ -130,7 +130,7 @@ export default function BuildingSchema({
                     {unit.name || `${typeConfig.label} ${index + 1}`}
                 </Text>
                 {unit.area ? (
-                    <Text style={[styles.unitAreaText, { color: textColor }]}>{unit.area} m²</Text>
+                    <Text allowFontScaling={false} style={[styles.unitAreaText, { color: textColor }]}>{unit.area} m²</Text>
                 ) : null}
             </LinearGradient>
         );
@@ -159,11 +159,11 @@ export default function BuildingSchema({
             const units = getFloorContent(i, 'apartment');
             floorItems.push(
                 <View key={`floor-${i}`} style={styles.floorRow}>
-                    <Text style={styles.floorLabel}>{i}. Kat</Text>
+                    <Text allowFontScaling={false} style={styles.floorLabel}>{i}. Kat</Text>
                     <View style={styles.floorContent}>
                         {units.length > 0 ? units.map(renderUnit) : (
                             <View style={[styles.unitBox, { backgroundColor: '#333', borderStyle: 'dashed' }]}>
-                                <Text style={[styles.unitText, { color: '#666' }]}>?</Text>
+                                <Text allowFontScaling={false} style={[styles.unitText, { color: '#666' }]}>?</Text>
                             </View>
                         )}
                     </View>
@@ -178,11 +178,11 @@ export default function BuildingSchema({
 
         floorItems.push(
             <View key="ground" style={styles.floorRow}>
-                <Text style={styles.floorLabel}>Zemin</Text>
+                <Text allowFontScaling={false} style={styles.floorLabel}>Zemin</Text>
                 <View style={[styles.floorContent, { borderColor: groundFloorType === 'shop' ? '#D4AF37' : '#444' }]}>
                     {groundUnits.length > 0 ? groundUnits.map(renderUnit) : (
                         <View style={[styles.unitBox, { backgroundColor: '#222' }]}>
-                            <Text style={styles.unitText}>Giriş</Text>
+                            <Text allowFontScaling={false} style={styles.unitText}>Giriş</Text>
                         </View>
                     )}
                 </View>
@@ -197,11 +197,11 @@ export default function BuildingSchema({
 
             floorItems.push(
                 <View key={`basement-${b}`} style={styles.floorRow}>
-                    <Text style={styles.floorLabel}>{b}. Bodrum</Text>
+                    <Text allowFontScaling={false} style={styles.floorLabel}>{b}. Bodrum</Text>
                     <View style={styles.floorContent}>
                         {bUnits.length > 0 ? bUnits.map(renderUnit) : (
                             <View style={[styles.unitBox, { backgroundColor: '#222', borderStyle: 'dashed' }]}>
-                                <Text style={styles.unitText}>{isBasementResidential ? 'Daire?' : 'Sığınak'}</Text>
+                                <Text allowFontScaling={false} style={styles.unitText}>{isBasementResidential ? 'Daire?' : 'Sığınak'}</Text>
                             </View>
                         )}
                     </View>
@@ -214,9 +214,9 @@ export default function BuildingSchema({
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>ÖNİZLEME: YENİ BİNA PLAN ŞEMASI</Text>
+            <Text allowFontScaling={false} style={styles.title}>ÖNİZLEME: YENİ BİNA PLAN ŞEMASI</Text>
             {selectable && (
-                <Text style={styles.instruction}>Müteahhit payına düşen daireleri seçmek için üzerine dokunun.</Text>
+                <Text allowFontScaling={false} style={styles.instruction}>Müteahhit payına düşen daireleri seçmek için üzerine dokunun.</Text>
             )}
             <View style={styles.schemaContainer}>
                 {renderFloors()}
@@ -226,28 +226,28 @@ export default function BuildingSchema({
                 <View style={styles.legendContainer}>
                     <View style={styles.legendItem}>
                         <LinearGradient colors={['#D4AF37', '#AA8A2E']} style={styles.legendColorBox} />
-                        <Text style={styles.legendText}>{legendLabel}</Text>
+                        <Text allowFontScaling={false} style={styles.legendText}>{legendLabel}</Text>
                     </View>
                     <View style={styles.legendItem}>
                         <LinearGradient colors={['#E0E0E0', '#B0B0B0']} style={styles.legendColorBox} />
-                        <Text style={styles.legendText}>Arsa Sahibi</Text>
+                        <Text allowFontScaling={false} style={styles.legendText}>Arsa Sahibi</Text>
                     </View>
                 </View>
             )}
 
-            <Text style={styles.note}>* Temsili şemadır. Kat planları proje detaylarına göre değişebilir.</Text>
+            <Text allowFontScaling={false} style={styles.note}>* Temsili şemadır. Kat planları proje detaylarına göre değişebilir.</Text>
 
 
             {/* Government Grant Info */}
             {!hideDetails && campaignData && (campaignData.unitCount > 0 || campaignData.commercialCount > 0) && (
                 <View style={styles.grantContainer}>
-                    <Text style={styles.grantLabel}>DEVLET DESTEĞİNDE HAK EDİŞİNİZ</Text>
-                    <Text style={styles.grantAmount}>
+                    <Text allowFontScaling={false} style={styles.grantLabel}>DEVLET DESTEĞİNDE HAK EDİŞİNİZ</Text>
+                    <Text allowFontScaling={false} style={styles.grantAmount}>
                         {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(
                             (campaignData.unitCount * 1750000) + (campaignData.commercialCount * 875000)
                         )}
                     </Text>
-                    <Text style={styles.grantSubtext}>
+                    <Text allowFontScaling={false} style={styles.grantSubtext}>
                         {campaignData.unitCount > 0 ? `${campaignData.unitCount} Konut ` : ''}
                         {campaignData.commercialCount > 0 ? `${campaignData.commercialCount} Ticari ` : ''}
                         (Hibe + Kredi)
@@ -265,10 +265,10 @@ export default function BuildingSchema({
                         borderColor: 'rgba(76, 175, 80, 0.3)'
                     }
                 ]}>
-                    <Text style={[styles.grantLabel, { color: '#4CAF50' }]}>
+                    <Text allowFontScaling={false} style={[styles.grantLabel, { color: '#4CAF50' }]}>
                         ARSA SAHİBİ ÖDEYECEK (NET)
                     </Text>
-                    <Text style={[styles.grantAmount, { color: '#FFF', textShadowColor: 'rgba(76, 175, 80, 0.5)' }]}>
+                    <Text allowFontScaling={false} style={[styles.grantAmount, { color: '#FFF', textShadowColor: 'rgba(76, 175, 80, 0.5)' }]}>
                         {(() => {
                             const grantAmount = (campaignData.unitCount * 1750000) + (campaignData.commercialCount * 875000);
                             const net = turnkeyData.campaignPolicy === 'included'
@@ -277,7 +277,7 @@ export default function BuildingSchema({
                             return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(net);
                         })()}
                     </Text>
-                    <Text style={styles.grantSubtext}>
+                    <Text allowFontScaling={false} style={styles.grantSubtext}>
                         {turnkeyData.campaignPolicy === 'included' && (campaignData.unitCount > 0 || campaignData.commercialCount > 0)
                             ? 'Devlet hibe/kredi desteği dışındaki tutardır'
                             : 'Toplam İnşaat Yapım Bedeli'}
@@ -295,13 +295,13 @@ export default function BuildingSchema({
                         borderColor: cashAdjustment.type === 'request' ? 'rgba(50, 205, 50, 0.3)' : 'rgba(255, 82, 82, 0.3)'
                     }
                 ]}>
-                    <Text style={[
+                    <Text allowFontScaling={false} style={[
                         styles.grantLabel,
                         { color: cashAdjustment.type === 'request' ? '#4CAF50' : '#FF5252' }
                     ]}>
                         {cashAdjustment.type === 'request' ? 'HAK SAHİPLERİNDEN TALEP EDİLEN TOPLAM TUTAR' : 'HAK SAHİPLERİNE ÖDENECEK TOPLAM TUTAR'}
                     </Text>
-                    <Text style={[
+                    <Text allowFontScaling={false} style={[
                         styles.grantAmount,
                         {
                             textShadowColor: cashAdjustment.type === 'request' ? 'rgba(76, 175, 80, 0.5)' : 'rgba(244, 67, 54, 0.5)'
@@ -309,7 +309,7 @@ export default function BuildingSchema({
                     ]}>
                         {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(cashAdjustment.amount)}
                     </Text>
-                    <Text style={styles.grantSubtext}>
+                    <Text allowFontScaling={false} style={styles.grantSubtext}>
                         {cashAdjustment.type === 'request' ? 'Nakit Ödeme (İlave Ücret)' : 'Nakit Ödeme (Üste Para)'}
                     </Text>
                 </View>
@@ -325,10 +325,10 @@ export default function BuildingSchema({
                         borderColor: 'rgba(212, 175, 55, 0.3)'
                     }
                 ]}>
-                    <Text style={[styles.grantLabel, { color: '#D4AF37' }]}>
+                    <Text allowFontScaling={false} style={[styles.grantLabel, { color: '#D4AF37' }]}>
                         MÜTEAHHİT FİRMAYA KALACAK DAİRELER
                     </Text>
-                    <Text style={[
+                    <Text allowFontScaling={false} style={[
                         styles.grantAmount,
                         {
                             fontSize: 14,
@@ -370,7 +370,7 @@ export default function BuildingSchema({
                             return unitNames.join(', ');
                         })()}
                     </Text>
-                    <Text style={styles.grantSubtext}>
+                    <Text allowFontScaling={false} style={styles.grantSubtext}>
                         {selectedUnits.length} Adet Bağımsız Bölüm
                     </Text>
                 </View>

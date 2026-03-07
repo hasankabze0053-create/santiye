@@ -123,12 +123,12 @@ export default function SigortaScreen({ navigation }) {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color="white" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>SİGORTA İŞLEMLERİ</Text>
+                    <Text allowFontScaling={false} style={styles.headerTitle}>SİGORTA İŞLEMLERİ</Text>
                     <View style={{ width: 40 }} />
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-                    <Text style={styles.introText}>
+                    <Text allowFontScaling={false} style={styles.introText}>
                         Projenizin her aşamasında güvende olun. İhtiyacınız olan sigorta türünü seçin, anında teklif alın.
                     </Text>
 
@@ -141,8 +141,8 @@ export default function SigortaScreen({ navigation }) {
                                     style={styles.imageOverlay}
                                 />
                                 <View style={styles.sectionTitleContainer}>
-                                    <Text style={styles.sectionTitle}>{section.title}</Text>
-                                    <Text style={styles.sectionSubtitle}>{section.subtitle}</Text>
+                                    <Text allowFontScaling={false} style={styles.sectionTitle}>{section.title}</Text>
+                                    <Text allowFontScaling={false} style={styles.sectionSubtitle}>{section.subtitle}</Text>
                                 </View>
                             </View>
 
@@ -158,13 +158,13 @@ export default function SigortaScreen({ navigation }) {
                                                 <Ionicons name="shield-checkmark" size={24} color="#FFD700" />
                                             </View>
                                             <View style={styles.textContainer}>
-                                                <Text style={styles.cardTitle}>{item.title}</Text>
-                                                <Text style={styles.cardDesc} numberOfLines={2}>{item.desc}</Text>
+                                                <Text allowFontScaling={false} style={styles.cardTitle}>{item.title}</Text>
+                                                <Text allowFontScaling={false} style={styles.cardDesc} numberOfLines={2}>{item.desc}</Text>
                                             </View>
                                             <Ionicons name="chevron-forward" size={20} color="#666" />
                                         </View>
                                         <View style={styles.quoteButton}>
-                                            <Text style={styles.quoteButtonText}>Fiyat Al</Text>
+                                            <Text allowFontScaling={false} style={styles.quoteButtonText}>Fiyat Al</Text>
                                         </View>
                                     </TouchableOpacity>
                                 ))}
@@ -183,7 +183,7 @@ export default function SigortaScreen({ navigation }) {
                     <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
                             <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>Teklif İste</Text>
+                                <Text allowFontScaling={false} style={styles.modalTitle}>Teklif İste</Text>
                                 <TouchableOpacity onPress={() => setModalVisible(false)}>
                                     <Ionicons name="close" size={24} color="#333" />
                                 </TouchableOpacity>
@@ -191,12 +191,12 @@ export default function SigortaScreen({ navigation }) {
 
                             {selectedItem && (
                                 <View style={styles.modalBody}>
-                                    <Text style={styles.modalSubtitle}>{selectedItem.title}</Text>
-                                    <Text style={styles.modalDesc}>{selectedItem.desc}</Text>
+                                    <Text allowFontScaling={false} style={styles.modalSubtitle}>{selectedItem.title}</Text>
+                                    <Text allowFontScaling={false} style={styles.modalDesc}>{selectedItem.desc}</Text>
 
                                     <View style={styles.divider} />
 
-                                    <Text style={styles.modalInfo}>
+                                    <Text allowFontScaling={false} style={styles.modalInfo}>
                                         Müşteri temsilcimiz en kısa sürede sizi arayarak projenize özel fiyat teklifini sunacaktır.
                                     </Text>
                                 </View>
@@ -209,7 +209,7 @@ export default function SigortaScreen({ navigation }) {
                                     Alert.alert("Başarılı", "Teklif talebiniz alındı! Uzmanlarımız sizi arayacak.");
                                 }}
                             >
-                                <Text style={styles.submitButtonText}>Talep Gönder</Text>
+                                <Text allowFontScaling={false} style={styles.submitButtonText}>Talep Gönder</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

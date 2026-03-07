@@ -12,22 +12,22 @@ export default function LogisticsProviderScreen() {
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                         <MaterialCommunityIcons name="recycle-variant" size={20} color="#10B981" />
-                        <Text style={{ color: '#10B981', fontWeight: 'bold' }}>ROTANIZLA EŞLEŞTİ</Text>
+                        <Text allowFontScaling={false} style={{ color: '#10B981', fontWeight: 'bold' }}>ROTANIZLA EŞLEŞTİ</Text>
                     </View>
-                    <Text style={{ color: '#666', fontSize: 11 }}>Az Önce</Text>
+                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 11 }}>Az Önce</Text>
                 </View>
 
                 <View style={styles.routeRow}>
-                    <Text style={styles.routeText}>ANKARA</Text>
+                    <Text allowFontScaling={false} style={styles.routeText}>ANKARA</Text>
                     <MaterialCommunityIcons name="arrow-right-thin" size={24} color="#666" />
-                    <Text style={styles.routeText}>İSTANBUL</Text>
+                    <Text allowFontScaling={false} style={styles.routeText}>İSTANBUL</Text>
                 </View>
-                <Text style={styles.loadDetail}>Ev Eşyası (Parça) • 2+1 • 15m³</Text>
+                <Text allowFontScaling={false} style={styles.loadDetail}>Ev Eşyası (Parça) • 2+1 • 15m³</Text>
 
                 <View style={styles.offerBox}>
-                    <Text style={styles.offerPrice}>₺12.000</Text>
+                    <Text allowFontScaling={false} style={styles.offerPrice}>₺12.000</Text>
                     <View style={styles.acceptBtn}>
-                        <Text style={styles.btnText}>HEMEN AL</Text>
+                        <Text allowFontScaling={false} style={styles.btnText}>HEMEN AL</Text>
                     </View>
                 </View>
             </GlassCard>
@@ -47,7 +47,7 @@ export default function LogisticsProviderScreen() {
                     <MaterialCommunityIcons name="truck-check" size={16} color="#000" />
                 </View>
                 <View style={styles.mapOverlay}>
-                    <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>2 Araç Yolda</Text>
+                    <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>2 Araç Yolda</Text>
                 </View>
             </GlassCard>
 
@@ -61,13 +61,13 @@ export default function LogisticsProviderScreen() {
                         <MaterialCommunityIcons name="pallet" size={24} color="#000" />
                     </View>
                     <View style={{ flex: 1, paddingHorizontal: 12 }}>
-                        <Text style={styles.loadTitle}>Paletli Seramik Yükü</Text>
-                        <Text style={styles.loadRoute}>İstanbul → İzmir</Text>
-                        <Text style={styles.loadInfo}>Lowbed • 24 Ton</Text>
+                        <Text allowFontScaling={false} style={styles.loadTitle}>Paletli Seramik Yükü</Text>
+                        <Text allowFontScaling={false} style={styles.loadRoute}>İstanbul → İzmir</Text>
+                        <Text allowFontScaling={false} style={styles.loadInfo}>Lowbed • 24 Ton</Text>
                     </View>
                     <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={styles.profitText}>₺45.000</Text>
-                        <Text style={styles.tripText}>Gidiş</Text>
+                        <Text allowFontScaling={false} style={styles.profitText}>₺45.000</Text>
+                        <Text allowFontScaling={false} style={styles.tripText}>Gidiş</Text>
                     </View>
                 </View>
 
@@ -79,13 +79,13 @@ export default function LogisticsProviderScreen() {
                         <MaterialCommunityIcons name="cube-send" size={24} color="#000" />
                     </View>
                     <View style={{ flex: 1, paddingHorizontal: 12 }}>
-                        <Text style={styles.loadTitle}>İnşaat Malzemesi</Text>
-                        <Text style={styles.loadRoute}>Bursa → Ankara</Text>
-                        <Text style={styles.loadInfo}>Kamyon • 15 Ton</Text>
+                        <Text allowFontScaling={false} style={styles.loadTitle}>İnşaat Malzemesi</Text>
+                        <Text allowFontScaling={false} style={styles.loadRoute}>Bursa → Ankara</Text>
+                        <Text allowFontScaling={false} style={styles.loadInfo}>Kamyon • 15 Ton</Text>
                     </View>
                     <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={styles.profitText}>₺28.000</Text>
-                        <Text style={styles.tripText}>Gidiş</Text>
+                        <Text allowFontScaling={false} style={styles.profitText}>₺28.000</Text>
+                        <Text allowFontScaling={false} style={styles.tripText}>Gidiş</Text>
                     </View>
                 </View>
             </GlassCard>

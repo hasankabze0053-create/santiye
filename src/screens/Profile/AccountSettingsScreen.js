@@ -59,12 +59,12 @@ export default function AccountSettingsScreen({ route }) {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color="#FFD700" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Hesap Bilgileri</Text>
+                <Text allowFontScaling={false} style={styles.headerTitle}>Hesap Bilgileri</Text>
             </View>
 
             <ScrollView contentContainerStyle={styles.content}>
-                <Text style={styles.label}>Ad Soyad</Text>
-                <TextInput
+                <Text allowFontScaling={false} style={styles.label}>Ad Soyad</Text>
+                <TextInput allowFontScaling={false}
                     style={styles.input}
                     value={fullName}
                     onChangeText={setFullName}
@@ -72,15 +72,15 @@ export default function AccountSettingsScreen({ route }) {
                     placeholderTextColor="#666"
                 />
 
-                <Text style={styles.label}>E-Posta (Değiştirilemez)</Text>
+                <Text allowFontScaling={false} style={styles.label}>E-Posta (Değiştirilemez)</Text>
                 <View style={[styles.input, styles.disabledInput]}>
-                    <Text style={{ color: '#aaa' }}>{user?.email}</Text>
+                    <Text allowFontScaling={false} style={{ color: '#aaa' }}>{user?.email}</Text>
                 </View>
 
                 {/* New User Type Field */}
-                <Text style={styles.label}>Kullanıcı Tipi</Text>
+                <Text allowFontScaling={false} style={styles.label}>Kullanıcı Tipi</Text>
                 <View style={[styles.input, styles.disabledInput]}>
-                    <Text style={{ color: '#aaa' }}>
+                    <Text allowFontScaling={false} style={{ color: '#aaa' }}>
                         {profileData?.user_type === 'corporate' ? 'Kurumsal Üye' : 'Bireysel Kullanıcı'}
                     </Text>
                 </View>
@@ -89,7 +89,7 @@ export default function AccountSettingsScreen({ route }) {
                     {loading ? (
                         <ActivityIndicator color="#000" />
                     ) : (
-                        <Text style={styles.saveButtonText}>Değişiklikleri Kaydet</Text>
+                        <Text allowFontScaling={false} style={styles.saveButtonText}>Değişiklikleri Kaydet</Text>
                     )}
                 </TouchableOpacity>
 
@@ -111,15 +111,15 @@ export default function AccountSettingsScreen({ route }) {
                                     <MaterialCommunityIcons name="domain" size={28} color={corporateTheme.icon} />
                                 </View>
                                 <View style={styles.corporateTextContainer}>
-                                    <Text style={[styles.corporateTitle, { color: corporateTheme.text }]}>
+                                    <Text allowFontScaling={false} style={[styles.corporateTitle, { color: corporateTheme.text }]}>
                                         Kurumsal Üyelik
                                     </Text>
-                                    <Text style={[styles.corporateSubtitle, { color: corporateTheme.subText }]}>
+                                    <Text allowFontScaling={false} style={[styles.corporateSubtitle, { color: corporateTheme.subText }]}>
                                         Hizmet vermek için kurumsal hesaba geçin.
                                     </Text>
                                 </View>
                                 <View style={styles.corporateArrow}>
-                                    <Text style={styles.manageText}>BAŞVUR</Text>
+                                    <Text allowFontScaling={false} style={styles.manageText}>BAŞVUR</Text>
                                     <Ionicons name="chevron-forward" size={16} color={corporateTheme.icon} />
                                 </View>
                             </View>

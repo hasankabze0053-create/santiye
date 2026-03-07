@@ -49,6 +49,9 @@ import EmptyReturnSuccessScreen from '../screens/Logistics/EmptyReturnSuccessScr
 import LogisticsScreen from '../screens/Logistics/LogisticsScreen';
 import TransportModeSelectionScreen from '../screens/Logistics/TransportModeSelectionScreen';
 import BulkRequestScreen from '../screens/Market/BulkRequestScreen';
+import MarketCartScreen from '../screens/Market/MarketCartScreen';
+import MarketDynamicFormScreen from '../screens/Market/MarketDynamicFormScreen';
+import MarketOffersScreen from '../screens/Market/MarketOffersScreen';
 import MarketRequestScreen from '../screens/Market/MarketRequestScreen';
 import MarketSuccessScreen from '../screens/Market/MarketSuccessScreen';
 import SellerDashboardScreen from '../screens/Market/SellerDashboardScreen';
@@ -302,10 +305,13 @@ export default function AppNavigator() {
             {/* Rental & Market (Stacks for nested nav if needed) */}
             <Stack.Screen name="RentalStack" component={RentalScreen} />
             <Stack.Screen name="MarketStack" component={MarketScreen} />
+            <Stack.Screen name="MarketDynamicForm" component={MarketDynamicFormScreen} options={{ headerShown: false, animation: 'slide_from_bottom' }} />
+            <Stack.Screen name="MarketCart" component={MarketCartScreen} options={{ headerShown: false, animation: 'slide_from_bottom' }} />
             <Stack.Screen name="BulkRequest" component={BulkRequestScreen} />
             <Stack.Screen name="MarketRequest" component={MarketRequestScreen} />
             <Stack.Screen name="Chat" component={ChatScreen} />
             <Stack.Screen name="MarketSuccess" component={MarketSuccessScreen} />
+            <Stack.Screen name="MarketOffers" component={MarketOffersScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
             <Stack.Screen name="SmartProcurementWizard" component={SmartProcurementWizardScreen} options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
 
             {/* Renovation */}

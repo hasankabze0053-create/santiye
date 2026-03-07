@@ -566,15 +566,15 @@ const AdminDashboardScreen = () => {
                         <MaterialCommunityIcons name="tag-text-outline" size={20} color="#34D399" />
                     </View>
                     <View>
-                        <Text style={styles.offerProviderName}>{item.profiles?.full_name || 'Bilinmeyen Tedarikçi'}</Text>
-                        <Text style={styles.offerDate}>{new Date(item.created_at).toLocaleDateString('tr-TR')}</Text>
+                        <Text allowFontScaling={false} style={styles.offerProviderName}>{item.profiles?.full_name || 'Bilinmeyen Tedarikçi'}</Text>
+                        <Text allowFontScaling={false} style={styles.offerDate}>{new Date(item.created_at).toLocaleDateString('tr-TR')}</Text>
                     </View>
                 </View>
                 <View style={[styles.statusBadge, {
                     backgroundColor: item.status === 'accepted' ? 'rgba(74, 222, 128, 0.1)' :
                         item.status === 'rejected' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(251, 191, 36, 0.1)'
                 }]}>
-                    <Text style={[styles.statusText, {
+                    <Text allowFontScaling={false} style={[styles.statusText, {
                         color: item.status === 'accepted' ? '#4ADE80' :
                             item.status === 'rejected' ? '#EF4444' : '#FBBF24'
                     }]}>
@@ -585,10 +585,10 @@ const AdminDashboardScreen = () => {
             </View>
 
             <View style={styles.offerBody}>
-                <Text style={styles.offerLabel}>Teklif Tutarı:</Text>
-                <Text style={styles.offerPrice}>{item.price ? `${item.price} ₺` : 'Fiyat Girilmedi'}</Text>
+                <Text allowFontScaling={false} style={styles.offerLabel}>Teklif Tutarı:</Text>
+                <Text allowFontScaling={false} style={styles.offerPrice}>{item.price ? `${item.price} ₺` : 'Fiyat Girilmedi'}</Text>
                 {item.notes && (
-                    <Text style={styles.offerNote} numberOfLines={2}>"{item.notes}"</Text>
+                    <Text allowFontScaling={false} style={styles.offerNote} numberOfLines={2}>"{item.notes}"</Text>
                 )}
             </View>
         </TouchableOpacity>
@@ -609,12 +609,12 @@ const AdminDashboardScreen = () => {
                     />
                 </View>
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                    <Text style={styles.userCardTitle}>{item.full_name || 'İsimsiz'}</Text>
-                    <Text style={styles.userCardSubtitle}>{item.email}</Text>
+                    <Text allowFontScaling={false} style={styles.userCardTitle}>{item.full_name || 'İsimsiz'}</Text>
+                    <Text allowFontScaling={false} style={styles.userCardSubtitle}>{item.email}</Text>
                     {item.phone && (
-                        <Text style={styles.userCardPhone}>📞 {item.phone}</Text>
+                        <Text allowFontScaling={false} style={styles.userCardPhone}>📞 {item.phone}</Text>
                     )}
-                    <Text style={styles.userCardDate}>Kayıt: {new Date(item.created_at).toLocaleDateString('tr-TR')}</Text>
+                    <Text allowFontScaling={false} style={styles.userCardDate}>Kayıt: {new Date(item.created_at).toLocaleDateString('tr-TR')}</Text>
                 </View>
 
                 {/* Status Badge (Right Side) */}
@@ -626,7 +626,7 @@ const AdminDashboardScreen = () => {
                                 item.approval_status === 'suspended' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(251, 191, 36, 0.1)'
                         }
                     ]}>
-                        <Text style={[
+                        <Text allowFontScaling={false} style={[
                             styles.statusText,
                             {
                                 color: item.approval_status === 'approved' ? '#4ADE80' :
@@ -659,7 +659,7 @@ const AdminDashboardScreen = () => {
                     >
                         {/* Header */}
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Kullanıcı Detayı</Text>
+                            <Text allowFontScaling={false} style={styles.modalTitle}>Kullanıcı Detayı</Text>
                             <TouchableOpacity onPress={() => setSelectedUserDetail(null)} style={styles.closeBtn}>
                                 <Ionicons name="close" size={24} color="#FFF" />
                             </TouchableOpacity>
@@ -675,16 +675,16 @@ const AdminDashboardScreen = () => {
                                     }}>
                                         <Ionicons name={selectedUserDetail.user_type === 'corporate' ? "business" : "person"} size={40} color="#D4AF37" />
                                     </View>
-                                    <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>{selectedUserDetail.full_name || 'İsimsiz'}</Text>
-                                    <Text style={{ color: '#94a3b8', fontSize: 14 }}>{selectedUserDetail.email}</Text>
-                                    <Text style={{ color: '#94a3b8', fontSize: 14, marginTop: 4 }}>{selectedUserDetail.phone || 'Telefon Yok'}</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>{selectedUserDetail.full_name || 'İsimsiz'}</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 14 }}>{selectedUserDetail.email}</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 14, marginTop: 4 }}>{selectedUserDetail.phone || 'Telefon Yok'}</Text>
 
                                     <View style={{
                                         marginTop: 12, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12,
                                         backgroundColor: selectedUserDetail.approval_status === 'approved' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(251, 191, 36, 0.1)',
                                         borderWidth: 1, borderColor: selectedUserDetail.approval_status === 'approved' ? '#4ADE80' : '#FBBF24'
                                     }}>
-                                        <Text style={{ color: selectedUserDetail.approval_status === 'approved' ? '#4ADE80' : '#FBBF24', fontWeight: 'bold', fontSize: 12 }}>
+                                        <Text allowFontScaling={false} style={{ color: selectedUserDetail.approval_status === 'approved' ? '#4ADE80' : '#FBBF24', fontWeight: 'bold', fontSize: 12 }}>
                                             {selectedUserDetail.approval_status === 'approved' ? 'ONAYLI HESAP' :
                                                 selectedUserDetail.approval_status === 'rejected' ? 'REDDEDİLDİ' :
                                                     selectedUserDetail.approval_status === 'suspended' ? 'HESAP ASKIDA' : 'ONAY BEKLİYOR'}
@@ -692,7 +692,7 @@ const AdminDashboardScreen = () => {
                                     </View>
 
                                     {selectedUserDetail.rejection_reason && (
-                                        <Text style={{ color: '#EF4444', marginTop: 8, textAlign: 'center', fontStyle: 'italic' }}>
+                                        <Text allowFontScaling={false} style={{ color: '#EF4444', marginTop: 8, textAlign: 'center', fontStyle: 'italic' }}>
                                             "{selectedUserDetail.rejection_reason}"
                                         </Text>
                                     )}
@@ -701,7 +701,7 @@ const AdminDashboardScreen = () => {
                                 {/* ROLE MANAGEMENT SECTION */}
                                 {selectedUserDetail.user_type === 'corporate' && (
                                     <View style={{ marginBottom: 20, padding: 15, backgroundColor: '#1a1a1a', borderRadius: 12, borderWidth: 1, borderColor: '#333' }}>
-                                        <Text style={{ color: '#FFD700', fontSize: 14, fontWeight: 'bold', marginBottom: 10 }}>FİRMA YETKİLERİ / ROLLERİ</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 14, fontWeight: 'bold', marginBottom: 10 }}>FİRMA YETKİLERİ / ROLLERİ</Text>
 
                                         {[
                                             { key: 'is_contractor', label: 'Müteahhitlik / Proje' },
@@ -713,7 +713,7 @@ const AdminDashboardScreen = () => {
                                             { key: 'is_lawyer', label: 'Avukat / Hukuk' },
                                         ].map((role) => (
                                             <View key={role.key} style={styles.roleRow}>
-                                                <Text style={{ color: '#ccc', flex: 1 }}>{role.label}</Text>
+                                                <Text allowFontScaling={false} style={{ color: '#ccc', flex: 1 }}>{role.label}</Text>
                                                 <Switch
                                                     value={selectedUserDetail[role.key] || false}
                                                     trackColor={{ false: '#333', true: '#4ADE80' }}
@@ -747,7 +747,7 @@ const AdminDashboardScreen = () => {
                                 )}
 
                                 {/* ACTION BUTTONS */}
-                                <Text style={{ color: '#64748b', fontSize: 12, fontWeight: 'bold', marginBottom: 10 }}>İŞLEMLER</Text>
+                                <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 12, fontWeight: 'bold', marginBottom: 10 }}>İŞLEMLER</Text>
 
                                 <View style={{ gap: 10 }}>
                                     {/* Approval Actions */}
@@ -758,7 +758,7 @@ const AdminDashboardScreen = () => {
                                                 onPress={() => { handleApproveUser(selectedUserDetail); setSelectedUserDetail(null); }}
                                             >
                                                 <Ionicons name="checkmark-circle" size={22} color="#4ADE80" />
-                                                <Text style={{ color: '#ecfdf5', fontWeight: 'bold', marginLeft: 10 }}>Onayla ve Aktifleştir</Text>
+                                                <Text allowFontScaling={false} style={{ color: '#ecfdf5', fontWeight: 'bold', marginLeft: 10 }}>Onayla ve Aktifleştir</Text>
                                             </TouchableOpacity>
 
                                             <TouchableOpacity
@@ -766,7 +766,7 @@ const AdminDashboardScreen = () => {
                                                 onPress={() => { handleOpenActionModal(selectedUserDetail, 'incomplete'); }}
                                             >
                                                 <MaterialCommunityIcons name="file-document-edit" size={22} color="#FBBF24" />
-                                                <Text style={{ color: '#fef3c7', fontWeight: 'bold', marginLeft: 10 }}>Eksik Bilgi/Belge İste</Text>
+                                                <Text allowFontScaling={false} style={{ color: '#fef3c7', fontWeight: 'bold', marginLeft: 10 }}>Eksik Bilgi/Belge İste</Text>
                                             </TouchableOpacity>
 
                                             <TouchableOpacity
@@ -774,7 +774,7 @@ const AdminDashboardScreen = () => {
                                                 onPress={() => { handleOpenActionModal(selectedUserDetail, 'reject'); }}
                                             >
                                                 <Ionicons name="close-circle" size={22} color="#EF4444" />
-                                                <Text style={{ color: '#fef2f2', fontWeight: 'bold', marginLeft: 10 }}>Reddet</Text>
+                                                <Text allowFontScaling={false} style={{ color: '#fef2f2', fontWeight: 'bold', marginLeft: 10 }}>Reddet</Text>
                                             </TouchableOpacity>
                                         </>
                                     )}
@@ -787,7 +787,7 @@ const AdminDashboardScreen = () => {
                                             disabled={!selectedUserDetail.phone}
                                         >
                                             <Ionicons name="call" size={20} color={selectedUserDetail.phone ? "#3B82F6" : "#444"} />
-                                            <Text style={{ color: '#cbd5e1', marginLeft: 8 }}>Ara</Text>
+                                            <Text allowFontScaling={false} style={{ color: '#cbd5e1', marginLeft: 8 }}>Ara</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity
                                             style={[styles.actionRowBtn, { flex: 1, justifyContent: 'center', backgroundColor: '#1e293b' }]}
@@ -795,13 +795,13 @@ const AdminDashboardScreen = () => {
                                             disabled={!selectedUserDetail.phone}
                                         >
                                             <MaterialCommunityIcons name="whatsapp" size={20} color={selectedUserDetail.phone ? "#25D366" : "#444"} />
-                                            <Text style={{ color: '#cbd5e1', marginLeft: 8 }}>WhatsApp</Text>
+                                            <Text allowFontScaling={false} style={{ color: '#cbd5e1', marginLeft: 8 }}>WhatsApp</Text>
                                         </TouchableOpacity>
                                     </View>
 
                                     {/* Danger Zone */}
                                     <View style={{ marginTop: 20, borderTopWidth: 1, borderTopColor: '#334155', paddingTop: 20 }}>
-                                        <Text style={{ color: '#EF4444', fontSize: 12, fontWeight: 'bold', marginBottom: 10 }}>TEHLİKELİ BÖLGE</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#EF4444', fontSize: 12, fontWeight: 'bold', marginBottom: 10 }}>TEHLİKELİ BÖLGE</Text>
 
                                         {selectedUserDetail.user_type === 'corporate' && (
                                             <TouchableOpacity
@@ -809,7 +809,7 @@ const AdminDashboardScreen = () => {
                                                 onPress={() => handleConvertToIndividual(selectedUserDetail)}
                                             >
                                                 <MaterialCommunityIcons name="account-convert" size={20} color="#F59E0B" />
-                                                <Text style={{ color: '#F59E0B', marginLeft: 10 }}>Kurumsal Üyelikten Çıkar (Bireysele Çevir)</Text>
+                                                <Text allowFontScaling={false} style={{ color: '#F59E0B', marginLeft: 10 }}>Kurumsal Üyelikten Çıkar (Bireysele Çevir)</Text>
                                             </TouchableOpacity>
                                         )}
 
@@ -822,7 +822,7 @@ const AdminDashboardScreen = () => {
                                                 size={20}
                                                 color="#FBBF24"
                                             />
-                                            <Text style={{ color: '#FBBF24', marginLeft: 10 }}>
+                                            <Text allowFontScaling={false} style={{ color: '#FBBF24', marginLeft: 10 }}>
                                                 {selectedUserDetail.approval_status === 'suspended' ? 'Hesabın Kilidini Aç' : 'Hesabı Askıya Al / Dondur'}
                                             </Text>
                                         </TouchableOpacity>
@@ -832,7 +832,7 @@ const AdminDashboardScreen = () => {
                                             onPress={() => { handleDeleteUser(selectedUserDetail); setSelectedUserDetail(null); }}
                                         >
                                             <Ionicons name="trash" size={20} color="#EF4444" />
-                                            <Text style={{ color: '#EF4444', marginLeft: 10 }}>Kullanıcıyı Tamamen Sil</Text>
+                                            <Text allowFontScaling={false} style={{ color: '#EF4444', marginLeft: 10 }}>Kullanıcıyı Tamamen Sil</Text>
                                         </TouchableOpacity>
                                     </View>
                                 </View>
@@ -874,8 +874,8 @@ const AdminDashboardScreen = () => {
                         <MaterialCommunityIcons name={iconName} size={20} color="#FFF" />
                     </View>
                     <View>
-                        <Text style={styles.moduleTitle}>{item.title}</Text>
-                        <Text style={styles.moduleSubtitle}>{item.subtitle}</Text>
+                        <Text allowFontScaling={false} style={styles.moduleTitle}>{item.title}</Text>
+                        <Text allowFontScaling={false} style={styles.moduleSubtitle}>{item.subtitle}</Text>
                     </View>
                 </View>
                 <View style={[styles.borderOverlay, { borderColor: color }]} />
@@ -899,14 +899,14 @@ const AdminDashboardScreen = () => {
                     />
                 </View>
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                    <Text style={styles.title}>{item.title || selectedModule.title + ' Talebi'}</Text>
-                    <Text style={styles.subtitle}>
+                    <Text allowFontScaling={false} style={styles.title}>{item.title || selectedModule.title + ' Talebi'}</Text>
+                    <Text allowFontScaling={false} style={styles.subtitle}>
                         {item.city || 'Tüm Şehirler'} / {item.district || 'Tüm İlçeler'} • {new Date(item.created_at).toLocaleDateString('tr-TR')}
                     </Text>
                     {item.profiles ? (
-                        <Text style={styles.userText}>👤 {item.profiles.email} ({item.profiles.full_name})</Text>
+                        <Text allowFontScaling={false} style={styles.userText}>👤 {item.profiles.email} ({item.profiles.full_name})</Text>
                     ) : (
-                        <Text style={styles.userText}>👤 Kullanıcı (Bilinmiyor)</Text>
+                        <Text allowFontScaling={false} style={styles.userText}>👤 Kullanıcı (Bilinmiyor)</Text>
                     )}
                 </View>
 
@@ -942,22 +942,22 @@ const AdminDashboardScreen = () => {
                             onPress={() => { setViewMode('dashboard'); setIsEditMode(false); }}
                             style={{ opacity: viewMode === 'dashboard' ? 1 : 0.5 }}
                         >
-                            <Text style={[styles.headerTitle, viewMode !== 'dashboard' && { color: '#666' }]}>VİTRİN</Text>
+                            <Text allowFontScaling={false} style={[styles.headerTitle, viewMode !== 'dashboard' && { color: '#666' }]}>VİTRİN</Text>
                         </TouchableOpacity>
-                        <Text style={{ color: '#333' }}>|</Text>
+                        <Text allowFontScaling={false} style={{ color: '#333' }}>|</Text>
                         <TouchableOpacity
                             onPress={() => { setViewMode('module_detail'); }}
                             disabled={!selectedModule} // Only active when a module is selected
                             style={{ opacity: viewMode === 'module_detail' ? 1 : (selectedModule ? 0.5 : 0.2) }}
                         >
-                            <Text style={[styles.headerTitle, viewMode !== 'module_detail' && { color: '#666' }]}>DETAY</Text>
+                            <Text allowFontScaling={false} style={[styles.headerTitle, viewMode !== 'module_detail' && { color: '#666' }]}>DETAY</Text>
                         </TouchableOpacity>
-                        <Text style={{ color: '#333' }}>|</Text>
+                        <Text allowFontScaling={false} style={{ color: '#333' }}>|</Text>
                         <TouchableOpacity
                             onPress={() => { setViewMode('users'); setSelectedModule(null); }}
                             style={{ opacity: viewMode === 'users' ? 1 : 0.5 }}
                         >
-                            <Text style={[styles.headerTitle, viewMode !== 'users' && { color: '#666' }]}>ÜYELER</Text>
+                            <Text allowFontScaling={false} style={[styles.headerTitle, viewMode !== 'users' && { color: '#666' }]}>ÜYELER</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -978,7 +978,7 @@ const AdminDashboardScreen = () => {
                         onPress={() => navigation.navigate('MainTabs')}
                     >
                         <MaterialCommunityIcons name="account" size={20} color="#065f46" />
-                        <Text style={[styles.modeBtnText, { color: '#065f46' }]}>Müşteri Modu</Text>
+                        <Text allowFontScaling={false} style={[styles.modeBtnText, { color: '#065f46' }]}>Müşteri Modu</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -986,7 +986,7 @@ const AdminDashboardScreen = () => {
                         onPress={() => navigation.navigate('ProviderDashboard')}
                     >
                         <MaterialCommunityIcons name="briefcase" size={20} color="#78350f" />
-                        <Text style={[styles.modeBtnText, { color: '#78350f' }]}>Tedarikçi Modu</Text>
+                        <Text allowFontScaling={false} style={[styles.modeBtnText, { color: '#78350f' }]}>Tedarikçi Modu</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -1000,13 +1000,13 @@ const AdminDashboardScreen = () => {
                                     style={[styles.tabBtn, userTypeFilter === 'corporate' && styles.tabBtnActive]}
                                     onPress={() => setUserTypeFilter('corporate')}
                                 >
-                                    <Text style={[styles.tabText, userTypeFilter === 'corporate' && styles.tabTextActive]}>Kurumsal</Text>
+                                    <Text allowFontScaling={false} style={[styles.tabText, userTypeFilter === 'corporate' && styles.tabTextActive]}>Kurumsal</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={[styles.tabBtn, userTypeFilter === 'individual' && styles.tabBtnActive]}
                                     onPress={() => setUserTypeFilter('individual')}
                                 >
-                                    <Text style={[styles.tabText, userTypeFilter === 'individual' && styles.tabTextActive]}>Bireysel</Text>
+                                    <Text allowFontScaling={false} style={[styles.tabText, userTypeFilter === 'individual' && styles.tabTextActive]}>Bireysel</Text>
                                 </TouchableOpacity>
                             </View>
 
@@ -1019,7 +1019,7 @@ const AdminDashboardScreen = () => {
                                     keyExtractor={item => item.id}
                                     contentContainerStyle={{ padding: 20 }}
                                     ListEmptyComponent={
-                                        <Text style={styles.emptyText}>Kullanıcı bulunamadı.</Text>
+                                        <Text allowFontScaling={false} style={styles.emptyText}>Kullanıcı bulunamadı.</Text>
                                     }
                                 />
                             )}
@@ -1029,7 +1029,7 @@ const AdminDashboardScreen = () => {
                         <View style={{ flex: 1 }}>
                             {/* Search & Tabs */}
                             <View style={{ backgroundColor: '#1e293b', padding: 10 }}>
-                                <TextInput
+                                <TextInput allowFontScaling={false}
                                     style={styles.searchBar}
                                     placeholder="🔍 Talep Ara..."
                                     placeholderTextColor="#94a3b8"
@@ -1044,13 +1044,13 @@ const AdminDashboardScreen = () => {
                                         style={[styles.subTab, activeTab === 'requests' && styles.subTabActive]}
                                         onPress={() => setActiveTab('requests')}
                                     >
-                                        <Text style={[styles.subTabText, activeTab === 'requests' && styles.subTabTextActive]}>Talepler</Text>
+                                        <Text allowFontScaling={false} style={[styles.subTabText, activeTab === 'requests' && styles.subTabTextActive]}>Talepler</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity
                                         style={[styles.subTab, activeTab === 'offers' && styles.subTabActive]}
                                         onPress={() => setActiveTab('offers')}
                                     >
-                                        <Text style={[styles.subTabText, activeTab === 'offers' && styles.subTabTextActive]}>Teklifler ({offers.length})</Text>
+                                        <Text allowFontScaling={false} style={[styles.subTabText, activeTab === 'offers' && styles.subTabTextActive]}>Teklifler ({offers.length})</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -1080,7 +1080,7 @@ const AdminDashboardScreen = () => {
                                     renderItem={renderOfferItem}
                                     keyExtractor={item => item.id.toString()}
                                     contentContainerStyle={{ padding: 20 }}
-                                    ListEmptyComponent={<Text style={styles.noBidsText}>Henüz teklif yok.</Text>}
+                                    ListEmptyComponent={<Text allowFontScaling={false} style={styles.noBidsText}>Henüz teklif yok.</Text>}
                                 />
                             )}
                         </View>
@@ -1094,7 +1094,7 @@ const AdminDashboardScreen = () => {
                                     <View style={styles.editRow}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                             <MaterialCommunityIcons name="drag-horizontal" size={24} color="#666" style={{ marginRight: 10 }} />
-                                            <Text style={[styles.editTitle, !item.is_active && { color: '#555', textDecorationLine: 'line-through' }]}>
+                                            <Text allowFontScaling={false} style={[styles.editTitle, !item.is_active && { color: '#555', textDecorationLine: 'line-through' }]}>
                                                 {item.title}
                                             </Text>
                                         </View>
@@ -1155,7 +1155,7 @@ const AdminDashboardScreen = () => {
 
                         {/* Modal Header */}
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Talep Detayı</Text>
+                            <Text allowFontScaling={false} style={styles.modalTitle}>Talep Detayı</Text>
                             <TouchableOpacity onPress={() => setSelectedRequest(null)} style={styles.closeBtn}>
                                 <Ionicons name="close" size={24} color="#FFF" />
                             </TouchableOpacity>
@@ -1169,31 +1169,31 @@ const AdminDashboardScreen = () => {
                                     <View>
                                         {/* Request Info */}
                                         <View style={styles.detailSection}>
-                                            <Text style={styles.detailLabel}>TALEP BİLGİLERİ</Text>
+                                            <Text allowFontScaling={false} style={styles.detailLabel}>TALEP BİLGİLERİ</Text>
                                             <View style={styles.infoRow}>
-                                                <Text style={styles.infoKey}>Başlık:</Text>
-                                                <Text style={styles.infoValue}>{selectedRequest.title || selectedModule?.title + ' Talebi'}</Text>
+                                                <Text allowFontScaling={false} style={styles.infoKey}>Başlık:</Text>
+                                                <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.title || selectedModule?.title + ' Talebi'}</Text>
                                             </View>
                                             <View style={styles.infoRow}>
-                                                <Text style={styles.infoKey}>Kullanıcı:</Text>
-                                                <Text style={styles.infoValue}>{selectedRequest.profiles?.email || 'Bilinmiyor'}</Text>
+                                                <Text allowFontScaling={false} style={styles.infoKey}>Kullanıcı:</Text>
+                                                <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.profiles?.email || 'Bilinmiyor'}</Text>
                                             </View>
                                             <View style={styles.infoRow}>
-                                                <Text style={styles.infoKey}>Konum:</Text>
-                                                <Text style={styles.infoValue}>{selectedRequest.city || selectedRequest.location || '-'} / {selectedRequest.district || '-'}</Text>
+                                                <Text allowFontScaling={false} style={styles.infoKey}>Konum:</Text>
+                                                <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.city || selectedRequest.location || '-'} / {selectedRequest.district || '-'}</Text>
                                             </View>
                                             {selectedRequest.notes && (
                                                 <View style={styles.infoRow}>
-                                                    <Text style={styles.infoKey}>Notlar:</Text>
-                                                    <Text style={styles.infoValue}>{selectedRequest.notes}</Text>
+                                                    <Text allowFontScaling={false} style={styles.infoKey}>Notlar:</Text>
+                                                    <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.notes}</Text>
                                                 </View>
                                             )}
                                             {/* Special Fields for Market */}
                                             {selectedRequest.items && selectedRequest.items.length > 0 && (
                                                 <View style={{ marginTop: 10 }}>
-                                                    <Text style={[styles.infoKey, { marginBottom: 5 }]}>Sipariş Listesi:</Text>
+                                                    <Text allowFontScaling={false} style={[styles.infoKey, { marginBottom: 5 }]}>Sipariş Listesi:</Text>
                                                     {selectedRequest.items.map((it, idx) => (
-                                                        <Text key={idx} style={styles.bulletItem}>• {it.product_name} ({it.quantity})</Text>
+                                                        <Text allowFontScaling={false} key={idx} style={styles.bulletItem}>• {it.product_name} ({it.quantity})</Text>
                                                     ))}
                                                 </View>
                                             )}
@@ -1201,32 +1201,32 @@ const AdminDashboardScreen = () => {
                                             {selectedModule?.id === 'transport' && (
                                                 <>
                                                     <View style={styles.infoRow}>
-                                                        <Text style={styles.infoKey}>Nereden:</Text>
-                                                        <Text style={styles.infoValue}>{selectedRequest.from_location}</Text>
+                                                        <Text allowFontScaling={false} style={styles.infoKey}>Nereden:</Text>
+                                                        <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.from_location}</Text>
                                                     </View>
                                                     <View style={styles.infoRow}>
-                                                        <Text style={styles.infoKey}>Nereye:</Text>
-                                                        <Text style={styles.infoValue}>{selectedRequest.to_location}</Text>
+                                                        <Text allowFontScaling={false} style={styles.infoKey}>Nereye:</Text>
+                                                        <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.to_location}</Text>
                                                     </View>
                                                 </>
                                             )}
                                         </View>
 
-                                        <Text style={[styles.detailLabel, { marginTop: 20, marginLeft: 20 }]}>TEKLİFLER ({(selectedRequest.bids || selectedRequest.offers || []).length})</Text>
+                                        <Text allowFontScaling={false} style={[styles.detailLabel, { marginTop: 20, marginLeft: 20 }]}>TEKLİFLER ({(selectedRequest.bids || selectedRequest.offers || []).length})</Text>
                                     </View>
                                 )}
                                 renderItem={({ item }) => (
                                     <View style={styles.bidCard}>
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                            <Text style={styles.bidPrice}>{item.price || item.price_estimate} ₺</Text>
-                                            <Text style={styles.bidStatus}>{item.status}</Text>
+                                            <Text allowFontScaling={false} style={styles.bidPrice}>{item.price || item.price_estimate} ₺</Text>
+                                            <Text allowFontScaling={false} style={styles.bidStatus}>{item.status}</Text>
                                         </View>
-                                        <Text style={styles.bidNotes}>{item.notes || item.offer_details || 'Açıklama yok'}</Text>
-                                        <Text style={styles.bidProvider}>Tedarikçi ID: {item.provider_id || item.contractor_id}</Text>
+                                        <Text allowFontScaling={false} style={styles.bidNotes}>{item.notes || item.offer_details || 'Açıklama yok'}</Text>
+                                        <Text allowFontScaling={false} style={styles.bidProvider}>Tedarikçi ID: {item.provider_id || item.contractor_id}</Text>
                                     </View>
                                 )}
                                 ListEmptyComponent={
-                                    <Text style={styles.noBidsText}>Henüz teklif verilmemiş.</Text>
+                                    <Text allowFontScaling={false} style={styles.noBidsText}>Henüz teklif verilmemiş.</Text>
                                 }
                             />
                         )}
@@ -1244,7 +1244,7 @@ const AdminDashboardScreen = () => {
                 <View style={styles.modalOverlay}>
                     <View style={[styles.modalContent, { backgroundColor: '#1e293b', maxHeight: 300 }]}>
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>
+                            <Text allowFontScaling={false} style={styles.modalTitle}>
                                 {actionType === 'reject' ? 'Red Nedeni' : 'Eksik Bilgi Talebi'}
                             </Text>
                             <TouchableOpacity onPress={() => setRejectModalVisible(false)}>
@@ -1253,13 +1253,13 @@ const AdminDashboardScreen = () => {
                         </View>
 
                         <View style={{ padding: 20 }}>
-                            <Text style={{ color: '#ccc', marginBottom: 10 }}>
+                            <Text allowFontScaling={false} style={{ color: '#ccc', marginBottom: 10 }}>
                                 {actionType === 'reject'
                                     ? 'Kullanıcıyı reddetme sebebinizi giriniz:'
                                     : 'Kullanıcıdan talep ettiğiniz eksik bilgileri yazınız:'}
                             </Text>
 
-                            <TextInput
+                            <TextInput allowFontScaling={false}
                                 style={{
                                     backgroundColor: '#0f172a',
                                     color: '#FFF',
@@ -1287,7 +1287,7 @@ const AdminDashboardScreen = () => {
                                 }}
                                 onPress={handleSubmitAction}
                             >
-                                <Text style={{ color: actionType === 'reject' ? '#FFF' : '#000', fontWeight: 'bold' }}>
+                                <Text allowFontScaling={false} style={{ color: actionType === 'reject' ? '#FFF' : '#000', fontWeight: 'bold' }}>
                                     {actionType === 'reject' ? 'REDDET' : 'GÖNDER'}
                                 </Text>
                             </TouchableOpacity>

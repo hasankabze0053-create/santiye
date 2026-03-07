@@ -50,22 +50,22 @@ export default function ContractorProviderScreen() {
     const renderTendersTab = () => (
         <View style={styles.tabContent}>
             <View style={styles.feedHeader}>
-                <Text style={styles.feedTitle}>
+                <Text allowFontScaling={false} style={styles.feedTitle}>
                     {activeTab === 'tenders' ? `YERİNDE DÖNÜŞÜM İHALELERİ (${requests.length})` : `VERİLEN TEKLİFLER (${requests.length})`}
                 </Text>
                 <TouchableOpacity onPress={loadRequests} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, padding: 8 }}>
                     <Ionicons name="filter" size={16} color="#94a3b8" />
-                    <Text style={{ color: '#94a3b8', fontSize: 13, fontWeight: '500' }}>Filtrele</Text>
+                    <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 13, fontWeight: '500' }}>Filtrele</Text>
                 </TouchableOpacity>
             </View>
 
             {requests.length === 0 ? (
                 <View style={styles.emptyState}>
                     <MaterialCommunityIcons name={activeTab === 'tenders' ? "home-city-outline" : "file-document-edit-outline"} size={56} color="#334155" />
-                    <Text style={styles.emptyText}>
+                    <Text allowFontScaling={false} style={styles.emptyText}>
                         {activeTab === 'tenders' ? 'Aktif kentsel dönüşüm ihalesi bulunmuyor.' : 'Henüz bir teklif vermediniz.'}
                     </Text>
-                    {activeTab === 'tenders' && <Text style={styles.emptySub}>Yeni projeler eklendiğinde burada görünecek.</Text>}
+                    {activeTab === 'tenders' && <Text allowFontScaling={false} style={styles.emptySub}>Yeni projeler eklendiğinde burada görünecek.</Text>}
                 </View>
             ) : (
                 requests.map((item, index) => (
@@ -78,7 +78,7 @@ export default function ContractorProviderScreen() {
                         <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
                             <View style={[styles.tagBadge, activeTab === 'bids' && { backgroundColor: 'rgba(212, 175, 55, 0.1)' }]}>
                                 <View style={[styles.statusDot, activeTab === 'bids' && { backgroundColor: '#D4AF37' }]} />
-                                <Text style={[styles.tagText, activeTab === 'bids' && { color: '#D4AF37' }]}>
+                                <Text allowFontScaling={false} style={[styles.tagText, activeTab === 'bids' && { color: '#D4AF37' }]}>
                                     {activeTab === 'bids'
                                         ? (item.my_offers && item.my_offers.length > 0
                                             ? (item.my_offers[0].status === 'approved' ? 'ONAYLANDI' : (item.my_offers[0].status === 'rejected' ? 'REDDEDİLDİ' : 'DEĞERLENDİRİLİYOR'))
@@ -88,16 +88,16 @@ export default function ContractorProviderScreen() {
                             </View>
                             <View style={[styles.timerTag, { marginLeft: 'auto' }]}>
                                 <Ionicons name="calendar" size={12} color="#94a3b8" />
-                                <Text style={styles.timerText}>{new Date(item.created_at).toLocaleDateString('tr-TR')}</Text>
+                                <Text allowFontScaling={false} style={styles.timerText}>{new Date(item.created_at).toLocaleDateString('tr-TR')}</Text>
                             </View>
                         </View>
 
                         {/* 2. PROJECT INFO */}
                         <View style={{ marginBottom: 20 }}>
-                            <Text style={styles.leadTitle}>Kentsel Dönüşüm Talebi</Text>
+                            <Text allowFontScaling={false} style={styles.leadTitle}>Kentsel Dönüşüm Talebi</Text>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
                                 <Ionicons name="location-sharp" size={14} color="#94a3b8" />
-                                <Text style={styles.leadSub}>{item.city} / {item.district}</Text>
+                                <Text allowFontScaling={false} style={styles.leadSub}>{item.city} / {item.district}</Text>
                             </View>
                         </View>
 
@@ -108,8 +108,8 @@ export default function ContractorProviderScreen() {
                                     <MaterialCommunityIcons name="home-group" size={18} color="#D4AF37" />
                                 </View>
                                 <View>
-                                    <Text style={styles.detailLabel}>MODEL</Text>
-                                    <Text style={styles.detailValue}>
+                                    <Text allowFontScaling={false} style={styles.detailLabel}>MODEL</Text>
+                                    <Text allowFontScaling={false} style={styles.detailValue}>
                                         {(item.offer_type === 'kat_karsiligi' || item.offer_type === 'Kat Karşılığı' || item.offer_model === 'kat_karsiligi')
                                             ? 'Kat Karşılığı'
                                             : 'Anahtar Teslim'}
@@ -123,8 +123,8 @@ export default function ContractorProviderScreen() {
                                     <MaterialCommunityIcons name="file-document-outline" size={18} color="#D4AF37" />
                                 </View>
                                 <View>
-                                    <Text style={styles.detailLabel}>{activeTab === 'bids' ? 'SON TEKLİFİNİZ' : 'DURUM'}</Text>
-                                    <Text style={styles.detailValue}>
+                                    <Text allowFontScaling={false} style={styles.detailLabel}>{activeTab === 'bids' ? 'SON TEKLİFİNİZ' : 'DURUM'}</Text>
+                                    <Text allowFontScaling={false} style={styles.detailValue}>
                                         {activeTab === 'bids'
                                             ? (item.my_offers && item.my_offers.length > 0
                                                 ? (item.my_offers[0].price_estimate ? item.my_offers[0].price_estimate.toLocaleString('tr-TR') + ' ₺' : 'Kat Karşılığı')
@@ -152,7 +152,7 @@ export default function ContractorProviderScreen() {
                                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                                 style={styles.gradientBtn}
                             >
-                                <Text style={styles.bidButtonText}>{activeTab === 'bids' ? 'TEKLİFİ İNCELE' : 'DETAY EKRANINA GİT'}</Text>
+                                <Text allowFontScaling={false} style={styles.bidButtonText}>{activeTab === 'bids' ? 'TEKLİFİ İNCELE' : 'DETAY EKRANINA GİT'}</Text>
                                 <MaterialCommunityIcons name="arrow-right" size={20} color="#000" />
                             </LinearGradient>
                         </TouchableOpacity>
@@ -185,12 +185,12 @@ export default function ContractorProviderScreen() {
                     <View style={styles.header}>
                         <View style={styles.profileRow}>
                             <View style={styles.avatar}>
-                                <Text style={styles.avatarTxt}>MY</Text>
+                                <Text allowFontScaling={false} style={styles.avatarTxt}>MY</Text>
                             </View>
                             <View>
-                                <Text style={styles.welcome}>Hoşgeldin,</Text>
+                                <Text allowFontScaling={false} style={styles.welcome}>Hoşgeldin,</Text>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                    <Text style={styles.companyName}>{providerInfo.name}</Text>
+                                    <Text allowFontScaling={false} style={styles.companyName}>{providerInfo.name}</Text>
                                     <MaterialCommunityIcons name="check-decagram" size={16} color="#D4AF37" />
                                 </View>
                             </View>
@@ -205,24 +205,24 @@ export default function ContractorProviderScreen() {
                     <View style={styles.statsRow}>
                         <View style={styles.statPill}>
                             <Ionicons name="star" size={14} color="#D4AF37" />
-                            <Text style={styles.statTxt}>{providerInfo.rating} Puan</Text>
+                            <Text allowFontScaling={false} style={styles.statTxt}>{providerInfo.rating} Puan</Text>
                         </View>
                         <View style={styles.statPill}>
                             <Ionicons name="location" size={14} color="#94a3b8" />
-                            <Text style={styles.statTxt}>{providerInfo.location}</Text>
+                            <Text allowFontScaling={false} style={styles.statTxt}>{providerInfo.location}</Text>
                         </View>
                     </View>
 
                     {/* 3. TABS */}
                     <View style={styles.msgTabs}>
                         <TouchableOpacity onPress={() => setActiveTab('tenders')} style={[styles.msgTab, activeTab === 'tenders' && styles.msgTabActive]}>
-                            <Text style={[styles.msgTabTxt, activeTab === 'tenders' && styles.msgTabTxtActive]}>İHALELER</Text>
+                            <Text allowFontScaling={false} style={[styles.msgTabTxt, activeTab === 'tenders' && styles.msgTabTxtActive]}>İHALELER</Text>
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => setActiveTab('bids')} style={[styles.msgTab, activeTab === 'bids' && styles.msgTabActive]}>
-                            <Text style={[styles.msgTabTxt, activeTab === 'bids' && styles.msgTabTxtActive]}>TEKLİFLERİM</Text>
+                            <Text allowFontScaling={false} style={[styles.msgTabTxt, activeTab === 'bids' && styles.msgTabTxtActive]}>TEKLİFLERİM</Text>
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => setActiveTab('won')} style={[styles.msgTab, activeTab === 'won' && styles.msgTabActive]}>
-                            <Text style={[styles.msgTabTxt, activeTab === 'won' && styles.msgTabTxtActive]}>KAZANILAN</Text>
+                            <Text allowFontScaling={false} style={[styles.msgTabTxt, activeTab === 'won' && styles.msgTabTxtActive]}>KAZANILAN</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -230,7 +230,7 @@ export default function ContractorProviderScreen() {
                     {(activeTab === 'tenders' || activeTab === 'bids') ? renderTendersTab() : (
                         <View style={styles.emptyState}>
                             <MaterialCommunityIcons name="lock-outline" size={48} color="#334155" />
-                            <Text style={styles.emptyText}>Bu özellik yakında aktif olacak.</Text>
+                            <Text allowFontScaling={false} style={styles.emptyText}>Bu özellik yakında aktif olacak.</Text>
                         </View>
                     )}
 

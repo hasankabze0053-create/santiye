@@ -246,7 +246,7 @@ export default function ProjectProposalScreen() {
 
     const renderStep1 = () => (
         <View style={styles.stepContainer}>
-            <Text style={styles.questionTitle}>1. Projenin tahmini süresi nedir?</Text>
+            <Text allowFontScaling={false} style={styles.questionTitle}>1. Projenin tahmini süresi nedir?</Text>
             {PROJECT_DURATION_OPTIONS.map((opt) => {
                 const isSelected = durationValues.type === opt.id;
                 return (
@@ -260,8 +260,8 @@ export default function ProjectProposalScreen() {
                             <MaterialCommunityIcons name={opt.icon} size={24} color={isSelected ? '#000' : '#D4AF37'} />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={[styles.optionTitle, isSelected && styles.optionTitleSelected]}>{opt.title}</Text>
-                            <Text style={styles.optionSub}>{opt.sub}</Text>
+                            <Text allowFontScaling={false} style={[styles.optionTitle, isSelected && styles.optionTitleSelected]}>{opt.title}</Text>
+                            <Text allowFontScaling={false} style={styles.optionSub}>{opt.sub}</Text>
                         </View>
                         {isSelected && <MaterialCommunityIcons name="check-circle" size={24} color="#D4AF37" />}
                     </TouchableOpacity>
@@ -273,7 +273,7 @@ export default function ProjectProposalScreen() {
     const renderStep2 = () => {
         return (
             <View style={styles.stepContainer}>
-                <Text style={styles.questionTitle}>2. Proje hangi konumda?</Text>
+                <Text allowFontScaling={false} style={styles.questionTitle}>2. Proje hangi konumda?</Text>
 
                 <View style={[styles.mapContainer, locationValues.locationSet && { borderColor: '#D4AF37' }]}>
                     <View style={styles.mapMask} {...panResponder.panHandlers}>
@@ -286,7 +286,7 @@ export default function ProjectProposalScreen() {
 
                     <View style={styles.searchBarFloating}>
                         <MaterialCommunityIcons name="magnify" size={20} color="#666" />
-                        <TextInput
+                        <TextInput allowFontScaling={false}
                             style={styles.searchInput}
                             placeholder="İl, İlçe veya Proje Adı..."
                             placeholderTextColor="#999"
@@ -309,11 +309,11 @@ export default function ProjectProposalScreen() {
 
                     <View style={styles.mapBottomBar}>
                         <View style={styles.addressContainer}>
-                            <Text style={styles.addressLabel}>Proje Konumu:</Text>
-                            <Text style={styles.addressText} numberOfLines={2}>{locationValues.address}</Text>
+                            <Text allowFontScaling={false} style={styles.addressLabel}>Proje Konumu:</Text>
+                            <Text allowFontScaling={false} style={styles.addressText} numberOfLines={2}>{locationValues.address}</Text>
                         </View>
                         <TouchableOpacity style={styles.confirmLocationBtn} onPress={handleLocationConfirm}>
-                            <Text style={styles.confirmLocationText}>{locationValues.locationSet ? "GÜNCELLE" : "KONUMU ONAYLA"}</Text>
+                            <Text allowFontScaling={false} style={styles.confirmLocationText}>{locationValues.locationSet ? "GÜNCELLE" : "KONUMU ONAYLA"}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -324,9 +324,9 @@ export default function ProjectProposalScreen() {
     const renderStep3 = () => {
         return (
             <View style={styles.stepContainer}>
-                <Text style={styles.questionTitle}>3. Proje Detayları ve Ekipman</Text>
+                <Text allowFontScaling={false} style={styles.questionTitle}>3. Proje Detayları ve Ekipman</Text>
 
-                <Text style={styles.subLabel}>Proje Tipi</Text>
+                <Text allowFontScaling={false} style={styles.subLabel}>Proje Tipi</Text>
                 <View style={styles.gridContainer}>
                     {PROJECT_TYPES.map((pt, index) => {
                         const isSelected = projectType === pt.id;
@@ -344,15 +344,15 @@ export default function ProjectProposalScreen() {
                                 onPress={() => handleProjectTypeSelect(pt.id)}
                             >
                                 <MaterialCommunityIcons name={pt.icon} size={32} color={isSelected ? '#000' : '#D4AF37'} style={{ marginBottom: 6 }} />
-                                <Text style={[styles.gridItemText, isSelected && { color: '#000' }]}>{pt.title}</Text>
+                                <Text allowFontScaling={false} style={[styles.gridItemText, isSelected && { color: '#000' }]}>{pt.title}</Text>
                             </TouchableOpacity>
                         );
                     })}
                 </View>
 
                 {/* DESCRIPTION Section */}
-                <Text style={[styles.subLabel, { marginTop: 8 }]}>Proje Açıklaması / Notlar (Opsiyonel)</Text>
-                <TextInput
+                <Text allowFontScaling={false} style={[styles.subLabel, { marginTop: 8 }]}>Proje Açıklaması / Notlar (Opsiyonel)</Text>
+                <TextInput allowFontScaling={false}
                     style={styles.textArea}
                     multiline
                     placeholder="Projenizle ilgili detayları buraya yazabilirsiniz..."
@@ -364,10 +364,10 @@ export default function ProjectProposalScreen() {
                 {/* PHOTOS section (Optional) */}
                 <View style={styles.dividerSmall} />
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text style={styles.subLabel}>Saha Fotoğrafları (Opsiyonel)</Text>
+                    <Text allowFontScaling={false} style={styles.subLabel}>Saha Fotoğrafları (Opsiyonel)</Text>
                     <TouchableOpacity style={styles.actionButton} onPress={handleAddPhoto}>
                         <MaterialCommunityIcons name="camera" size={18} color="#000" style={{ marginRight: 6 }} />
-                        <Text style={styles.actionButtonText}>Fotoğraf Ekle</Text>
+                        <Text allowFontScaling={false} style={styles.actionButtonText}>Fotoğraf Ekle</Text>
                     </TouchableOpacity>
                 </View>
                 {photos.length > 0 && (
@@ -386,10 +386,10 @@ export default function ProjectProposalScreen() {
                 {/* MACHINES Section (Optional) */}
                 <View style={styles.dividerSmall} />
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text style={styles.subLabel}>Makine Tercihleri (Opsiyonel)</Text>
+                    <Text allowFontScaling={false} style={styles.subLabel}>Makine Tercihleri (Opsiyonel)</Text>
                     <TouchableOpacity style={styles.actionButton} onPress={() => setMachineModalVisible(true)}>
                         <MaterialCommunityIcons name="excavator" size={18} color="#000" style={{ marginRight: 6 }} />
-                        <Text style={styles.actionButtonText}>Makine Ekle</Text>
+                        <Text allowFontScaling={false} style={styles.actionButtonText}>Makine Ekle</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -399,10 +399,10 @@ export default function ProjectProposalScreen() {
                     <View style={{ marginTop: 8 }}>
                         {selectedMachines.map(m => (
                             <View key={m.id} style={styles.machineRow}>
-                                <Text style={{ color: '#ccc', flex: 1 }}>{m.name}</Text>
+                                <Text allowFontScaling={false} style={{ color: '#ccc', flex: 1 }}>{m.name}</Text>
                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                     <TouchableOpacity onPress={() => handleUpdateQuantity(m.id, -1)}><MaterialCommunityIcons name="minus" color="#666" size={20} /></TouchableOpacity>
-                                    <Text style={{ color: '#D4AF37', marginHorizontal: 8, fontWeight: 'bold' }}>{m.quantity}</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#D4AF37', marginHorizontal: 8, fontWeight: 'bold' }}>{m.quantity}</Text>
                                     <TouchableOpacity onPress={() => handleUpdateQuantity(m.id, 1)}><MaterialCommunityIcons name="plus" color="#D4AF37" size={20} /></TouchableOpacity>
                                     <TouchableOpacity onPress={() => handleRemoveMachine(m.id)} style={{ marginLeft: 12 }}><MaterialCommunityIcons name="trash-can" color="#CF3335" size={20} /></TouchableOpacity>
                                 </View>
@@ -410,7 +410,7 @@ export default function ProjectProposalScreen() {
                         ))}
                     </View>
                 ) : (
-                    <Text style={{ color: '#666', fontSize: 12, marginTop: 4, fontStyle: 'italic' }}>Henüz makine seçilmedi.</Text>
+                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 12, marginTop: 4, fontStyle: 'italic' }}>Henüz makine seçilmedi.</Text>
                 )}
 
                 <View style={{ height: 20 }} />
@@ -435,46 +435,46 @@ export default function ProjectProposalScreen() {
                 </View>
 
                 <View style={styles.receiptBody}>
-                    <Text style={styles.receiptTitle}>PROJE ÖZETİ</Text>
+                    <Text allowFontScaling={false} style={styles.receiptTitle}>PROJE ÖZETİ</Text>
 
                     <View style={styles.receiptRow}>
-                        <Text style={styles.receiptLabel}>Süre:</Text>
-                        <Text style={styles.receiptValue}>{durationOpt?.title || 'Seçilmedi'}</Text>
+                        <Text allowFontScaling={false} style={styles.receiptLabel}>Süre:</Text>
+                        <Text allowFontScaling={false} style={styles.receiptValue}>{durationOpt?.title || 'Seçilmedi'}</Text>
                     </View>
                     <View style={styles.receiptRow}>
-                        <Text style={styles.receiptLabel}>Proje Tipi:</Text>
-                        <Text style={styles.receiptValue}>{typeOpt?.title || 'Belirtilmedi'}</Text>
+                        <Text allowFontScaling={false} style={styles.receiptLabel}>Proje Tipi:</Text>
+                        <Text allowFontScaling={false} style={styles.receiptValue}>{typeOpt?.title || 'Belirtilmedi'}</Text>
                     </View>
                     {description ? (
                         <View style={styles.receiptRow}>
-                            <Text style={styles.receiptLabel}>Not:</Text>
-                            <Text style={styles.receiptValue} numberOfLines={3}>{description}</Text>
+                            <Text allowFontScaling={false} style={styles.receiptLabel}>Not:</Text>
+                            <Text allowFontScaling={false} style={styles.receiptValue} numberOfLines={3}>{description}</Text>
                         </View>
                     ) : null}
                     <View style={styles.receiptRow}>
-                        <Text style={styles.receiptLabel}>Konum:</Text>
-                        <Text style={styles.receiptValue} numberOfLines={1}>{locationValues.address}</Text>
+                        <Text allowFontScaling={false} style={styles.receiptLabel}>Konum:</Text>
+                        <Text allowFontScaling={false} style={styles.receiptValue} numberOfLines={1}>{locationValues.address}</Text>
                     </View>
                     <View style={styles.receiptRow}>
-                        <Text style={styles.receiptLabel}>Ekipman:</Text>
-                        <Text style={styles.receiptValue}>{selectedMachines.length > 0 ? `${selectedMachines.length} Çeşit` : 'Seçilmedi'}</Text>
+                        <Text allowFontScaling={false} style={styles.receiptLabel}>Ekipman:</Text>
+                        <Text allowFontScaling={false} style={styles.receiptValue}>{selectedMachines.length > 0 ? `${selectedMachines.length} Çeşit` : 'Seçilmedi'}</Text>
                     </View>
                     {photos.length > 0 && (
                         <View style={styles.receiptRow}>
-                            <Text style={styles.receiptLabel}>Görsel:</Text>
-                            <Text style={styles.receiptValue}>{photos.length} Adet</Text>
+                            <Text allowFontScaling={false} style={styles.receiptLabel}>Görsel:</Text>
+                            <Text allowFontScaling={false} style={styles.receiptValue}>{photos.length} Adet</Text>
                         </View>
                     )}
 
                     <View style={styles.divider} />
                     <View style={styles.totalRow}>
-                        <Text style={styles.totalLabel}>Tahmini Bütçe:</Text>
-                        <Text style={styles.totalValue}>{formatCurrency(estimatedPrice)}</Text>
+                        <Text allowFontScaling={false} style={styles.totalLabel}>Tahmini Bütçe:</Text>
+                        <Text allowFontScaling={false} style={styles.totalValue}>{formatCurrency(estimatedPrice)}</Text>
                     </View>
                 </View>
 
                 <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
-                    <Text style={styles.submitBtnText}>TEKLİF TALEBİ OLUŞTUR</Text>
+                    <Text allowFontScaling={false} style={styles.submitBtnText}>TEKLİF TALEBİ OLUŞTUR</Text>
                     <MaterialCommunityIcons name="rocket-launch" size={20} color="#000" style={{ marginLeft: 8 }} />
                 </TouchableOpacity>
                 <View style={{ height: 50 }} />
@@ -488,8 +488,8 @@ export default function ProjectProposalScreen() {
             <View style={styles.successContainer}>
                 <View style={styles.successContent}>
                     <MaterialCommunityIcons name="clipboard-check-outline" size={100} color="#D4AF37" />
-                    <Text style={styles.successTitle}>PROJE KAYDEDİLDİ</Text>
-                    <Text style={styles.successText}>
+                    <Text allowFontScaling={false} style={styles.successTitle}>PROJE KAYDEDİLDİ</Text>
+                    <Text allowFontScaling={false} style={styles.successText}>
                         Proje talebiniz kurumsal satış ekibimize iletilmiştir.
                         {"\n\n"}
                         Özel proje danışmanımız en kısa sürede sizinle iletişime geçecektir.
@@ -499,7 +499,7 @@ export default function ProjectProposalScreen() {
                         style={styles.exitBtn}
                         onPress={() => navigation.navigate('MainTabs', { screen: 'Ana Sayfa' })}
                     >
-                        <Text style={styles.exitBtnText}>ANA MENÜYE DÖN</Text>
+                        <Text allowFontScaling={false} style={styles.exitBtnText}>ANA MENÜYE DÖN</Text>
                         <MaterialCommunityIcons name="home" size={24} color="#000" style={{ marginLeft: 8 }} />
                     </TouchableOpacity>
                 </View>
@@ -517,7 +517,7 @@ export default function ProjectProposalScreen() {
                                 <Ionicons name="arrow-back" size={24} color="#fff" />
                             </TouchableOpacity>
                         )}
-                        <Text style={styles.headerTitle}>{step === 5 ? 'BAŞARILI' : 'PROJE SİHİRBAZI'}</Text>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>{step === 5 ? 'BAŞARILI' : 'PROJE SİHİRBAZI'}</Text>
                         <View style={{ width: 24 }} />
                     </View>
 
@@ -537,17 +537,17 @@ export default function ProjectProposalScreen() {
                         <View style={styles.modalOverlay}>
                             <View style={styles.modalContent}>
                                 <View style={styles.modalHeader}>
-                                    <Text style={styles.modalTitle}>Makine Seçin</Text>
+                                    <Text allowFontScaling={false} style={styles.modalTitle}>Makine Seçin</Text>
                                     <TouchableOpacity onPress={() => setMachineModalVisible(false)}><Ionicons name="close" size={24} color="#fff" /></TouchableOpacity>
                                 </View>
                                 <ScrollView>
                                     {PROPOSAL_CATEGORIES.map(cat => (
                                         <View key={cat.id} style={{ marginBottom: 20 }}>
-                                            <Text style={{ color: '#D4AF37', fontWeight: 'bold', marginBottom: 10 }}>{cat.title}</Text>
+                                            <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', marginBottom: 10 }}>{cat.title}</Text>
                                             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                                                 {cat.items.map((item, idx) => (
                                                     <TouchableOpacity key={idx} style={styles.modalBadge} onPress={() => handleAddMachine(item, cat.icon)}>
-                                                        <Text style={{ color: '#ccc', fontSize: 12 }}>{item}</Text>
+                                                        <Text allowFontScaling={false} style={{ color: '#ccc', fontSize: 12 }}>{item}</Text>
                                                     </TouchableOpacity>
                                                 ))}
                                             </View>

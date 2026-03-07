@@ -18,13 +18,13 @@ export default function CarrierDashboardScreen() {
                 {/* Header */}
                 <View style={styles.header}>
                     <View>
-                        <Text style={styles.headerTitle}>FİRMA TAŞIYICI PANELİ</Text>
-                        <Text style={styles.headerSubtitle}>Jet Lojistik A.Ş.</Text>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>FİRMA TAŞIYICI PANELİ</Text>
+                        <Text allowFontScaling={false} style={styles.headerSubtitle}>Jet Lojistik A.Ş.</Text>
                     </View>
 
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                         <View style={styles.statusBadge}>
-                            <Text style={[styles.statusText, { color: isAvailable ? '#FFD700' : '#666' }]}>
+                            <Text allowFontScaling={false} style={[styles.statusText, { color: isAvailable ? '#FFD700' : '#666' }]}>
                                 {isAvailable ? 'Filo Aktif' : 'Mesai Dışı'}
                             </Text>
                             <Switch
@@ -57,28 +57,28 @@ export default function CarrierDashboardScreen() {
                             <View style={[styles.iconBox, { backgroundColor: 'rgba(255, 215, 0, 0.15)' }]}>
                                 <MaterialCommunityIcons name="wallet-outline" size={24} color="#FFD700" />
                             </View>
-                            <Text style={styles.statValue}>₺245k</Text>
-                            <Text style={styles.statLabel}>Aylık Ciro</Text>
+                            <Text allowFontScaling={false} style={styles.statValue}>₺245k</Text>
+                            <Text allowFontScaling={false} style={styles.statLabel}>Aylık Ciro</Text>
                         </View>
                         <View style={styles.statCard}>
                             <View style={[styles.iconBox, { backgroundColor: 'rgba(76, 175, 80, 0.15)' }]}>
                                 <MaterialCommunityIcons name="map-marker-distance" size={24} color="#4CAF50" />
                             </View>
-                            <Text style={styles.statValue}>28</Text>
-                            <Text style={styles.statLabel}>Tamamlanan Sefer</Text>
+                            <Text allowFontScaling={false} style={styles.statValue}>28</Text>
+                            <Text allowFontScaling={false} style={styles.statLabel}>Tamamlanan Sefer</Text>
                         </View>
                         <View style={styles.statCard}>
                             <View style={[styles.iconBox, { backgroundColor: 'rgba(33, 150, 243, 0.15)' }]}>
                                 <MaterialCommunityIcons name="truck-outline" size={24} color="#2196F3" />
                             </View>
-                            <Text style={styles.statValue}>12</Text>
-                            <Text style={styles.statLabel}>Aktif Araç</Text>
+                            <Text allowFontScaling={false} style={styles.statValue}>12</Text>
+                            <Text allowFontScaling={false} style={styles.statLabel}>Aktif Araç</Text>
                         </View>
                     </View>
 
                     {/* Quick Tools */}
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Operasyon Yönetimi</Text>
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>Operasyon Yönetimi</Text>
                     </View>
 
                     <View style={styles.actionsGrid}>
@@ -90,8 +90,8 @@ export default function CarrierDashboardScreen() {
 
                     {/* Active Fleet / Vehicles */}
                     <View style={[styles.sectionHeader, { marginTop: 24 }]}>
-                        <Text style={styles.sectionTitle}>Filo Durumu</Text>
-                        <TouchableOpacity><Text style={styles.seeAll}>Tümü (12)</Text></TouchableOpacity>
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>Filo Durumu</Text>
+                        <TouchableOpacity><Text allowFontScaling={false} style={styles.seeAll}>Tümü (12)</Text></TouchableOpacity>
                     </View>
 
                     <View style={styles.fleetList}>
@@ -120,7 +120,7 @@ export default function CarrierDashboardScreen() {
 
                     {/* Load Board (Opportunity) */}
                     <View style={[styles.sectionHeader, { marginTop: 24 }]}>
-                        <Text style={styles.sectionTitle}>Yük Fırsatları (Dönüş Yükü)</Text>
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>Yük Fırsatları (Dönüş Yükü)</Text>
                     </View>
                     <LoadOpportunityCard
                         from="Ankara"
@@ -141,7 +141,7 @@ const QuickAction = ({ icon, label, color, onPress }) => (
         <View style={[styles.actionIcon, { backgroundColor: `${color}20` }]}>
             <MaterialCommunityIcons name={icon} size={28} color={color} />
         </View>
-        <Text style={styles.actionLabel}>{label}</Text>
+        <Text allowFontScaling={false} style={styles.actionLabel}>{label}</Text>
     </TouchableOpacity>
 );
 
@@ -150,29 +150,29 @@ const FleetCard = ({ plate, type, location, status, load }) => (
         <View style={styles.fleetHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <View style={styles.plateBox}>
-                    <Text style={styles.plateText}>{plate}</Text>
+                    <Text allowFontScaling={false} style={styles.plateText}>{plate}</Text>
                 </View>
-                <Text style={styles.vehicleType}>{type}</Text>
+                <Text allowFontScaling={false} style={styles.vehicleType}>{type}</Text>
             </View>
             <View style={[styles.statusTag, status === 'Yolda' ? { backgroundColor: 'rgba(76, 175, 80, 0.2)' } : { backgroundColor: 'rgba(255, 193, 7, 0.2)' }]}>
-                <Text style={[styles.statusTagText, status === 'Yolda' ? { color: '#4CAF50' } : { color: '#FFC107' }]}>{status}</Text>
+                <Text allowFontScaling={false} style={[styles.statusTagText, status === 'Yolda' ? { color: '#4CAF50' } : { color: '#FFC107' }]}>{status}</Text>
             </View>
         </View>
 
         <View style={styles.fleetBody}>
             <View style={styles.fleetRow}>
                 <MaterialCommunityIcons name="map-marker-outline" size={14} color="#888" />
-                <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 6 }}>{location}</Text>
+                <Text allowFontScaling={false} style={{ color: '#ccc', fontSize: 13, marginLeft: 6 }}>{location}</Text>
             </View>
             <View style={styles.fleetRow}>
                 <MaterialCommunityIcons name="package-variant-closed" size={14} color="#888" />
-                <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 6 }}>Yük: {load}</Text>
+                <Text allowFontScaling={false} style={{ color: '#ccc', fontSize: 13, marginLeft: 6 }}>Yük: {load}</Text>
             </View>
         </View>
 
         {status === 'Boşta' && (
             <TouchableOpacity style={styles.assignBtn}>
-                <Text style={styles.assignBtnText}>YÜK ATA</Text>
+                <Text allowFontScaling={false} style={styles.assignBtnText}>YÜK ATA</Text>
                 <MaterialCommunityIcons name="arrow-right" size={14} color="#000" />
             </TouchableOpacity>
         )}
@@ -183,19 +183,19 @@ const LoadOpportunityCard = ({ from, to, cargo, price, distance }) => (
     <TouchableOpacity style={styles.loadCard}>
         <View style={styles.loadHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={styles.routeText}>{from}</Text>
+                <Text allowFontScaling={false} style={styles.routeText}>{from}</Text>
                 <MaterialCommunityIcons name="arrow-right-thin" size={16} color="#666" style={{ marginHorizontal: 6 }} />
-                <Text style={styles.routeText}>{to}</Text>
+                <Text allowFontScaling={false} style={styles.routeText}>{to}</Text>
             </View>
-            <Text style={styles.distanceText}>{distance}</Text>
+            <Text allowFontScaling={false} style={styles.distanceText}>{distance}</Text>
         </View>
         <View style={{ marginVertical: 8 }}>
-            <Text style={styles.cargoText}>{cargo}</Text>
+            <Text allowFontScaling={false} style={styles.cargoText}>{cargo}</Text>
         </View>
         <View style={styles.loadFooter}>
-            <Text style={styles.priceText}>{price}</Text>
+            <Text allowFontScaling={false} style={styles.priceText}>{price}</Text>
             <TouchableOpacity style={styles.takeJobBtn}>
-                <Text style={styles.takeJobText}>AL</Text>
+                <Text allowFontScaling={false} style={styles.takeJobText}>AL</Text>
             </TouchableOpacity>
         </View>
     </TouchableOpacity>

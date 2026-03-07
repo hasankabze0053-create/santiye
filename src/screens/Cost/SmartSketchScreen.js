@@ -294,7 +294,7 @@ export default function SmartSketchScreen({ navigation, route }) {
                             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                                 <Ionicons name="arrow-back" size={24} color="#D4AF37" />
                             </TouchableOpacity>
-                            <Text style={styles.headerTitle}>AKILLI DUVAR EDİTÖRÜ</Text>
+                            <Text allowFontScaling={false} style={styles.headerTitle}>AKILLI DUVAR EDİTÖRÜ</Text>
                             <View style={{ width: 24 }} />
                         </View>
 
@@ -307,7 +307,7 @@ export default function SmartSketchScreen({ navigation, route }) {
                                     onPress={() => setSelectedShape(shape.id)}
                                 >
                                     <MaterialCommunityIcons name={shape.icon} size={20} color={selectedShape === shape.id ? '#000' : '#888'} />
-                                    <Text style={[styles.shapeText, selectedShape === shape.id && styles.shapeTextSelected]}>{shape.title}</Text>
+                                    <Text allowFontScaling={false} style={[styles.shapeText, selectedShape === shape.id && styles.shapeTextSelected]}>{shape.title}</Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
@@ -350,12 +350,12 @@ export default function SmartSketchScreen({ navigation, route }) {
 
                             {allLabels.map((l, i) => <DimLabel key={i} l={l} />)}
                         </Svg>
-                        <Text style={styles.canvasHint}>Duvarı bölmek/şekillendirmek için ölçüye dokunun</Text>
+                        <Text allowFontScaling={false} style={styles.canvasHint}>Duvarı bölmek/şekillendirmek için ölçüye dokunun</Text>
                     </View>
 
                     {/* CONTROL PAD (Moved to Top) */}
                     <View style={{ alignItems: 'center', marginBottom: 24 }}>
-                        <Text style={{ color: '#666', fontSize: 12, marginBottom: 8 }}>Yön seçerek duvar ekleyin</Text>
+                        <Text allowFontScaling={false} style={{ color: '#666', fontSize: 12, marginBottom: 8 }}>Yön seçerek duvar ekleyin</Text>
                         <View style={styles.controlGrid}>
                             {/* Row 1 */}
                             <TouchableOpacity style={styles.padBtn} onPress={() => addWall(6)}>
@@ -405,12 +405,12 @@ export default function SmartSketchScreen({ navigation, route }) {
                     {/* INFO GRID (Moved to Bottom) */}
                     <View style={styles.infoGrid}>
                         <View style={styles.infoBox}>
-                            <Text style={styles.infoLabel}>TABAN ALANI</Text>
-                            <Text style={styles.infoValue}>{calculateArea()} m²</Text>
+                            <Text allowFontScaling={false} style={styles.infoLabel}>TABAN ALANI</Text>
+                            <Text allowFontScaling={false} style={styles.infoValue}>{calculateArea()} m²</Text>
                         </View>
                         <View style={styles.infoBox}>
-                            <Text style={styles.infoLabel}>ÇEVRE</Text>
-                            <Text style={styles.infoValue}>{calculatePerimeter()} m</Text>
+                            <Text allowFontScaling={false} style={styles.infoLabel}>ÇEVRE</Text>
+                            <Text allowFontScaling={false} style={styles.infoValue}>{calculatePerimeter()} m</Text>
                         </View>
                     </View>
 
@@ -420,8 +420,8 @@ export default function SmartSketchScreen({ navigation, route }) {
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 <MaterialCommunityIcons name="balcony" size={24} color="#D4AF37" style={{ marginBottom: 4 }} />
                                 <View style={{ marginLeft: 12 }}>
-                                    <Text style={styles.cardTitle}>Çıkma (Konsol) Var mı?</Text>
-                                    <Text style={styles.cardSubtitle}>Üst katlarda alan artışı sağlar</Text>
+                                    <Text allowFontScaling={false} style={styles.cardTitle}>Çıkma (Konsol) Var mı?</Text>
+                                    <Text allowFontScaling={false} style={styles.cardSubtitle}>Üst katlarda alan artışı sağlar</Text>
                                 </View>
                             </View>
                             <Switch
@@ -433,12 +433,12 @@ export default function SmartSketchScreen({ navigation, route }) {
                         </View>
                         {hasOverhang && (
                             <View style={styles.overhangInputRow}>
-                                <Text style={styles.inputLabel}>Çıkma Derinliği (m):</Text>
+                                <Text allowFontScaling={false} style={styles.inputLabel}>Çıkma Derinliği (m):</Text>
                                 <View style={styles.stepperContainer}>
                                     <TouchableOpacity onPress={() => setOverhangDepth(d => Math.max(0.5, d - 0.1))} style={styles.stepBtn}>
                                         <Ionicons name="remove" size={20} color="#D4AF37" />
                                     </TouchableOpacity>
-                                    <Text style={styles.stepValue}>{overhangDepth.toFixed(1)} m</Text>
+                                    <Text allowFontScaling={false} style={styles.stepValue}>{overhangDepth.toFixed(1)} m</Text>
                                     <TouchableOpacity onPress={() => setOverhangDepth(d => d + 0.1)} style={styles.stepBtn}>
                                         <Ionicons name="add" size={20} color="#D4AF37" />
                                     </TouchableOpacity>
@@ -449,7 +449,7 @@ export default function SmartSketchScreen({ navigation, route }) {
 
                     <TouchableOpacity style={styles.confirmBtn} onPress={handleConfirm}>
                         <LinearGradient colors={['#D4AF37', '#AA8C2C']} style={styles.btnGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                            <Text style={styles.btnText}>ÖLÇÜLERİ ONAYLA</Text>
+                            <Text allowFontScaling={false} style={styles.btnText}>ÖLÇÜLERİ ONAYLA</Text>
                             <Ionicons name="checkmark-circle" size={24} color="#000" />
                         </LinearGradient>
                     </TouchableOpacity>
@@ -514,7 +514,7 @@ export default function SmartSketchScreen({ navigation, route }) {
                                             />
                                         </TouchableOpacity>
 
-                                        <TextInput
+                                        <TextInput allowFontScaling={false}
                                             style={[styles.input, { flex: 1 }]}
                                             value={inputVal}
                                             onChangeText={(txt) => {
@@ -545,7 +545,7 @@ export default function SmartSketchScreen({ navigation, route }) {
                             <InputAccessoryView nativeID="toolbar_smart_sketch">
                                 <View style={styles.accessoryContainer}>
                                     <TouchableOpacity onPress={saveEdit} style={styles.accessoryButton}>
-                                        <Text style={styles.accessoryText}>Bitti</Text>
+                                        <Text allowFontScaling={false} style={styles.accessoryText}>Bitti</Text>
                                     </TouchableOpacity>
                                 </View>
                             </InputAccessoryView>

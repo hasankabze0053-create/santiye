@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useMarketCart } from '../../context/MarketCartContext';
 import { supabase } from '../../lib/supabase';
 import { MarketService } from '../../services/MarketService';
 import { getMarketImage } from '../../utils/marketAssets';
@@ -13,6 +14,7 @@ const { width } = Dimensions.get('window');
 export default function MarketScreen() {
     const navigation = useNavigation();
     const route = useRoute();
+    const { getCartCount } = useMarketCart();
 
     const [isAdmin, setIsAdmin] = useState(false);
     const [isSeller, setIsSeller] = useState(false);
@@ -134,7 +136,7 @@ export default function MarketScreen() {
             <View style={styles.optionsContainer}>
                 {Object.keys(item.options).map((key) => (
                     <View key={key} style={styles.optionRow}>
-                        <Text style={styles.optionLabel}>{labels[key] || key.charAt(0).toUpperCase() + key.slice(1)}:</Text>
+                        <Text allowFontScaling={false} style={styles.optionLabel}>{labels[key] || key.charAt(0).toUpperCase() + key.slice(1)}:</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                             {item.options[key].map((opt) => (
                                 <TouchableOpacity
@@ -145,7 +147,7 @@ export default function MarketScreen() {
                                     ]}
                                     onPress={() => handleOptionSelect(key, opt)}
                                 >
-                                    <Text style={[
+                                    <Text allowFontScaling={false} style={[
                                         styles.optionChipText,
                                         selectedOptions[key] === opt && styles.optionChipTextActive
                                     ]}>{opt}</Text>
@@ -183,8 +185,8 @@ export default function MarketScreen() {
                         <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
                     </TouchableOpacity>
                     <View style={{ alignItems: 'center' }}>
-                        <Text style={styles.headerTitle}>YAPI MARKET</Text>
-                        <Text style={styles.headerSubtitle}>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>YAPI MARKET</Text>
+                        <Text allowFontScaling={false} style={styles.headerSubtitle}>
                             {viewMode === 'list' ? 'Tüm İhtiyaçlarınız Kapınızda' : (selectedCategory ? selectedCategory.title : 'Market')}
                         </Text>
                     </View>
@@ -208,7 +210,7 @@ export default function MarketScreen() {
                 {/* SEARCH BAR (In-Flow) */}
                 <View style={styles.searchContainer}>
                     <Ionicons name="search" size={20} color="#D4AF37" style={{ marginRight: 8 }} />
-                    <TextInput
+                    <TextInput allowFontScaling={false}
                         placeholder="Malzeme, Firma veya Konum Ara..."
                         placeholderTextColor="#666"
                         style={styles.searchInput}
@@ -245,11 +247,11 @@ export default function MarketScreen() {
                                                     transition={500}
                                                 />
                                                 <LinearGradient colors={['transparent', 'rgba(0,0,0,0.9)']} style={StyleSheet.absoluteFill} />
-                                                <View style={styles.heroTag}><Text style={styles.heroTagText}>{item.tag}</Text></View>
+                                                <View style={styles.heroTag}><Text allowFontScaling={false} style={styles.heroTagText}>{item.tag}</Text></View>
                                                 {item.title ? (
                                                     <View style={styles.heroContent}>
-                                                        <Text style={styles.heroTitle}>{item.title}</Text>
-                                                        <Text style={styles.heroSubtitle}>{item.subtitle}</Text>
+                                                        <Text allowFontScaling={false} style={styles.heroTitle}>{item.title}</Text>
+                                                        <Text allowFontScaling={false} style={styles.heroSubtitle}>{item.subtitle}</Text>
                                                     </View>
                                                 ) : null}
                                             </View>
@@ -277,8 +279,8 @@ export default function MarketScreen() {
                                         <MaterialCommunityIcons name="clipboard-list-outline" size={32} color="#000" />
                                     </View>
                                     <View style={{ flex: 1 }}>
-                                        <Text style={styles.bulkTitle}>TEKLİF TOPLA</Text>
-                                        <Text style={styles.bulkSubtitle}>Liste oluşturun, tüm firmalardan teklif alın.</Text>
+                                        <Text allowFontScaling={false} style={styles.bulkTitle}>TEKLİF TOPLA</Text>
+                                        <Text allowFontScaling={false} style={styles.bulkSubtitle}>Liste oluşturun, tüm firmalardan teklif alın.</Text>
                                     </View>
                                 </View>
                             </TouchableOpacity>
@@ -305,12 +307,12 @@ export default function MarketScreen() {
                                     </View>
                                     <View style={{ flex: 1 }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                                            <Text style={styles.aiTitle}>CEPTEŞEF AI</Text>
+                                            <Text allowFontScaling={false} style={styles.aiTitle}>CEPTEŞEF AI</Text>
                                             <View style={styles.newBadge}>
-                                                <Text style={styles.newBadgeText}>YENİ</Text>
+                                                <Text allowFontScaling={false} style={styles.newBadgeText}>YENİ</Text>
                                             </View>
                                         </View>
-                                        <Text style={styles.aiSubtitle}>
+                                        <Text allowFontScaling={false} style={styles.aiSubtitle}>
                                             "10 katlı bina için beton lazım" diyin, yapay zeka sizin için en iyi tedarikçileri bulsun.
                                         </Text>
                                     </View>
@@ -320,7 +322,7 @@ export default function MarketScreen() {
 
                             {/* 4. MAIN CATEGORY GRID */}
                             <View style={styles.sectionHeader}>
-                                <Text style={styles.sectionTitle}>KATEGORİLER</Text>
+                                <Text allowFontScaling={false} style={styles.sectionTitle}>KATEGORİLER</Text>
                             </View>
 
                             <View style={styles.gridContainer}>
@@ -354,7 +356,7 @@ export default function MarketScreen() {
                                             <MaterialCommunityIcons name={cat.icon} size={24} color="#D4AF37" style={styles.gridIconAbsolute} />
                                             {/* Removed old gradient to avoid double darkening */}
                                             <View style={styles.gridContent}>
-                                                <Text style={styles.gridTitle}>{cat.title}</Text>
+                                                <Text allowFontScaling={false} style={styles.gridTitle}>{cat.title}</Text>
                                             </View>
                                         </View>
                                     </TouchableOpacity>
@@ -367,8 +369,8 @@ export default function MarketScreen() {
                     {viewMode === 'subcategory' && selectedCategory && (
                         <View style={styles.detailContainer}>
                             <View style={styles.categoryHeader}>
-                                <Text style={styles.categoryTitle}>{selectedCategory.title} Kategorileri</Text>
-                                <Text style={styles.categorySubtitle}>İlgilendiğiniz alt kategoriyi seçin</Text>
+                                <Text allowFontScaling={false} style={styles.categoryTitle}>{selectedCategory.title} Kategorileri</Text>
+                                <Text allowFontScaling={false} style={styles.categorySubtitle}>İlgilendiğiniz alt kategoriyi seçin</Text>
                             </View>
 
                             <View style={styles.listContainer}>
@@ -377,8 +379,7 @@ export default function MarketScreen() {
                                         key={sub.id}
                                         style={styles.listCard}
                                         onPress={() => {
-                                            navigation.push('MarketStack', {
-                                                viewMode: 'detail',
+                                            navigation.navigate('MarketDynamicForm', {
                                                 category: selectedCategory,
                                                 subCategory: sub.name
                                             });
@@ -387,7 +388,7 @@ export default function MarketScreen() {
                                     >
 
                                         <View style={styles.listContent}>
-                                            <Text style={styles.listTitle}>{sub.name}</Text>
+                                            <Text allowFontScaling={false} style={styles.listTitle}>{sub.name}</Text>
 
                                         </View>
                                         <MaterialCommunityIcons name="chevron-right" size={24} color="#666" />
@@ -401,8 +402,8 @@ export default function MarketScreen() {
                     {viewMode === 'detail' && selectedCategory && selectedSubCategory && (
                         <View style={styles.detailContainer}>
                             <View style={styles.categoryHeader}>
-                                <Text style={styles.categoryTitle}>{selectedSubCategory}</Text>
-                                <Text style={styles.categorySubtitle}>
+                                <Text allowFontScaling={false} style={styles.categoryTitle}>{selectedSubCategory}</Text>
+                                <Text allowFontScaling={false} style={styles.categorySubtitle}>
                                     {filteredItems.length} ürün listeleniyor
                                 </Text>
                             </View>
@@ -418,7 +419,7 @@ export default function MarketScreen() {
                                         ]}
                                         onPress={() => setSelectedSubCategory(sub.name)}
                                     >
-                                        <Text style={[
+                                        <Text allowFontScaling={false} style={[
                                             styles.filterChipText,
                                             selectedSubCategory === sub.name && styles.filterChipTextActive
                                         ]}>
@@ -446,13 +447,13 @@ export default function MarketScreen() {
 
                                             {/* Center Content */}
                                             <View style={styles.productInfo}>
-                                                <Text style={styles.productName}>{item.name}</Text>
+                                                <Text allowFontScaling={false} style={styles.productName}>{item.name}</Text>
                                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                    <Text style={styles.productSpec}>{item.subcategory} • {item.spec}</Text>
-                                                    {item.options && <Text style={{ color: '#666', fontSize: 11, marginLeft: 6 }}>({Object.keys(item.options).length} Seçenek)</Text>}
+                                                    <Text allowFontScaling={false} style={styles.productSpec}>{item.subcategory} • {item.spec}</Text>
+                                                    {item.options && <Text allowFontScaling={false} style={{ color: '#666', fontSize: 11, marginLeft: 6 }}>({Object.keys(item.options).length} Seçenek)</Text>}
                                                 </View>
                                                 {isExpanded && item.options && (
-                                                    <Text style={{ fontSize: 11, color: '#D4AF37', marginTop: 4 }}>
+                                                    <Text allowFontScaling={false} style={{ fontSize: 11, color: '#D4AF37', marginTop: 4 }}>
                                                         Seçilen: {Object.values(selectedOptions).join(', ')}
                                                     </Text>
                                                 )}
@@ -460,7 +461,7 @@ export default function MarketScreen() {
 
                                             {/* Right Action (Price/Expand) */}
                                             <View style={[styles.priceExpandBtn, isExpanded && { backgroundColor: '#D4AF37' }]}>
-                                                <Text style={[styles.priceExpandText, isExpanded && { color: '#000' }]}>
+                                                <Text allowFontScaling={false} style={[styles.priceExpandText, isExpanded && { color: '#000' }]}>
                                                     {isExpanded ? 'KAPAT' : 'FİYAT'}
                                                 </Text>
                                                 <MaterialCommunityIcons
@@ -480,14 +481,14 @@ export default function MarketScreen() {
 
                                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
                                                     <MaterialCommunityIcons name="storefront-outline" size={16} color="#D4AF37" style={{ marginRight: 6 }} />
-                                                    <Text style={[styles.supplierListHeader, { marginBottom: 0 }]}>TEDARİKÇİLER & FİYATLAR</Text>
+                                                    <Text allowFontScaling={false} style={[styles.supplierListHeader, { marginBottom: 0 }]}>TEDARİKÇİLER & FİYATLAR</Text>
                                                 </View>
 
                                                 {getMockSuppliers(item.price).map((supplier) => (
                                                     <View key={supplier.id} style={styles.supplierRow}>
                                                         <View style={styles.supplierInfo}>
                                                             <View style={styles.supplierAvatar}>
-                                                                <Text style={styles.supplierInitials}>{supplier.name.substring(0, 2).toUpperCase()}</Text>
+                                                                <Text allowFontScaling={false} style={styles.supplierInitials}>{supplier.name.substring(0, 2).toUpperCase()}</Text>
                                                             </View>
                                                             <View>
                                                                 <TouchableOpacity onPress={() => navigation.navigate('SellerStore', {
@@ -495,22 +496,22 @@ export default function MarketScreen() {
                                                                     rating: supplier.rating,
                                                                     location: 'İstanbul' // Mock location
                                                                 })}>
-                                                                    <Text style={[styles.supplierNameText, { textDecorationLine: 'underline' }]}>{supplier.name}</Text>
+                                                                    <Text allowFontScaling={false} style={[styles.supplierNameText, { textDecorationLine: 'underline' }]}>{supplier.name}</Text>
                                                                 </TouchableOpacity>
                                                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                                                     <Ionicons name="star" size={12} color="#D4AF37" />
-                                                                    <Text style={styles.supplierRating}>{supplier.rating}</Text>
+                                                                    <Text allowFontScaling={false} style={styles.supplierRating}>{supplier.rating}</Text>
                                                                 </View>
                                                             </View>
                                                         </View>
 
                                                         <View style={{ alignItems: 'flex-end', gap: 6 }}>
                                                             <View style={{ alignItems: 'flex-end' }}>
-                                                                <Text style={{ color: '#666', fontSize: 10, fontWeight: 'bold' }}>BİRİM FİYAT</Text>
-                                                                <Text style={styles.supplierPrice}>{supplier.price}</Text>
+                                                                <Text allowFontScaling={false} style={{ color: '#666', fontSize: 10, fontWeight: 'bold' }}>BİRİM FİYAT</Text>
+                                                                <Text allowFontScaling={false} style={styles.supplierPrice}>{supplier.price}</Text>
                                                             </View>
                                                             <TouchableOpacity style={styles.addToCartBtnSmall} onPress={() => handleAddToCart(item)}>
-                                                                <Text style={styles.addToCartText}>SEPETE EKLE</Text>
+                                                                <Text allowFontScaling={false} style={styles.addToCartText}>SEPETE EKLE</Text>
                                                             </TouchableOpacity>
                                                         </View>
                                                     </View>
@@ -529,6 +530,24 @@ export default function MarketScreen() {
                 <TouchableOpacity style={styles.mapFab} onPress={handleOpenMap}>
                     <MaterialCommunityIcons name="map-marker-radius" size={28} color="#000" />
                 </TouchableOpacity>
+
+                {/* 6. FLOATING CART BUTTON (Dynamic) */}
+                {getCartCount() > 0 && (
+                    <TouchableOpacity 
+                        style={styles.cartFab} 
+                        onPress={() => navigation.navigate('MarketCart')}
+                        activeOpacity={0.9}
+                    >
+                        <LinearGradient colors={['#D4AF37', '#B8860B']} style={StyleSheet.absoluteFillObject} />
+                        <View style={styles.cartContentWrap}>
+                            <MaterialCommunityIcons name="cart-outline" size={26} color="#000" />
+                            <View style={styles.cartBadge}>
+                                <Text allowFontScaling={false} style={styles.cartBadgeText}>{getCartCount()}</Text>
+                            </View>
+                            <Text allowFontScaling={false} style={styles.cartFabText}>Sepete Git</Text>
+                        </View>
+                    </TouchableOpacity>
+                )}
 
             </SafeAreaView>
         </View>
@@ -644,6 +663,13 @@ const styles = StyleSheet.create({
 
     // Floating Map Button
     mapFab: { position: 'absolute', bottom: 30, right: 20, width: 56, height: 56, borderRadius: 28, backgroundColor: '#D4AF37', alignItems: 'center', justifyContent: 'center', shadowColor: '#D4AF37', shadowOffset: { height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
+
+    // Floating Cart Button
+    cartFab: { position: 'absolute', bottom: 100, right: 20, borderRadius: 28, height: 56, paddingHorizontal: 20, overflow: 'hidden', shadowColor: '#D4AF37', shadowOffset: { height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 },
+    cartContentWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
+    cartBadge: { position: 'absolute', top: 4, left: 16, backgroundColor: '#000', width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#D4AF37' },
+    cartBadgeText: { color: '#D4AF37', fontSize: 10, fontWeight: 'bold' },
+    cartFabText: { color: '#000', fontSize: 15, fontWeight: '800', marginLeft: 10 },
 
     // Filter Chips
     filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#333', marginRight: 10, borderWidth: 1, borderColor: '#444' },

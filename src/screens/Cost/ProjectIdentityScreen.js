@@ -46,7 +46,7 @@ const SelectionModal = ({ visible, onClose, title, items, onSelect }) => {
                 <Animated.View style={[localStyles.modalContent, { opacity: fadeAnim, transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [50, 0] }) }] }]}>
                     <LinearGradient colors={['#1a1a1a', '#0F0F0F']} style={localStyles.modalGradient}>
                         <View style={localStyles.modalHeader}>
-                            <Text style={localStyles.modalTitle}>{title}</Text>
+                            <Text allowFontScaling={false} style={localStyles.modalTitle}>{title}</Text>
                             <TouchableOpacity onPress={onClose} style={localStyles.closeButton}>
                                 <Ionicons name="close" size={24} color="#D4AF37" />
                             </TouchableOpacity>
@@ -57,7 +57,7 @@ const SelectionModal = ({ visible, onClose, title, items, onSelect }) => {
                             showsVerticalScrollIndicator={false}
                             renderItem={({ item }) => (
                                 <TouchableOpacity style={localStyles.modalItem} onPress={() => { onSelect(item); onClose(); }}>
-                                    <Text style={localStyles.modalItemText}>{item}</Text>
+                                    <Text allowFontScaling={false} style={localStyles.modalItemText}>{item}</Text>
                                     <Ionicons name="chevron-forward" size={16} color="rgba(212, 175, 55, 0.3)" />
                                 </TouchableOpacity>
                             )}
@@ -176,12 +176,12 @@ export default function ProjectIdentityScreen({ navigation, route }) {
     // --- SUB-COMPONENTS ---
     const Stepper = ({ label, value, onChange, min = 0 }) => (
         <View style={localStyles.stepperRow}>
-            <Text style={localStyles.stepperLabel}>{label}</Text>
+            <Text allowFontScaling={false} style={localStyles.stepperLabel}>{label}</Text>
             <View style={localStyles.stepperControls}>
                 <TouchableOpacity style={localStyles.stepBtn} onPress={() => onChange(Math.max(min, value - 1))}>
                     <Ionicons name="remove" size={20} color="#D4AF37" />
                 </TouchableOpacity>
-                <Text style={localStyles.stepValue}>{value}</Text>
+                <Text allowFontScaling={false} style={localStyles.stepValue}>{value}</Text>
                 <TouchableOpacity style={localStyles.stepBtn} onPress={() => onChange(value + 1)}>
                     <Ionicons name="add" size={20} color="#D4AF37" />
                 </TouchableOpacity>
@@ -191,7 +191,7 @@ export default function ProjectIdentityScreen({ navigation, route }) {
 
     const SegmentOption = ({ label, selected, onPress }) => (
         <TouchableOpacity style={[localStyles.segmentBtn, selected && localStyles.segmentBtnActive]} onPress={onPress}>
-            <Text style={[localStyles.segmentText, selected && localStyles.segmentTextActive]}>{label}</Text>
+            <Text allowFontScaling={false} style={[localStyles.segmentText, selected && localStyles.segmentTextActive]}>{label}</Text>
         </TouchableOpacity>
     );
 
@@ -212,14 +212,14 @@ export default function ProjectIdentityScreen({ navigation, route }) {
                                 {/* City Selector (Gold Filled) */}
                                 <TouchableOpacity style={localStyles.locBox} onPress={() => openLocationModal('city')}>
                                     <Ionicons name="map" size={14} color="#000" />
-                                    <Text style={localStyles.locText}>{location.city}</Text>
+                                    <Text allowFontScaling={false} style={localStyles.locText}>{location.city}</Text>
                                     <MaterialCommunityIcons name="chevron-down" size={14} color="#000" />
                                 </TouchableOpacity>
 
                                 {/* District Selector (Gold Filled) */}
                                 <TouchableOpacity style={localStyles.locBox} onPress={() => openLocationModal('district')}>
                                     <Ionicons name="location" size={14} color="#000" />
-                                    <Text style={localStyles.locText}>{location.district || 'İlçe Seç'}</Text>
+                                    <Text allowFontScaling={false} style={localStyles.locText}>{location.district || 'İlçe Seç'}</Text>
                                     <MaterialCommunityIcons name="chevron-down" size={14} color="#000" />
                                 </TouchableOpacity>
                             </View>
@@ -232,8 +232,8 @@ export default function ProjectIdentityScreen({ navigation, route }) {
                         <LuxuryCard style={localStyles.modeCard}>
                             <View style={localStyles.rowBetween}>
                                 <View>
-                                    <Text style={localStyles.modeTitle}>Elimde Hazır Metraj Var</Text>
-                                    <Text style={localStyles.modeSubtitle}>Çizim yapmadan direkt maliyete geç</Text>
+                                    <Text allowFontScaling={false} style={localStyles.modeTitle}>Elimde Hazır Metraj Var</Text>
+                                    <Text allowFontScaling={false} style={localStyles.modeSubtitle}>Çizim yapmadan direkt maliyete geç</Text>
                                 </View>
                                 <Switch
                                     value={isManualMode}
@@ -247,8 +247,8 @@ export default function ProjectIdentityScreen({ navigation, route }) {
                         {isManualMode ? (
                             <View style={{ marginTop: 20 }}>
                                 <LuxuryCard style={{ padding: 24, alignItems: 'center' }}>
-                                    <Text style={{ color: '#D4AF37', fontWeight: 'bold', marginBottom: 16 }}>TOPLAM İNŞAAT ALANI (m²)</Text>
-                                    <TextInput
+                                    <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', marginBottom: 16 }}>TOPLAM İNŞAAT ALANI (m²)</Text>
+                                    <TextInput allowFontScaling={false}
                                         style={localStyles.largeInput}
                                         value={manualArea}
                                         onChangeText={setManualArea}
@@ -267,10 +267,10 @@ export default function ProjectIdentityScreen({ navigation, route }) {
                                 <LuxuryCard>
                                     <View style={localStyles.cardHeader}>
                                         <MaterialCommunityIcons name="floor-plan" size={20} color="#D4AF37" />
-                                        <Text style={localStyles.cardTitle}>TEMEL / TABAN ALANI</Text>
+                                        <Text allowFontScaling={false} style={localStyles.cardTitle}>TEMEL / TABAN ALANI</Text>
                                     </View>
                                     <View style={localStyles.rowCenter}>
-                                        <TextInput
+                                        <TextInput allowFontScaling={false}
                                             style={localStyles.largeInput}
                                             value={baseArea}
                                             onChangeText={setBaseArea}
@@ -279,14 +279,14 @@ export default function ProjectIdentityScreen({ navigation, route }) {
                                             placeholderTextColor="#444"
                                             inputAccessoryViewID="toolbar_project_identity"
                                         />
-                                        <Text style={localStyles.unitTextLarge}>m²</Text>
+                                        <Text allowFontScaling={false} style={localStyles.unitTextLarge}>m²</Text>
                                     </View>
-                                    <Text style={localStyles.hintTextCenter}>Binanın toprağa bastığı alan</Text>
+                                    <Text allowFontScaling={false} style={localStyles.hintTextCenter}>Binanın toprağa bastığı alan</Text>
 
                                     {/* ENLARGED SKETCH BUTTON */}
                                     <TouchableOpacity style={localStyles.sketchButtonLarge} onPress={goToSketch}>
                                         <MaterialCommunityIcons name="pencil-ruler" size={20} color="#000" />
-                                        <Text style={localStyles.sketchButtonTextLarge}>DETAYLI ÇİZEREK HESAPLA</Text>
+                                        <Text allowFontScaling={false} style={localStyles.sketchButtonTextLarge}>DETAYLI ÇİZEREK HESAPLA</Text>
                                     </TouchableOpacity>
                                 </LuxuryCard>
 
@@ -294,7 +294,7 @@ export default function ProjectIdentityScreen({ navigation, route }) {
                                 <LuxuryCard>
                                     <View style={localStyles.cardHeader}>
                                         <MaterialCommunityIcons name="office-building" size={20} color="#D4AF37" />
-                                        <Text style={localStyles.cardTitle}>ZEMİN ÜSTÜ KATLAR</Text>
+                                        <Text allowFontScaling={false} style={localStyles.cardTitle}>ZEMİN ÜSTÜ KATLAR</Text>
                                     </View>
                                     <Stepper label="Kat Sayısı (Zemin + Normal)" value={floorsAbove} onChange={setFloorsAbove} min={1} />
                                 </LuxuryCard>
@@ -303,11 +303,11 @@ export default function ProjectIdentityScreen({ navigation, route }) {
                                 <LuxuryCard>
                                     <View style={localStyles.cardHeader}>
                                         <MaterialCommunityIcons name="arrow-down-bold-box" size={20} color="#D4AF37" />
-                                        <Text style={localStyles.cardTitle}>TOPRAK ALTI</Text>
+                                        <Text allowFontScaling={false} style={localStyles.cardTitle}>TOPRAK ALTI</Text>
                                     </View>
                                     <Stepper label="Bodrum Kat Sayısı" value={basementFloors} onChange={setBasementFloors} />
                                     <View style={localStyles.divider} />
-                                    <Text style={localStyles.subLabel}>Sığınak Durumu:</Text>
+                                    <Text allowFontScaling={false} style={localStyles.subLabel}>Sığınak Durumu:</Text>
                                     <View style={localStyles.segmentRow}>
                                         <SegmentOption label="Yok" selected={shelterType === 'none'} onPress={() => setShelterType('none')} />
                                         <SegmentOption label="Yarım Kat" selected={shelterType === 'half'} onPress={() => setShelterType('half')} />
@@ -319,14 +319,14 @@ export default function ProjectIdentityScreen({ navigation, route }) {
                                 <LuxuryCard>
                                     <View style={localStyles.cardHeader}>
                                         <MaterialCommunityIcons name="car" size={20} color="#D4AF37" />
-                                        <Text style={localStyles.cardTitle}>OTOPARK ÇÖZÜMÜ</Text>
+                                        <Text allowFontScaling={false} style={localStyles.cardTitle}>OTOPARK ÇÖZÜMÜ</Text>
                                     </View>
                                     <View style={localStyles.verSegmentContainer}>
                                         <SegmentOption label="Açık / Yok" selected={parkingType === 'open'} onPress={() => setParkingType('open')} />
                                         <SegmentOption label="Kapalı (Bina Altına Kat İnilecek)" selected={parkingType === 'closed_under'} onPress={() => setParkingType('closed_under')} />
                                     </View>
                                     {parkingType === 'closed_under' &&
-                                        <Text style={localStyles.warningText}>ℹ️ Hesaplamaya +1 Kat (Taban Alanı kadar) eklendi.</Text>
+                                        <Text allowFontScaling={false} style={localStyles.warningText}>ℹ️ Hesaplamaya +1 Kat (Taban Alanı kadar) eklendi.</Text>
                                     }
                                 </LuxuryCard>
                             </View>
@@ -339,7 +339,7 @@ export default function ProjectIdentityScreen({ navigation, route }) {
                     <InputAccessoryView nativeID="toolbar_project_identity">
                         <View style={localStyles.accessoryContainer}>
                             <TouchableOpacity onPress={() => Keyboard.dismiss()} style={localStyles.accessoryButton}>
-                                <Text style={localStyles.accessoryText}>Bitti</Text>
+                                <Text allowFontScaling={false} style={localStyles.accessoryText}>Bitti</Text>
                             </TouchableOpacity>
                         </View>
                     </InputAccessoryView>
@@ -349,13 +349,13 @@ export default function ProjectIdentityScreen({ navigation, route }) {
                 <View style={localStyles.footer}>
                     {!isManualMode && (
                         <View style={localStyles.estimationBox}>
-                            <Text style={localStyles.estLabel}>TAHMİNİ TOPLAM ALAN</Text>
-                            <Text style={localStyles.estValue}>{estimatedArea} m²</Text>
+                            <Text allowFontScaling={false} style={localStyles.estLabel}>TAHMİNİ TOPLAM ALAN</Text>
+                            <Text allowFontScaling={false} style={localStyles.estValue}>{estimatedArea} m²</Text>
                         </View>
                     )}
                     <TouchableOpacity style={localStyles.confirmBtn} onPress={handleNext}>
                         <LinearGradient colors={['#D4AF37', '#AA8C2C']} style={localStyles.btnGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                            <Text style={localStyles.btnText}>ANALİZİ BAŞLAT</Text>
+                            <Text allowFontScaling={false} style={localStyles.btnText}>ANALİZİ BAŞLAT</Text>
                             <Ionicons name="rocket-outline" size={24} color="#000" />
                         </LinearGradient>
                     </TouchableOpacity>

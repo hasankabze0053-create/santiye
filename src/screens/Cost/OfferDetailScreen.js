@@ -243,10 +243,10 @@ export default function OfferDetailScreen() {
                 <GlassCard style={styles.card}>
                     <View style={styles.cardHeader}>
                         <MaterialCommunityIcons name="star-circle" size={24} color="#D4AF37" />
-                        <Text style={styles.cardTitle}>TEKLİF #{index + 1}</Text>
+                        <Text allowFontScaling={false} style={styles.cardTitle}>TEKLİF #{index + 1}</Text>
                         <View style={{ flex: 1 }} />
                         <View style={styles.badge}>
-                            <Text style={styles.badgeText}>YENİ TEKLİF</Text>
+                            <Text allowFontScaling={false} style={styles.badgeText}>YENİ TEKLİF</Text>
                         </View>
                     </View>
 
@@ -255,19 +255,19 @@ export default function OfferDetailScreen() {
                     {/* Financials */}
                     {offer.price_estimate > 0 ? (
                         <View>
-                            <Text style={styles.label}>TAHMİNİ FİYAT</Text>
-                            <Text style={styles.priceValue}>{formatCurrency(offer.price_estimate)} TL</Text>
-                            <Text style={styles.priceWords}>{numberToTurkishWords(offer.price_estimate)}</Text>
+                            <Text allowFontScaling={false} style={styles.label}>TAHMİNİ FİYAT</Text>
+                            <Text allowFontScaling={false} style={styles.priceValue}>{formatCurrency(offer.price_estimate)} TL</Text>
+                            <Text allowFontScaling={false} style={styles.priceWords}>{numberToTurkishWords(offer.price_estimate)}</Text>
                         </View>
                     ) : (
                         <View>
-                            <Text style={styles.label}>KAT KARŞILIĞI PAYLAŞIM MODELİ</Text>
+                            <Text allowFontScaling={false} style={styles.label}>KAT KARŞILIĞI PAYLAŞIM MODELİ</Text>
                         </View>
                     )}
                 </GlassCard>
 
                 {/* 2. Visual Building Schema */}
-                <Text style={styles.sectionTitle}>MİMARİ GÖRSELLEŞTİRME</Text>
+                <Text allowFontScaling={false} style={styles.sectionTitle}>MİMARİ GÖRSELLEŞTİRME</Text>
                 <View style={styles.schemaContainer}>
                     <BuildingSchema
                         floorCount={offer.floor_count}
@@ -314,9 +314,9 @@ export default function OfferDetailScreen() {
                 {/* 3. Description & Notes */}
                 {offer.offer_details && (
                     <View style={{ marginTop: 20 }}>
-                        <Text style={styles.sectionTitle}>TEKLİF DETAYLARI VE NOTLAR</Text>
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>TEKLİF DETAYLARI VE NOTLAR</Text>
                         <GlassCard style={styles.card}>
-                            <Text style={styles.noteText}>{offer.offer_details}</Text>
+                            <Text allowFontScaling={false} style={styles.noteText}>{offer.offer_details}</Text>
                         </GlassCard>
                     </View>
                 )}
@@ -330,7 +330,7 @@ export default function OfferDetailScreen() {
                                 colors={['#D4AF37', '#B8860B']}
                                 style={styles.gradientBtn}
                             >
-                                <Text style={styles.primaryBtnText}>BU TEKLİFİ KABUL ET</Text>
+                                <Text allowFontScaling={false} style={styles.primaryBtnText}>BU TEKLİFİ KABUL ET</Text>
                             </LinearGradient>
                         </TouchableOpacity>
 
@@ -347,11 +347,11 @@ export default function OfferDetailScreen() {
                             }}
                         >
                             <MaterialCommunityIcons name="message-text-outline" size={20} color="#38BDF8" style={{ marginRight: 8 }} />
-                            <Text style={[styles.secondaryBtnText, { color: '#38BDF8' }]}>FİRMA İLE GÖRÜŞ</Text>
+                            <Text allowFontScaling={false} style={[styles.secondaryBtnText, { color: '#38BDF8' }]}>FİRMA İLE GÖRÜŞ</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity style={[styles.secondaryBtn, { borderColor: '#EF4444' }]}>
-                            <Text style={[styles.secondaryBtnText, { color: '#EF4444' }]}>REDDET</Text>
+                            <Text allowFontScaling={false} style={[styles.secondaryBtnText, { color: '#EF4444' }]}>REDDET</Text>
                         </TouchableOpacity>
                     </View>
                 )}
@@ -379,10 +379,10 @@ export default function OfferDetailScreen() {
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <View style={{ alignItems: 'center' }}>
-                        <Text style={styles.headerTitle}>{contractor?.company_name?.toUpperCase() || contractor?.full_name?.toUpperCase() || 'MÜTEAHHİT'}</Text>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>{contractor?.company_name?.toUpperCase() || contractor?.full_name?.toUpperCase() || 'MÜTEAHHİT'}</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                             <MaterialCommunityIcons name="check-decagram" size={14} color="#38BDF8" />
-                            <Text style={{ color: '#BBB', fontSize: 11 }}>Onaylı Yüklenici</Text>
+                            <Text allowFontScaling={false} style={{ color: '#BBB', fontSize: 11 }}>Onaylı Yüklenici</Text>
                         </View>
                     </View>
                     <TouchableOpacity style={styles.backBtn}>
@@ -409,7 +409,7 @@ export default function OfferDetailScreen() {
                                     ]}
                                     onPress={() => slidesRef.current?.scrollToIndex({ index: index, animated: true })}
                                 >
-                                    <Text style={{
+                                    <Text allowFontScaling={false} style={{
                                         color: activeTab === index ? '#000' : '#FFF',
                                         fontWeight: 'bold',
                                         fontSize: 13
@@ -422,7 +422,7 @@ export default function OfferDetailScreen() {
                     </View>
                 )}
                 {offers.length > 1 && (
-                    <Text style={styles.swipeHint}>Farklı seçenekleri görmek için kaydırın</Text>
+                    <Text allowFontScaling={false} style={styles.swipeHint}>Farklı seçenekleri görmek için kaydırın</Text>
                 )}
 
                 {/* Carousel */}
@@ -445,7 +445,7 @@ export default function OfferDetailScreen() {
                         <TouchableOpacity style={{ position: 'absolute', top: 50, right: 20, zIndex: 10 }} onPress={() => setIsSchemaModalVisible(false)}>
                             <Ionicons name="close-circle" size={40} color="#FFF" />
                         </TouchableOpacity>
-                        <Text style={{ color: '#D4AF37', fontSize: 16, fontWeight: 'bold', textAlign: 'center', marginTop: 40, marginBottom: 20 }}>
+                        <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 16, fontWeight: 'bold', textAlign: 'center', marginTop: 40, marginBottom: 20 }}>
                             DETAYLI KAT PLANI
                         </Text>
                         <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>

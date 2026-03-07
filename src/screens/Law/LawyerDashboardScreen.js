@@ -25,14 +25,14 @@ export default function LawyerDashboardScreen() {
                 {/* Header */}
                 <View style={styles.header}>
                     <View>
-                        <Text style={styles.headerTitle}>AVUKAT PANELİ</Text>
-                        <Text style={styles.headerSubtitle}>Av. Mert Yılmaz</Text>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>AVUKAT PANELİ</Text>
+                        <Text allowFontScaling={false} style={styles.headerSubtitle}>Av. Mert Yılmaz</Text>
                     </View>
 
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                         <View style={styles.statusBadge}>
                             <View style={[styles.statusDot, { backgroundColor: isOnline ? '#4ADE80' : '#666' }]} />
-                            <Text style={[styles.statusText, { color: isOnline ? '#4ADE80' : '#666' }]}>
+                            <Text allowFontScaling={false} style={[styles.statusText, { color: isOnline ? '#4ADE80' : '#666' }]}>
                                 {isOnline ? 'Aktif' : 'Meşgul'}
                             </Text>
                             <Switch
@@ -76,21 +76,21 @@ export default function LawyerDashboardScreen() {
                             <View style={[styles.iconBox, { backgroundColor: 'rgba(212, 175, 55, 0.15)' }]}>
                                 <MaterialCommunityIcons name="scale-balance" size={24} color="#D4AF37" />
                             </View>
-                            <Text style={styles.statValue}>₺92.750</Text>
-                            <Text style={styles.statLabel}>Bu Ayki Kazanç</Text>
+                            <Text allowFontScaling={false} style={styles.statValue}>₺92.750</Text>
+                            <Text allowFontScaling={false} style={styles.statLabel}>Bu Ayki Kazanç</Text>
                         </View>
                         <View style={styles.statCard}>
                             <View style={[styles.iconBox, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
                                 <MaterialCommunityIcons name="gavel" size={24} color="#fff" />
                             </View>
-                            <Text style={styles.statValue}>14</Text>
-                            <Text style={styles.statLabel}>Aktif Dosya</Text>
+                            <Text allowFontScaling={false} style={styles.statValue}>14</Text>
+                            <Text allowFontScaling={false} style={styles.statLabel}>Aktif Dosya</Text>
                         </View>
                     </View>
 
                     {/* Quick Tools */}
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Hukuki Araçlar</Text>
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>Hukuki Araçlar</Text>
                     </View>
 
                     <View style={styles.actionsGrid}>
@@ -102,8 +102,8 @@ export default function LawyerDashboardScreen() {
 
                     {/* Active Inquiries / Cases */}
                     <View style={[styles.sectionHeader, { marginTop: 24 }]}>
-                        <Text style={styles.sectionTitle}>Gelen Talepler</Text>
-                        <TouchableOpacity><Text style={styles.seeAll}>Tümü</Text></TouchableOpacity>
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>Gelen Talepler</Text>
+                        <TouchableOpacity><Text allowFontScaling={false} style={styles.seeAll}>Tümü</Text></TouchableOpacity>
                     </View>
 
                     <View style={styles.requestsList}>
@@ -144,7 +144,7 @@ const QuickAction = ({ icon, label, color, onPress }) => (
         <View style={[styles.actionIcon, { backgroundColor: `${color}15`, borderColor: `${color}40`, borderWidth: 1 }]}>
             <MaterialCommunityIcons name={icon} size={24} color={color} />
         </View>
-        <Text style={styles.actionLabel}>{label}</Text>
+        <Text allowFontScaling={false} style={styles.actionLabel}>{label}</Text>
     </TouchableOpacity>
 );
 
@@ -153,14 +153,14 @@ const RequestCard = ({ id, client, topic, status, time, urgency }) => (
         <View style={styles.requestHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <MaterialCommunityIcons name="account-tie" size={16} color="#888" style={{ marginRight: 6 }} />
-                <Text style={styles.clientName}>{client}</Text>
+                <Text allowFontScaling={false} style={styles.clientName}>{client}</Text>
             </View>
             <View style={[styles.statusTag,
             status === 'Yeni' ? { backgroundColor: 'rgba(212, 175, 55, 0.2)', borderColor: '#D4AF37' } :
                 status === 'Randevu' ? { backgroundColor: 'rgba(74, 222, 128, 0.1)', borderColor: '#4ade80' } :
                     { backgroundColor: 'rgba(255, 255, 255, 0.1)', borderColor: '#666' }
             ]}>
-                <Text style={[styles.statusTagText,
+                <Text allowFontScaling={false} style={[styles.statusTagText,
                 status === 'Yeni' ? { color: '#D4AF37' } :
                     status === 'Randevu' ? { color: '#4ade80' } :
                         { color: '#aaa' }
@@ -169,25 +169,25 @@ const RequestCard = ({ id, client, topic, status, time, urgency }) => (
         </View>
 
         <View style={styles.requestBody}>
-            <Text style={styles.topicText}>{topic}</Text>
+            <Text allowFontScaling={false} style={styles.topicText}>{topic}</Text>
             <View style={styles.metaRow}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Ionicons name="time-outline" size={12} color="#666" style={{ marginRight: 4 }} />
-                    <Text style={styles.metaText}>{time}</Text>
+                    <Text allowFontScaling={false} style={styles.metaText}>{time}</Text>
                 </View>
                 {urgency === 'Yüksek' && (
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Ionicons name="alert-circle" size={12} color="#D4AF37" style={{ marginRight: 4 }} />
-                        <Text style={{ color: '#D4AF37', fontSize: 11, fontWeight: 'bold' }}>Acil</Text>
+                        <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 11, fontWeight: 'bold' }}>Acil</Text>
                     </View>
                 )}
             </View>
         </View>
 
         <View style={styles.requestFooter}>
-            <Text style={styles.requestId}>{id}</Text>
+            <Text allowFontScaling={false} style={styles.requestId}>{id}</Text>
             <TouchableOpacity style={styles.replyBtn}>
-                <Text style={styles.replyBtnText}>YANITLA</Text>
+                <Text allowFontScaling={false} style={styles.replyBtnText}>YANITLA</Text>
                 <Ionicons name="arrow-forward" size={14} color="#000" />
             </TouchableOpacity>
         </View>

@@ -44,7 +44,7 @@ export default function ContractorRequestDetailScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>TALEP DETAYI</Text>
+                    <Text allowFontScaling={false} style={styles.headerTitle}>TALEP DETAYI</Text>
                     <View style={{ width: 44 }} />
                 </View>
 
@@ -55,9 +55,9 @@ export default function ContractorRequestDetailScreen() {
                         <View style={styles.row}>
                             <MaterialCommunityIcons name="map-marker-radius" size={24} color="#D4AF37" />
                             <View style={{ marginLeft: 12, flex: 1 }}>
-                                <Text style={styles.label}>LOKASYON</Text>
-                                <Text style={styles.value}>{request.district}, {request.neighborhood}</Text>
-                                <Text style={styles.subValue}>{request.city}</Text>
+                                <Text allowFontScaling={false} style={styles.label}>LOKASYON</Text>
+                                <Text allowFontScaling={false} style={styles.value}>{request.district}, {request.neighborhood}</Text>
+                                <Text allowFontScaling={false} style={styles.subValue}>{request.city}</Text>
                             </View>
                         </View>
 
@@ -69,8 +69,8 @@ export default function ContractorRequestDetailScreen() {
                                 size={24} color="#D4AF37" 
                             />
                             <View style={{ marginLeft: 12, flex: 1 }}>
-                                <Text style={styles.label}>AÇIK ADRES</Text>
-                                <Text style={styles.value}>{request.full_address || 'Belirtilmemiş'}</Text>
+                                <Text allowFontScaling={false} style={styles.label}>AÇIK ADRES</Text>
+                                <Text allowFontScaling={false} style={styles.value}>{request.full_address || 'Belirtilmemiş'}</Text>
                             </View>
                         </View>
                     </GlassCard>
@@ -78,20 +78,20 @@ export default function ContractorRequestDetailScreen() {
                     {/* Technical Info (Only if Ada/Parsel exists) */}
                     {(request.ada || request.parsel) && (
                         <GlassCard style={styles.section}>
-                            <Text style={styles.sectionTitle}>Tapu & İmar Bilgileri</Text>
+                            <Text allowFontScaling={false} style={styles.sectionTitle}>Tapu & İmar Bilgileri</Text>
 
                             <View style={styles.grid}>
                                 <View style={styles.gridItem}>
-                                    <Text style={styles.label}>ADA</Text>
-                                    <Text style={styles.value}>{request.ada}</Text>
+                                    <Text allowFontScaling={false} style={styles.label}>ADA</Text>
+                                    <Text allowFontScaling={false} style={styles.value}>{request.ada}</Text>
                                 </View>
                                 <View style={styles.gridItem}>
-                                    <Text style={styles.label}>PARSEL</Text>
-                                    <Text style={styles.value}>{request.parsel}</Text>
+                                    <Text allowFontScaling={false} style={styles.label}>PARSEL</Text>
+                                    <Text allowFontScaling={false} style={styles.value}>{request.parsel}</Text>
                                 </View>
                                 <View style={styles.gridItem}>
-                                    <Text style={styles.label}>PAFTA</Text>
-                                    <Text style={styles.value}>{request.pafta || '-'}</Text>
+                                    <Text allowFontScaling={false} style={styles.label}>PAFTA</Text>
+                                    <Text allowFontScaling={false} style={styles.value}>{request.pafta || '-'}</Text>
                                 </View>
                             </View>
                         </GlassCard>
@@ -99,7 +99,7 @@ export default function ContractorRequestDetailScreen() {
 
                     {/* Offer Type Info */}
                     <GlassCard style={styles.section}>
-                        <Text style={styles.sectionTitle}>Talep Türü</Text>
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>Talep Türü</Text>
                         <View style={styles.row}>
                             <MaterialCommunityIcons
                                 name={request.offer_type === 'anahtar_teslim' ? "home-currency-usd" : "handshake"}
@@ -107,10 +107,10 @@ export default function ContractorRequestDetailScreen() {
                                 color="#D4AF37"
                             />
                             <View style={{ marginLeft: 12, flex: 1 }}>
-                                <Text style={styles.value}>
+                                <Text allowFontScaling={false} style={styles.value}>
                                     {request.offer_type === 'anahtar_teslim' ? 'Anahtar Teslim İnşaat' : 'Kat Karşılığı İnşaat'}
                                 </Text>
-                                <Text style={styles.subValue}>
+                                <Text allowFontScaling={false} style={styles.subValue}>
                                     {request.offer_type === 'anahtar_teslim'
                                         ? 'Maliyet mülk sahibi tarafından karşılanacak.'
                                         : 'Arsa payı karşılığında inşaat yapılacak.'}
@@ -121,8 +121,8 @@ export default function ContractorRequestDetailScreen() {
                         {request.is_campaign_active && (
                             <View style={styles.campaignBox}>
                                 <MaterialCommunityIcons name="star-circle" size={20} color="#000" />
-                                <Text style={styles.campaignText}>
-                                    Yarısı Bizden Kampanyası: <Text style={{ fontWeight: 'bold' }}>DAHİL</Text>
+                                <Text allowFontScaling={false} style={styles.campaignText}>
+                                    Yarısı Bizden Kampanyası: <Text allowFontScaling={false} style={{ fontWeight: 'bold' }}>DAHİL</Text>
                                 </Text>
                             </View>
                         )}
@@ -131,15 +131,15 @@ export default function ContractorRequestDetailScreen() {
                     {/* Description */}
                     {request.description && (
                         <GlassCard style={styles.section}>
-                            <Text style={styles.sectionTitle}>Açıklama & Notlar</Text>
-                            <Text style={styles.descText}>{request.description}</Text>
+                            <Text allowFontScaling={false} style={styles.sectionTitle}>Açıklama & Notlar</Text>
+                            <Text allowFontScaling={false} style={styles.descText}>{request.description}</Text>
                         </GlassCard>
                     )}
 
                     {/* Images */}
                     {request.document_urls && request.document_urls.length > 0 && (
                         <View style={styles.section}>
-                            <Text style={[styles.sectionTitle, { marginLeft: 4, marginBottom: 8 }]}>Belgeler & Görseller</Text>
+                            <Text allowFontScaling={false} style={[styles.sectionTitle, { marginLeft: 4, marginBottom: 8 }]}>Belgeler & Görseller</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                 {request.document_urls.map((url, index) => (
                                     <TouchableOpacity key={index} onPress={() => openImage(url)}>
@@ -166,7 +166,7 @@ export default function ContractorRequestDetailScreen() {
                             end={{ x: 1, y: 0.5 }}
                             style={styles.gradient}
                         >
-                            <Text style={styles.actionText}>TEKLİF VER</Text>
+                            <Text allowFontScaling={false} style={styles.actionText}>TEKLİF VER</Text>
                             <MaterialCommunityIcons name="arrow-right-thick" size={20} color="#000" />
                         </LinearGradient>
                     </TouchableOpacity>

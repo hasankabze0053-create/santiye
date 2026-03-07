@@ -7,8 +7,8 @@ export default function HelpCenterScreen() {
 
     const FAQItem = ({ question, answer }) => (
         <View style={styles.faqContainer}>
-            <Text style={styles.question}>{question}</Text>
-            <Text style={styles.answer}>{answer}</Text>
+            <Text allowFontScaling={false} style={styles.question}>{question}</Text>
+            <Text allowFontScaling={false} style={styles.answer}>{answer}</Text>
         </View>
     );
 
@@ -18,12 +18,12 @@ export default function HelpCenterScreen() {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color="#FFD700" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Yardım Merkezi</Text>
+                <Text allowFontScaling={false} style={styles.headerTitle}>Yardım Merkezi</Text>
             </View>
 
             <View style={styles.searchContainer}>
                 <Ionicons name="search" size={20} color="#666" style={{ marginRight: 10 }} />
-                <TextInput
+                <TextInput allowFontScaling={false}
                     placeholder="Nasıl yardımcı olabiliriz?"
                     placeholderTextColor="#666"
                     style={styles.searchInput}
@@ -31,7 +31,7 @@ export default function HelpCenterScreen() {
             </View>
 
             <ScrollView contentContainerStyle={styles.content}>
-                <Text style={styles.sectionTitle}>SIKÇA SORULAN SORULAR</Text>
+                <Text allowFontScaling={false} style={styles.sectionTitle}>SIKÇA SORULAN SORULAR</Text>
 
                 <FAQItem
                     question="Nasıl teklif alabilirim?"

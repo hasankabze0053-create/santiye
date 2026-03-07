@@ -15,8 +15,8 @@ export default function ContactUsScreen() {
                 )}
             </View>
             <View style={styles.textContainer}>
-                <Text style={styles.title}>{title}</Text>
-                <Text style={styles.subtitle}>{subtitle}</Text>
+                <Text allowFontScaling={false} style={styles.title}>{title}</Text>
+                <Text allowFontScaling={false} style={styles.subtitle}>{subtitle}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#666" />
         </TouchableOpacity>
@@ -28,11 +28,11 @@ export default function ContactUsScreen() {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color="#FFD700" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Bize Ulaşın</Text>
+                <Text allowFontScaling={false} style={styles.headerTitle}>Bize Ulaşın</Text>
             </View>
 
             <ScrollView contentContainerStyle={styles.content}>
-                <Text style={styles.description}>
+                <Text allowFontScaling={false} style={styles.description}>
                     Projenizle ilgili sorularınız veya destek talepleriniz için bize aşağıdaki kanallardan ulaşabilirsiniz.
                 </Text>
 

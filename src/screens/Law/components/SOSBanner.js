@@ -33,8 +33,8 @@ export default function SOSBanner({ onPress }) {
                     {/* Live dot */}
                     <Animated.View style={[styles.liveDot, { opacity: dotOpacity }]} />
                     <View style={styles.textBlock}>
-                        <Text style={styles.title}>ACİL S.O.S.</Text>
-                        <Text style={styles.subtitle}>İş Kazası · Baskın · Mühürleme → Canlı Destek</Text>
+                        <Text allowFontScaling={false} style={styles.title}>ACİL S.O.S.</Text>
+                        <Text allowFontScaling={false} style={styles.subtitle}>İş Kazası · Baskın · Mühürleme → Canlı Destek</Text>
                     </View>
                     <View style={styles.arrow}>
                         <MaterialCommunityIcons name="chevron-right" size={18} color="rgba(239,68,68,0.8)" />

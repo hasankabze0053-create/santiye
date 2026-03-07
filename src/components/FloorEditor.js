@@ -99,10 +99,10 @@ const FloorEditor = ({ floorNum, currentData, onSave, onClose }) => {
                 <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
                 <View style={[styles.floorEditorCard, { height: '80%' }]}>
                     <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>
+                        <Text allowFontScaling={false} style={styles.modalTitle}>
                             {floorNum > 0 ? `${floorNum}. KAT` : (floorNum === 0 ? 'ZEMİN KAT' : `${Math.abs(floorNum)}. BODRUM`)}
                         </Text>
-                        <Text style={styles.modalSubtitle}>Bağımsız Bölüm Listesi</Text>
+                        <Text allowFontScaling={false} style={styles.modalSubtitle}>Bağımsız Bölüm Listesi</Text>
                     </View>
 
                     {/* Add Buttons */}
@@ -115,7 +115,7 @@ const FloorEditor = ({ floorNum, currentData, onSave, onClose }) => {
                                     onPress={() => addUnit(type.id)}
                                 >
                                     <MaterialCommunityIcons name="plus" size={14} color="#000" />
-                                    <Text style={styles.addTypeBtnText}>{type.label}</Text>
+                                    <Text allowFontScaling={false} style={styles.addTypeBtnText}>{type.label}</Text>
                                 </TouchableOpacity>
                             ))}
                         </ScrollView>
@@ -123,7 +123,7 @@ const FloorEditor = ({ floorNum, currentData, onSave, onClose }) => {
 
                     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
                         {localList.length === 0 ? (
-                            <Text style={styles.emptyText}>Bu katta henüz birim yok. Yukarıdan ekleyiniz.</Text>
+                            <Text allowFontScaling={false} style={styles.emptyText}>Bu katta henüz birim yok. Yukarıdan ekleyiniz.</Text>
                         ) : (
                             localList.map((unit, index) => (
                                 <View key={unit.id || index} style={styles.unitRow}>
@@ -135,7 +135,7 @@ const FloorEditor = ({ floorNum, currentData, onSave, onClose }) => {
                                         />
                                     </View>
 
-                                    <TextInput
+                                    <TextInput allowFontScaling={false}
                                         style={styles.unitNameInput}
                                         value={unit.name}
                                         onChangeText={(t) => updateUnit(index, 'name', t)}
@@ -143,7 +143,7 @@ const FloorEditor = ({ floorNum, currentData, onSave, onClose }) => {
                                         placeholderTextColor="#555"
                                     />
 
-                                    <TextInput
+                                    <TextInput allowFontScaling={false}
                                         style={styles.unitAreaInput}
                                         value={unit.area}
                                         onChangeText={(t) => updateUnit(index, 'area', t)}
@@ -162,7 +162,7 @@ const FloorEditor = ({ floorNum, currentData, onSave, onClose }) => {
 
                     <View style={styles.modalFooter}>
                         <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-                            <Text style={styles.cancelButtonText}>İPTAL</Text>
+                            <Text allowFontScaling={false} style={styles.cancelButtonText}>İPTAL</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.saveButton} onPress={() => onSave(floorNum, localList)}>
                             <LinearGradient
@@ -171,7 +171,7 @@ const FloorEditor = ({ floorNum, currentData, onSave, onClose }) => {
                                 end={{ x: 1, y: 0 }}
                                 style={styles.gradientButton}
                             >
-                                <Text style={styles.saveButtonText}>KAYDET</Text>
+                                <Text allowFontScaling={false} style={styles.saveButtonText}>KAYDET</Text>
                             </LinearGradient>
                         </TouchableOpacity>
                     </View>

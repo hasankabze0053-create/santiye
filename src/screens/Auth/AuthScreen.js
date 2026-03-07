@@ -37,9 +37,9 @@ const TEXT_GREY = '#B3B3B3';
 // Custom Styled Input Component (Defined outside to prevent re-renders)
 const PremiumInput = ({ label, placeholder, value, onChangeText, isPassword, togglePass, secureTextEntry }) => (
     <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>{label}</Text>
+        <Text allowFontScaling={false} style={styles.inputLabel}>{label}</Text>
         <View style={styles.inputContainer}>
-            <TextInput
+            <TextInput allowFontScaling={false}
                 style={styles.input}
                 placeholder={placeholder}
                 placeholderTextColor="#666"
@@ -183,8 +183,8 @@ export default function AuthScreen() {
 
                         {/* 2. LOGO: Coded Typography */}
                         <View style={styles.logoSection}>
-                            <Text style={styles.logoTextBase}>
-                                Cepte<Text style={styles.logoTextHighlight}>Şef</Text>
+                            <Text allowFontScaling={false} style={styles.logoTextBase}>
+                                Cepte<Text allowFontScaling={false} style={styles.logoTextHighlight}>Şef</Text>
                             </Text>
                         </View>
 
@@ -220,7 +220,7 @@ export default function AuthScreen() {
                             {/* Options Row: Forgot Password & Remember Me */}
                             <View style={styles.optionsRow}>
                                 <TouchableOpacity style={styles.optionButton}>
-                                    <Text style={styles.forgotText}>Şifremi Unuttum?</Text>
+                                    <Text allowFontScaling={false} style={styles.forgotText}>Şifremi Unuttum?</Text>
                                 </TouchableOpacity>
 
                                 {/* Fully Clickable Remember Me Area */}
@@ -232,7 +232,7 @@ export default function AuthScreen() {
                                     <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
                                         {rememberMe && <Ionicons name="checkmark" size={10} color="#000" />}
                                     </View>
-                                    <Text style={styles.rememberText}>Beni Hatırla</Text>
+                                    <Text allowFontScaling={false} style={styles.rememberText}>Beni Hatırla</Text>
                                 </TouchableOpacity>
                             </View>
 
@@ -253,23 +253,23 @@ export default function AuthScreen() {
                                     {loading ? (
                                         <ActivityIndicator color="#000" />
                                     ) : (
-                                        <Text style={styles.loginBtnText}>{isLogin ? 'Giriş Yap' : 'Kayıt Ol'}</Text>
+                                        <Text allowFontScaling={false} style={styles.loginBtnText}>{isLogin ? 'Giriş Yap' : 'Kayıt Ol'}</Text>
                                     )}
                                 </LinearGradient>
                             </TouchableOpacity>
 
                             {/* Toggle Sign Up Text */}
                             <TouchableOpacity style={styles.footerToggle} onPress={() => setIsLogin(!isLogin)}>
-                                <Text style={styles.footerText}>
+                                <Text allowFontScaling={false} style={styles.footerText}>
                                     {isLogin ? 'Hesabın yok mu? ' : 'Zaten hesabın var mı? '}
-                                    <Text style={styles.signUpText}>{isLogin ? 'Kayıt Ol' : 'Giriş Yap'}</Text>
+                                    <Text allowFontScaling={false} style={styles.signUpText}>{isLogin ? 'Kayıt Ol' : 'Giriş Yap'}</Text>
                                 </Text>
                             </TouchableOpacity>
 
                             {/* 5. FOOTER: Divider & Socials */}
                             <View style={styles.dividerContainer}>
                                 <View style={styles.dividerLine} />
-                                <Text style={styles.dividerText}>VEYA</Text>
+                                <Text allowFontScaling={false} style={styles.dividerText}>VEYA</Text>
                                 <View style={styles.dividerLine} />
                             </View>
 
@@ -283,13 +283,13 @@ export default function AuthScreen() {
                                             style={{ width: 24, height: 24 }}
                                         />
                                     </View>
-                                    <Text style={styles.googleText}>Google ile Giriş Yap</Text>
+                                    <Text allowFontScaling={false} style={styles.googleText}>Google ile Giriş Yap</Text>
                                 </TouchableOpacity>
 
                                 {/* Apple Button: Deep Black with White Logo */}
                                 <TouchableOpacity style={styles.appleBtn} onPress={() => handleSocialLogin('Apple')}>
                                     <FontAwesome name="apple" size={24} color="#FFF" style={{ marginRight: 12 }} />
-                                    <Text style={styles.appleText}>Apple ile Giriş Yap</Text>
+                                    <Text allowFontScaling={false} style={styles.appleText}>Apple ile Giriş Yap</Text>
                                 </TouchableOpacity>
                             </View>
 

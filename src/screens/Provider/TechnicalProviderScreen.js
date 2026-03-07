@@ -17,13 +17,13 @@ export default function TechnicalProviderScreen() {
                     <View style={styles.pin}>
                         <MaterialCommunityIcons name="home-search" size={16} color="#000" />
                     </View>
-                    <View style={styles.pinLabel}><Text style={styles.labelT}>Keşif</Text></View>
+                    <View style={styles.pinLabel}><Text allowFontScaling={false} style={styles.labelT}>Keşif</Text></View>
                 </View>
                 <View style={{ position: 'absolute', top: 90, left: 80, alignItems: 'center' }}>
                     <View style={styles.pin}>
                         <MaterialCommunityIcons name="ruler" size={16} color="#000" />
                     </View>
-                    <View style={styles.pinLabel}><Text style={styles.labelT}>Metraj</Text></View>
+                    <View style={styles.pinLabel}><Text allowFontScaling={false} style={styles.labelT}>Metraj</Text></View>
                 </View>
             </GlassCard>
 
@@ -36,11 +36,11 @@ export default function TechnicalProviderScreen() {
                         <MaterialCommunityIcons name="pillar" size={24} color="#000" />
                     </View>
                     <View style={{ flex: 1, paddingLeft: 12 }}>
-                        <Text style={styles.repTitle}>Statik Performans Analizi</Text>
-                        <Text style={styles.repSub}>Konak Apt. • 5 Katlı Betonarme</Text>
+                        <Text allowFontScaling={false} style={styles.repTitle}>Statik Performans Analizi</Text>
+                        <Text allowFontScaling={false} style={styles.repSub}>Konak Apt. • 5 Katlı Betonarme</Text>
                     </View>
                     <TouchableOpacity style={styles.actionBtn}>
-                        <Text style={styles.actionText}>TAMAMLA</Text>
+                        <Text allowFontScaling={false} style={styles.actionText}>TAMAMLA</Text>
                         <MaterialCommunityIcons name="arrow-right" size={14} color="#000" />
                     </TouchableOpacity>
                 </View>
@@ -52,11 +52,11 @@ export default function TechnicalProviderScreen() {
                         <MaterialCommunityIcons name="floor-plan" size={24} color="#000" />
                     </View>
                     <View style={{ flex: 1, paddingLeft: 12 }}>
-                        <Text style={styles.repTitle}>Zemin Etüdü Raporu</Text>
-                        <Text style={styles.repSub}>Pendik Şantiye Alanı</Text>
+                        <Text allowFontScaling={false} style={styles.repTitle}>Zemin Etüdü Raporu</Text>
+                        <Text allowFontScaling={false} style={styles.repSub}>Pendik Şantiye Alanı</Text>
                     </View>
                     <TouchableOpacity style={styles.actionBtn}>
-                        <Text style={styles.actionText}>TAMAMLA</Text>
+                        <Text allowFontScaling={false} style={styles.actionText}>TAMAMLA</Text>
                         <MaterialCommunityIcons name="arrow-right" size={14} color="#000" />
                     </TouchableOpacity>
                 </View>
@@ -67,11 +67,11 @@ export default function TechnicalProviderScreen() {
             <View style={{ flexDirection: 'row', gap: 12 }}>
                 <GlassCard style={{ flex: 1, alignItems: 'center', padding: 20 }}>
                     <MaterialCommunityIcons name="calculator" size={32} color={THEME.accent} />
-                    <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold', marginTop: 10 }}>Statik Hesap</Text>
+                    <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 12, fontWeight: 'bold', marginTop: 10 }}>Statik Hesap</Text>
                 </GlassCard>
                 <GlassCard style={{ flex: 1, alignItems: 'center', padding: 20 }}>
                     <MaterialCommunityIcons name="file-sign" size={32} color={THEME.accent} />
-                    <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold', marginTop: 10 }}>İmza At</Text>
+                    <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 12, fontWeight: 'bold', marginTop: 10 }}>İmza At</Text>
                 </GlassCard>
             </View>
 

@@ -118,7 +118,7 @@ export default function CustomRequestScreen({ navigation, route }) {
                 size={24}
                 color={isGold ? THEME.goldPrimary : '#888'}
             />
-            <Text style={[
+            <Text allowFontScaling={false} style={[
                 styles.uploadText,
                 { color: isGold ? THEME.goldPrimary : '#888' }
             ]}>
@@ -198,8 +198,8 @@ export default function CustomRequestScreen({ navigation, route }) {
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <View style={styles.headerTitleContainer}>
-                        <Text style={styles.headerTitle}>Detaylar &</Text>
-                        <Text style={[styles.headerTitle, { color: THEME.goldPrimary }]}> İstekler</Text>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>Detaylar &</Text>
+                        <Text allowFontScaling={false} style={[styles.headerTitle, { color: THEME.goldPrimary }]}> İstekler</Text>
                     </View>
                     <View style={{ width: 40 }} />
                 </View>
@@ -215,8 +215,8 @@ export default function CustomRequestScreen({ navigation, route }) {
 
                         {/* SECTION 1: CURRENT STATE UPLOAD */}
                         <View style={styles.section}>
-                            <Text style={styles.sectionLabel}>Mevcut Alan Fotoğrafları</Text>
-                            <Text style={styles.sectionSubLabel}>Proje yapılacak alanın şu anki hali (Opsiyonel).</Text>
+                            <Text allowFontScaling={false} style={styles.sectionLabel}>Mevcut Alan Fotoğrafları</Text>
+                            <Text allowFontScaling={false} style={styles.sectionSubLabel}>Proje yapılacak alanın şu anki hali (Opsiyonel).</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
                                 {currentImages.map((uri, i) => renderImageItem(uri, i, 'current'))}
                                 {renderUploadSlot('Alan Ekle', false, 'current')}
@@ -226,9 +226,9 @@ export default function CustomRequestScreen({ navigation, route }) {
 
                         {/* SECTION 2: SPECIAL NOTES */}
                         <View style={styles.section}>
-                            <Text style={styles.sectionLabel}>Özel İstekleriniz</Text>
+                            <Text allowFontScaling={false} style={styles.sectionLabel}>Özel İstekleriniz</Text>
                             <View style={styles.inputContainer}>
-                                <TextInput
+                                <TextInput allowFontScaling={false}
                                     style={styles.textInput}
                                     placeholder="Örn: Salonda şömine istiyorum, zemin mermer olsun..."
                                     placeholderTextColor={THEME.placeholder}
@@ -246,8 +246,8 @@ export default function CustomRequestScreen({ navigation, route }) {
 
                         {/* SECTION 3: INSPIRATION UPLOAD */}
                         <View style={[styles.section, { marginBottom: 100 }]}>
-                            <Text style={styles.sectionLabel}>İlham Aldığınız Görseller</Text>
-                            <Text style={styles.sectionSubLabel}>Beğendiğiniz tasarımları ekleyin.</Text>
+                            <Text allowFontScaling={false} style={styles.sectionLabel}>İlham Aldığınız Görseller</Text>
+                            <Text allowFontScaling={false} style={styles.sectionSubLabel}>Beğendiğiniz tasarımları ekleyin.</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
                                 {inspirationImages.map((uri, i) => renderImageItem(uri, i, 'inspiration'))}
                                 {renderUploadSlot('Örnek Ekle', true, 'inspiration')}
@@ -276,7 +276,7 @@ export default function CustomRequestScreen({ navigation, route }) {
                                 <ActivityIndicator color="#000" />
                             ) : (
                                 <>
-                                    <Text style={styles.buttonText}>KEŞİF & TEKLİF İSTE</Text>
+                                    <Text allowFontScaling={false} style={styles.buttonText}>KEŞİF & TEKLİF İSTE</Text>
                                     <MaterialCommunityIcons name="check-decagram" size={20} color="#1a1a1a" style={{ marginLeft: 8 }} />
                                 </>
                             )}

@@ -113,8 +113,8 @@ export default function OnlineDiscoveryScreen() {
                     <Ionicons name="arrow-back" size={24} color="#fff" />
                 </TouchableOpacity>
                 <View>
-                    <Text style={styles.headerTitle}>{title}</Text>
-                    <Text style={styles.headerSubtitle}>{subtitle}</Text>
+                    <Text allowFontScaling={false} style={styles.headerTitle}>{title}</Text>
+                    <Text allowFontScaling={false} style={styles.headerSubtitle}>{subtitle}</Text>
                 </View>
                 <View style={{ width: 40 }} />
             </View>
@@ -136,9 +136,9 @@ export default function OnlineDiscoveryScreen() {
                             style={[styles.tabItem, activeTab === item && styles.tabItemActive]}
                             onPress={() => setActiveTab(item)}
                         >
-                            <Text style={[styles.tabText, activeTab === item && styles.tabTextActive]}>
+                            <Text allowFontScaling={false} style={[styles.tabText, activeTab === item && styles.tabTextActive]}>
                                 {item}
-                                {item === 'Bekleyenler' && <Text style={{ color: GOLD_MAIN, fontSize: 10 }}>●</Text>}
+                                {item === 'Bekleyenler' && <Text allowFontScaling={false} style={{ color: GOLD_MAIN, fontSize: 10 }}>●</Text>}
                             </Text>
                         </TouchableOpacity>
                     )}
@@ -150,7 +150,7 @@ export default function OnlineDiscoveryScreen() {
                 data={MOCK_PAST_QUESTIONS}
                 keyExtractor={item => item.id}
                 contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
-                ListEmptyComponent={<Text style={styles.emptyText}>Henüz bir sorunuz yok.</Text>}
+                ListEmptyComponent={<Text allowFontScaling={false} style={styles.emptyText}>Henüz bir sorunuz yok.</Text>}
                 renderItem={({ item }) => (
                     <TouchableOpacity style={styles.projectCard} activeOpacity={0.9}>
                         {/* Header: Icon - Title - ID */}
@@ -159,30 +159,30 @@ export default function OnlineDiscoveryScreen() {
                                 <FontAwesome5 name={item.icon} size={16} color={GOLD_MAIN} />
                             </View>
                             <View style={{ flex: 1, marginLeft: 12 }}>
-                                <Text style={styles.cardTitle}>{item.title}</Text>
+                                <Text allowFontScaling={false} style={styles.cardTitle}>{item.title}</Text>
                             </View>
-                            <Text style={styles.cardId}>#{item.id}</Text>
+                            <Text allowFontScaling={false} style={styles.cardId}>#{item.id}</Text>
                         </View>
 
                         {/* Summary */}
-                        <Text style={styles.cardSummary} numberOfLines={1}>
+                        <Text allowFontScaling={false} style={styles.cardSummary} numberOfLines={1}>
                             {item.summary}
                         </Text>
 
                         {/* Footer: Status - Date */}
                         <View style={styles.cardFooterRow}>
-                            <Text style={styles.cardDate}>{item.date}</Text>
+                            <Text allowFontScaling={false} style={styles.cardDate}>{item.date}</Text>
 
                             {/* Status Badge */}
                             <View style={styles.statusRow}>
                                 {item.status === 'yanıtlandı' ? (
                                     <>
-                                        <Text style={{ color: SUCCESS_GREEN, fontWeight: 'bold', fontSize: 12, marginRight: 5 }}>YANITLANDI</Text>
+                                        <Text allowFontScaling={false} style={{ color: SUCCESS_GREEN, fontWeight: 'bold', fontSize: 12, marginRight: 5 }}>YANITLANDI</Text>
                                         <Ionicons name="checkmark-circle" size={14} color={SUCCESS_GREEN} />
                                     </>
                                 ) : (
                                     <>
-                                        <Text style={{ color: GOLD_MAIN, fontWeight: 'bold', fontSize: 12, marginRight: 5 }}>İNCELENİYOR</Text>
+                                        <Text allowFontScaling={false} style={{ color: GOLD_MAIN, fontWeight: 'bold', fontSize: 12, marginRight: 5 }}>İNCELENİYOR</Text>
                                         {/* Spinning hourglass simulation layout */}
                                         <Ionicons name="hourglass" size={14} color={GOLD_MAIN} />
                                     </>
@@ -201,7 +201,7 @@ export default function OnlineDiscoveryScreen() {
                     activeOpacity={0.8}
                 >
                     <Ionicons name="add" size={28} color="#000" />
-                    <Text style={styles.fabText}>Yeni Talep Oluştur</Text>
+                    <Text allowFontScaling={false} style={styles.fabText}>Yeni Talep Oluştur</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -211,10 +211,10 @@ export default function OnlineDiscoveryScreen() {
     const renderInput = () => (
         <View style={{ flex: 1 }}>
             <View style={styles.contentContainer}>
-                <Text style={styles.stepTitle}>Neyle ilgili destek almak istiyorsunuz?</Text>
+                <Text allowFontScaling={false} style={styles.stepTitle}>Neyle ilgili destek almak istiyorsunuz?</Text>
 
                 {/* Subject Line Input */}
-                <TextInput
+                <TextInput allowFontScaling={false}
                     style={styles.subjectInput}
                     placeholder="Konu Başlığı (Örn: Kolon Çatlağı...)"
                     placeholderTextColor="#AAAAAA"
@@ -225,7 +225,7 @@ export default function OnlineDiscoveryScreen() {
 
                 {/* Main Description Input */}
                 <View style={styles.inputWrapper}>
-                    <TextInput
+                    <TextInput allowFontScaling={false}
                         style={styles.msgInput}
                         multiline
                         placeholder="Sorunu detaylandırın: Yapı türü, binanın yaşı, hasarın konumu vb..."
@@ -251,18 +251,18 @@ export default function OnlineDiscoveryScreen() {
                         <Ionicons name="attach" size={22} color={GOLD_MAIN} />
                     </TouchableOpacity>
                     <View style={{ flex: 1 }} />
-                    <Text style={{ color: '#444', fontSize: 10 }}>Ekler</Text>
+                    <Text allowFontScaling={false} style={{ color: '#444', fontSize: 10 }}>Ekler</Text>
                 </View>
 
                 {/* Smart Tips (Instead of Warning Box) */}
                 <View style={styles.smartTipsContainer}>
                     <View style={styles.tipRow}>
                         <Ionicons name="checkmark-sharp" size={14} color={SUCCESS_GREEN} style={{ marginRight: 6 }} />
-                        <Text style={styles.tipText}>Geniş açı ve yakın çekim fotoğraf ekleyin.</Text>
+                        <Text allowFontScaling={false} style={styles.tipText}>Geniş açı ve yakın çekim fotoğraf ekleyin.</Text>
                     </View>
                     <View style={styles.tipRow}>
                         <Ionicons name="checkmark-sharp" size={14} color={SUCCESS_GREEN} style={{ marginRight: 6 }} />
-                        <Text style={styles.tipText}>Varsa projenin ilgili paftasını ekleyin.</Text>
+                        <Text allowFontScaling={false} style={styles.tipText}>Varsa projenin ilgili paftasını ekleyin.</Text>
                     </View>
                 </View>
             </View>
@@ -270,7 +270,7 @@ export default function OnlineDiscoveryScreen() {
             {/* Sticky Bottom Button */}
             <View style={styles.bottomLayout}>
                 <TouchableOpacity style={styles.goldFullButton} onPress={handleToCategory}>
-                    <Text style={styles.goldMediumButtonText}>Uzman Seçimine Geç</Text>
+                    <Text allowFontScaling={false} style={styles.goldMediumButtonText}>Uzman Seçimine Geç</Text>
                     <Ionicons name="chevron-forward" size={24} color="#000" style={{ marginLeft: 10 }} />
                 </TouchableOpacity>
             </View>
@@ -284,8 +284,8 @@ export default function OnlineDiscoveryScreen() {
         <View style={{ flex: 1 }}>
             <View style={styles.contentContainer}>
                 <View style={{ marginBottom: 25 }}>
-                    <Text style={styles.stepTitle}>İlgili Uzmanlık Alanı</Text>
-                    <Text style={styles.stepSubtitle}>Sorunuzun en hızlı çözümü için doğru departmanı seçin.</Text>
+                    <Text allowFontScaling={false} style={styles.stepTitle}>İlgili Uzmanlık Alanı</Text>
+                    <Text allowFontScaling={false} style={styles.stepSubtitle}>Sorunuzun en hızlı çözümü için doğru departmanı seçin.</Text>
                 </View>
 
                 <FlatList
@@ -314,7 +314,7 @@ export default function OnlineDiscoveryScreen() {
                                     {isSelected && <Ionicons name="checkmark-circle" size={18} color={GOLD_MAIN} />}
                                 </View>
 
-                                <Text style={[styles.expertBoxTitle, isSelected && { color: GOLD_MAIN }]}>
+                                <Text allowFontScaling={false} style={[styles.expertBoxTitle, isSelected && { color: GOLD_MAIN }]}>
                                     {item.title}
                                 </Text>
                             </TouchableOpacity>
@@ -333,10 +333,10 @@ export default function OnlineDiscoveryScreen() {
                                 <FontAwesome5 name="question" size={24} color="#000" />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={[styles.conciergeTitle, selectedCategory === "Genel Destek" && { color: GOLD_MAIN }]}>
+                                <Text allowFontScaling={false} style={[styles.conciergeTitle, selectedCategory === "Genel Destek" && { color: GOLD_MAIN }]}>
                                     Talebi Biz Yönlendirelim
                                 </Text>
-                                <Text style={styles.conciergeSub}>Konu hakkında emin değilseniz teknik ekibimiz incelesin.</Text>
+                                <Text allowFontScaling={false} style={styles.conciergeSub}>Konu hakkında emin değilseniz teknik ekibimiz incelesin.</Text>
                             </View>
                         </TouchableOpacity>
                     }
@@ -350,7 +350,7 @@ export default function OnlineDiscoveryScreen() {
                     onPress={() => selectedCategory && handleFinish(selectedCategory)}
                     disabled={!selectedCategory}
                 >
-                    <Text style={styles.goldFullButtonText}>Onayla ve Gönder</Text>
+                    <Text allowFontScaling={false} style={styles.goldFullButtonText}>Onayla ve Gönder</Text>
                     <Ionicons name="checkmark-sharp" size={24} color="#000" style={{ marginLeft: 10 }} />
                 </TouchableOpacity>
             </View>
@@ -371,11 +371,11 @@ export default function OnlineDiscoveryScreen() {
                     <Ionicons name="checkmark" size={60} color={GOLD_MAIN} />
                 </View>
 
-                <Text style={{ color: '#fff', fontSize: 24, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' }}>
+                <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 24, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' }}>
                     Talep Alındı
                 </Text>
 
-                <Text style={{ color: '#CCC', fontSize: 16, textAlign: 'center', lineHeight: 24, paddingHorizontal: 20 }}>
+                <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 16, textAlign: 'center', lineHeight: 24, paddingHorizontal: 20 }}>
                     Talebiniz ilgili uzmana yönlendirilmiştir.{'\n'}En kısa sürede tarafınıza dönüş yapılacaktır.
                 </Text>
             </View>
@@ -389,7 +389,7 @@ export default function OnlineDiscoveryScreen() {
                     setViewState('INBOX');
                 }}
             >
-                <Text style={styles.goldFullButtonText}>Sorularıma Dön</Text>
+                <Text allowFontScaling={false} style={styles.goldFullButtonText}>Sorularıma Dön</Text>
             </TouchableOpacity>
         </View>
     );
@@ -418,7 +418,7 @@ export default function OnlineDiscoveryScreen() {
                     <View style={styles.keyboardToolbar}>
                         <View style={{ flex: 1 }} />
                         <TouchableOpacity onPress={() => Keyboard.dismiss()} style={styles.doneButton}>
-                            <Text style={styles.doneButtonText}>Bitti</Text>
+                            <Text allowFontScaling={false} style={styles.doneButtonText}>Bitti</Text>
                         </TouchableOpacity>
                     </View>
                 </InputAccessoryView>

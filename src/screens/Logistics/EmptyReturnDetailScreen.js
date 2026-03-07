@@ -47,7 +47,7 @@ export default function EmptyReturnDetailScreen({ navigation, route }) {
                         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
                             <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
                         </TouchableOpacity>
-                        <Text style={styles.headerTitle}>ARAÇ DETAYI</Text>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>ARAÇ DETAYI</Text>
                         <TouchableOpacity style={styles.iconBtn}>
                             <MaterialCommunityIcons name="share-variant" size={24} color="#fff" />
                         </TouchableOpacity>
@@ -56,45 +56,45 @@ export default function EmptyReturnDetailScreen({ navigation, route }) {
                     {/* Status Badge */}
                     <View style={styles.statusBadge}>
                         <MaterialCommunityIcons name="fire" size={16} color="#fff" />
-                        <Text style={styles.statusText}>İstanbul'da Bekliyor</Text>
+                        <Text allowFontScaling={false} style={styles.statusText}>İstanbul'da Bekliyor</Text>
                     </View>
 
                     {/* Camera Button */}
                     <TouchableOpacity style={styles.cameraBtn}>
                         <MaterialCommunityIcons name="camera" size={16} color="#fff" />
-                        <Text style={styles.cameraText}>Kasa İçi</Text>
+                        <Text allowFontScaling={false} style={styles.cameraText}>Kasa İçi</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Vehicle Info */}
                 <View style={styles.infoSection}>
-                    <Text style={styles.plateText}>{vehicleData.plate}</Text>
-                    <Text style={styles.modelText}>{vehicleData.model}</Text>
+                    <Text allowFontScaling={false} style={styles.plateText}>{vehicleData.plate}</Text>
+                    <Text allowFontScaling={false} style={styles.modelText}>{vehicleData.model}</Text>
                 </View>
 
                 {/* 2. Technical Specs - Single Card */}
                 <View style={styles.sectionContainer}>
-                    <Text style={styles.sectionTitle}>TEKNİK ÖZELLİKLER</Text>
+                    <Text allowFontScaling={false} style={styles.sectionTitle}>TEKNİK ÖZELLİKLER</Text>
 
                     <View style={styles.techCard}>
                         {/* Top Row: Length, Capacity, Type */}
                         <View style={styles.techRowTop}>
                             <View style={styles.techItemCompact}>
                                 <MaterialCommunityIcons name="arrow-expand-horizontal" size={22} color="#D4AF37" />
-                                <Text style={styles.techLabelCompact}>Uzunluk</Text>
-                                <Text style={styles.techValueCompact}>13.60 m</Text>
+                                <Text allowFontScaling={false} style={styles.techLabelCompact}>Uzunluk</Text>
+                                <Text allowFontScaling={false} style={styles.techValueCompact}>13.60 m</Text>
                             </View>
                             <View style={styles.techVerticalDivider} />
                             <View style={styles.techItemCompact}>
                                 <MaterialCommunityIcons name="scale-balance" size={22} color="#D4AF37" />
-                                <Text style={styles.techLabelCompact}>Kapasite</Text>
-                                <Text style={styles.techValueCompact}>15 Ton</Text>
+                                <Text allowFontScaling={false} style={styles.techLabelCompact}>Kapasite</Text>
+                                <Text allowFontScaling={false} style={styles.techValueCompact}>15 Ton</Text>
                             </View>
                             <View style={styles.techVerticalDivider} />
                             <View style={styles.techItemCompact}>
                                 <MaterialCommunityIcons name="truck-trailer" size={22} color="#D4AF37" />
-                                <Text style={styles.techLabelCompact}>Tip</Text>
-                                <Text style={styles.techValueCompact}>Tente</Text>
+                                <Text allowFontScaling={false} style={styles.techLabelCompact}>Tip</Text>
+                                <Text allowFontScaling={false} style={styles.techValueCompact}>Tente</Text>
                             </View>
                         </View>
 
@@ -105,16 +105,16 @@ export default function EmptyReturnDetailScreen({ navigation, route }) {
                             <View style={styles.techItemDetail}>
                                 <MaterialCommunityIcons name="floor-plan" size={18} color="#D4AF37" />
                                 <View style={{ marginLeft: 8 }}>
-                                    <Text style={styles.techLabelDetail}>Taban</Text>
-                                    <Text style={styles.techValueDetail}>Ahşap Zemin</Text>
+                                    <Text allowFontScaling={false} style={styles.techLabelDetail}>Taban</Text>
+                                    <Text allowFontScaling={false} style={styles.techValueDetail}>Ahşap Zemin</Text>
                                 </View>
                             </View>
                             <View style={styles.techVerticalDivider} />
                             <View style={styles.techItemDetail}>
                                 <MaterialCommunityIcons name="forklift" size={18} color="#D4AF37" />
                                 <View style={{ marginLeft: 8 }}>
-                                    <Text style={styles.techLabelDetail}>Yükleme</Text>
-                                    <Text style={styles.techValueDetail}>Tümü (Üst/Yan)</Text>
+                                    <Text allowFontScaling={false} style={styles.techLabelDetail}>Yükleme</Text>
+                                    <Text allowFontScaling={false} style={styles.techValueDetail}>Tümü (Üst/Yan)</Text>
                                 </View>
                             </View>
                         </View>
@@ -123,7 +123,7 @@ export default function EmptyReturnDetailScreen({ navigation, route }) {
                     {/* "Sığar Mı?" Feature - Enhanced */}
                     <TouchableOpacity style={styles.fitCheckBtnEnhanced} onPress={handleFitCheck}>
                         <MaterialCommunityIcons name="cube-scan" size={22} color="#FFD700" />
-                        <Text style={styles.fitCheckTextEnhanced}>Benim Yüküm Sığar mı?</Text>
+                        <Text allowFontScaling={false} style={styles.fitCheckTextEnhanced}>Benim Yüküm Sığar mı?</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -131,17 +131,17 @@ export default function EmptyReturnDetailScreen({ navigation, route }) {
 
                 {/* 3. Driver & Trust */}
                 <View style={styles.sectionContainer}>
-                    <Text style={styles.sectionTitle}>SÜRÜCÜ</Text>
+                    <Text allowFontScaling={false} style={styles.sectionTitle}>SÜRÜCÜ</Text>
                     <View style={styles.driverCard}>
                         <View style={styles.driverRow}>
                             <View style={styles.avatarPlaceholder}>
-                                <Text style={styles.avatarText}>AY</Text>
+                                <Text allowFontScaling={false} style={styles.avatarText}>AY</Text>
                             </View>
                             <View style={styles.driverInfo}>
-                                <Text style={styles.driverName}>{vehicleData.driver.name}</Text>
+                                <Text allowFontScaling={false} style={styles.driverName}>{vehicleData.driver.name}</Text>
                                 <View style={styles.ratingRow}>
                                     <MaterialCommunityIcons name="star" size={14} color="#FFD700" />
-                                    <Text style={styles.ratingText}>{vehicleData.driver.rating}</Text>
+                                    <Text allowFontScaling={false} style={styles.ratingText}>{vehicleData.driver.rating}</Text>
                                 </View>
                             </View>
                             {/* Message/Call Button */}
@@ -153,15 +153,15 @@ export default function EmptyReturnDetailScreen({ navigation, route }) {
                         <View style={styles.badgesRow}>
                             <View style={styles.badgeItem}>
                                 <MaterialCommunityIcons name="check-circle" size={14} color="#D4AF37" />
-                                <Text style={styles.badgeText}>SRC Belgeli</Text>
+                                <Text allowFontScaling={false} style={styles.badgeText}>SRC Belgeli</Text>
                             </View>
                             <View style={styles.badgeItem}>
                                 <MaterialCommunityIcons name="check-circle" size={14} color="#D4AF37" />
-                                <Text style={styles.badgeText}>Psikoteknik</Text>
+                                <Text allowFontScaling={false} style={styles.badgeText}>Psikoteknik</Text>
                             </View>
                             <View style={styles.badgeItem}>
                                 <MaterialCommunityIcons name="shield-check" size={14} color="#D4AF37" />
-                                <Text style={styles.badgeText}>Sigortalı</Text>
+                                <Text allowFontScaling={false} style={styles.badgeText}>Sigortalı</Text>
                             </View>
                         </View>
                     </View>
@@ -171,7 +171,7 @@ export default function EmptyReturnDetailScreen({ navigation, route }) {
 
                 {/* 4. Route Info - Card & Dashed */}
                 <View style={styles.sectionContainer}>
-                    <Text style={styles.sectionTitle}>ROTA DETAYI</Text>
+                    <Text allowFontScaling={false} style={styles.sectionTitle}>ROTA DETAYI</Text>
                     <View style={styles.routeCard}>
                         <View style={styles.routeContainer}>
                             {/* Dashed Line */}
@@ -185,9 +185,9 @@ export default function EmptyReturnDetailScreen({ navigation, route }) {
                                     <MaterialCommunityIcons name="arrow-up" size={12} color="#000" />
                                 </View>
                                 <View style={styles.routeTextContainer}>
-                                    <Text style={styles.routeLabel}>Çıkış</Text>
-                                    <Text style={styles.routeLocation}>{vehicleData.from}</Text>
-                                    <Text style={styles.routeTime}>{vehicleData.startTime}</Text>
+                                    <Text allowFontScaling={false} style={styles.routeLabel}>Çıkış</Text>
+                                    <Text allowFontScaling={false} style={styles.routeLocation}>{vehicleData.from}</Text>
+                                    <Text allowFontScaling={false} style={styles.routeTime}>{vehicleData.startTime}</Text>
                                 </View>
                             </View>
 
@@ -197,13 +197,13 @@ export default function EmptyReturnDetailScreen({ navigation, route }) {
                                     <MaterialCommunityIcons name="flag" size={12} color="#000" />
                                 </View>
                                 <View style={styles.routeTextContainer}>
-                                    <Text style={styles.routeLabel}>Varış</Text>
-                                    <Text style={styles.routeLocation}>{vehicleData.to}</Text>
+                                    <Text allowFontScaling={false} style={styles.routeLabel}>Varış</Text>
+                                    <Text allowFontScaling={false} style={styles.routeLocation}>{vehicleData.to}</Text>
                                     <View style={styles.flexTag}>
                                         <MaterialCommunityIcons name="map-marker-radius" size={12} color="#4CAF50" style={{ marginRight: 4 }} />
-                                        <Text style={styles.flexTagText}>Şehir içi dağıtım noktası esnektir</Text>
+                                        <Text allowFontScaling={false} style={styles.flexTagText}>Şehir içi dağıtım noktası esnektir</Text>
                                     </View>
-                                    <Text style={styles.routeTime}>{vehicleData.endTime} (Tahmini)</Text>
+                                    <Text allowFontScaling={false} style={styles.routeTime}>{vehicleData.endTime} (Tahmini)</Text>
                                 </View>
                             </View>
                         </View>
@@ -219,10 +219,10 @@ export default function EmptyReturnDetailScreen({ navigation, route }) {
                     style={{ position: 'absolute', top: -30, left: 0, right: 0, height: 30 }}
                 />
                 <View style={styles.priceContainer}>
-                    <Text style={styles.priceLabel}>Toplam Fiyat</Text>
+                    <Text allowFontScaling={false} style={styles.priceLabel}>Toplam Fiyat</Text>
                     <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                        <Text style={styles.priceValue}>{vehicleData.price}</Text>
-                        <Text style={styles.taxLabelStyle}>(KDV Dahil)</Text>
+                        <Text allowFontScaling={false} style={styles.priceValue}>{vehicleData.price}</Text>
+                        <Text allowFontScaling={false} style={styles.taxLabelStyle}>(KDV Dahil)</Text>
                     </View>
                 </View>
                 <View style={styles.actionContainer}>
@@ -230,11 +230,11 @@ export default function EmptyReturnDetailScreen({ navigation, route }) {
                         style={styles.mainBtnGlow}
                         onPress={() => navigation.navigate('EmptyReturnCheckout')}
                     >
-                        <Text style={styles.mainBtnText}>ARACI BAĞLA</Text>
+                        <Text allowFontScaling={false} style={styles.mainBtnText}>ARACI BAĞLA</Text>
                     </TouchableOpacity>
                     <View style={styles.securityRow}>
                         <MaterialCommunityIcons name="lock" size={12} color="#888" />
-                        <Text style={styles.securityText}>Ödeme teslimattan sonra aktarılır</Text>
+                        <Text allowFontScaling={false} style={styles.securityText}>Ödeme teslimattan sonra aktarılır</Text>
                     </View>
                 </View>
             </View>

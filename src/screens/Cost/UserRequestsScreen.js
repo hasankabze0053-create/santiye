@@ -119,16 +119,16 @@ export default function UserRequestsScreen() {
                 >
                     <View style={styles.cardHeader}>
                         <View>
-                            <Text style={styles.districtText}>{item.district}, {item.neighborhood}</Text>
-                            <Text style={styles.dateText}>Talep Tarihi: {formatDate(item.created_at)}</Text>
+                            <Text allowFontScaling={false} style={styles.districtText}>{item.district}, {item.neighborhood}</Text>
+                            <Text allowFontScaling={false} style={styles.dateText}>Talep Tarihi: {formatDate(item.created_at)}</Text>
                         </View>
                         <View style={[styles.statusBadge, { backgroundColor: item.status === 'pending' ? '#FFA500' : '#4CAF50' }]}>
-                            <Text style={styles.statusText}>{item.status === 'pending' ? 'BEKLEMEDE' : 'AKTİF'}</Text>
+                            <Text allowFontScaling={false} style={styles.statusText}>{item.status === 'pending' ? 'BEKLEMEDE' : 'AKTİF'}</Text>
                         </View>
                     </View>
 
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
-                        <Text style={styles.detailsText}>
+                        <Text allowFontScaling={false} style={styles.detailsText}>
                             {item.offer_type === 'anahtar_teslim' ? 'Anahtar Teslim' : 'Kat Karşılığı'} • {item.ada}/{item.parsel}
                         </Text>
                         <MaterialCommunityIcons name={isExpanded ? "chevron-up" : "chevron-down"} size={24} color="#D4AF37" />
@@ -137,9 +137,9 @@ export default function UserRequestsScreen() {
 
                 {isExpanded && (
                     <View style={styles.offersContainer}>
-                        <Text style={styles.offersTitle}>GELEN TEKLİFLER ({requestOffers.length})</Text>
+                        <Text allowFontScaling={false} style={styles.offersTitle}>GELEN TEKLİFLER ({requestOffers.length})</Text>
                         {requestOffers.length === 0 ? (
-                            <Text style={styles.noOffersText}>Henüz bu talebe bir teklif gelmedi.</Text>
+                            <Text allowFontScaling={false} style={styles.noOffersText}>Henüz bu talebe bir teklif gelmedi.</Text>
                         ) : (
                             requestOffers.map((offer, index) => (
                                 <TouchableOpacity
@@ -151,13 +151,13 @@ export default function UserRequestsScreen() {
                                     })}
                                 >
                                     <View style={styles.offerHeader}>
-                                        <Text style={styles.contractorName}>Müteahhit Firma</Text>
+                                        <Text allowFontScaling={false} style={styles.contractorName}>Müteahhit Firma</Text>
                                         {/* Since we might not have join setup perfectly, generic name */}
-                                        <Text style={styles.offerPrice}>{offer.price_estimate ? `${offer.price_estimate.toLocaleString()} TL` : 'Fiyat Belirtilmemiş'}</Text>
+                                        <Text allowFontScaling={false} style={styles.offerPrice}>{offer.price_estimate ? `${offer.price_estimate.toLocaleString()} TL` : 'Fiyat Belirtilmemiş'}</Text>
                                     </View>
-                                    <Text style={styles.offerDetails} numberOfLines={3}>{offer.offer_details}</Text>
+                                    <Text allowFontScaling={false} style={styles.offerDetails} numberOfLines={3}>{offer.offer_details}</Text>
                                     <TouchableOpacity style={styles.contactBtn}>
-                                        <Text style={styles.contactBtnText}>TEKLİFİ İNCELE &gt;</Text>
+                                        <Text allowFontScaling={false} style={styles.contactBtnText}>TEKLİFİ İNCELE &gt;</Text>
                                     </TouchableOpacity>
                                 </TouchableOpacity>
                             ))
@@ -178,7 +178,7 @@ export default function UserRequestsScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>TALEPLERİM</Text>
+                    <Text allowFontScaling={false} style={styles.headerTitle}>TALEPLERİM</Text>
                     <View style={{ width: 44 }} />
                 </View>
 
@@ -199,7 +199,7 @@ export default function UserRequestsScreen() {
                         ListEmptyComponent={
                             <View style={styles.emptyState}>
                                 <MaterialCommunityIcons name="folder-outline" size={64} color="#666" />
-                                <Text style={styles.emptyText}>Henüz bir talep oluşturmadınız.</Text>
+                                <Text allowFontScaling={false} style={styles.emptyText}>Henüz bir talep oluşturmadınız.</Text>
                             </View>
                         }
                     />

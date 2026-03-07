@@ -145,8 +145,8 @@ export default function LogisticsScreen() {
                         <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
                     </TouchableOpacity>
                     <View style={{ alignItems: 'center' }}>
-                        <Text style={styles.headerTitle}>NAKLİYE & LOJİSTİK</Text>
-                        <Text style={styles.headerSubtitle}>Güvenilir Taşıma Ağı</Text>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>NAKLİYE & LOJİSTİK</Text>
+                        <Text allowFontScaling={false} style={styles.headerSubtitle}>Güvenilir Taşıma Ağı</Text>
                     </View>
                     <TouchableOpacity
                         style={[styles.headerIconBtn, !isTransporter && !isAdmin && { opacity: 0.5 }]}
@@ -190,11 +190,11 @@ export default function LogisticsScreen() {
                                                 <Image source={typeof slide.image === 'string' ? { uri: slide.image } : slide.image} style={StyleSheet.absoluteFill} contentFit="cover" transition={500} />
                                                 <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={StyleSheet.absoluteFill} />
                                                 <View style={styles.showcaseTag}>
-                                                    <Text style={styles.showcaseTagText}>{slide.tag}</Text>
+                                                    <Text allowFontScaling={false} style={styles.showcaseTagText}>{slide.tag}</Text>
                                                 </View>
                                                 <View style={styles.showcaseTextContent}>
-                                                    <Text style={styles.showcaseTitle}>{slide.title}</Text>
-                                                    <Text style={styles.showcaseSubtitle}>{slide.subtitle}</Text>
+                                                    <Text allowFontScaling={false} style={styles.showcaseTitle}>{slide.title}</Text>
+                                                    <Text allowFontScaling={false} style={styles.showcaseSubtitle}>{slide.subtitle}</Text>
                                                 </View>
                                             </View>
                                         </TouchableOpacity>
@@ -231,8 +231,8 @@ export default function LogisticsScreen() {
                                         <MaterialCommunityIcons name="clock-fast" size={24} color={activeTab === 'instant' ? '#000' : '#D4AF37'} />
                                     </View>
                                     <View>
-                                        <Text style={[styles.typeCardTitle, activeTab === 'instant' && { color: '#D4AF37' }]}>HIZLI NAKLİYE</Text>
-                                        <Text style={styles.typeCardSub}>Anlık Araç Bul</Text>
+                                        <Text allowFontScaling={false} style={[styles.typeCardTitle, activeTab === 'instant' && { color: '#D4AF37' }]}>HIZLI NAKLİYE</Text>
+                                        <Text allowFontScaling={false} style={styles.typeCardSub}>Anlık Araç Bul</Text>
                                     </View>
                                 </LinearGradient>
                             </TouchableOpacity>
@@ -250,8 +250,8 @@ export default function LogisticsScreen() {
                                         <MaterialCommunityIcons name="briefcase" size={24} color={activeTab === 'corporate' ? '#F5F5F5' : '#D4AF37'} />
                                     </View>
                                     <View>
-                                        <Text style={[styles.typeCardTitle, activeTab === 'corporate' ? { color: '#000' } : { color: '#D4AF37' }]}>KURUMSAL LOJİSTİK</Text>
-                                        <Text style={[styles.typeCardSub, activeTab === 'corporate' && { color: '#444' }]}>Proje & Filo</Text>
+                                        <Text allowFontScaling={false} style={[styles.typeCardTitle, activeTab === 'corporate' ? { color: '#000' } : { color: '#D4AF37' }]}>KURUMSAL LOJİSTİK</Text>
+                                        <Text allowFontScaling={false} style={[styles.typeCardSub, activeTab === 'corporate' && { color: '#444' }]}>Proje & Filo</Text>
                                     </View>
                                 </LinearGradient>
                             </TouchableOpacity>
@@ -263,10 +263,10 @@ export default function LogisticsScreen() {
                         <View style={styles.gridSection}>
                             <TouchableOpacity style={styles.searchBar} activeOpacity={0.8}>
                                 <MaterialCommunityIcons name="magnify" size={24} color="#D4AF37" />
-                                <Text style={styles.searchText}>Araç Tipi veya Yük Ara...</Text>
+                                <Text allowFontScaling={false} style={styles.searchText}>Araç Tipi veya Yük Ara...</Text>
                             </TouchableOpacity>
 
-                            <Text style={styles.sectionHeader}>LOJİSTİK SEÇENEKLERİ</Text>
+                            <Text allowFontScaling={false} style={styles.sectionHeader}>LOJİSTİK SEÇENEKLERİ</Text>
                             <View style={styles.gridContainer}>
                                 {LOGISTICS_CATEGORIES.map((cat) => (
                                     <TouchableOpacity key={cat.id} style={styles.gridCard} onPress={() => handleCategorySelect(cat)} activeOpacity={0.9}>
@@ -277,7 +277,7 @@ export default function LogisticsScreen() {
                                                 <MaterialCommunityIcons name={cat.icon} size={20} color="#D4AF37" />
                                             </View>
                                             <View style={styles.gridContent}>
-                                                <Text style={styles.gridTitle} numberOfLines={2}>{cat.title}</Text>
+                                                <Text allowFontScaling={false} style={styles.gridTitle} numberOfLines={2}>{cat.title}</Text>
                                                 <MaterialCommunityIcons name="chevron-right" size={20} color="#D4AF37" />
                                             </View>
                                         </View>
@@ -292,14 +292,14 @@ export default function LogisticsScreen() {
                     {viewMode === 'list' && activeTab === 'corporate' && (
                         <View style={{ padding: 20 }}>
                             <View style={{ marginBottom: 24, paddingHorizontal: 4 }}>
-                                <Text style={{ fontSize: 24, fontWeight: '900', color: '#D4AF37', marginBottom: 8 }}>LOJİSTİK YÖNETİMİ</Text>
-                                <Text style={{ fontSize: 14, color: '#ccc', lineHeight: 20 }}>
+                                <Text allowFontScaling={false} style={{ fontSize: 24, fontWeight: '900', color: '#D4AF37', marginBottom: 8 }}>LOJİSTİK YÖNETİMİ</Text>
+                                <Text allowFontScaling={false} style={{ fontSize: 14, color: '#ccc', lineHeight: 20 }}>
                                     Büyük ölçekli taşıma projeleriniz, fabrika taşımaları ve düzenli sevkiyatlarınız için kurumsal çözüm ortağınız olalım.
                                 </Text>
                             </View>
                             <TouchableOpacity style={styles.submitBtn} onPress={() => Alert.alert('Talep Alındı', 'Müşteri temsilcimiz sizinle iletişime geçecektir.')}>
                                 <LinearGradient colors={['#D4AF37', '#FFA500']} style={styles.submitGradient}>
-                                    <Text style={styles.submitBtnText}>KURUMSAL TEKLİF İSTE</Text>
+                                    <Text allowFontScaling={false} style={styles.submitBtnText}>KURUMSAL TEKLİF İSTE</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>
@@ -311,7 +311,7 @@ export default function LogisticsScreen() {
                             <View style={styles.detailHeader}>
                                 <Image source={selectedCategory.image} style={styles.detailHeaderImage} contentFit="cover" transition={500} />
                                 <LinearGradient colors={['transparent', '#000']} style={StyleSheet.absoluteFill} />
-                                <Text style={styles.detailCategoryTitle}>{selectedCategory.title}</Text>
+                                <Text allowFontScaling={false} style={styles.detailCategoryTitle}>{selectedCategory.title}</Text>
                             </View>
 
                             {selectedCategory.items.map((item, idx) => {
@@ -325,12 +325,12 @@ export default function LogisticsScreen() {
                                                         <Image source={{ uri: item.image }} style={styles.itemImage} contentFit="cover" />
                                                     </View>
                                                     <View style={{ flex: 1, paddingRight: 8 }}>
-                                                        <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
-                                                        <Text style={styles.itemType}>{item.type}</Text>
+                                                        <Text allowFontScaling={false} style={styles.itemName} numberOfLines={2}>{item.name}</Text>
+                                                        <Text allowFontScaling={false} style={styles.itemType}>{item.type}</Text>
                                                     </View>
                                                 </View>
                                                 <View style={styles.priceInfoBtn}>
-                                                    <Text style={styles.priceInfoText}>TEKLİFLER</Text>
+                                                    <Text allowFontScaling={false} style={styles.priceInfoText}>TEKLİFLER</Text>
                                                     <MaterialCommunityIcons name={isExpanded ? "chevron-up" : "chevron-down"} size={18} color="#D4AF37" />
                                                 </View>
                                             </LinearGradient>
@@ -338,29 +338,29 @@ export default function LogisticsScreen() {
 
                                         {isExpanded && (
                                             <View style={styles.accordionContent}>
-                                                <Text style={styles.accordionTitle}>Uygun Araçlar / Firmalar</Text>
+                                                <Text allowFontScaling={false} style={styles.accordionTitle}>Uygun Araçlar / Firmalar</Text>
                                                 {MOCK_SUPPLIERS.map((supplier) => (
                                                     <LinearGradient key={supplier.id} colors={['#1A1A1A', '#000000']} style={styles.supplierCard}>
                                                         <View style={styles.supplierHeader}>
                                                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                                                 <MaterialCommunityIcons name={supplier.logo} size={18} color="#D4AF37" style={{ marginRight: 6 }} />
-                                                                <Text style={styles.supplierName}>{supplier.name}</Text>
+                                                                <Text allowFontScaling={false} style={styles.supplierName}>{supplier.name}</Text>
                                                             </View>
                                                             {supplier.verified && <MaterialCommunityIcons name="check-decagram" size={16} color="#D4AF37" />}
                                                         </View>
                                                         <View style={styles.priceGrid}>
                                                             <View style={styles.priceColumn}>
-                                                                <Text style={styles.priceLabel}>Şehir İçi</Text>
-                                                                <Text style={styles.priceValue}>{supplier.prices.daily}</Text>
+                                                                <Text allowFontScaling={false} style={styles.priceLabel}>Şehir İçi</Text>
+                                                                <Text allowFontScaling={false} style={styles.priceValue}>{supplier.prices.daily}</Text>
                                                             </View>
                                                             <View style={styles.priceSeparator} />
                                                             <View style={styles.priceColumn}>
-                                                                <Text style={styles.priceLabel}>Şehirler Arası</Text>
-                                                                <Text style={styles.priceValue}>KM Bazlı</Text>
+                                                                <Text allowFontScaling={false} style={styles.priceLabel}>Şehirler Arası</Text>
+                                                                <Text allowFontScaling={false} style={styles.priceValue}>KM Bazlı</Text>
                                                             </View>
                                                         </View>
                                                         <TouchableOpacity style={styles.selectSupplierBtn} onPress={() => Alert.alert("Seçildi", `${item.name} için ${supplier.name} seçildi.`)}>
-                                                            <Text style={styles.selectSupplierText}>ARAÇ ÇAĞIR</Text>
+                                                            <Text allowFontScaling={false} style={styles.selectSupplierText}>ARAÇ ÇAĞIR</Text>
                                                         </TouchableOpacity>
                                                     </LinearGradient>
                                                 ))}
@@ -379,7 +379,7 @@ export default function LogisticsScreen() {
                 {viewMode === 'list' && (
                     <View style={styles.stickyFooter}>
                         <TouchableOpacity style={styles.quickOfferBtn} onPress={() => navigation.navigate('CreateTransport')}>
-                            <Text style={styles.quickOfferText}>HEMEN ARAÇ BUL</Text>
+                            <Text allowFontScaling={false} style={styles.quickOfferText}>HEMEN ARAÇ BUL</Text>
                             <MaterialCommunityIcons name="truck-fast" size={20} color="#000" />
                         </TouchableOpacity>
                     </View>

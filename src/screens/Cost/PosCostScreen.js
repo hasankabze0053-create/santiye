@@ -42,8 +42,8 @@ export default function PosCostScreen({ navigation }) {
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <View>
-                        <Text style={styles.headerTitle}>POZ SORGULAMA</Text>
-                        <Text style={styles.headerSubtitle}>Birim Fiyat Kütüphanesi</Text>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>POZ SORGULAMA</Text>
+                        <Text allowFontScaling={false} style={styles.headerSubtitle}>Birim Fiyat Kütüphanesi</Text>
                     </View>
                 </View>
 
@@ -51,7 +51,7 @@ export default function PosCostScreen({ navigation }) {
                 <View style={styles.searchContainer}>
                     <View style={styles.searchBar}>
                         <Ionicons name="search" size={20} color={COLORS.accent} />
-                        <TextInput
+                        <TextInput allowFontScaling={false}
                             style={styles.input}
                             placeholder="Poz No veya Açıklama Ara..."
                             placeholderTextColor="#555"
@@ -75,12 +75,12 @@ export default function PosCostScreen({ navigation }) {
                     renderItem={({ item }) => (
                         <TouchableOpacity style={styles.itemCard}>
                             <View style={styles.iconBox}>
-                                <Text style={styles.iconText}>{item.id.substring(0, 2)}</Text>
+                                <Text allowFontScaling={false} style={styles.iconText}>{item.id.substring(0, 2)}</Text>
                             </View>
                             <View style={styles.itemContent}>
-                                <Text style={styles.itemId}>{item.id}</Text>
-                                <Text style={styles.itemDesc} numberOfLines={2}>{item.desc}</Text>
-                                <Text style={styles.itemPrice}>{item.price}</Text>
+                                <Text allowFontScaling={false} style={styles.itemId}>{item.id}</Text>
+                                <Text allowFontScaling={false} style={styles.itemDesc} numberOfLines={2}>{item.desc}</Text>
+                                <Text allowFontScaling={false} style={styles.itemPrice}>{item.price}</Text>
                             </View>
                             <Ionicons name="chevron-forward" size={16} color="#444" />
                         </TouchableOpacity>
@@ -94,7 +94,7 @@ export default function PosCostScreen({ navigation }) {
                 <InputAccessoryView nativeID="toolbar_pos_cost">
                     <View style={styles.accessoryContainer}>
                         <TouchableOpacity onPress={Keyboard.dismiss} style={styles.accessoryButton}>
-                            <Text style={styles.accessoryText}>Bitti</Text>
+                            <Text allowFontScaling={false} style={styles.accessoryText}>Bitti</Text>
                         </TouchableOpacity>
                     </View>
                 </InputAccessoryView>

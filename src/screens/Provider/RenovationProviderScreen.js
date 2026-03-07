@@ -51,7 +51,7 @@ export default function RenovationProviderScreen() {
                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                     style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' }}
                 >
-                    <Text style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>
+                    <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>
                         {item.user_id ? item.user_id.substring(0,2).toUpperCase() : 'M'}
                     </Text>
                 </LinearGradient>
@@ -59,7 +59,7 @@ export default function RenovationProviderScreen() {
                 {/* Right Content */}
                 <View style={{ flex: 1, justifyContent: 'center' }}>
                     {/* Title */}
-                    <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16, marginBottom: 12 }}>
+                    <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16, marginBottom: 12 }}>
                         {projeTipi}
                     </Text>
 
@@ -70,7 +70,7 @@ export default function RenovationProviderScreen() {
                                 style={{ borderWidth: 1, borderColor: '#3A3A3C', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, justifyContent: 'center' }}
                                 onPress={() => navigation.navigate('ArchitectRequestDetail', { request: item })}
                             >
-                                <Text style={{ color: '#E5E5EA', fontSize: 13 }}>Fotoğraflar</Text>
+                                <Text allowFontScaling={false} style={{ color: '#E5E5EA', fontSize: 13 }}>Fotoğraflar</Text>
                             </TouchableOpacity>
                         )}
                         <TouchableOpacity 
@@ -82,7 +82,7 @@ export default function RenovationProviderScreen() {
                                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                                 style={{ borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', flex: 1 }}
                             >
-                                <Text style={{ color: '#000', fontWeight: 'bold', fontSize: 13 }}>Talebi İncele</Text>
+                                <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold', fontSize: 13 }}>Talebi İncele</Text>
                             </LinearGradient>
                         </TouchableOpacity>
                     </View>
@@ -100,15 +100,15 @@ export default function RenovationProviderScreen() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <TouchableOpacity style={styles.addBtn}>
                         <Ionicons name="add" size={32} color="#666" />
-                        <Text style={{ color: '#666', fontSize: 10, marginTop: 4 }}>Yükle</Text>
+                        <Text allowFontScaling={false} style={{ color: '#666', fontSize: 10, marginTop: 4 }}>Yükle</Text>
                     </TouchableOpacity>
                     {PROJECT_IMGS.map((uri, idx) => (
                         <Image key={idx} source={{ uri }} style={styles.galleryImg} />
                     ))}
                 </ScrollView>
                 <View style={styles.statsRow}>
-                    <Text style={styles.statText}>12 Aktif Proje</Text>
-                    <Text style={styles.statText}>4.8 ★ Puan</Text>
+                    <Text allowFontScaling={false} style={styles.statText}>12 Aktif Proje</Text>
+                    <Text allowFontScaling={false} style={styles.statText}>4.8 ★ Puan</Text>
                 </View>
             </GlassCard>
 
@@ -121,7 +121,7 @@ export default function RenovationProviderScreen() {
                 ) : requests.length > 0 ? (
                     requests.map(req => renderRequestItem(req))
                 ) : (
-                    <Text style={{ color: '#666', textAlign: 'center', marginVertical: 20 }}>Henüz aktif talep bulunmuyor.</Text>
+                    <Text allowFontScaling={false} style={{ color: '#666', textAlign: 'center', marginVertical: 20 }}>Henüz aktif talep bulunmuyor.</Text>
                 )}
             </View>
 
@@ -131,16 +131,16 @@ export default function RenovationProviderScreen() {
                 <View style={styles.timelineRow}>
                     <View style={styles.timelineDotActive} />
                     <View style={{ flex: 1, marginLeft: 12 }}>
-                        <Text style={styles.timelineTime}>Bugün, 14:00</Text>
-                        <Text style={styles.timelineTitle}>Kadiköy Villa - Keşif Randevusu</Text>
+                        <Text allowFontScaling={false} style={styles.timelineTime}>Bugün, 14:00</Text>
+                        <Text allowFontScaling={false} style={styles.timelineTitle}>Kadiköy Villa - Keşif Randevusu</Text>
                     </View>
                 </View>
                 <View style={styles.timelineLine} />
                 <View style={styles.timelineRow}>
                     <View style={styles.timelineDot} />
                     <View style={{ flex: 1, marginLeft: 12 }}>
-                        <Text style={styles.timelineTime}>Yarın, 10:00</Text>
-                        <Text style={styles.timelineTitle}>Maltepe Ofis - Proje Teslimi</Text>
+                        <Text allowFontScaling={false} style={styles.timelineTime}>Yarın, 10:00</Text>
+                        <Text allowFontScaling={false} style={styles.timelineTitle}>Maltepe Ofis - Proje Teslimi</Text>
                     </View>
                 </View>
             </GlassCard>

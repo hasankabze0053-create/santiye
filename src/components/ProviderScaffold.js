@@ -46,11 +46,11 @@ const ProviderScaffold = ({ title, children, showBack = true }) => {
                                 <Ionicons name="arrow-back" size={24} color={THEME.text} />
                             </TouchableOpacity>
                         )}
-                        <Text style={styles.headerTitle}>{title}</Text>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>{title}</Text>
                     </View>
 
                     <View style={styles.headerRight}>
-                        <Text style={[styles.modeText, !isProviderMode && styles.activeModeText]}>Müşteri</Text>
+                        <Text allowFontScaling={false} style={[styles.modeText, !isProviderMode && styles.activeModeText]}>Müşteri</Text>
                         <Switch
                             trackColor={{ false: '#3f3f46', true: 'rgba(255, 215, 0, 0.3)' }}
                             thumbColor={isProviderMode ? THEME.accent : '#f4f3f4'}
@@ -59,7 +59,7 @@ const ProviderScaffold = ({ title, children, showBack = true }) => {
                             value={isProviderMode}
                             style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
                         />
-                        <Text style={[styles.modeText, isProviderMode && styles.activeModeText]}>Kurumsal</Text>
+                        <Text allowFontScaling={false} style={[styles.modeText, isProviderMode && styles.activeModeText]}>Kurumsal</Text>
                     </View>
                 </View>
 
@@ -78,10 +78,10 @@ const ProviderScaffold = ({ title, children, showBack = true }) => {
 
 export const SectionTitle = ({ title, actionText, onAction }) => (
     <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitleText}>{title}</Text>
+        <Text allowFontScaling={false} style={styles.sectionTitleText}>{title}</Text>
         {actionText && (
             <TouchableOpacity onPress={onAction}>
-                <Text style={styles.sectionActionText}>{actionText}</Text>
+                <Text allowFontScaling={false} style={styles.sectionActionText}>{actionText}</Text>
             </TouchableOpacity>
         )}
     </View>

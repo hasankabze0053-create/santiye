@@ -11,13 +11,13 @@ export default function LawProviderScreen() {
                 <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
                     <View style={{ alignItems: 'center' }}>
                         <MaterialCommunityIcons name="file-document-edit" size={28} color={THEME.accent} />
-                        <Text style={styles.statNum}>5</Text>
-                        <Text style={styles.statName}>İncelenecek</Text>
+                        <Text allowFontScaling={false} style={styles.statNum}>5</Text>
+                        <Text allowFontScaling={false} style={styles.statName}>İncelenecek</Text>
                     </View>
                     <View style={{ alignItems: 'center' }}>
                         <MaterialCommunityIcons name="scale-balance" size={28} color="#EF4444" />
-                        <Text style={styles.statNum}>2</Text>
-                        <Text style={styles.statName}>Acil Dava</Text>
+                        <Text allowFontScaling={false} style={styles.statNum}>2</Text>
+                        <Text allowFontScaling={false} style={styles.statName}>Acil Dava</Text>
                     </View>
                 </View>
             </GlassCard>
@@ -28,15 +28,15 @@ export default function LawProviderScreen() {
                 <View style={styles.listItem}>
                     <MaterialCommunityIcons name="file-clock" size={24} color="#aaa" />
                     <View style={{ flex: 1, marginLeft: 12 }}>
-                        <Text style={styles.listTitle}>Kat Karşılığı İnşaat Sözleşmesi</Text>
-                        <Text style={styles.listSub}>Gönderen: Mehmet Y. • 12 Sayfa (PDF)</Text>
+                        <Text allowFontScaling={false} style={styles.listTitle}>Kat Karşılığı İnşaat Sözleşmesi</Text>
+                        <Text allowFontScaling={false} style={styles.listSub}>Gönderen: Mehmet Y. • 12 Sayfa (PDF)</Text>
                     </View>
                     <View style={styles.pendingTag}>
-                        <Text style={styles.tagText}>BEKLİYOR</Text>
+                        <Text allowFontScaling={false} style={styles.tagText}>BEKLİYOR</Text>
                     </View>
                 </View>
                 <TouchableOpacity style={styles.actionBtnFull}>
-                    <Text style={styles.btnText}>İNCELEMEYİ BAŞLAT</Text>
+                    <Text allowFontScaling={false} style={styles.btnText}>İNCELEMEYİ BAŞLAT</Text>
                 </TouchableOpacity>
             </GlassCard>
 
@@ -45,17 +45,17 @@ export default function LawProviderScreen() {
             <GlassCard>
                 <View style={styles.caseHeader}>
                     <View style={[styles.priorityTag, { backgroundColor: '#EF4444' }]}>
-                        <Text style={styles.priorityText}>YÜKSEK ÖNCELİK</Text>
+                        <Text allowFontScaling={false} style={styles.priorityText}>YÜKSEK ÖNCELİK</Text>
                     </View>
-                    <Text style={{ color: '#aaa', fontSize: 11 }}>İş Kazası</Text>
+                    <Text allowFontScaling={false} style={{ color: '#aaa', fontSize: 11 }}>İş Kazası</Text>
                 </View>
-                <Text style={styles.caseTitle}>Taşeron Firma İş Kazası Rücu Davası</Text>
-                <Text style={styles.caseSnippet}>SGK tarafından işverene rücu edilen 250.000 TL tutarındaki cezanın itiraz süreci...</Text>
+                <Text allowFontScaling={false} style={styles.caseTitle}>Taşeron Firma İş Kazası Rücu Davası</Text>
+                <Text allowFontScaling={false} style={styles.caseSnippet}>SGK tarafından işverene rücu edilen 250.000 TL tutarındaki cezanın itiraz süreci...</Text>
 
                 <View style={styles.uploadRow}>
                     <TouchableOpacity style={styles.uploadBtn}>
                         <MaterialCommunityIcons name="cloud-upload" size={20} color={THEME.accent} />
-                        <Text style={styles.uploadText}>Hukuki Görüş Yükle</Text>
+                        <Text allowFontScaling={false} style={styles.uploadText}>Hukuki Görüş Yükle</Text>
                     </TouchableOpacity>
                 </View>
             </GlassCard>
@@ -63,16 +63,16 @@ export default function LawProviderScreen() {
             <GlassCard>
                 <View style={styles.caseHeader}>
                     <View style={[styles.priorityTag, { backgroundColor: '#F59E0B' }]}>
-                        <Text style={styles.priorityText}>ORTA</Text>
+                        <Text allowFontScaling={false} style={styles.priorityText}>ORTA</Text>
                     </View>
-                    <Text style={{ color: '#aaa', fontSize: 11 }}>Tahliye</Text>
+                    <Text allowFontScaling={false} style={{ color: '#aaa', fontSize: 11 }}>Tahliye</Text>
                 </View>
-                <Text style={styles.caseTitle}>Kiracı Tahliye İhtarnamesi</Text>
-                <Text style={styles.caseSnippet}>Kartal Şube deposu için kiracıya noter ihtarnamesi hazırlanması gerekmekte.</Text>
+                <Text allowFontScaling={false} style={styles.caseTitle}>Kiracı Tahliye İhtarnamesi</Text>
+                <Text allowFontScaling={false} style={styles.caseSnippet}>Kartal Şube deposu için kiracıya noter ihtarnamesi hazırlanması gerekmekte.</Text>
                 <View style={styles.uploadRow}>
                     <TouchableOpacity style={styles.uploadBtn}>
                         <MaterialCommunityIcons name="cloud-upload" size={20} color={THEME.accent} />
-                        <Text style={styles.uploadText}>İhtarname Taslağı Yükle</Text>
+                        <Text allowFontScaling={false} style={styles.uploadText}>İhtarname Taslağı Yükle</Text>
                     </TouchableOpacity>
                 </View>
             </GlassCard>

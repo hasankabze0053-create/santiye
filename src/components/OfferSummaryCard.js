@@ -89,11 +89,11 @@ export default function OfferSummaryCard({
         <GlassCard style={[styles.card, containerStyle]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
                 <MaterialCommunityIcons name="file-document-edit-outline" size={24} color="#D4AF37" style={{ marginRight: 8 }} />
-                <Text style={styles.headerTitle}>TEKLİF ÖZETİ</Text>
+                <Text allowFontScaling={false} style={styles.headerTitle}>TEKLİF ÖZETİ</Text>
             </View>
 
-            <Text style={styles.bodyText}>
-                <Text style={{ fontWeight: 'bold', color: '#FFF' }}>
+            <Text allowFontScaling={false} style={styles.bodyText}>
+                <Text allowFontScaling={false} style={{ fontWeight: 'bold', color: '#FFF' }}>
                     {isLandowner
                         ? 'Söz konusu inşaat yapım işi için müteahhit firmanın talebi;'
                         : 'Söz konusu inşaat yapım işi için müteahhit firma olarak talebim;'}
@@ -104,28 +104,28 @@ export default function OfferSummaryCard({
                     <>
                         {unitNames.length > 0 ? (
                             <>
-                                Binada yer alan <Text style={{ color: '#D4AF37', fontWeight: 'bold' }}>{unitNames.join(', ')}</Text>
+                                Binada yer alan <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>{unitNames.join(', ')}</Text>
                                 {unitNames.length > 1 ? ' bağımsız bölümlerinin ' : ' bağımsız bölümünün '}
                                 {isLandowner ? 'müteahhit firmaya devredilmesi,' : 'tarafıma devredilmesi,'} kalan tüm bağımsız bölümlerin hak sahiplerine teslim edilmesi ve inşaat yapım bedeli olarak;
                             </>
                         ) : (
                             <>
-                                Binada yer alan <Text style={{ color: '#D4AF37', fontWeight: 'bold' }}>tüm bağımsız bölümlerin</Text> hak sahiplerine teslim edilmesi ve inşaat yapım bedeli olarak;
+                                Binada yer alan <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>tüm bağımsız bölümlerin</Text> hak sahiplerine teslim edilmesi ve inşaat yapım bedeli olarak;
                             </>
                         )}
                         {'\n\n'}
                         {isIncluded && grantAmount > 0 ? (
                             <>
-                                Üstlenicinin toplam <Text style={{ color: '#FFF', fontWeight: 'bold' }}>{formattedTotalPrice}</Text> tutarındaki talebinden, devletin sağladığı <Text style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedGrant}</Text> hibe/kredi desteği düşüldüğünde;
+                                Üstlenicinin toplam <Text allowFontScaling={false} style={{ color: '#FFF', fontWeight: 'bold' }}>{formattedTotalPrice}</Text> tutarındaki talebinden, devletin sağladığı <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedGrant}</Text> hibe/kredi desteği düşüldüğünde;
                                 {'\n\n'}
-                                Hak sahipleri tarafından <Text style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 16 }}>{formattedNetPrice}</Text>
-                                <Text style={styles.italicText}> ({numberToTurkishWords(Math.max(0, netPrice))})</Text>
+                                Hak sahipleri tarafından <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 16 }}>{formattedNetPrice}</Text>
+                                <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(Math.max(0, netPrice))})</Text>
                                 {isLandowner ? ' nakit ödeme yapılması talep edilmektedir.' : ' nakit ödeme yapılması talep ediyorum.'}
                             </>
                         ) : (
                             <>
-                                <Text style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 16 }}>{formattedTotalPrice}</Text>
-                                <Text style={styles.italicText}> ({numberToTurkishWords(tPrice)})</Text>
+                                <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 16 }}>{formattedTotalPrice}</Text>
+                                <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(tPrice)})</Text>
                                 {isLandowner ? ' nakit ödeme talep edilmektedir.' : ' nakit ödeme talep ediyorum.'}
                             </>
                         )}
@@ -134,19 +134,19 @@ export default function OfferSummaryCard({
                     <>
                         {unitNames.length > 0 ? (
                             <>
-                                Binada yer alan <Text style={{ color: '#D4AF37', fontWeight: 'bold' }}>{unitNames.join(', ')}</Text>
+                                Binada yer alan <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>{unitNames.join(', ')}</Text>
                                 {unitNames.length > 1 ? ' bağımsız bölümlerinin ' : ' bağımsız bölümünün '}
                                 {isLandowner ? 'müteahhit firmaya devredilmesi' : 'tarafıma devredilmesi'}
                             </>
                         ) : (
-                            <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Binada yer alan tüm bağımsız bölümlerin hak sahiplerine teslim edilmesi </Text>
+                            <Text allowFontScaling={false} style={{ color: '#FFF', fontWeight: 'bold' }}>Binada yer alan tüm bağımsız bölümlerin hak sahiplerine teslim edilmesi </Text>
                         )}
 
                         {grantAmount > 0 && (
-                            <Text>
+                            <Text allowFontScaling={false}>
                                 {' ve kentsel dönüşüm kapsamında sağlanan '}
-                                <Text style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedGrant}</Text>
-                                <Text style={styles.italicText}> ({numberToTurkishWords(grantAmount)})</Text>
+                                <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedGrant}</Text>
+                                <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(grantAmount)})</Text>
                                 {' hibe/kredi desteği hak edişinin '}
                                 {isLandowner ? 'müteahhit firma tarafından alınması' : 'tarafımca alınması'}
                             </Text>
@@ -154,19 +154,19 @@ export default function OfferSummaryCard({
                         {' karşılığında; '}
 
                         {cashAdjustmentType === 'payment' && cashAmount > 0 ? (
-                            <Text>
-                                hak sahiplerine toplam <Text style={{ color: '#FF5252', fontWeight: 'bold' }}>{formattedCash}</Text>
-                                <Text style={styles.italicText}> ({numberToTurkishWords(cashAmount)})</Text>
+                            <Text allowFontScaling={false}>
+                                hak sahiplerine toplam <Text allowFontScaling={false} style={{ color: '#FF5252', fontWeight: 'bold' }}>{formattedCash}</Text>
+                                <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(cashAmount)})</Text>
                                 {isLandowner ? ' nakit ödeme yapmayı taahhüt etmektedir.' : ' nakit ödeme yapmayı taahhüt ediyorum.'}
                             </Text>
                         ) : cashAdjustmentType === 'request' && cashAmount > 0 ? (
-                            <Text>
-                                hak sahiplerinden inşaat yapım bedeline ek olarak <Text style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedCash}</Text>
-                                <Text style={styles.italicText}> ({numberToTurkishWords(cashAmount)})</Text>
+                            <Text allowFontScaling={false}>
+                                hak sahiplerinden inşaat yapım bedeline ek olarak <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedCash}</Text>
+                                <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(cashAmount)})</Text>
                                 {isLandowner ? ' nakit ödeme talep etmektedir.' : ' nakit ödeme talep ediyorum.'}
                             </Text>
                         ) : (
-                            <Text>
+                            <Text allowFontScaling={false}>
                                 taraflar arasında herhangi bir nakit ödemesi talep edilmemektedir.
                             </Text>
                         )}

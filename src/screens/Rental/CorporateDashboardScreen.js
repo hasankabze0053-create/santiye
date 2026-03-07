@@ -39,9 +39,9 @@ export default function CorporateDashboardScreen() {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: theme.iconBg }]}>
                     <MaterialCommunityIcons name="arrow-left" size={24} color={theme.text} />
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: theme.text }]}>Hizmet Veren Ol</Text>
+                <Text allowFontScaling={false} style={[styles.headerTitle, { color: theme.text }]}>Hizmet Veren Ol</Text>
             </View>
-            <Text style={[styles.headerSubtitle, { color: theme.subText }]}>
+            <Text allowFontScaling={false} style={[styles.headerSubtitle, { color: theme.subText }]}>
                 İşini büyütmek için hangi alanda hizmet veriyorsun?
             </Text>
 
@@ -57,8 +57,8 @@ export default function CorporateDashboardScreen() {
                         <MaterialCommunityIcons name="tractor" size={32} color={theme.accent} />
                     </View>
                     <View style={styles.roleContent}>
-                        <Text style={[styles.roleTitle, { color: theme.text }]}>Makine Parkı Yönetimi</Text>
-                        <Text style={[styles.roleDesc, { color: theme.subText }]}>
+                        <Text allowFontScaling={false} style={[styles.roleTitle, { color: theme.text }]}>Makine Parkı Yönetimi</Text>
+                        <Text allowFontScaling={false} style={[styles.roleDesc, { color: theme.subText }]}>
                             İş makinelerini kiraya ver, boş yatmasın.
                         </Text>
                     </View>
@@ -75,8 +75,8 @@ export default function CorporateDashboardScreen() {
                         <MaterialCommunityIcons name="store" size={32} color={theme.accent} />
                     </View>
                     <View style={styles.roleContent}>
-                        <Text style={[styles.roleTitle, { color: theme.text }]}>Malzeme Satışı</Text>
-                        <Text style={[styles.roleDesc, { color: theme.subText }]}>
+                        <Text allowFontScaling={false} style={[styles.roleTitle, { color: theme.text }]}>Malzeme Satışı</Text>
+                        <Text allowFontScaling={false} style={[styles.roleDesc, { color: theme.subText }]}>
                             İnşaat malzemelerini binlerce alıcıya ulaştır.
                         </Text>
                     </View>
@@ -93,8 +93,8 @@ export default function CorporateDashboardScreen() {
                         <MaterialCommunityIcons name="hard-hat" size={32} color={theme.accent} />
                     </View>
                     <View style={styles.roleContent}>
-                        <Text style={[styles.roleTitle, { color: theme.text }]}>Müteahhitlik & Teklif</Text>
-                        <Text style={[styles.roleDesc, { color: theme.subText }]}>
+                        <Text allowFontScaling={false} style={[styles.roleTitle, { color: theme.text }]}>Müteahhitlik & Teklif</Text>
+                        <Text allowFontScaling={false} style={[styles.roleDesc, { color: theme.subText }]}>
                             Kentsel dönüşüm projelerine teklif ver.
                         </Text>
                     </View>
@@ -115,7 +115,7 @@ export default function CorporateDashboardScreen() {
                     </TouchableOpacity>
                     <View style={[styles.badgeContainer, { backgroundColor: 'rgba(52, 199, 89, 0.15)' }]}>
                         <MaterialCommunityIcons name="check-decagram" size={16} color={theme.success} />
-                        <Text style={[styles.badgeText, { color: theme.success }]}>Onaylı Tedarikçi</Text>
+                        <Text allowFontScaling={false} style={[styles.badgeText, { color: theme.success }]}>Onaylı Tedarikçi</Text>
                     </View>
                 </View>
 
@@ -124,11 +124,11 @@ export default function CorporateDashboardScreen() {
                         <MaterialCommunityIcons name="office-building" size={32} color={theme.accent} />
                     </View>
                     <View>
-                        <Text style={[styles.companyName, { color: theme.text }]}>Demir İnşaat & Hafriyat</Text>
+                        <Text allowFontScaling={false} style={[styles.companyName, { color: theme.text }]}>Demir İnşaat & Hafriyat</Text>
                         <View style={styles.ratingRow}>
                             <MaterialCommunityIcons name="star" size={16} color={theme.accent} />
-                            <Text style={[styles.ratingText, { color: theme.text }]}>4.8</Text>
-                            <Text style={[styles.ratingCount, { color: theme.subText }]}>(124 Değerlendirme)</Text>
+                            <Text allowFontScaling={false} style={[styles.ratingText, { color: theme.text }]}>4.8</Text>
+                            <Text allowFontScaling={false} style={[styles.ratingCount, { color: theme.subText }]}>(124 Değerlendirme)</Text>
                         </View>
                     </View>
                 </View>
@@ -137,25 +137,25 @@ export default function CorporateDashboardScreen() {
             {/* Financial Summary */}
             <View style={styles.financialRow}>
                 <View style={[styles.financialCard, { backgroundColor: theme.card }]}>
-                    <Text style={[styles.financialLabel, { color: theme.subText }]}>Toplam Kazanç</Text>
-                    <Text style={[styles.financialValue, { color: theme.accent }]}>₺485.000</Text>
+                    <Text allowFontScaling={false} style={[styles.financialLabel, { color: theme.subText }]}>Toplam Kazanç</Text>
+                    <Text allowFontScaling={false} style={[styles.financialValue, { color: theme.accent }]}>₺485.000</Text>
                 </View>
                 <View style={[styles.financialCard, { backgroundColor: theme.card }]}>
-                    <Text style={[styles.financialLabel, { color: theme.subText }]}>Aktif İşler</Text>
-                    <Text style={[styles.financialValue, { color: theme.text }]}>4 Proje</Text>
+                    <Text allowFontScaling={false} style={[styles.financialLabel, { color: theme.subText }]}>Aktif İşler</Text>
+                    <Text allowFontScaling={false} style={[styles.financialValue, { color: theme.text }]}>4 Proje</Text>
                 </View>
             </View>
 
             {/* Modules Grid */}
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Yönetim Paneli</Text>
+            <Text allowFontScaling={false} style={[styles.sectionTitle, { color: theme.text }]}>Yönetim Paneli</Text>
             <View style={styles.gridContainer}>
                 {/* Module 1 */}
                 <TouchableOpacity style={[styles.gridItem, { backgroundColor: theme.card }]}>
                     <View style={[styles.gridIconBox, { backgroundColor: theme.iconBg }]}>
                         <MaterialCommunityIcons name="tractor" size={28} color={theme.accent} />
                     </View>
-                    <Text style={[styles.gridTitle, { color: theme.text }]}>Makine Parkım</Text>
-                    <Text style={[styles.gridDesc, { color: theme.subText }]}>Filo yönetimi</Text>
+                    <Text allowFontScaling={false} style={[styles.gridTitle, { color: theme.text }]}>Makine Parkım</Text>
+                    <Text allowFontScaling={false} style={[styles.gridDesc, { color: theme.subText }]}>Filo yönetimi</Text>
                 </TouchableOpacity>
 
                 {/* Module 2 */}
@@ -164,8 +164,8 @@ export default function CorporateDashboardScreen() {
                         <MaterialCommunityIcons name="clipboard-text-outline" size={28} color={theme.accent} />
                         <View style={styles.notificationDot} />
                     </View>
-                    <Text style={[styles.gridTitle, { color: theme.text }]}>Gelen Talepler</Text>
-                    <Text style={[styles.gridDesc, { color: theme.subText }]}>3 Yeni Talep</Text>
+                    <Text allowFontScaling={false} style={[styles.gridTitle, { color: theme.text }]}>Gelen Talepler</Text>
+                    <Text allowFontScaling={false} style={[styles.gridDesc, { color: theme.subText }]}>3 Yeni Talep</Text>
                 </TouchableOpacity>
 
                 {/* Module 3 */}
@@ -173,8 +173,8 @@ export default function CorporateDashboardScreen() {
                     <View style={[styles.gridIconBox, { backgroundColor: theme.iconBg }]}>
                         <MaterialCommunityIcons name="briefcase-search-outline" size={28} color={theme.accent} />
                     </View>
-                    <Text style={[styles.gridTitle, { color: theme.text }]}>İhaleler</Text>
-                    <Text style={[styles.gridDesc, { color: theme.subText }]}>Fırsatları yakala</Text>
+                    <Text allowFontScaling={false} style={[styles.gridTitle, { color: theme.text }]}>İhaleler</Text>
+                    <Text allowFontScaling={false} style={[styles.gridDesc, { color: theme.subText }]}>Fırsatları yakala</Text>
                 </TouchableOpacity>
 
                 {/* Module 4 */}
@@ -182,13 +182,13 @@ export default function CorporateDashboardScreen() {
                     <View style={[styles.gridIconBox, { backgroundColor: theme.iconBg }]}>
                         <MaterialCommunityIcons name="account-group-outline" size={28} color={theme.accent} />
                     </View>
-                    <Text style={[styles.gridTitle, { color: theme.text }]}>Personel</Text>
-                    <Text style={[styles.gridDesc, { color: theme.subText }]}>Ekip yönetimi</Text>
+                    <Text allowFontScaling={false} style={[styles.gridTitle, { color: theme.text }]}>Personel</Text>
+                    <Text allowFontScaling={false} style={[styles.gridDesc, { color: theme.subText }]}>Ekip yönetimi</Text>
                 </TouchableOpacity>
             </View>
 
             <TouchableOpacity onPress={() => setHasCompanyProfile(false)} style={{ marginTop: 40, alignSelf: 'center' }}>
-                <Text style={{ color: theme.subText, fontSize: 12 }}>[Geliştirici: Moda Dönmek İçin Tıkla]</Text>
+                <Text allowFontScaling={false} style={{ color: theme.subText, fontSize: 12 }}>[Geliştirici: Moda Dönmek İçin Tıkla]</Text>
             </TouchableOpacity>
         </ScrollView>
     );

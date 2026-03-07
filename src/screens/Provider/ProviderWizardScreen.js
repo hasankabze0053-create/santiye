@@ -130,15 +130,15 @@ export default function ProviderWizardScreen() {
                     <View style={styles.progressContainer}>
                         <View style={[styles.progressBar, { width: `${(step / 3) * 100}%` }]} />
                     </View>
-                    <Text style={styles.stepIndicator}>{step}/3</Text>
+                    <Text allowFontScaling={false} style={styles.stepIndicator}>{step}/3</Text>
                 </View>
 
                 <ScrollView contentContainerStyle={styles.content}>
 
                     {step === 1 && (
                         <View>
-                            <Text style={styles.title}>Hizmet Alanları</Text>
-                            <Text style={styles.subtitle}>Firmanızın hangi sektörlerde faaliyet göstereceğini seçiniz. Birden fazla seçim yapabilirsiniz.</Text>
+                            <Text allowFontScaling={false} style={styles.title}>Hizmet Alanları</Text>
+                            <Text allowFontScaling={false} style={styles.subtitle}>Firmanızın hangi sektörlerde faaliyet göstereceğini seçiniz. Birden fazla seçim yapabilirsiniz.</Text>
 
                             <View style={styles.roleContainer}>
                                 {PROVIDER_ROLES.map((role) => {
@@ -153,7 +153,7 @@ export default function ProviderWizardScreen() {
                                             <View style={styles.roleIconBox}>
                                                 <Ionicons name={role.icon} size={24} color={isSelected ? "#000" : "#94a3b8"} />
                                             </View>
-                                            <Text style={[styles.roleText, isSelected && styles.roleTextSelected]}>
+                                            <Text allowFontScaling={false} style={[styles.roleText, isSelected && styles.roleTextSelected]}>
                                                 {role.label}
                                             </Text>
                                             <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
@@ -168,14 +168,14 @@ export default function ProviderWizardScreen() {
 
                     {step === 2 && (
                         <View>
-                            <Text style={styles.title}>Hizmet Detayları & Fiyat</Text>
-                            <Text style={styles.subtitle}>Nasıl çalışmak istediğinizi belirleyin.</Text>
+                            <Text allowFontScaling={false} style={styles.title}>Hizmet Detayları & Fiyat</Text>
+                            <Text allowFontScaling={false} style={styles.subtitle}>Nasıl çalışmak istediğinizi belirleyin.</Text>
 
                             <View style={styles.card}>
                                 <View style={styles.cardHeader}>
                                     <View>
-                                        <Text style={styles.cardTitle}>📹 Online Danışmanlık</Text>
-                                        <Text style={styles.cardDesc}>Görüntülü görüşme ile proje kontrolü vb.</Text>
+                                        <Text allowFontScaling={false} style={styles.cardTitle}>📹 Online Danışmanlık</Text>
+                                        <Text allowFontScaling={false} style={styles.cardDesc}>Görüntülü görüşme ile proje kontrolü vb.</Text>
                                     </View>
                                     <Switch
                                         value={onlineEnabled}
@@ -185,8 +185,8 @@ export default function ProviderWizardScreen() {
                                 </View>
                                 {onlineEnabled && (
                                     <View style={styles.inputGroup}>
-                                        <Text style={styles.label}>Saatlik Ücret (₺)</Text>
-                                        <TextInput
+                                        <Text allowFontScaling={false} style={styles.label}>Saatlik Ücret (₺)</Text>
+                                        <TextInput allowFontScaling={false}
                                             style={styles.input}
                                             keyboardType="numeric"
                                             placeholder="2500"
@@ -201,8 +201,8 @@ export default function ProviderWizardScreen() {
                             <View style={styles.card}>
                                 <View style={styles.cardHeader}>
                                     <View>
-                                        <Text style={styles.cardTitle}>🏗️ Şantiye Ziyareti</Text>
-                                        <Text style={styles.cardDesc}>Yerinde tespit, denetim ve imza işleri.</Text>
+                                        <Text allowFontScaling={false} style={styles.cardTitle}>🏗️ Şantiye Ziyareti</Text>
+                                        <Text allowFontScaling={false} style={styles.cardDesc}>Yerinde tespit, denetim ve imza işleri.</Text>
                                     </View>
                                     <Switch
                                         value={onsiteEnabled}
@@ -212,8 +212,8 @@ export default function ProviderWizardScreen() {
                                 </View>
                                 {onsiteEnabled && (
                                     <View style={styles.inputGroup}>
-                                        <Text style={styles.label}>Ziyaret Başı Başlangıç (₺)</Text>
-                                        <TextInput
+                                        <Text allowFontScaling={false} style={styles.label}>Ziyaret Başı Başlangıç (₺)</Text>
+                                        <TextInput allowFontScaling={false}
                                             style={styles.input}
                                             keyboardType="numeric"
                                             placeholder="4000"
@@ -221,7 +221,7 @@ export default function ProviderWizardScreen() {
                                             value={onsitePrice}
                                             onChangeText={setOnsitePrice}
                                         />
-                                        <Text style={styles.hint}>*Yol masrafı ayrıca konuşulur.</Text>
+                                        <Text allowFontScaling={false} style={styles.hint}>*Yol masrafı ayrıca konuşulur.</Text>
                                     </View>
                                 )}
                             </View>
@@ -230,12 +230,12 @@ export default function ProviderWizardScreen() {
 
                     {step === 3 && (
                         <View>
-                            <Text style={styles.title}>Vitrin & Biyografi</Text>
-                            <Text style={styles.subtitle}>Kendinizi müşterilere tanıtın.</Text>
+                            <Text allowFontScaling={false} style={styles.title}>Vitrin & Biyografi</Text>
+                            <Text allowFontScaling={false} style={styles.subtitle}>Kendinizi müşterilere tanıtın.</Text>
 
                             <View style={styles.formSection}>
-                                <Text style={styles.label}>Hakkımda</Text>
-                                <TextInput
+                                <Text allowFontScaling={false} style={styles.label}>Hakkımda</Text>
+                                <TextInput allowFontScaling={false}
                                     style={[styles.input, styles.textArea]}
                                     multiline
                                     placeholder="Deneyimlerinizden, uzmanlıklarınızdan bahsedin..."
@@ -246,10 +246,10 @@ export default function ProviderWizardScreen() {
                             </View>
 
                             <View style={styles.formSection}>
-                                <Text style={styles.label}>Portfolio / İş Örnekleri</Text>
+                                <Text allowFontScaling={false} style={styles.label}>Portfolio / İş Örnekleri</Text>
                                 <TouchableOpacity style={styles.uploadBox} onPress={() => Alert.alert("Galeri", "Fotoğraf seçimi açılıyor...")}>
                                     <Ionicons name="images-outline" size={32} color="#4ADE80" />
-                                    <Text style={styles.uploadText}>Fotoğraf veya PDF Yükle</Text>
+                                    <Text allowFontScaling={false} style={styles.uploadText}>Fotoğraf veya PDF Yükle</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -259,7 +259,7 @@ export default function ProviderWizardScreen() {
 
                 <View style={styles.footer}>
                     <TouchableOpacity style={styles.btn} onPress={handleNext}>
-                        <Text style={styles.btnText}>{step === 3 ? 'Profili Tamamla' : 'Devam Et'}</Text>
+                        <Text allowFontScaling={false} style={styles.btnText}>{step === 3 ? 'Profili Tamamla' : 'Devam Et'}</Text>
                         <Ionicons name={step === 3 ? "checkmark-circle" : "arrow-forward"} size={20} color="#0f172a" />
                     </TouchableOpacity>
                 </View>

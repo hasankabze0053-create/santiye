@@ -111,11 +111,11 @@ export default function EmptyReturnScreen({ navigation }) {
                             <MaterialCommunityIcons name="bell-ring" size={28} color="#D4AF37" />
                         </View>
                         <View style={styles.alertContent}>
-                            <Text style={styles.alertTitle}>Aradığını Bulamadın mı?</Text>
-                            <Text style={styles.alertText}>İstediğin rotada boş araç çıkınca sana haber verelim.</Text>
+                            <Text allowFontScaling={false} style={styles.alertTitle}>Aradığını Bulamadın mı?</Text>
+                            <Text allowFontScaling={false} style={styles.alertText}>İstediğin rotada boş araç çıkınca sana haber verelim.</Text>
                         </View>
                         <TouchableOpacity style={styles.alarmBtn}>
-                            <Text style={styles.alarmBtnText}>ALARM KUR</Text>
+                            <Text allowFontScaling={false} style={styles.alarmBtnText}>ALARM KUR</Text>
                             <MaterialCommunityIcons name="bell-plus" size={16} color="#000" style={{ marginLeft: 4 }} />
                         </TouchableOpacity>
                     </LinearGradient>
@@ -142,31 +142,31 @@ export default function EmptyReturnScreen({ navigation }) {
                     {/* Center: Route & Info */}
                     <View style={styles.centerSection}>
                         <View style={styles.routeRow}>
-                            <Text style={styles.cityText}>{item.from}</Text>
+                            <Text allowFontScaling={false} style={styles.cityText}>{item.from}</Text>
                             <MaterialCommunityIcons name="chevron-down" size={12} color="#888" style={{ marginLeft: 2 }} />
                             <MaterialCommunityIcons name="arrow-right-thick" size={16} color="#FFD700" style={{ marginHorizontal: 8 }} />
-                            <Text style={styles.cityText}>{item.to}</Text>
+                            <Text allowFontScaling={false} style={styles.cityText}>{item.to}</Text>
                             <MaterialCommunityIcons name="chevron-down" size={12} color="#888" style={{ marginLeft: 2 }} />
                         </View>
-                        <Text style={styles.districtText}>{item.fromDistrict} {'>'} {item.toDistrict}</Text>
+                        <Text allowFontScaling={false} style={styles.districtText}>{item.fromDistrict} {'>'} {item.toDistrict}</Text>
 
                         <View style={styles.timeRow}>
                             {item.isHot && <MaterialCommunityIcons name="fire" size={14} color={item.urgencyColor} style={{ marginRight: 4 }} />}
-                            <Text style={[styles.dateText, { color: item.urgencyColor }]}>{item.date}</Text>
+                            <Text allowFontScaling={false} style={[styles.dateText, { color: item.urgencyColor }]}>{item.date}</Text>
                         </View>
                     </View>
 
                     {/* Right: Price & Button */}
                     <View style={styles.rightSection}>
                         <View style={shouldGlow ? styles.glowingPriceContainer : null}>
-                            <Text style={styles.oldPrice}>{item.oldPrice}</Text>
-                            <Text style={styles.newPrice}>{item.price}</Text>
+                            <Text allowFontScaling={false} style={styles.oldPrice}>{item.oldPrice}</Text>
+                            <Text allowFontScaling={false} style={styles.newPrice}>{item.price}</Text>
                         </View>
                         <TouchableOpacity
                             style={[styles.actionBtn, shouldGlow && styles.glowingActionBtn]}
                             onPress={() => navigation.navigate('EmptyReturnDetail', { item })}
                         >
-                            <Text style={styles.actionBtnText}>FIRSATI GÖR</Text>
+                            <Text allowFontScaling={false} style={styles.actionBtnText}>FIRSATI GÖR</Text>
                             <MaterialCommunityIcons name="chevron-right" size={12} color="#000" />
                         </TouchableOpacity>
                     </View>
@@ -186,7 +186,7 @@ export default function EmptyReturnScreen({ navigation }) {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                         <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
                     </TouchableOpacity>
-                    <Text style={styles.screenTitle}>BOŞ DÖNÜŞ FIRSATLARI</Text>
+                    <Text allowFontScaling={false} style={styles.screenTitle}>BOŞ DÖNÜŞ FIRSATLARI</Text>
                     <View style={{ width: 40 }} />
                 </View>
 
@@ -196,9 +196,9 @@ export default function EmptyReturnScreen({ navigation }) {
                     <View style={[styles.blurContainer, { backgroundColor: 'rgba(30,30,30,0.95)' }]}>
                         <View style={styles.filterRow}>
                             <TouchableOpacity style={styles.inputGroup}>
-                                <Text style={styles.label}>Çıkış</Text>
+                                <Text allowFontScaling={false} style={styles.label}>Çıkış</Text>
                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Text style={styles.inputValue} numberOfLines={1}>{fromCity}</Text>
+                                    <Text allowFontScaling={false} style={styles.inputValue} numberOfLines={1}>{fromCity}</Text>
                                     <MaterialCommunityIcons name="chevron-down" size={14} color="#D4AF37" style={{ marginLeft: 4 }} />
                                 </View>
                             </TouchableOpacity>
@@ -208,17 +208,17 @@ export default function EmptyReturnScreen({ navigation }) {
                             </View>
 
                             <TouchableOpacity style={styles.inputGroup}>
-                                <Text style={styles.label}>Varış</Text>
+                                <Text allowFontScaling={false} style={styles.label}>Varış</Text>
                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Text style={styles.inputValue} numberOfLines={1}>{toCity}</Text>
+                                    <Text allowFontScaling={false} style={styles.inputValue} numberOfLines={1}>{toCity}</Text>
                                     <MaterialCommunityIcons name="chevron-down" size={14} color="#D4AF37" style={{ marginLeft: 4 }} />
                                 </View>
                             </TouchableOpacity>
                         </View>
                         <View style={styles.dateRow}>
                             <MaterialCommunityIcons name="calendar-clock" size={14} color="#888" />
-                            <Text style={styles.dateLabel}>Tarih:</Text>
-                            <Text style={styles.dateValue}>Bugün / Yarın</Text>
+                            <Text allowFontScaling={false} style={styles.dateLabel}>Tarih:</Text>
+                            <Text allowFontScaling={false} style={styles.dateValue}>Bugün / Yarın</Text>
                         </View>
                     </View>
                 </View>

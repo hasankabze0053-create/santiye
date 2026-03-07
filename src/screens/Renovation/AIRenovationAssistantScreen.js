@@ -87,11 +87,11 @@ function BOQItem({ item, checked, onToggle }) {
                 {checked && <MaterialCommunityIcons name="check" size={13} color="#000" />}
             </View>
             <View style={{ flex: 1, gap: 3 }}>
-                <Text style={[boq.group, !checked && { color: '#555' }]}>{item.group}</Text>
-                <Text style={[boq.task, !checked && { color: '#444', textDecorationLine: 'line-through' }]}>{item.task}</Text>
+                <Text allowFontScaling={false} style={[boq.group, !checked && { color: '#555' }]}>{item.group}</Text>
+                <Text allowFontScaling={false} style={[boq.task, !checked && { color: '#444', textDecorationLine: 'line-through' }]}>{item.task}</Text>
                 <View style={boq.meta}>
-                    <View style={boq.badge}><Text style={boq.badgeText}>{item.qty}</Text></View>
-                    <Text style={boq.note} numberOfLines={2}>{item.note}</Text>
+                    <View style={boq.badge}><Text allowFontScaling={false} style={boq.badgeText}>{item.qty}</Text></View>
+                    <Text allowFontScaling={false} style={boq.note} numberOfLines={2}>{item.note}</Text>
                 </View>
             </View>
         </TouchableOpacity>
@@ -241,8 +241,8 @@ export default function AIRenovationAssistantScreen() {
                     ) : (
                         <View style={ph.uploadEmpty}>
                             <MaterialCommunityIcons name="camera-plus-outline" size={44} color={GOLD} />
-                            <Text style={ph.uploadTitle}>Mekanını Göster</Text>
-                            <Text style={ph.uploadSub}>Fotoğraf veya video yükle — AI mekânı analiz etsin</Text>
+                            <Text allowFontScaling={false} style={ph.uploadTitle}>Mekanını Göster</Text>
+                            <Text allowFontScaling={false} style={ph.uploadSub}>Fotoğraf veya video yükle — AI mekânı analiz etsin</Text>
                         </View>
                     )}
                 </TouchableOpacity>
@@ -250,7 +250,7 @@ export default function AIRenovationAssistantScreen() {
 
             {/* Divider */}
             <View style={ph.divRow}>
-                <View style={ph.divLine} /><Text style={ph.divText}>VEYA</Text><View style={ph.divLine} />
+                <View style={ph.divLine} /><Text allowFontScaling={false} style={ph.divText}>VEYA</Text><View style={ph.divLine} />
             </View>
 
             {/* Voice */}
@@ -258,15 +258,15 @@ export default function AIRenovationAssistantScreen() {
                 <LinearGradient colors={['#111', '#0e0e0e']} style={StyleSheet.absoluteFillObject} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
                 <View style={ph.voiceHead}>
                     <MaterialCommunityIcons name="chef-hat" size={18} color={GOLD} />
-                    <Text style={ph.voiceLabel}>Şef Sizi Dinliyor</Text>
+                    <Text allowFontScaling={false} style={ph.voiceLabel}>Şef Sizi Dinliyor</Text>
                 </View>
                 {recording && <VoiceWave active={recording} />}
                 {voiceText ? (
                     <View style={ph.transcript}>
-                        <Text style={ph.transcriptText}>"{voiceText}"</Text>
+                        <Text allowFontScaling={false} style={ph.transcriptText}>"{voiceText}"</Text>
                     </View>
                 ) : (
-                    <Text style={ph.voiceHint}>Mikrofona basılı tutun ve tadilat hayallerinizi anlatın.</Text>
+                    <Text allowFontScaling={false} style={ph.voiceHint}>Mikrofona basılı tutun ve tadilat hayallerinizi anlatın.</Text>
                 )}
                 <Animated.View style={{ transform: [{ scale: micAnim }] }}>
                     <TouchableOpacity style={[ph.micBtn, recording && ph.micBtnActive]} onPress={toggleMic} activeOpacity={0.85}>
@@ -276,7 +276,7 @@ export default function AIRenovationAssistantScreen() {
                             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                         />
                         <Ionicons name={recording ? "stop" : "mic"} size={28} color={recording ? "#FFF" : "#000"} />
-                        <Text style={[ph.micLabel, recording && { color: '#FFF' }]}>
+                        <Text allowFontScaling={false} style={[ph.micLabel, recording && { color: '#FFF' }]}>
                             {recording ? 'Durdur' : 'Hayalini Anlat'}
                         </Text>
                     </TouchableOpacity>
@@ -287,7 +287,7 @@ export default function AIRenovationAssistantScreen() {
             <TouchableOpacity style={ph.analyzeBtn} onPress={startAnalysis} activeOpacity={0.85}>
                 <LinearGradient colors={[GOLD, GOLD_D]} style={StyleSheet.absoluteFillObject} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
                 <MaterialCommunityIcons name="magic-staff" size={22} color="#000" />
-                <Text style={ph.analyzeBtnText}>ŞEF ANALİZ ETSİN</Text>
+                <Text allowFontScaling={false} style={ph.analyzeBtnText}>ŞEF ANALİZ ETSİN</Text>
             </TouchableOpacity>
         </View>
     );
@@ -327,13 +327,13 @@ export default function AIRenovationAssistantScreen() {
             <View style={an.inner}>
                 <MaterialCommunityIcons name="chef-hat" size={40} color={GOLD} />
             </View>
-            <Text style={an.title}>Şef Analiz Ediyor...</Text>
-            <Text style={an.sub}>Mekan fotoğrafları ve ses kaydınız yapay zeka tarafından teknik parametrelere dönüştürülüyor.</Text>
+            <Text allowFontScaling={false} style={an.title}>Şef Analiz Ediyor...</Text>
+            <Text allowFontScaling={false} style={an.sub}>Mekan fotoğrafları ve ses kaydınız yapay zeka tarafından teknik parametrelere dönüştürülüyor.</Text>
             <View style={an.steps}>
                 {['📸 Görüntü analizi', '🎙️ Ses metni çözümleme', '📐 BOQ listesi hazırlanıyor'].map((s, i) => (
                     <View key={i} style={an.stepRow}>
                         <MaterialCommunityIcons name="check-circle-outline" size={16} color={GOLD} />
-                        <Text style={an.stepText}>{s}</Text>
+                        <Text allowFontScaling={false} style={an.stepText}>{s}</Text>
                     </View>
                 ))}
             </View>
@@ -358,10 +358,10 @@ export default function AIRenovationAssistantScreen() {
                 <LinearGradient colors={['rgba(212,175,55,0.08)', 'transparent']} style={StyleSheet.absoluteFillObject} />
                 <View style={rs.aiTag}>
                     <MaterialCommunityIcons name="magic-staff" size={14} color="#000" />
-                    <Text style={rs.aiTagText}>AI KEŞİF ÖZETİ</Text>
+                    <Text allowFontScaling={false} style={rs.aiTagText}>AI KEŞİF ÖZETİ</Text>
                 </View>
-                <Text style={rs.headerTitle}>Teknik İhtiyaç Listesi</Text>
-                <Text style={rs.headerSub}>AI {MOCK_BOQ.length} iş kalemi tespit etti. İstemediğin kalemleri kaldır, ardından ofislere gönder.</Text>
+                <Text allowFontScaling={false} style={rs.headerTitle}>Teknik İhtiyaç Listesi</Text>
+                <Text allowFontScaling={false} style={rs.headerSub}>AI {MOCK_BOQ.length} iş kalemi tespit etti. İstemediğin kalemleri kaldır, ardından ofislere gönder.</Text>
             </View>
 
             {/* BOQ liste */}
@@ -378,11 +378,11 @@ export default function AIRenovationAssistantScreen() {
 
             {/* Öneriler */}
             <View style={rs.suggestBox}>
-                <Text style={rs.suggestTitle}>💬 Şefe Sor</Text>
+                <Text allowFontScaling={false} style={rs.suggestTitle}>💬 Şefe Sor</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 10 }}>
                     {SUGGESTIONS.map((s, i) => (
                         <TouchableOpacity key={i} style={rs.chip} onPress={() => { setChatMsg(s); setPhase('chat'); }}>
-                            <Text style={rs.chipText}>{s}</Text>
+                            <Text allowFontScaling={false} style={rs.chipText}>{s}</Text>
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
@@ -392,12 +392,12 @@ export default function AIRenovationAssistantScreen() {
             <TouchableOpacity style={rs.confirmBtn} onPress={handleConfirm} activeOpacity={0.85}>
                 <LinearGradient colors={[GOLD, GOLD_D]} style={StyleSheet.absoluteFillObject} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
                 <MaterialCommunityIcons name="send-check" size={22} color="#000" />
-                <Text style={rs.confirmText}>ONAYLA & OFİSLERE GÖNDER</Text>
+                <Text allowFontScaling={false} style={rs.confirmText}>ONAYLA & OFİSLERE GÖNDER</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={rs.chatBtn} onPress={() => setPhase('chat')} activeOpacity={0.85}>
                 <Ionicons name="chatbubble-ellipses-outline" size={18} color={GOLD} />
-                <Text style={rs.chatBtnText}>Şef ile listeyi düzenle</Text>
+                <Text allowFontScaling={false} style={rs.chatBtnText}>Şef ile listeyi düzenle</Text>
             </TouchableOpacity>
         </View>
     );
@@ -425,18 +425,18 @@ export default function AIRenovationAssistantScreen() {
                 <View style={ch.aiRow}>
                     <View style={ch.aiAvatar}><MaterialCommunityIcons name="chef-hat" size={16} color="#000" /></View>
                     <View style={ch.aiBubble}>
-                        <Text style={ch.aiBubbleText}>Merhaba! Teknik listenizi güncellememi veya düzenlemememi ister misiniz? Her türlü tadilat sorunuzu sorabilirsiniz.</Text>
+                        <Text allowFontScaling={false} style={ch.aiBubbleText}>Merhaba! Teknik listenizi güncellememi veya düzenlemememi ister misiniz? Her türlü tadilat sorunuzu sorabilirsiniz.</Text>
                     </View>
                 </View>
                 {chatLog.map((msg, i) => (
                     msg.role === 'user' ? (
                         <View key={i} style={ch.userRow}>
-                            <View style={ch.userBubble}><Text style={ch.userBubbleText}>{msg.text}</Text></View>
+                            <View style={ch.userBubble}><Text allowFontScaling={false} style={ch.userBubbleText}>{msg.text}</Text></View>
                         </View>
                     ) : (
                         <View key={i} style={ch.aiRow}>
                             <View style={ch.aiAvatar}><MaterialCommunityIcons name="chef-hat" size={16} color="#000" /></View>
-                            <View style={ch.aiBubble}><Text style={ch.aiBubbleText}>{msg.text}</Text></View>
+                            <View style={ch.aiBubble}><Text allowFontScaling={false} style={ch.aiBubbleText}>{msg.text}</Text></View>
                         </View>
                     )
                 ))}
@@ -444,7 +444,7 @@ export default function AIRenovationAssistantScreen() {
 
             {/* Input */}
             <View style={ch.inputRow}>
-                <TextInput
+                <TextInput allowFontScaling={false}
                     style={ch.input}
                     placeholder="Şefe yaz..."
                     placeholderTextColor="#555"
@@ -462,7 +462,7 @@ export default function AIRenovationAssistantScreen() {
             <TouchableOpacity style={rs.confirmBtn} onPress={handleConfirm} activeOpacity={0.85}>
                 <LinearGradient colors={[GOLD, GOLD_D]} style={StyleSheet.absoluteFillObject} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
                 <MaterialCommunityIcons name="send-check" size={22} color="#000" />
-                <Text style={rs.confirmText}>ONAYLA & OFİSLERE GÖNDER</Text>
+                <Text allowFontScaling={false} style={rs.confirmText}>ONAYLA & OFİSLERE GÖNDER</Text>
             </TouchableOpacity>
         </KeyboardAvoidingView>
     );
@@ -518,7 +518,7 @@ export default function AIRenovationAssistantScreen() {
                 </TouchableOpacity>
                 <View style={styles.aiChip}>
                     <MaterialCommunityIcons name="chef-hat" size={14} color="#000" />
-                    <Text style={styles.aiChipText}>CepteŞef AI</Text>
+                    <Text allowFontScaling={false} style={styles.aiChipText}>CepteŞef AI</Text>
                 </View>
                 <View style={{ width: 38 }} />
             </View>
@@ -526,8 +526,8 @@ export default function AIRenovationAssistantScreen() {
             <ScrollView ref={scrollRef} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                 {/* Phase title */}
                 <View style={styles.phaseTitle}>
-                    <Text style={styles.title}>{phaseLabel[phase]}</Text>
-                    <Text style={styles.sub}>{phaseSub[phase]}</Text>
+                    <Text allowFontScaling={false} style={styles.title}>{phaseLabel[phase]}</Text>
+                    <Text allowFontScaling={false} style={styles.sub}>{phaseSub[phase]}</Text>
                 </View>
 
                 {phase === 'input' && renderInput()}

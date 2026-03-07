@@ -190,7 +190,7 @@ export default function RentalProposalScreen() {
 
     const renderDurationStep = () => (
         <View style={styles.stepContainer}>
-            <Text style={styles.questionTitle}>1. Ne kadar süreyle ihtiyacınız var?</Text>
+            <Text allowFontScaling={false} style={styles.questionTitle}>1. Ne kadar süreyle ihtiyacınız var?</Text>
 
             {DURATION_OPTIONS.map((opt) => {
                 const isSelected = durationValues.type === opt.id;
@@ -209,8 +209,8 @@ export default function RentalProposalScreen() {
                                 <MaterialCommunityIcons name={opt.icon} size={24} color={isSelected ? '#000' : '#D4AF37'} />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={[styles.optionTitle, isSelected && styles.optionTitleSelected]}>{opt.title}</Text>
-                                <Text style={styles.optionSub}>{opt.sub}</Text>
+                                <Text allowFontScaling={false} style={[styles.optionTitle, isSelected && styles.optionTitleSelected]}>{opt.title}</Text>
+                                <Text allowFontScaling={false} style={styles.optionSub}>{opt.sub}</Text>
                             </View>
                             {isSelected && <MaterialCommunityIcons name="check-circle" size={24} color="#D4AF37" />}
                         </TouchableOpacity>
@@ -218,7 +218,7 @@ export default function RentalProposalScreen() {
                         {/* ACCORDION DETAIL FOR ALL TYPES */}
                         {isSelected && (
                             <View style={styles.detailArea}>
-                                <Text style={styles.detailLabel}>
+                                <Text allowFontScaling={false} style={styles.detailLabel}>
                                     {opt.id === 'hourly' ? 'Kaç Saat' :
                                         opt.id === 'daily' ? 'Kaç Gün' :
                                             opt.id === 'weekly' ? 'Kaç Hafta' : 'Kaç Ay'} ve Ne Zaman?
@@ -226,14 +226,14 @@ export default function RentalProposalScreen() {
                                 <View style={styles.detailRow}>
                                     <TouchableOpacity style={styles.dateBtn}>
                                         <MaterialCommunityIcons name="calendar" size={20} color="#D4AF37" />
-                                        <Text style={styles.dateBtnText}>Başlangıç Seç</Text>
+                                        <Text allowFontScaling={false} style={styles.dateBtnText}>Başlangıç Seç</Text>
                                     </TouchableOpacity>
 
                                     <View style={styles.counterContainer}>
                                         <TouchableOpacity onPress={() => setDurationValues(prev => ({ ...prev, count: Math.max(1, prev.count - 1) }))}>
                                             <MaterialCommunityIcons name="minus-circle-outline" size={28} color="#666" />
                                         </TouchableOpacity>
-                                        <Text style={styles.counterText}>
+                                        <Text allowFontScaling={false} style={styles.counterText}>
                                             {durationValues.count} {
                                                 opt.id === 'hourly' ? 'Saat' :
                                                     opt.id === 'daily' ? 'Gün' :
@@ -245,7 +245,7 @@ export default function RentalProposalScreen() {
                                         </TouchableOpacity>
                                     </View>
                                 </View>
-                                <Text style={styles.estimateText}>Tahmini Bitiş: 2 Şubat Pazartesi</Text>
+                                <Text allowFontScaling={false} style={styles.estimateText}>Tahmini Bitiş: 2 Şubat Pazartesi</Text>
                             </View>
                         )}
                     </View>
@@ -258,7 +258,7 @@ export default function RentalProposalScreen() {
         if (step < 2) return null;
         return (
             <Animated.View style={[styles.stepContainer, { opacity: fadeAnimStep2, transform: [{ translateY: fadeAnimStep2.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }]}>
-                <Text style={styles.questionTitle}>2. Makine nerede çalışacak?</Text>
+                <Text allowFontScaling={false} style={styles.questionTitle}>2. Makine nerede çalışacak?</Text>
 
                 {/* NEW INTERACTIVE MAP UI */}
                 <View style={[styles.mapContainer, locationValues.locationSet && { borderColor: '#D4AF37' }]}>
@@ -290,7 +290,7 @@ export default function RentalProposalScreen() {
                     {/* Floating Search Bar */}
                     <View style={styles.searchBarFloating}>
                         <MaterialCommunityIcons name="magnify" size={20} color="#666" />
-                        <TextInput
+                        <TextInput allowFontScaling={false}
                             style={styles.searchInput}
                             placeholder="Şantiye adresi veya ilçe ara..."
                             placeholderTextColor="#999"
@@ -316,14 +316,14 @@ export default function RentalProposalScreen() {
                     {/* Bottom Action Area */}
                     <View style={styles.mapBottomBar}>
                         <View style={styles.addressContainer}>
-                            <Text style={styles.addressLabel}>Seçilen Konum:</Text>
-                            <Text style={styles.addressText} numberOfLines={2}>
+                            <Text allowFontScaling={false} style={styles.addressLabel}>Seçilen Konum:</Text>
+                            <Text allowFontScaling={false} style={styles.addressText} numberOfLines={2}>
                                 {locationValues.address}
                             </Text>
                         </View>
 
                         <TouchableOpacity style={styles.confirmLocationBtn} onPress={handleLocationConfirm}>
-                            <Text style={styles.confirmLocationText}>
+                            <Text allowFontScaling={false} style={styles.confirmLocationText}>
                                 {locationValues.locationSet ? "GÜNCELLE" : "KONUM İŞARETLE"}
                             </Text>
                         </TouchableOpacity>
@@ -334,8 +334,8 @@ export default function RentalProposalScreen() {
                 {locationValues.locationSet && (
                     <View style={styles.transportToggleRow}>
                         <View>
-                            <Text style={styles.toggleLabel}>Nakliye organizasyonunu biz yapalım mı?</Text>
-                            {locationValues.transportIncluded && <Text style={styles.warningText}>+ Nakliye bedeli teklife eklenecektir</Text>}
+                            <Text allowFontScaling={false} style={styles.toggleLabel}>Nakliye organizasyonunu biz yapalım mı?</Text>
+                            {locationValues.transportIncluded && <Text allowFontScaling={false} style={styles.warningText}>+ Nakliye bedeli teklife eklenecektir</Text>}
                         </View>
                         <Switch
                             trackColor={{ false: "#333", true: "rgba(212, 175, 55, 0.3)" }}
@@ -354,28 +354,28 @@ export default function RentalProposalScreen() {
 
         return (
             <Animated.View style={[styles.stepContainer, { opacity: fadeAnimStep3, transform: [{ translateY: fadeAnimStep3.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }]}>
-                <Text style={styles.questionTitle}>3. Operatör ve Yakıt durumu</Text>
+                <Text allowFontScaling={false} style={styles.questionTitle}>3. Operatör ve Yakıt durumu</Text>
 
                 <View style={styles.serviceRow}>
-                    <Text style={styles.serviceQuestion}>Operatör desteği istiyor musunuz?</Text>
+                    <Text allowFontScaling={false} style={styles.serviceQuestion}>Operatör desteği istiyor musunuz?</Text>
                     <View style={styles.segmentContainer}>
                         <TouchableOpacity
                             style={[styles.segmentBtn, serviceValues.operatorIncluded && styles.segmentBtnActive]}
                             onPress={() => setServiceValues(prev => ({ ...prev, operatorIncluded: true }))}
                         >
-                            <Text style={[styles.segmentText, serviceValues.operatorIncluded && styles.segmentTextActive]}>EVET (Dahil)</Text>
+                            <Text allowFontScaling={false} style={[styles.segmentText, serviceValues.operatorIncluded && styles.segmentTextActive]}>EVET (Dahil)</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.segmentBtn, !serviceValues.operatorIncluded && styles.segmentBtnActive]}
                             onPress={() => setServiceValues(prev => ({ ...prev, operatorIncluded: false }))}
                         >
-                            <Text style={[styles.segmentText, !serviceValues.operatorIncluded && styles.segmentTextActive]}>HAYIR</Text>
+                            <Text allowFontScaling={false} style={[styles.segmentText, !serviceValues.operatorIncluded && styles.segmentTextActive]}>HAYIR</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
                 <View style={[styles.serviceRow, { marginTop: 16 }]}>
-                    <Text style={styles.serviceQuestion}>Yakıt durumu?</Text>
+                    <Text allowFontScaling={false} style={styles.serviceQuestion}>Yakıt durumu?</Text>
                     <View style={styles.segmentContainer}>
                         <TouchableOpacity
                             style={[styles.segmentBtn, !serviceValues.fuelIncluded && styles.segmentBtnActive]}
@@ -384,7 +384,7 @@ export default function RentalProposalScreen() {
                                 handleServiceConfirm();
                             }}
                         >
-                            <Text style={[styles.segmentText, !serviceValues.fuelIncluded && styles.segmentTextActive]}>HARİÇ</Text>
+                            <Text allowFontScaling={false} style={[styles.segmentText, !serviceValues.fuelIncluded && styles.segmentTextActive]}>HARİÇ</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.segmentBtn, serviceValues.fuelIncluded && styles.segmentBtnActive]}
@@ -393,7 +393,7 @@ export default function RentalProposalScreen() {
                                 handleServiceConfirm();
                             }}
                         >
-                            <Text style={[styles.segmentText, serviceValues.fuelIncluded && styles.segmentTextActive]}>DAHİL</Text>
+                            <Text allowFontScaling={false} style={[styles.segmentText, serviceValues.fuelIncluded && styles.segmentTextActive]}>DAHİL</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -416,19 +416,19 @@ export default function RentalProposalScreen() {
                 </View>
 
                 <View style={styles.receiptBody}>
-                    <Text style={styles.receiptTitle}>TALEP ÖZETİ</Text>
+                    <Text allowFontScaling={false} style={styles.receiptTitle}>TALEP ÖZETİ</Text>
 
                     <View style={styles.receiptRow}>
-                        <Text style={styles.receiptLabel}>Hizmet:</Text>
-                        <Text style={styles.receiptValue}>{item?.name || 'Vinç Kiralama'}</Text>
+                        <Text allowFontScaling={false} style={styles.receiptLabel}>Hizmet:</Text>
+                        <Text allowFontScaling={false} style={styles.receiptValue}>{item?.name || 'Vinç Kiralama'}</Text>
                     </View>
                     <View style={styles.receiptRow}>
-                        <Text style={styles.receiptLabel}>Firma:</Text>
-                        <Text style={styles.receiptValue}>{supplier?.name || 'Tedarikçi'}</Text>
+                        <Text allowFontScaling={false} style={styles.receiptLabel}>Firma:</Text>
+                        <Text allowFontScaling={false} style={styles.receiptValue}>{supplier?.name || 'Tedarikçi'}</Text>
                     </View>
                     <View style={styles.receiptRow}>
-                        <Text style={styles.receiptLabel}>Süre:</Text>
-                        <Text style={styles.receiptValue}>
+                        <Text allowFontScaling={false} style={styles.receiptLabel}>Süre:</Text>
+                        <Text allowFontScaling={false} style={styles.receiptValue}>
                             {DURATION_OPTIONS.find(d => d.id === durationValues.type)?.title}
                             {` (${durationValues.count} ${durationValues.type === 'hourly' ? 'Saat' :
                                 durationValues.type === 'daily' ? 'Gün' :
@@ -437,28 +437,28 @@ export default function RentalProposalScreen() {
                         </Text>
                     </View>
                     <View style={styles.receiptRow}>
-                        <Text style={styles.receiptLabel}>Adres:</Text>
-                        <Text style={styles.receiptValue} numberOfLines={1}>{locationValues.address}</Text>
+                        <Text allowFontScaling={false} style={styles.receiptLabel}>Adres:</Text>
+                        <Text allowFontScaling={false} style={styles.receiptValue} numberOfLines={1}>{locationValues.address}</Text>
                     </View>
                     <View style={styles.receiptRow}>
-                        <Text style={styles.receiptLabel}>Operatör:</Text>
-                        <Text style={styles.receiptValue}>{serviceValues.operatorIncluded ? 'DAHİL' : 'HARİÇ'}</Text>
+                        <Text allowFontScaling={false} style={styles.receiptLabel}>Operatör:</Text>
+                        <Text allowFontScaling={false} style={styles.receiptValue}>{serviceValues.operatorIncluded ? 'DAHİL' : 'HARİÇ'}</Text>
                     </View>
                     <View style={styles.receiptRow}>
-                        <Text style={styles.receiptLabel}>Nakliye:</Text>
-                        <Text style={styles.receiptValue}>{locationValues.transportIncluded ? 'DAHİL (Hesaplanacak)' : 'HARİÇ'}</Text>
+                        <Text allowFontScaling={false} style={styles.receiptLabel}>Nakliye:</Text>
+                        <Text allowFontScaling={false} style={styles.receiptValue}>{locationValues.transportIncluded ? 'DAHİL (Hesaplanacak)' : 'HARİÇ'}</Text>
                     </View>
 
                     <View style={styles.divider} />
 
                     <View style={styles.totalRow}>
-                        <Text style={styles.totalLabel}>Tahmini Tutar:</Text>
-                        <Text style={styles.totalValue}>{formatCurrency(estimatedPrice)}</Text>
+                        <Text allowFontScaling={false} style={styles.totalLabel}>Tahmini Tutar:</Text>
+                        <Text allowFontScaling={false} style={styles.totalValue}>{formatCurrency(estimatedPrice)}</Text>
                     </View>
                 </View>
 
                 <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
-                    <Text style={styles.submitBtnText}>TEKLİFİ ONAYLA VE GÖNDER</Text>
+                    <Text allowFontScaling={false} style={styles.submitBtnText}>TEKLİFİ ONAYLA VE GÖNDER</Text>
                     <MaterialCommunityIcons name="send" size={20} color="#000" style={{ marginLeft: 8 }} />
                 </TouchableOpacity>
                 <View style={{ height: 40 }} />
@@ -478,9 +478,9 @@ export default function RentalProposalScreen() {
             <View style={styles.successContainer}>
                 <View style={styles.successContent}>
                     <MaterialCommunityIcons name="check-decagram" size={120} color="#D4AF37" />
-                    <Text style={styles.successTitle}>TALEBİNİZ ALINDI</Text>
-                    <Text style={styles.successText}>
-                        Talebiniz <Text style={{ fontWeight: 'bold', color: '#D4AF37' }}>{supplier?.name}</Text> firmasına başarıyla iletildi.
+                    <Text allowFontScaling={false} style={styles.successTitle}>TALEBİNİZ ALINDI</Text>
+                    <Text allowFontScaling={false} style={styles.successText}>
+                        Talebiniz <Text allowFontScaling={false} style={{ fontWeight: 'bold', color: '#D4AF37' }}>{supplier?.name}</Text> firmasına başarıyla iletildi.
                         {"\n\n"}
                         Kısa süre içerisinde tarafınıza dönüş yapılacaktır.
                     </Text>
@@ -489,7 +489,7 @@ export default function RentalProposalScreen() {
                         style={styles.exitBtn}
                         onPress={() => navigation.navigate('MainTabs', { screen: 'Ana Sayfa' })}
                     >
-                        <Text style={styles.exitBtnText}>ANA EKRANA DÖN</Text>
+                        <Text allowFontScaling={false} style={styles.exitBtnText}>ANA EKRANA DÖN</Text>
                         <MaterialCommunityIcons name="logout" size={24} color="#000" style={{ marginLeft: 8 }} />
                     </TouchableOpacity>
                 </View>
@@ -508,7 +508,7 @@ export default function RentalProposalScreen() {
                                 <Ionicons name="arrow-back" size={24} color="#fff" />
                             </TouchableOpacity>
                         )}
-                        <Text style={styles.headerTitle}>{step === 5 ? 'İŞLEM BAŞARILI' : 'AKILLI TALEP SİHİRBAZI'}</Text>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>{step === 5 ? 'İŞLEM BAŞARILI' : 'AKILLI TALEP SİHİRBAZI'}</Text>
                         <View style={{ width: 24 }} />
                     </View>
 

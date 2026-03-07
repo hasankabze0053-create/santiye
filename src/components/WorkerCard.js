@@ -35,27 +35,27 @@ export default function WorkerCard({ worker, onPress, delay }) {
                     {/* Info Section */}
                     <View style={styles.infoContainer}>
                         <View style={styles.headerRow}>
-                            <Text style={styles.name}>{worker.name}</Text>
+                            <Text allowFontScaling={false} style={styles.name}>{worker.name}</Text>
                             <View style={styles.ratingBadge}>
                                 <Ionicons name="star" size={12} color={COLORS.accent} />
-                                <Text style={styles.ratingText}>{worker.rating}</Text>
+                                <Text allowFontScaling={false} style={styles.ratingText}>{worker.rating}</Text>
                             </View>
                         </View>
 
-                        <Text style={styles.role}>{worker.role}</Text>
+                        <Text allowFontScaling={false} style={styles.role}>{worker.role}</Text>
 
                         {/* Skills / Tags */}
                         <View style={styles.tagsRow}>
                             {worker.tags.map((tag, index) => (
                                 <View key={index} style={styles.tag}>
-                                    <Text style={styles.tagText}>{tag}</Text>
+                                    <Text allowFontScaling={false} style={styles.tagText}>{tag}</Text>
                                 </View>
                             ))}
                         </View>
 
                         <View style={styles.locationRow}>
                             <Ionicons name="location-sharp" size={12} color="#666" />
-                            <Text style={styles.locationText}>{worker.distance} • {worker.location}</Text>
+                            <Text allowFontScaling={false} style={styles.locationText}>{worker.distance} • {worker.location}</Text>
                         </View>
                     </View>
 

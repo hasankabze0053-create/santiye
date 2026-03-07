@@ -32,14 +32,14 @@ export default function SellerStoreScreen() {
             <View style={styles.imageContainer}>
                 <Image source={{ uri: item.image }} style={styles.productImage} />
                 <View style={styles.priceTag}>
-                    <Text style={styles.priceText}>{item.price}</Text>
+                    <Text allowFontScaling={false} style={styles.priceText}>{item.price}</Text>
                 </View>
             </View>
             <View style={styles.productInfo}>
-                <Text style={styles.productName}>{item.name}</Text>
-                <Text style={styles.productUnit}>{isRental ? item.unit : item.unit + ' Fiyatı'}</Text>
+                <Text allowFontScaling={false} style={styles.productName}>{item.name}</Text>
+                <Text allowFontScaling={false} style={styles.productUnit}>{isRental ? item.unit : item.unit + ' Fiyatı'}</Text>
                 <TouchableOpacity style={styles.addButton}>
-                    <Text style={styles.addButtonText}>{isRental ? 'KİRALA' : 'SEPETE EKLE'}</Text>
+                    <Text allowFontScaling={false} style={styles.addButtonText}>{isRental ? 'KİRALA' : 'SEPETE EKLE'}</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -56,7 +56,7 @@ export default function SellerStoreScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                         <Ionicons name="arrow-back" size={24} color="#fff" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>{isRental ? 'FİRMA PROFİLİ' : 'MAĞAZA PROFİLİ'}</Text>
+                    <Text allowFontScaling={false} style={styles.headerTitle}>{isRental ? 'FİRMA PROFİLİ' : 'MAĞAZA PROFİLİ'}</Text>
                     <TouchableOpacity style={styles.moreBtn}>
                         <MaterialCommunityIcons name="dots-vertical" size={24} color="#fff" />
                     </TouchableOpacity>
@@ -67,27 +67,27 @@ export default function SellerStoreScreen() {
                     <LinearGradient colors={['#1A1A1A', '#000']} style={StyleSheet.absoluteFillObject} />
                     <View style={styles.profileContent}>
                         <View style={styles.avatar}>
-                            <Text style={styles.avatarText}>{sellerName.substring(0, 1)}</Text>
+                            <Text allowFontScaling={false} style={styles.avatarText}>{sellerName.substring(0, 1)}</Text>
                         </View>
                         <View style={{ flex: 1 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                <Text style={styles.sellerName}>{sellerName}</Text>
+                                <Text allowFontScaling={false} style={styles.sellerName}>{sellerName}</Text>
                                 <MaterialCommunityIcons name="check-decagram" size={16} color="#4ADE80" />
                             </View>
                             <View style={styles.statsRow}>
                                 <View style={styles.stat}>
                                     <Ionicons name="star" size={12} color="#D4AF37" />
-                                    <Text style={styles.statText}>{rating}</Text>
+                                    <Text allowFontScaling={false} style={styles.statText}>{rating}</Text>
                                 </View>
                                 <View style={styles.statDivider} />
                                 <View style={styles.stat}>
                                     <Ionicons name="location-outline" size={12} color="#888" />
-                                    <Text style={styles.statText}>{location || 'Türkiye, İst'}</Text>
+                                    <Text allowFontScaling={false} style={styles.statText}>{location || 'Türkiye, İst'}</Text>
                                 </View>
                             </View>
                         </View>
                         <TouchableOpacity style={styles.followBtn}>
-                            <Text style={styles.followBtnText}>Takip Et</Text>
+                            <Text allowFontScaling={false} style={styles.followBtnText}>Takip Et</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -95,8 +95,8 @@ export default function SellerStoreScreen() {
                 {/* Product List */}
                 <View style={styles.productListContainer}>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>{isRental ? 'Kiralık Makine Parkı' : 'Tüm Ürünler'}</Text>
-                        <Text style={styles.productCount}>{products.length} Ürün</Text>
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>{isRental ? 'Kiralık Makine Parkı' : 'Tüm Ürünler'}</Text>
+                        <Text allowFontScaling={false} style={styles.productCount}>{products.length} Ürün</Text>
                     </View>
 
                     <FlatList

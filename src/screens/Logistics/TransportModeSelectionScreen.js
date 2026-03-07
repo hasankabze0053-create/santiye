@@ -50,7 +50,7 @@ export default function TransportModeSelectionScreen({ navigation }) {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { marginTop: 10 }]}>
                         <Ionicons name="chevron-back" size={28} color="#fff" />
                     </TouchableOpacity>
-                    <Text style={[styles.headerTitle, { marginTop: 10 }]}>TALEP OLUŞTUR</Text>
+                    <Text allowFontScaling={false} style={[styles.headerTitle, { marginTop: 10 }]}>TALEP OLUŞTUR</Text>
                     <View style={{ width: 40 }} />
                 </View>
 
@@ -74,8 +74,8 @@ export default function TransportModeSelectionScreen({ navigation }) {
                                 <MaterialCommunityIcons name="lightning-bolt" size={32} color={COLORS.neon} />
                             </View>
                             <View style={styles.cardContent}>
-                                <Text style={styles.cardTitle}>HIZLI TALEP OLUŞTUR</Text>
-                                <Text style={styles.cardSub}>
+                                <Text allowFontScaling={false} style={styles.cardTitle}>HIZLI TALEP OLUŞTUR</Text>
+                                <Text allowFontScaling={false} style={styles.cardSub}>
                                     Vaktiniz kısıtlı mı? Yükünüzü ve rotanızı kısaca yazın, en uygun aracı biz bulalım.
                                 </Text>
                             </View>
@@ -105,8 +105,8 @@ export default function TransportModeSelectionScreen({ navigation }) {
                                 <MaterialCommunityIcons name="map-marker-path" size={32} color="#FFD700" />
                             </View>
                             <View style={styles.cardContent}>
-                                <Text style={[styles.cardTitle, { color: '#FFD700' }]}>DETAYLI PLANLAMA</Text>
-                                <Text style={styles.cardSub}>
+                                <Text allowFontScaling={false} style={[styles.cardTitle, { color: '#FFD700' }]}>DETAYLI PLANLAMA</Text>
+                                <Text allowFontScaling={false} style={styles.cardSub}>
                                     Rotayı, araç tipini ve tonajı kendiniz seçerek anında fiyat hesaplayın.
                                 </Text>
                             </View>
@@ -145,18 +145,18 @@ export default function TransportModeSelectionScreen({ navigation }) {
 
                         <View style={styles.modalContent}>
                             <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>⚡ HIZLI ASİSTAN</Text>
+                                <Text allowFontScaling={false} style={styles.modalTitle}>⚡ HIZLI ASİSTAN</Text>
                                 <TouchableOpacity onPress={() => setFastModalVisible(false)}>
                                     <Ionicons name="close-circle" size={28} color="#666" />
                                 </TouchableOpacity>
                             </View>
 
                             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                                <Text style={styles.modalSub}>
+                                <Text allowFontScaling={false} style={styles.modalSub}>
                                     Yükünüzü, nereden nereye gideceğini ve ne zaman araç lazım olduğunu kısaca yazın.
                                 </Text>
 
-                                <TextInput
+                                <TextInput allowFontScaling={false}
                                     style={styles.textArea}
                                     placeholder="Örn: Kartal şantiyesinden Tuzla depoya 3 palet seramik gidecek. Saat 14:00'te araç lazım..."
                                     placeholderTextColor="#555"
@@ -167,8 +167,8 @@ export default function TransportModeSelectionScreen({ navigation }) {
                                     // Removed ID to prevent potential native conflicts
                                 />
 
-                                <Text style={[styles.modalSub, { marginBottom: 10 }]}>İletişim Numaranız:</Text>
-                                <TextInput
+                                <Text allowFontScaling={false} style={[styles.modalSub, { marginBottom: 10 }]}>İletişim Numaranız:</Text>
+                                <TextInput allowFontScaling={false}
                                     style={[styles.textArea, { height: 50, marginBottom: 30 }]}
                                     placeholder="0532 999 88 77"
                                     placeholderTextColor="#555"
@@ -179,7 +179,7 @@ export default function TransportModeSelectionScreen({ navigation }) {
 
                                 <TouchableOpacity style={styles.submitBtn} onPress={handleFastSubmit}>
                                     <LinearGradient colors={[COLORS.neon, '#AACC00']} style={styles.submitGradient}>
-                                        <Text style={styles.submitText}>TALEBİ GÖNDER</Text>
+                                        <Text allowFontScaling={false} style={styles.submitText}>TALEBİ GÖNDER</Text>
                                         <MaterialCommunityIcons name="send" size={20} color="#000" />
                                     </LinearGradient>
                                 </TouchableOpacity>

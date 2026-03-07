@@ -32,12 +32,12 @@ export default function ConstructionSuccessScreen() {
 
                     {/* Description Text */}
                     <Animated.View entering={FadeInDown.delay(800).duration(800)} style={styles.messageContainer}>
-                        <Text style={styles.messageText}>
-                            Projeniz <Text style={styles.highlight}>Seçilmiş Müteahhitlere</Text> başarıyla sunulmuştur.
+                        <Text allowFontScaling={false} style={styles.messageText}>
+                            Projeniz <Text allowFontScaling={false} style={styles.highlight}>Seçilmiş Müteahhitlere</Text> başarıyla sunulmuştur.
                         </Text>
                         <View style={styles.divider} />
-                        <Text style={styles.subMessageText}>
-                            En kısa sürede <Text style={styles.highlight}>Teklif Havuzunuz</Text> oluşturulacaktır.
+                        <Text allowFontScaling={false} style={styles.subMessageText}>
+                            En kısa sürede <Text allowFontScaling={false} style={styles.highlight}>Teklif Havuzunuz</Text> oluşturulacaktır.
                         </Text>
                     </Animated.View>
 
@@ -55,7 +55,7 @@ export default function ConstructionSuccessScreen() {
                                 style={styles.homeButtonGradient}
                             >
                                 <Ionicons name="home" size={20} color="#000" style={{ marginRight: 8 }} />
-                                <Text style={styles.homeButtonText}>ANA SAYFAYA DÖN</Text>
+                                <Text allowFontScaling={false} style={styles.homeButtonText}>ANA SAYFAYA DÖN</Text>
                             </LinearGradient>
                         </TouchableOpacity>
                     </Animated.View>

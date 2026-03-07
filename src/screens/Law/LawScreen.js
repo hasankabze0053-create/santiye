@@ -4,6 +4,7 @@
  */
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { BlurView } from 'expo-blur';
 import * as DocumentPicker from 'expo-document-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
@@ -70,8 +71,8 @@ function AnalyzingOverlay({ visible }) {
                 <Animated.View style={[s.ring, s.ring1, { transform: [{ scale: ring1 }] }]} />
                 <Animated.View style={[s.ring, s.ring2, { transform: [{ scale: ring2 }] }]} />
                 <MaterialCommunityIcons name="scale-balance" size={42} color={GOLD} />
-                <Text style={s.overlayTitle}>Analiz Ediliyor…</Text>
-                <Text style={s.overlaySub}>Şantiye dili → Hukuki vaka</Text>
+                <Text allowFontScaling={false} style={s.overlayTitle}>Analiz Ediliyor…</Text>
+                <Text allowFontScaling={false} style={s.overlaySub}>Şantiye dili → Hukuki vaka</Text>
             </View>
         </Animated.View>
     );
@@ -95,13 +96,13 @@ function RecentCard({ cat, score, time }) {
     return (
         <View style={s.recentCard}>
             <View style={{ flex: 1 }}>
-                <Text style={s.recentCat}>{cat}</Text>
-                <Text style={s.recentTime}>{time}</Text>
+                <Text allowFontScaling={false} style={s.recentCat}>{cat}</Text>
+                <Text allowFontScaling={false} style={s.recentTime}>{time}</Text>
             </View>
             {/* Circular ring score */}
             <View style={[s.circleScore, { borderColor: c }]}>
-                <Text style={[s.circleScoreNum, { color: c }]}>{score}</Text>
-                <Text style={[s.circleScoreDen, { color: c + '88' }]}>/10</Text>
+                <Text allowFontScaling={false} style={[s.circleScoreNum, { color: c }]}>{score}</Text>
+                <Text allowFontScaling={false} style={[s.circleScoreDen, { color: c + '88' }]}>/10</Text>
             </View>
         </View>
     );
@@ -222,8 +223,8 @@ export default function LawScreen() {
                                 <Ionicons name="arrow-back" size={18} color="#fff" />
                             </TouchableOpacity>
                             <View style={s.headerCenter}>
-                                <Text style={s.headerEye}>⚖️  CEFTE ŞEF</Text>
-                                <Text style={s.headerSub}>Hukuki Çözüm Merkezi</Text>
+                                <Text allowFontScaling={false} style={s.headerEye}>⚖️  CEFTE ŞEF</Text>
+                                <Text allowFontScaling={false} style={s.headerSub}>Hukuki Çözüm Merkezi</Text>
                             </View>
                             <TouchableOpacity
                                 style={[s.headerBtn, (isLawyer || isAdmin) && s.headerBtnActive]}
@@ -241,14 +242,14 @@ export default function LawScreen() {
 
                         {/* ── HERO ── */}
                         <View style={s.heroBlock}>
-                            <Text style={s.heroEye}>YAPAY ZEKA DESTEKLİ</Text>
-                            <Text style={s.heroTitle}>Hukuki{'\n'}Kalkanınız</Text>
+                            <Text allowFontScaling={false} style={s.heroEye}>YAPAY ZEKA DESTEKLİ</Text>
+                            <Text allowFontScaling={false} style={s.heroTitle} numberOfLines={1} adjustsFontSizeToFit>Hukuki Kalkanınız</Text>
                         </View>
 
                         {/* ── AI ORACLE PULSE ── */}
                         <View style={s.oracleWrap}>
                             <AiOraclePulse />
-                            <Text style={s.oracleLabel}>AI Analiz Motoru — Aktif</Text>
+                            <Text allowFontScaling={false} style={s.oracleLabel}>AI Analiz Motoru — Aktif</Text>
                         </View>
 
                         {/* ── GLASSMORPHISM INPUT ── */}
@@ -267,7 +268,7 @@ export default function LawScreen() {
                                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                                 />
 
-                                <TextInput
+                                <TextInput allowFontScaling={false}
                                     style={s.input}
                                     placeholder={'Sadece probleminizi anlatın veya belge yükleyin…\n\nSes, fotoğraf veya PDF'}
                                     placeholderTextColor="rgba(255,255,255,0.22)"
@@ -276,7 +277,6 @@ export default function LawScreen() {
                                     onChangeText={setInputText}
                                     onFocus={() => {
                                         setIsInputFocused(true);
-                                        setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 200);
                                     }}
                                     onBlur={() => setIsInputFocused(false)}
                                     inputAccessoryViewID="LawDone"
@@ -293,10 +293,10 @@ export default function LawScreen() {
                                             <WaveBar delay={200} />
                                             <WaveBar delay={150} />
                                             <WaveBar delay={80} />
-                                            <Text style={s.recLabel}>Kaydediliyor…</Text>
+                                            <Text allowFontScaling={false} style={s.recLabel}>Kaydediliyor…</Text>
                                         </View>
                                     ) : (
-                                        <Text style={s.charCount}>{inputText.length > 0 ? `${inputText.length} karakter` : 'Metin, ses veya belge'}</Text>
+                                        <Text allowFontScaling={false} style={s.charCount}>{inputText.length > 0 ? `${inputText.length} karakter` : 'Metin, ses veya belge'}</Text>
                                     )}
                                     <View style={s.footerBtns}>
                                         {/* Attach */}
@@ -322,7 +322,7 @@ export default function LawScreen() {
                             {attachedFile && (
                                 <View style={s.fileChip}>
                                     <FontAwesome5 name="file-pdf" size={11} color={GOLD} />
-                                    <Text style={s.fileChipText} numberOfLines={1}>{attachedFile.name}</Text>
+                                    <Text allowFontScaling={false} style={s.fileChipText} numberOfLines={1}>{attachedFile.name}</Text>
                                     <TouchableOpacity onPress={() => setAttachedFile(null)}>
                                         <Ionicons name="close-circle" size={15} color="#555" />
                                     </TouchableOpacity>
@@ -339,7 +339,7 @@ export default function LawScreen() {
                                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                                 >
                                     <MaterialCommunityIcons name="magnify-scan" size={20} color="#000" style={{ opacity: 0.85 }} />
-                                    <Text style={s.ctaText}>ANALİZ ET VE AVUKATA BAĞLAN</Text>
+                                    <Text allowFontScaling={false} style={s.ctaText}>ANALİZ ET VE AVUKATA BAĞLAN</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>
@@ -349,7 +349,7 @@ export default function LawScreen() {
                             {/* Hairline separator */}
                             <View style={s.separator}>
                                 <View style={s.sepLine} />
-                                <Text style={s.sepLabel}>SON ANALİZLERİM</Text>
+                                <Text allowFontScaling={false} style={s.sepLabel}>SON ANALİZLERİM</Text>
                                 <View style={s.sepLine} />
                             </View>
 
@@ -365,7 +365,7 @@ export default function LawScreen() {
                 <InputAccessoryView nativeID="LawDone">
                     <View style={s.accessory}>
                         <TouchableOpacity onPress={Keyboard.dismiss}>
-                            <Text style={s.accessoryText}>Bitti</Text>
+                            <Text allowFontScaling={false} style={s.accessoryText}>Bitti</Text>
                         </TouchableOpacity>
                     </View>
                 </InputAccessoryView>
@@ -377,6 +377,11 @@ export default function LawScreen() {
                 data={caseData}
                 onClose={() => setPanelVisible(false)}
                 onConfirm={handleLawyerConnect}
+                onReAnalyze={(editedText) => {
+                    setPanelVisible(false);
+                    setInputText(editedText);
+                    setTimeout(() => triggerAnalysis(editedText), 350);
+                }}
             />
         </View>
     );

@@ -72,10 +72,10 @@ const FaqItem = ({ item }) => {
     return (
         <TouchableOpacity style={styles.faqItem} onPress={() => setExpanded(!expanded)} activeOpacity={0.8}>
             <View style={styles.faqHeader}>
-                <Text style={styles.faqQuestion}>{item.q}</Text>
+                <Text allowFontScaling={false} style={styles.faqQuestion}>{item.q}</Text>
                 <MaterialCommunityIcons name={expanded ? "chevron-up" : "chevron-down"} size={24} color="#FFD700" />
             </View>
-            {expanded && <Text style={styles.faqAnswer}>{item.a}</Text>}
+            {expanded && <Text allowFontScaling={false} style={styles.faqAnswer}>{item.a}</Text>}
         </TouchableOpacity>
     );
 };
@@ -199,7 +199,7 @@ export default function UrbanTransformationScreen({ navigation }) {
                         />
                         <View style={styles.premiumBoxContent}>
                             <View style={styles.premiumHeaderRow}>
-                                <Text style={styles.premiumBoxTitle}>KENTSEL DÖNÜŞÜM UZMANINA SOR</Text>
+                                <Text allowFontScaling={false} style={styles.premiumBoxTitle}>KENTSEL DÖNÜŞÜM UZMANINA SOR</Text>
                                 <MaterialCommunityIcons name="crown" size={20} color="#FFD700" />
                             </View>
 
@@ -218,8 +218,8 @@ export default function UrbanTransformationScreen({ navigation }) {
                                             <Ionicons name="chatbubbles" size={20} color="#FFD700" />
                                         </View>
                                         <View style={{ flex: 1 }}>
-                                            <Text style={styles.buttonTitle}>UZMANA DANIŞIN</Text>
-                                            <Text style={styles.buttonSubtitle}>Aklınıza takılanları sorun, anında cevaplayalım.</Text>
+                                            <Text allowFontScaling={false} style={styles.buttonTitle}>UZMANA DANIŞIN</Text>
+                                            <Text allowFontScaling={false} style={styles.buttonSubtitle}>Aklınıza takılanları sorun, anında cevaplayalım.</Text>
                                         </View>
                                         <Ionicons name="chevron-forward" size={24} color="#000" />
                                     </View>
@@ -231,25 +231,49 @@ export default function UrbanTransformationScreen({ navigation }) {
 
             case 'urban_construction_quotes':
                 return (
-                    <TouchableOpacity key={sectionId} style={styles.quoteCard} activeOpacity={0.9} onPress={handleGetQuotes}>
-                        <LinearGradient
-                            colors={['#FFD700', '#FF9100']}
-                            style={styles.quoteGradient}
-                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                        >
-                            <View>
-                                <Text style={styles.quoteTitle}>İNŞAAT FİRMALARINDAN TEKLİF AL</Text>
-                                <Text style={styles.quoteSubtitle}>Lisanslı firmalardan en iyi teklifleri topla.</Text>
+                    <View key={sectionId} style={styles.premiumActionCard}>
+                        <View style={styles.premiumActionHeader}>
+                            <View style={styles.premiumActionIconBox}>
+                                <MaterialCommunityIcons name="crane" size={24} color="#000" />
                             </View>
-                            <MaterialCommunityIcons name="briefcase-search" size={32} color="#000" />
-                        </LinearGradient>
-                    </TouchableOpacity>
+                            <View style={{ flex: 1 }}>
+                                <Text allowFontScaling={false} style={styles.premiumActionTitle}>Anahtar Teslim İnşaat Teklifi</Text>
+                                <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, marginTop: 4 }}>Lisanslı müteahhitlerden resmi teklif alın.</Text>
+                            </View>
+                        </View>
+                        <TouchableOpacity activeOpacity={0.9} onPress={handleGetQuotes}>
+                            <LinearGradient
+                                colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']}
+                                style={styles.premiumActionButton}
+                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                            >
+                                <Text allowFontScaling={false} style={styles.premiumActionButtonText}>HEMEN TEKLİF AL</Text>
+                            </LinearGradient>
+                        </TouchableOpacity>
+
+                        {/* Transformation Banner */}
+                        <TouchableOpacity style={styles.adBanner} activeOpacity={0.9} onPress={() => navigation.navigate('ConsultationScreen')}>
+                            <Image source={require('../../../assets/urban_before_after.png')} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+                            <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)', '#0A0A0A']} style={StyleSheet.absoluteFillObject} start={{ x: 0, y: 0.3 }} end={{ x: 0, y: 1 }} />
+                            <View style={styles.adBannerContent}>
+                                <View style={styles.adBadge}>
+                                    <View style={styles.adBadgeDot} />
+                                    <Text allowFontScaling={false} style={styles.adBadgeText}>DEĞİŞİM ZAMANI</Text>
+                                </View>
+                                <Text allowFontScaling={false} style={styles.adTitle}>Eski Binanızı Lüks ve{'\n'}Güvenli Bir Geleceğe Dönüştürün!</Text>
+                                <View style={styles.adActionRow}>
+                                    <Text allowFontScaling={false} style={styles.adActionText}>Dönüşüm Detaylarını İncele</Text>
+                                    <Ionicons name="arrow-forward" size={16} color="#FFD700" />
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    </View>
                 );
 
             case 'urban_process_steps':
                 return (
                     <View key={sectionId}>
-                        <Text style={styles.sectionTitle}>DÖNÜŞÜM SÜRECİ ADIMLARI</Text>
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>DÖNÜŞÜM SÜRECİ ADIMLARI</Text>
                         {TRANSFORMATION_STEPS.map((step, index) => (
                             <TouchableOpacity
                                 key={step.id}
@@ -262,18 +286,18 @@ export default function UrbanTransformationScreen({ navigation }) {
                                         <MaterialCommunityIcons name={step.icon} size={24} color="#FFD700" />
                                     </View>
                                     <View style={{ flex: 1, marginLeft: 15 }}>
-                                        <Text style={styles.stepTitle}>{step.title}</Text>
-                                        <Text style={styles.stepSubtitle}>{step.subtitle}</Text>
+                                        <Text allowFontScaling={false} style={styles.stepTitle}>{step.title}</Text>
+                                        <Text allowFontScaling={false} style={styles.stepSubtitle}>{step.subtitle}</Text>
                                     </View>
                                     <View style={styles.stepNumberBox}>
-                                        <Text style={styles.stepNumber}>{step.id}</Text>
+                                        <Text allowFontScaling={false} style={styles.stepNumber}>{step.id}</Text>
                                     </View>
                                 </View>
 
-                                <Text style={styles.stepDesc}>{step.desc}</Text>
+                                <Text allowFontScaling={false} style={styles.stepDesc}>{step.desc}</Text>
 
                                 <View style={styles.stepFooter}>
-                                    <Text style={styles.actionText}>{step.action}</Text>
+                                    <Text allowFontScaling={false} style={styles.actionText}>{step.action}</Text>
                                     <Ionicons name="arrow-forward-circle" size={24} color="#FFD700" />
                                 </View>
                             </TouchableOpacity>
@@ -300,8 +324,8 @@ export default function UrbanTransformationScreen({ navigation }) {
                         <Ionicons name="arrow-back" size={24} color="#fff" />
                     </TouchableOpacity>
                     <View>
-                        <Text style={styles.headerTitle}>YERİNDE DÖNÜŞÜM</Text>
-                        <Text style={styles.headerSubtitle}>GÜVENLİ GELECEK</Text>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>YERİNDE DÖNÜŞÜM</Text>
+                        <Text allowFontScaling={false} style={styles.headerSubtitle}>GÜVENLİ GELECEK</Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                         <TouchableOpacity
@@ -334,13 +358,13 @@ export default function UrbanTransformationScreen({ navigation }) {
                         />
                         <LinearGradient colors={['transparent', 'rgba(0,0,0,0.9)']} style={StyleSheet.absoluteFillObject} />
                         <View style={styles.heroTextContainer}>
-                            <Text style={styles.heroTitle} numberOfLines={1} adjustsFontSizeToFit>DEVLET DESTEĞİYLE</Text>
-                            <Text style={styles.heroDesc}>Evinizi yerinde, güvenle ve devlet desteğiyle yenileyin.</Text>
+                            <Text allowFontScaling={false} style={styles.heroTitle} numberOfLines={1} adjustsFontSizeToFit>DEVLET DESTEĞİYLE</Text>
+                            <Text allowFontScaling={false} style={styles.heroDesc}>Evinizi yerinde, güvenle ve devlet desteğiyle yenileyin.</Text>
                         </View>
 
                         {/* Detail Button */}
                         <View style={styles.heroDetailBtn}>
-                            <Text style={styles.heroDetailText}>DETAYLAR</Text>
+                            <Text allowFontScaling={false} style={styles.heroDetailText}>DETAYLAR</Text>
                             <Ionicons name="arrow-forward" size={20} color="#FFD700" />
                         </View>
                     </TouchableOpacity>
@@ -348,18 +372,18 @@ export default function UrbanTransformationScreen({ navigation }) {
                     {/* Stats Row - Always Visible */}
                     <View style={styles.statsRow}>
                         <View style={styles.statItem}>
-                            <Text style={styles.statValue}>875.000₺</Text>
-                            <Text style={styles.statLabel}>HİBE</Text>
+                            <Text allowFontScaling={false} style={styles.statValue}>875.000₺</Text>
+                            <Text allowFontScaling={false} style={styles.statLabel}>HİBE</Text>
                         </View>
                         <View style={styles.statDivider} />
                         <View style={styles.statItem}>
-                            <Text style={styles.statValue}>875.000₺</Text>
-                            <Text style={styles.statLabel}>KREDİ</Text>
+                            <Text allowFontScaling={false} style={styles.statValue}>875.000₺</Text>
+                            <Text allowFontScaling={false} style={styles.statLabel}>KREDİ</Text>
                         </View>
                         <View style={styles.statDivider} />
                         <View style={styles.statItem}>
-                            <Text style={styles.statValue}>12-18 Ay</Text>
-                            <Text style={styles.statLabel}>Teslim Hedefi</Text>
+                            <Text allowFontScaling={false} style={styles.statValue}>12-18 Ay</Text>
+                            <Text allowFontScaling={false} style={styles.statLabel}>Teslim Hedefi</Text>
                         </View>
                     </View>
 
@@ -384,7 +408,7 @@ export default function UrbanTransformationScreen({ navigation }) {
                                             borderWidth: 1,
                                             borderColor: section.is_visible ? '#00FF00' : '#FF0000'
                                         }}>
-                                            <Text style={{ color: '#FFF', fontSize: 10, marginRight: 5 }}>
+                                            <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 10, marginRight: 5 }}>
                                                 {section.is_visible ? 'AKTİF' : 'GİZLİ'}
                                             </Text>
                                             <TouchableOpacity
@@ -409,7 +433,7 @@ export default function UrbanTransformationScreen({ navigation }) {
                     ) : (
                         <View style={{ paddingVertical: 40, alignItems: 'center' }}>
                             <ActivityIndicator size="large" color="#FFD700" />
-                            <Text style={{ color: '#666', marginTop: 10, fontSize: 12 }}>İçerik Yükleniyor...</Text>
+                            <Text allowFontScaling={false} style={{ color: '#666', marginTop: 10, fontSize: 12 }}>İçerik Yükleniyor...</Text>
                         </View>
                     )}
 
@@ -426,7 +450,7 @@ export default function UrbanTransformationScreen({ navigation }) {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>{selectedItem?.title}</Text>
+                            <Text allowFontScaling={false} style={styles.modalTitle}>{selectedItem?.title}</Text>
                             <TouchableOpacity onPress={() => setModalVisible(false)}>
                                 <Ionicons name="close-circle" size={32} color="#fff" />
                             </TouchableOpacity>
@@ -434,18 +458,18 @@ export default function UrbanTransformationScreen({ navigation }) {
 
                         <ScrollView>
                             <Image source={{ uri: selectedItem?.image }} style={styles.modalImage} />
-                            <Text style={styles.modalDescText}>{selectedItem?.desc}</Text>
+                            <Text allowFontScaling={false} style={styles.modalDescText}>{selectedItem?.desc}</Text>
 
                             <View style={styles.infoBox}>
                                 <Ionicons name="information-circle" size={24} color="#FFD700" />
-                                <Text style={styles.infoText}>
+                                <Text allowFontScaling={false} style={styles.infoText}>
                                     Bu aşamada uzman ekiplerimiz, mevzuata uygun şekilde tüm resmi süreçleri sizin adınıza yönetmektedir.
                                 </Text>
                             </View>
                         </ScrollView>
 
                         <TouchableOpacity style={styles.applyBtn} onPress={handleApplication}>
-                            <Text style={styles.applyBtnText}>BAŞVURU OLUŞTUR</Text>
+                            <Text allowFontScaling={false} style={styles.applyBtnText}>BAŞVURU OLUŞTUR</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -463,14 +487,14 @@ export default function UrbanTransformationScreen({ navigation }) {
                         <View style={styles.modalHeader}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
                                 <MaterialCommunityIcons name="handshake" size={24} color="#FFD700" />
-                                <Text style={[styles.modalTitle, { fontSize: 18 }]} numberOfLines={1}>YARISI BİZDEN KAMPANYASI</Text>
+                                <Text allowFontScaling={false} style={[styles.modalTitle, { fontSize: 18 }]} numberOfLines={1}>YARISI BİZDEN KAMPANYASI</Text>
                             </View>
                             <TouchableOpacity onPress={() => setCampaignModalVisible(false)}>
                                 <Ionicons name="close-circle" size={30} color="#fff" />
                             </TouchableOpacity>
                         </View>
 
-                        <Text style={[styles.campaignSubtitle, { marginLeft: 0, marginBottom: 15 }]}>Sıkça Sorulan Sorular ve Detaylar</Text>
+                        <Text allowFontScaling={false} style={[styles.campaignSubtitle, { marginLeft: 0, marginBottom: 15 }]}>Sıkça Sorulan Sorular ve Detaylar</Text>
 
                         <ScrollView showsVerticalScrollIndicator={false}>
                             <View style={styles.faqContainer}>
@@ -612,11 +636,23 @@ const styles = StyleSheet.create({
         maxWidth: 200
     },
 
-    // Quote Card Styles
-    quoteCard: { borderRadius: 16, overflow: 'hidden', marginBottom: 30, height: 90 },
-    quoteGradient: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20 },
-    quoteTitle: { color: '#000', fontSize: 15, fontWeight: '900', marginBottom: 2 },
-    quoteSubtitle: { color: '#222', fontSize: 12, fontWeight: '500' },
+    // Premium Action Card Styles
+    premiumActionCard: { backgroundColor: '#0F0F0F', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#222', marginBottom: 30 },
+    premiumActionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+    premiumActionIconBox: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#D4AF37', justifyContent: 'center', alignItems: 'center', marginRight: 16 },
+    premiumActionTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+    premiumActionButton: { paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
+    premiumActionButtonText: { color: '#000', fontSize: 14, fontWeight: 'bold' },
+
+    // Ad Banner Styles
+    adBanner: { height: 180, borderRadius: 16, overflow: 'hidden', marginTop: 20, borderWidth: 1, borderColor: '#222' },
+    adBannerContent: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, zIndex: 10 },
+    adBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255, 215, 0, 0.15)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, alignSelf: 'flex-start', marginBottom: 8, borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.3)' },
+    adBadgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#FFD700', marginRight: 6, shadowColor: '#FFD700', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 4, elevation: 2 },
+    adBadgeText: { color: '#FFD700', fontSize: 10, fontWeight: '800', letterSpacing: 1 },
+    adTitle: { color: '#FFF', fontSize: 18, fontWeight: '900', lineHeight: 24, textShadowColor: 'rgba(0,0,0,0.8)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4, marginBottom: 8 },
+    adActionRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    adActionText: { color: '#FFD700', fontSize: 13, fontWeight: '700' },
 
     // Campaign & FAQ Styles
     campaignSection: { marginTop: 10, paddingBottom: 20 },

@@ -91,15 +91,15 @@ export default function StyleSelectionScreen({ navigation, route }) {
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <View style={styles.logoContainer}>
-                        <Text style={styles.logoText}>Tarzını</Text>
-                        <Text style={[styles.logoText, { color: THEME.goldPrimary }]}>Seç</Text>
+                        <Text allowFontScaling={false} style={styles.logoText}>Tarzını</Text>
+                        <Text allowFontScaling={false} style={[styles.logoText, { color: THEME.goldPrimary }]}>Seç</Text>
                     </View>
                     <View style={{ width: 40 }} />
                 </View>
 
                 <View style={styles.titleContainer}>
-                    <Text style={styles.mainTitle}>Hayalindeki Atmosfer Hangisi?</Text>
-                    <Text style={styles.subtitle}>Sana en uygun tasarım dilini belirleyelim.</Text>
+                    <Text allowFontScaling={false} style={styles.mainTitle}>Hayalindeki Atmosfer Hangisi?</Text>
+                    <Text allowFontScaling={false} style={styles.subtitle}>Sana en uygun tasarım dilini belirleyelim.</Text>
                 </View>
 
                 {/* GRID CONTENT */}
@@ -138,7 +138,7 @@ export default function StyleSelectionScreen({ navigation, route }) {
                                             locations={[0, 0.6, 1]}
                                             style={styles.cardGradient}
                                         >
-                                            <Text style={[
+                                            <Text allowFontScaling={false} style={[
                                                 styles.cardTitle,
                                                 isSelected && { color: THEME.goldHighlight }
                                             ]}>
@@ -189,7 +189,7 @@ export default function StyleSelectionScreen({ navigation, route }) {
                             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                             style={styles.gradientButton}
                         >
-                            <Text style={styles.buttonText}>DEVAM ET</Text>
+                            <Text allowFontScaling={false} style={styles.buttonText}>DEVAM ET</Text>
                             <Ionicons name="arrow-forward" size={18} color="#1a1a1a" style={{ marginLeft: 6 }} />
                         </LinearGradient>
                     </TouchableOpacity>

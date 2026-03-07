@@ -53,7 +53,7 @@ export default function EmptyReturnCheckoutScreen({ navigation, route }) {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
                         <MaterialCommunityIcons name="close" size={24} color="#fff" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>SON DETAYLAR & ONAY</Text>
+                    <Text allowFontScaling={false} style={styles.headerTitle}>SON DETAYLAR & ONAY</Text>
                     <View style={{ width: 40 }} />
                 </View>
 
@@ -61,28 +61,28 @@ export default function EmptyReturnCheckoutScreen({ navigation, route }) {
 
                     {/* Section 1: Location & Load */}
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>1. KONUM VE YÜK</Text>
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>1. KONUM VE YÜK</Text>
 
                         <View style={styles.inputContainer}>
                             <MaterialCommunityIcons name="map-marker-outline" size={20} color="#D4AF37" style={styles.inputIcon} />
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.inputLabel}>NEREDEN ALINACAK?</Text>
-                                <TextInput
+                                <Text allowFontScaling={false} style={styles.inputLabel}>NEREDEN ALINACAK?</Text>
+                                <TextInput allowFontScaling={false}
                                     style={styles.input}
                                     defaultValue="İstanbul - İkitelli OSB"
                                     placeholderTextColor="#666"
                                 />
                             </View>
                             <TouchableOpacity>
-                                <Text style={styles.editText}>DÜZENLE</Text>
+                                <Text allowFontScaling={false} style={styles.editText}>DÜZENLE</Text>
                             </TouchableOpacity>
                         </View>
 
                         <View style={[styles.inputContainer, { marginTop: 12 }]}>
                             <MaterialCommunityIcons name="flag-checkered" size={20} color="#D4AF37" style={styles.inputIcon} />
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.inputLabel}>NEREYE İNECEK?</Text>
-                                <TextInput
+                                <Text allowFontScaling={false} style={styles.inputLabel}>NEREYE İNECEK?</Text>
+                                <TextInput allowFontScaling={false}
                                     style={styles.input}
                                     defaultValue="Ankara - Ostim Sanayi"
                                     placeholderTextColor="#666"
@@ -90,7 +90,7 @@ export default function EmptyReturnCheckoutScreen({ navigation, route }) {
                             </View>
                         </View>
 
-                        <Text style={[styles.inputLabel, { marginTop: 16, marginBottom: 8 }]}>YÜK TİPİ</Text>
+                        <Text allowFontScaling={false} style={[styles.inputLabel, { marginTop: 16, marginBottom: 8 }]}>YÜK TİPİ</Text>
                         <View style={styles.loadTypeGrid}>
                             {LOAD_TYPES.map((type) => (
                                 <TouchableOpacity
@@ -103,7 +103,7 @@ export default function EmptyReturnCheckoutScreen({ navigation, route }) {
                                         size={24}
                                         color={selectedLoad === type.id ? '#000' : '#ccc'}
                                     />
-                                    <Text style={[styles.typeLabel, selectedLoad === type.id && styles.selectedTypeLabel]}>
+                                    <Text allowFontScaling={false} style={[styles.typeLabel, selectedLoad === type.id && styles.selectedTypeLabel]}>
                                         {type.label}
                                     </Text>
                                 </TouchableOpacity>
@@ -113,7 +113,7 @@ export default function EmptyReturnCheckoutScreen({ navigation, route }) {
 
                     {/* Section 2: Payment */}
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>2. ÖDEME YÖNTEMİ</Text>
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>2. ÖDEME YÖNTEMİ</Text>
                         {PAYMENT_METHODS.map((method) => {
                             const isSelected = selectedPayment === method.id;
                             return (
@@ -133,7 +133,7 @@ export default function EmptyReturnCheckoutScreen({ navigation, route }) {
                                                 color={isSelected ? '#D4AF37' : '#888'}
                                                 style={{ marginRight: 12 }}
                                             />
-                                            <Text style={[styles.paymentLabel, isSelected && { color: '#fff', fontWeight: 'bold' }]}>
+                                            <Text allowFontScaling={false} style={[styles.paymentLabel, isSelected && { color: '#fff', fontWeight: 'bold' }]}>
                                                 {method.label}
                                             </Text>
                                         </View>
@@ -148,8 +148,8 @@ export default function EmptyReturnCheckoutScreen({ navigation, route }) {
                                             <View style={styles.savedCardRow}>
                                                 <MaterialCommunityIcons name="credit-card-chip" size={24} color="#D4AF37" />
                                                 <View style={{ marginLeft: 12 }}>
-                                                    <Text style={styles.savedCardText}>Mastercard **** 4321</Text>
-                                                    <Text style={styles.savedCardSub}>Garanti Bonus - Kurumsal</Text>
+                                                    <Text allowFontScaling={false} style={styles.savedCardText}>Mastercard **** 4321</Text>
+                                                    <Text allowFontScaling={false} style={styles.savedCardSub}>Garanti Bonus - Kurumsal</Text>
                                                 </View>
                                                 <MaterialCommunityIcons name="chevron-right" size={20} color="#666" style={{ marginLeft: 'auto' }} />
                                             </View>
@@ -160,9 +160,9 @@ export default function EmptyReturnCheckoutScreen({ navigation, route }) {
                         })}
 
                         <View style={styles.invoiceContainer}>
-                            <Text style={styles.inputLabel}>FATURA BİLGİSİ</Text>
+                            <Text allowFontScaling={false} style={styles.inputLabel}>FATURA BİLGİSİ</Text>
                             <TouchableOpacity style={styles.invoiceSelector}>
-                                <Text style={styles.invoiceText}>CepteŞef A.Ş. (Varsayılan)</Text>
+                                <Text allowFontScaling={false} style={styles.invoiceText}>CepteŞef A.Ş. (Varsayılan)</Text>
                                 <MaterialCommunityIcons name="chevron-down" size={20} color="#ccc" />
                             </TouchableOpacity>
                         </View>
@@ -179,8 +179,8 @@ export default function EmptyReturnCheckoutScreen({ navigation, route }) {
                                 size={24}
                                 color={contractAccepted ? '#D4AF37' : '#666'}
                             />
-                            <Text style={styles.contractText}>
-                                <Text style={{ color: '#fff', textDecorationLine: 'underline' }}>Taşıma sözleşmesini</Text> ve <Text style={{ color: '#fff', textDecorationLine: 'underline' }}>sigorta şartlarını</Text> okudum, onaylıyorum.
+                            <Text allowFontScaling={false} style={styles.contractText}>
+                                <Text allowFontScaling={false} style={{ color: '#fff', textDecorationLine: 'underline' }}>Taşıma sözleşmesini</Text> ve <Text allowFontScaling={false} style={{ color: '#fff', textDecorationLine: 'underline' }}>sigorta şartlarını</Text> okudum, onaylıyorum.
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -193,9 +193,9 @@ export default function EmptyReturnCheckoutScreen({ navigation, route }) {
                     <View style={styles.footerContent}>
                         {/* Left: Price */}
                         <View style={styles.totalContainer}>
-                            <Text style={styles.totalLabel}>TOPLAM</Text>
-                            <Text style={styles.totalPrice}>6.500 ₺</Text>
-                            <Text style={styles.vatText}>(KDV Dahil)</Text>
+                            <Text allowFontScaling={false} style={styles.totalLabel}>TOPLAM</Text>
+                            <Text allowFontScaling={false} style={styles.totalPrice}>6.500 ₺</Text>
+                            <Text allowFontScaling={false} style={styles.vatText}>(KDV Dahil)</Text>
                         </View>
 
                         {/* Right: Button */}
@@ -204,7 +204,7 @@ export default function EmptyReturnCheckoutScreen({ navigation, route }) {
                             style={styles.confirmBtn}
                             activeOpacity={0.8}
                         >
-                            <Text style={styles.confirmText}>ÖDEMEYİ TAMAMLA</Text>
+                            <Text allowFontScaling={false} style={styles.confirmText}>ÖDEMEYİ TAMAMLA</Text>
                             <MaterialCommunityIcons name="arrow-right" size={20} color="#000" style={{ marginLeft: 6 }} />
                         </TouchableOpacity>
                     </View>
