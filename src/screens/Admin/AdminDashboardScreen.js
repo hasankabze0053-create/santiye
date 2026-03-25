@@ -58,7 +58,7 @@ const ADMIN_MODULES = [
         title: 'TEKNİK OFİS',
         subtitle: 'Mühendis & Mimar',
         table: null,
-        icon: 'compass-drafting',
+        icon: 'compass',
         color: '#8B5CF6', // Purple
         image: require('../../assets/categories/cat_engineering_v10.png'),
     },

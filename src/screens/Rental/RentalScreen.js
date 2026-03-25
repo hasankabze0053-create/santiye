@@ -2,9 +2,10 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Animated, Dimensions, FlatList, Keyboard, Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { supabase } from '../../lib/supabase';
 
 const { width } = Dimensions.get('window');
 
@@ -212,9 +213,9 @@ export default function RentalScreen() {
 
     const checkUserStatus = async () => {
         try {
-            const { data: { user } } = await import('../../lib/supabase').supabase.auth.getUser();
+            const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                const { data } = await import('../../lib/supabase').supabase
+                const { data } = await supabase
                     .from('profiles')
                     .select('is_admin, is_transporter')
                     .eq('id', user.id)
@@ -363,7 +364,7 @@ export default function RentalScreen() {
                             {/* CATEGORY GRID (2-Column) */}
                             <Text allowFontScaling={false} style={styles.sectionHeader}>MAKİNE PARKURU</Text>
                             <View style={styles.gridContainer}>
-                                {rentalCategories.map((cat) => (
+                                {RENTAL_CATEGORIES.map((cat) => (
                                     <TouchableOpacity
                                         key={cat.id}
                                         style={styles.gridCard}

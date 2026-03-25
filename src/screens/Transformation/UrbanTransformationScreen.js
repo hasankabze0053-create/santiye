@@ -251,22 +251,7 @@ export default function UrbanTransformationScreen({ navigation }) {
                             </LinearGradient>
                         </TouchableOpacity>
 
-                        {/* Transformation Banner */}
-                        <TouchableOpacity style={styles.adBanner} activeOpacity={0.9} onPress={() => navigation.navigate('ConsultationScreen')}>
-                            <Image source={require('../../../assets/urban_before_after.png')} style={StyleSheet.absoluteFillObject} contentFit="cover" />
-                            <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)', '#0A0A0A']} style={StyleSheet.absoluteFillObject} start={{ x: 0, y: 0.3 }} end={{ x: 0, y: 1 }} />
-                            <View style={styles.adBannerContent}>
-                                <View style={styles.adBadge}>
-                                    <View style={styles.adBadgeDot} />
-                                    <Text allowFontScaling={false} style={styles.adBadgeText}>DEĞİŞİM ZAMANI</Text>
-                                </View>
-                                <Text allowFontScaling={false} style={styles.adTitle}>Eski Binanızı Lüks ve{'\n'}Güvenli Bir Geleceğe Dönüştürün!</Text>
-                                <View style={styles.adActionRow}>
-                                    <Text allowFontScaling={false} style={styles.adActionText}>Dönüşüm Detaylarını İncele</Text>
-                                    <Ionicons name="arrow-forward" size={16} color="#FFD700" />
-                                </View>
-                            </View>
-                        </TouchableOpacity>
+
                     </View>
                 );
 

@@ -457,7 +457,9 @@ export default function HomeScreen({ navigation }) {
                                         style={styles.cardWrapper}
                                         onPress={() => {
                                             if (cat.title === 'KİRALAMA') {
-                                                navigation.navigate('RentalStack'); // Kept specifically for Rental logic if any
+                                                navigation.navigate('RentalStack');
+                                            } else if (cat.title === 'TEKNİK OFİS') {
+                                                navigation.navigate('TeknikOfis');
                                             } else if (cat.screen_route) {
                                                 navigation.navigate(cat.screen_route);
                                             }

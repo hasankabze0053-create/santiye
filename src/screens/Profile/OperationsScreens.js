@@ -195,7 +195,9 @@ export const RequestsScreen = () => {
             const formattedMarketData = (marketData || []).map(item => {
                 let displayTitle = item.title;
                 if (!displayTitle || displayTitle.trim() === '') {
-                    displayTitle = 'Toptan Malzeme Talebi';
+                    displayTitle = 'Malzeme Talebi';
+                } else if (displayTitle.includes('Toptan Malzeme Talebi')) {
+                    displayTitle = displayTitle.replace('Toptan Malzeme Talebi', 'Malzeme Talebi');
                 }
                 
                 let displaySubtitle = item.subtitle;
@@ -563,6 +565,9 @@ export const InboxScreen = () => {
                             contractor_id: item.contractor_id,
                             request_id: item.request_id
                         });
+                    } else if (item.type === 'market') {
+                        // Market verisi direkt item'in kendisi
+                        navigation.navigate('RequestDetail', { request: item });
                     } else if (item.request) {
                         navigation.navigate('RequestDetail', { request: item.request });
                     }
@@ -575,12 +580,12 @@ export const InboxScreen = () => {
                     <View style={styles.premiumHeader}>
                         <View style={{ flex: 1 }}>
                             <Text allowFontScaling={false} style={styles.premiumCompanyName}>
-                                {item.companyName || item.profiles?.company_name || 'İsimsiz Firma'}
+                                {item.type === 'market' ? 'İnşaat Marketi' : (item.request?.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat Merkezi' : 'Kentsel Dönüşüm Merkezi')}
                             </Text>
                             <View style={styles.locationContainer}>
                                 <MaterialCommunityIcons name="map-marker" size={12} color="#D4AF37" />
                                 <Text allowFontScaling={false} style={styles.premiumLocationText}>
-                                    {item.location || 'İstanbul / Çatalca'}
+                                    {item.location || 'Sistem Bildirimi'}
                                 </Text>
                             </View>
                         </View>
@@ -591,12 +596,12 @@ export const InboxScreen = () => {
 
                     <View style={styles.premiumDivider} />
 
-                    {/* Body: Request Type & Price */}
+                    {/* Body: Request Type & Button */}
                     <View style={styles.premiumBody}>
                         <View style={{ flex: 1 }}>
                             <Text allowFontScaling={false} style={styles.premiumLabelText}>TALEP TÜRÜ</Text>
                             <Text allowFontScaling={false} style={styles.premiumValueText}>
-                                {item.requestType || 'Kat Karşılığı'}
+                                {item.type === 'market' ? 'Malzeme Talebi' : (item.requestType || 'Kentsel Dönüşüm Talebi')}
                             </Text>
                         </View>
 
@@ -608,14 +613,6 @@ export const InboxScreen = () => {
                         >
                             <Text allowFontScaling={false} style={styles.premiumActionText}>+ İNCELE</Text>
                         </LinearGradient>
-                    </View>
-
-                    {/* Footer: Price or Offer Count */}
-                    <View style={styles.premiumFooter}>
-                        <MaterialCommunityIcons name="cube-send" size={14} color="rgba(212, 175, 55, 0.6)" />
-                        <Text allowFontScaling={false} style={styles.premiumFooterText}>
-                            {item.price || 'Fiyat Teklifi'}
-                        </Text>
                     </View>
                 </View>
             </TouchableOpacity>

@@ -146,6 +146,27 @@ export default function AuthScreen() {
         }
     };
 
+    const handleForgotPassword = async () => {
+        if (!email) {
+            Alert.alert('Eksik Bilgi', 'Şifre sıfırlama bağlantısı için lütfen önce e-posta adresinizi girin.');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await AuthService.resetPassword(email);
+            Alert.alert(
+                'Şifre Sıfırlama Gönderildi',
+                'E-posta adresinize şifre sıfırlama bağlantısı gönderildi. Lütfen spam kutunuzu da kontrol edin.'
+            );
+        } catch (error) {
+            console.error('[AuthScreen] Error in handleForgotPassword:', error);
+            Alert.alert('İşlem Başarısız', getFriendlyErrorMessage(error));
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const getFriendlyErrorMessage = (error) => {
         const msg = error.message || error.toString();
         if (msg.includes('rate limit')) return 'Çok fazla istek gönderdiniz. Lütfen e-postanızı kontrol edin veya biraz bekleyip tekrar deneyin.';
@@ -219,7 +240,7 @@ export default function AuthScreen() {
 
                             {/* Options Row: Forgot Password & Remember Me */}
                             <View style={styles.optionsRow}>
-                                <TouchableOpacity style={styles.optionButton}>
+                                <TouchableOpacity style={styles.optionButton} onPress={handleForgotPassword}>
                                     <Text allowFontScaling={false} style={styles.forgotText}>Şifremi Unuttum?</Text>
                                 </TouchableOpacity>
 

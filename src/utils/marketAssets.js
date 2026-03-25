@@ -15,6 +15,8 @@ export const MARKET_ASSETS = {
 
     // Operations / Showcase
     'showcase_concrete': require('../assets/market/concrete_showcase.png'),
+    'showcase_brick': require('../assets/market/brick_showcase.png'),
+    'showcase_ceramic': require('../assets/market/ceramic_showcase.png'),
 };
 
 export const getMarketImage = (key) => {

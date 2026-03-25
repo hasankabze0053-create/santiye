@@ -37,7 +37,7 @@ export default function MarketCartScreen() {
     const { cartItems, removeFromCart, clearCart } = useMarketCart();
 
     const [address, setAddress] = useState('');
-    const [date, setDate] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState('');
     const [generalNotes, setGeneralNotes] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -68,9 +68,9 @@ export default function MarketCartScreen() {
                 title: "Toptan Malzeme Talebi",
                 items: cartItems.map(i => `${i.quantity} x ${i.subCategory}`).join(', '),
                 location: address,
-                delivery_time: date || 'Belirtilmedi',
+                delivery_time: 'Belirtilmedi',
                 notes: requestDetails + (generalNotes ? `\n\nGENEL NOTLAR:\n${generalNotes}` : ''),
-                payment_method: "cash",
+                payment_method: paymentMethod || 'Belirtilmedi',
                 image_url: ""
             };
 
@@ -135,7 +135,11 @@ export default function MarketCartScreen() {
                                 </View>
                                 <View style={s.itemBody}>
                                     {item.details ? <Text allowFontScaling={false} style={s.itemDetails}>{item.details}</Text> : null}
-                                    <Text allowFontScaling={false} style={s.itemQty}>Miktar: <Text allowFontScaling={false} style={{ color: THEME.gold }}>{item.quantity}</Text></Text>
+                                    <Text allowFontScaling={false} style={s.itemQty}>
+                                        Miktar: <Text allowFontScaling={false} style={{ color: THEME.gold }}>
+                                            {item.quantity} {item.subCategory?.toLowerCase().includes('demir') ? 'Ton' : item.subCategory?.toLowerCase().includes('çimento') ? 'Torba' : 'Adet'}
+                                        </Text>
+                                    </Text>
                                 </View>
                             </View>
                         ))}
@@ -156,13 +160,13 @@ export default function MarketCartScreen() {
                     </View>
 
                     <View style={s.inputGroup}>
-                        <View style={s.inputIcon}><MaterialCommunityIcons name="calendar-outline" size={20} color={THEME.gold} /></View>
+                        <View style={s.inputIcon}><MaterialCommunityIcons name="cash-multiple" size={20} color={THEME.gold} /></View>
                         <TextInput allowFontScaling={false}
                             style={s.input}
-                            placeholder="İstenen Tarih (Örn: Hemen, 2 Gün Sonra)"
+                            placeholder="Ödeme Şekli (Örn: Nakit, Vadeli, EFT)"
                             placeholderTextColor={THEME.textMuted}
-                            value={date}
-                            onChangeText={setDate}
+                            value={paymentMethod}
+                            onChangeText={setPaymentMethod}
                         />
                     </View>
 
@@ -205,7 +209,7 @@ const s = StyleSheet.create({
     header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: THEME.border, backgroundColor: THEME.bg },
     backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: THEME.card, alignItems: 'center', justifyContent: 'center' },
     headerTitle: { color: THEME.gold, fontSize: 16, fontWeight: '900', letterSpacing: 1 },
-    headerSubtitle: { color: THEME.textMuted, fontSize: 12, marginTop: 2 },
+    headerSubtitle: { color: THEME.gold, fontSize: 11, fontWeight: '600', letterSpacing: 1.5, opacity: 0.7, marginTop: 2 },
     
     scrollContent: { padding: 20, paddingBottom: 60 },
     

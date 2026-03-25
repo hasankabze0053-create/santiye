@@ -235,7 +235,7 @@ const s = StyleSheet.create({
     header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: THEME.border },
     backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
     headerTitle: { color: THEME.gold, fontSize: 18, fontWeight: '900', letterSpacing: 0.5 },
-    headerSubtitle: { color: THEME.textMuted, fontSize: 12 },
+    headerSubtitle: { color: THEME.gold, fontSize: 11, fontWeight: '600', letterSpacing: 1.5, opacity: 0.7, textTransform: 'uppercase' },
     
     scrollContent: { padding: 20, paddingBottom: 60 },
     

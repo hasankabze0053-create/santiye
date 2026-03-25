@@ -330,7 +330,7 @@ export default function OfferDetailScreen() {
                                 colors={['#D4AF37', '#B8860B']}
                                 style={styles.gradientBtn}
                             >
-                                <Text allowFontScaling={false} style={styles.primaryBtnText}>BU TEKLİFİ KABUL ET</Text>
+                                <Text allowFontScaling={false} style={styles.primaryBtnText}>FİRMA İLE GÖRÜŞ</Text>
                             </LinearGradient>
                         </TouchableOpacity>
 
@@ -347,7 +347,7 @@ export default function OfferDetailScreen() {
                             }}
                         >
                             <MaterialCommunityIcons name="message-text-outline" size={20} color="#38BDF8" style={{ marginRight: 8 }} />
-                            <Text allowFontScaling={false} style={[styles.secondaryBtnText, { color: '#38BDF8' }]}>FİRMA İLE GÖRÜŞ</Text>
+                            <Text allowFontScaling={false} style={[styles.secondaryBtnText, { color: '#38BDF8' }]}>FİRMAYA SOR <Text style={{ fontSize: 11, opacity: 0.8 }}>(Mesaj At)</Text></Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity style={[styles.secondaryBtn, { borderColor: '#EF4444' }]}>

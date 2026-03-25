@@ -299,7 +299,11 @@ export default function BuildingSchema({
                         styles.grantLabel,
                         { color: cashAdjustment.type === 'request' ? '#4CAF50' : '#FF5252' }
                     ]}>
-                        {cashAdjustment.type === 'request' ? 'HAK SAHİPLERİNDEN TALEP EDİLEN TOPLAM TUTAR' : 'HAK SAHİPLERİNE ÖDENECEK TOPLAM TUTAR'}
+                        {cashAdjustment.type === 'request' 
+                            ? (campaignData && (campaignData.unitCount > 0 || campaignData.commercialCount > 0)
+                                ? 'HAK SAHİPLERİNDEN TALEP EDİLEN EKSTRA TUTAR'
+                                : 'HAK SAHİPLERİNDEN TALEP EDİLEN TOPLAM TUTAR')
+                            : 'HAK SAHİPLERİNE ÖDENECEK TOPLAM TUTAR'}
                     </Text>
                     <Text allowFontScaling={false} style={[
                         styles.grantAmount,
@@ -310,7 +314,11 @@ export default function BuildingSchema({
                         {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(cashAdjustment.amount)}
                     </Text>
                     <Text allowFontScaling={false} style={styles.grantSubtext}>
-                        {cashAdjustment.type === 'request' ? 'Nakit Ödeme (İlave Ücret)' : 'Nakit Ödeme (Üste Para)'}
+                        {cashAdjustment.type === 'request' 
+                            ? (campaignData && (campaignData.unitCount > 0 || campaignData.commercialCount > 0)
+                                ? 'Devlet Desteğine Ek Olarak Talep Edilen Nakit Ödeme'
+                                : 'Nakit Ödeme (İlave Ücret)')
+                            : 'Nakit Ödeme (Üste Para)'}
                     </Text>
                 </View>
             )}

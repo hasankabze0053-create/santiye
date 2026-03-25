@@ -257,7 +257,28 @@ export const MarketService = {
         }
     },
 
-    // 9. Resim Yükle
+    // 9. Talebi Sil (Kullanıcı)
+    deleteRequest: async (requestId) => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error('Oturum gerekli');
+
+            // Ana talebi sil (Database Cascade sayesinde bağlı teklifler ve kalemler otomatik silinecek)
+            const { error } = await supabase
+                .from('market_requests')
+                .delete()
+                .eq('id', requestId)
+                .eq('user_id', user.id);
+
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('MarketService.deleteRequest Error:', error);
+            return { success: false, error };
+        }
+    },
+
+    // 10. Resim Yükle
     uploadImage: async (uri) => {
         try {
             const fetchResponse = await fetch(uri);
@@ -290,8 +311,8 @@ export const MarketService = {
         // Şu anlık statik, istenirse bunu da 'market_showcase' tablosuna taşıyabiliriz.
         return [
             { id: '1', title: '', subtitle: '', image_ref: 'showcase_concrete', tag: 'EN İYİ FİYAT', is_local: true },
-            { id: '2', title: 'TUĞLA KAMPANYASI', subtitle: 'Yüksek kaliteli yığma tuğla toplu alımda avantaj', image_url: 'https://images.unsplash.com/photo-1588011930968-748435e16ee9?q=80&w=800', tag: 'KARGO BEDAVA', is_local: false },
-            { id: '3', title: 'YALITIM ÇÖZÜMLERİ', subtitle: 'Kışa hazırlık için mantolama paketlerinde fırsat', image_url: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=800', tag: 'YENİ SEZON', is_local: false },
+            { id: '2', title: 'EN UYGUN DUVAR ELEMANI', subtitle: '', image_ref: 'showcase_brick', tag: 'ÜCRETSİZ TESLİMAT', is_local: true },
+            { id: '3', title: 'SERAMİKTE %30 NET İNDİRİM', subtitle: '', image_ref: 'showcase_ceramic', tag: 'BÜYÜK FIRSAT', is_local: true },
         ];
     }
 };

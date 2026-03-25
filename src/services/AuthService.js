@@ -152,7 +152,15 @@ export const AuthService = {
         return company;
     },
 
-    // 6. Sign Out
+    // 6. Reset Password
+    async resetPassword(email) {
+        if (!email) throw new Error("Email alanı boş olamaz.");
+        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        if (error) throw error;
+        return true;
+    },
+
+    // 7. Sign Out
     async signOut() {
         const { error } = await supabase.auth.signOut();
         if (error) throw error;

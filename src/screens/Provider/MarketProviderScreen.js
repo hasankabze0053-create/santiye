@@ -49,6 +49,9 @@ export default function MarketProviderScreen() {
     const [selectedBid, setSelectedBid] = useState(null);
     const [successModalVisible, setSuccessModalVisible] = useState(false);
 
+    // Per-group active bid index: { [requestId]: number }
+    const [bidIndexMap, setBidIndexMap] = useState({});
+
     // --- REGION SETTINGS LOGIC ---
     const [regionModalVisible, setRegionModalVisible] = useState(false);
     const [sellerType, setSellerType] = useState('CONCRETE'); // 'CONCRETE' or 'MATERIAL'
@@ -191,7 +194,7 @@ export default function MarketProviderScreen() {
         setModalVisible(true);
     };
 
-    const submitBid = async () => {
+    const submitBid = async (keepOpen = false) => {
         if (!bidPrice) {
             Alert.alert("Eksik", "Lütfen birim fiyat giriniz.");
             return;
@@ -206,8 +209,8 @@ export default function MarketProviderScreen() {
         if (offerBrand && offerBrand.trim()) enrichedNotes += ` [Marka: ${offerBrand.trim()}]`;
         if (offerTechSpec && offerTechSpec.trim()) enrichedNotes += ` [Özellik: ${offerTechSpec.trim()}]`;
 
-        if (finalNotes) {
-            enrichedNotes += ` | Notlar: ${finalNotes}`;
+        if (bidNotes) {
+            enrichedNotes += ` | Notlar: ${bidNotes}`;
         }
 
         try {
@@ -225,9 +228,16 @@ export default function MarketProviderScreen() {
             });
 
             if (result.success) {
-                setSuccessModalVisible(true);
-                setModalVisible(false);
                 loadData(); // Reload both feeds to move the item to Tekliflerim
+                if (keepOpen) {
+                    Alert.alert("Başarılı", "Teklifiniz başarıyla iletildi. Yeni bir alternatif teklif için fiyat ve marka alanları sıfırlandı.");
+                    setBidPrice('');
+                    setOfferBrand('');
+                    setOfferTechSpec('');
+                } else {
+                    setSuccessModalVisible(true);
+                    setModalVisible(false);
+                }
             } else {
                 Alert.alert("Hata", "Teklif gönderilemedi.");
             }
@@ -497,6 +507,22 @@ export default function MarketProviderScreen() {
         const wonBids = myBids.filter(b => b.status === 'ACCEPTED').length;
         const lostBids = myBids.filter(b => b.status === 'REJECTED').length;
 
+        // ── Group bids by request_id ──
+        const groupsMap = {};
+        myBids.forEach(bid => {
+            const key = bid.request_id;
+            if (!groupsMap[key]) groupsMap[key] = [];
+            groupsMap[key].push(bid);
+        });
+        // Sort each group oldest→newest so index 0 = first bid
+        const groups = Object.values(groupsMap).map(g =>
+            [...g].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+        );
+        // Sort groups by most recent bid
+        groups.sort((a, b) => new Date(b[b.length-1].created_at) - new Date(a[a.length-1].created_at));
+
+        const goTo = (requestId, idx) => setBidIndexMap(prev => ({ ...prev, [requestId]: idx }));
+
         return (
             <ScrollView style={styles.tabContent} contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
                 <View style={[styles.funnelContainer, { marginBottom: 16 }]}>
@@ -510,43 +536,82 @@ export default function MarketProviderScreen() {
                     </View>
                     <View style={[styles.funnelBox, { borderColor: 'rgba(239, 68, 68, 0.3)' }]}>
                         <Text allowFontScaling={false} style={[styles.funnelNum, { color: '#ef4444' }]}>{lostBids}</Text>
-                        <Text allowFontScaling={false} style={styles.funnelTxt}>KAYBEDİLEN</Text>
+                        <Text allowFontScaling={false} style={styles.funnelTxt}>KAYBEDILEN</Text>
                     </View>
                 </View>
 
-                {myBids.length === 0 ? (
+                {groups.length === 0 ? (
                     <View style={styles.emptyState}>
                         <Text allowFontScaling={false} style={styles.emptyText}>Henüz verdiğiniz bir teklif bulunmuyor.</Text>
                     </View>
                 ) : (
-                    myBids.map(bid => {
+                    groups.map(group => {
+                        const reqId = group[0].request_id;
+                        const total = group.length;
+                        const idx = bidIndexMap[reqId] ?? 0;
+                        const bid = group[idx];
+
                         const statusColor = bid.status === 'ACCEPTED' ? '#4ade80' : bid.status === 'REJECTED' ? '#ef4444' : '#fbbf24';
-                        const statusBg = bid.status === 'ACCEPTED' ? 'rgba(74, 222, 128, 0.15)' : bid.status === 'REJECTED' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(251, 191, 36, 0.15)';
-                        const statusText = bid.status === 'ACCEPTED' ? 'KABUL EDİLDİ' : bid.status === 'REJECTED' ? 'REDDEDİLDİ' : 'BEKLEMEDE';
+                        const statusBg    = bid.status === 'ACCEPTED' ? 'rgba(74,222,128,0.15)' : bid.status === 'REJECTED' ? 'rgba(239,68,68,0.15)' : 'rgba(251,191,36,0.15)';
+                        const statusText  = bid.status === 'ACCEPTED' ? 'KABUL EDİLDİ' : bid.status === 'REJECTED' ? 'REDDEDİLDİ' : 'BEKLEMEDE';
 
                         return (
                             <LinearGradient
-                                key={bid.id}
-                                colors={['rgba(30, 41, 59, 0.6)', 'rgba(15, 23, 42, 0.8)']}
-                                style={[styles.leadCard, { borderColor: `rgba(${statusColor === '#4ade80' ? '74, 222, 128' : statusColor === '#ef4444' ? '239, 68, 68' : '251, 191, 36'}, 0.3)` }]}
+                                key={reqId}
+                                colors={['rgba(30,41,59,0.6)', 'rgba(15,23,42,0.8)']}
+                                style={[styles.leadCard, { borderColor: `rgba(${statusColor === '#4ade80' ? '74,222,128' : statusColor === '#ef4444' ? '239,68,68' : '251,191,36'},0.3)` }]}
                             >
-                                {/* 1. Header Labels - Status Based */}
-                                <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                                {/* ── Header: Status + ID + Date ── */}
+                                <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12, alignItems: 'center' }}>
                                     <View style={[styles.tagBadge, { backgroundColor: statusBg }]}>
-                                        <Ionicons name={bid.status === 'ACCEPTED' ? "checkmark-circle" : bid.status === 'REJECTED' ? "close-circle" : "time"} size={10} color={statusColor} />
+                                        <Ionicons name={bid.status === 'ACCEPTED' ? 'checkmark-circle' : bid.status === 'REJECTED' ? 'close-circle' : 'time'} size={10} color={statusColor} />
                                         <Text allowFontScaling={false} style={[styles.tagText, { color: statusColor }]}>{statusText}</Text>
                                     </View>
-                                    <View style={[styles.tagBadge, { backgroundColor: 'rgba(255, 255, 255, 0.1)', marginLeft: 'auto' }]}>
-                                        <Text allowFontScaling={false} style={[styles.tagText, { color: '#a3a3a3' }]}>#{bid.request_id.substring(0,8).toUpperCase()}</Text>
+                                    <View style={[styles.tagBadge, { backgroundColor: 'rgba(255,255,255,0.1)', marginLeft: 'auto' }]}>
+                                        <Text allowFontScaling={false} style={[styles.tagText, { color: '#a3a3a3' }]}>#{reqId.substring(0,8).toUpperCase()}</Text>
                                     </View>
-                                    <View style={[styles.tagBadge, { backgroundColor: 'rgba(148, 163, 184, 0.2)' }]}>
+                                    <View style={[styles.tagBadge, { backgroundColor: 'rgba(148,163,184,0.2)' }]}>
                                         <Text allowFontScaling={false} style={[styles.tagText, { color: '#94a3b8' }]}>{new Date(bid.created_at).toLocaleDateString('tr-TR')}</Text>
                                     </View>
                                 </View>
 
-                                {/* 2. Detailed Rows (Clone of Fırsatlar) */}
+                                {/* ── Bid Navigator (only shown if >1 bid) ── */}
+                                {total > 1 && (
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, paddingVertical: 8, paddingHorizontal: 12, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' }}>
+                                        {/* Prev */}
+                                        <TouchableOpacity
+                                            onPress={() => goTo(reqId, idx - 1)}
+                                            disabled={idx === 0}
+                                            style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: idx === 0 ? 'transparent' : 'rgba(255,215,0,0.12)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: idx === 0 ? '#1e293b' : 'rgba(255,215,0,0.3)' }}
+                                        >
+                                            <Ionicons name="chevron-back" size={16} color={idx === 0 ? '#334155' : '#FFD700'} />
+                                        </TouchableOpacity>
+
+                                        {/* Dots + label */}
+                                        <View style={{ alignItems: 'center', gap: 6 }}>
+                                            <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 12, fontWeight: '800', letterSpacing: 1 }}>TEKLİF {idx + 1} / {total}</Text>
+                                            <View style={{ flexDirection: 'row', gap: 4 }}>
+                                                {group.map((_, i) => (
+                                                    <TouchableOpacity key={i} onPress={() => goTo(reqId, i)}>
+                                                        <View style={{ width: i === idx ? 18 : 6, height: 6, borderRadius: 3, backgroundColor: i === idx ? '#FFD700' : '#334155' }} />
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </View>
+                                        </View>
+
+                                        {/* Next */}
+                                        <TouchableOpacity
+                                            onPress={() => goTo(reqId, idx + 1)}
+                                            disabled={idx === total - 1}
+                                            style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: idx === total-1 ? 'transparent' : 'rgba(255,215,0,0.12)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: idx === total-1 ? '#1e293b' : 'rgba(255,215,0,0.3)' }}
+                                        >
+                                            <Ionicons name="chevron-forward" size={16} color={idx === total-1 ? '#334155' : '#FFD700'} />
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+
+                                {/* ── Detail Rows ── */}
                                 <View style={styles.detailBox}>
-                                    {/* Material */}
                                     <View style={styles.detailRow}>
                                         <View style={styles.detailIcon}>
                                             <MaterialCommunityIcons name="cube-outline" size={18} color="#94a3b8" />
@@ -558,7 +623,6 @@ export default function MarketProviderScreen() {
                                     </View>
                                     <View style={styles.hDivider} />
 
-                                    {/* Quantity */}
                                     <View style={styles.detailRow}>
                                         <View style={styles.detailIcon}>
                                             <MaterialCommunityIcons name="weight" size={18} color="#94a3b8" />
@@ -570,9 +634,8 @@ export default function MarketProviderScreen() {
                                     </View>
                                     <View style={styles.hDivider} />
 
-                                    {/* Offer Price */}
                                     <View style={styles.detailRow}>
-                                        <View style={[styles.detailIcon, { backgroundColor: 'rgba(74, 222, 128, 0.1)' }]}>
+                                        <View style={[styles.detailIcon, { backgroundColor: 'rgba(74,222,128,0.1)' }]}>
                                             <MaterialCommunityIcons name="currency-try" size={18} color="#4ADE80" />
                                         </View>
                                         <View>
@@ -580,8 +643,7 @@ export default function MarketProviderScreen() {
                                             <Text allowFontScaling={false} style={[styles.detailValue, { color: '#4ADE80', fontWeight: 'bold' }]}>{bid.price.toLocaleString('tr-TR')} ₺</Text>
                                         </View>
                                     </View>
-                                    
-                                    {/* Alternate Option Badge Check */}
+
                                     {bid.notes && (bid.notes.includes('[Marka:') || bid.notes.includes('[Özellik:')) && (
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 6, alignSelf: 'flex-start' }}>
                                             <Ionicons name="pricetag" size={12} color="#A3A3A3" />
@@ -590,21 +652,21 @@ export default function MarketProviderScreen() {
                                     )}
                                 </View>
 
-                                {/* 3. Actions */}
-                                <View style={[styles.actionRow, { justifyContent: 'flex-end', marginTop: 12, gap: 10 }]}>
-                                    <TouchableOpacity style={[styles.bidButton, { flex: 1, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }]} onPress={() => openViewBidModal(bid)}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: '100%' }}>
-                                            <Text allowFontScaling={false} style={[styles.bidButtonText, { color: '#fff' }]}>TEKLİF DETAYI</Text>
-                                            <Ionicons name="eye-outline" size={16} color="#fff" />
-                                        </View>
+                                {/* ── Actions ── */}
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12, gap: 8 }}>
+                                    <TouchableOpacity
+                                        onPress={() => openViewBidModal(bid)}
+                                        style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' }}
+                                    >
+                                        <Ionicons name="eye-outline" size={20} color="#94a3b8" />
                                     </TouchableOpacity>
-                                    <TouchableOpacity style={[styles.bidButton, { flex: 1 }]} onPress={() => openBidModal({ ...bid.request, id: bid.request_id })}>
+                                    <TouchableOpacity style={{ flex: 1, borderRadius: 12, overflow: 'hidden' }} onPress={() => openBidModal({ ...bid.request, id: bid.request_id })}>
                                         <LinearGradient
                                             colors={['#FFD700', '#FF9100']}
                                             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                                            style={[styles.gradientBtn, { borderWidth: 0, gap: 8 }]}
+                                            style={{ paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                                         >
-                                            <Text allowFontScaling={false} style={[styles.bidButtonText, { color: '#000' }]}>ALTERNATİF SUN</Text>
+                                            <Text allowFontScaling={false} style={{ color: '#000', fontWeight: '900', fontSize: 13 }}>ALTERNATİF SUN</Text>
                                             <Ionicons name="add-circle-outline" size={16} color="#000" />
                                         </LinearGradient>
                                     </TouchableOpacity>
@@ -616,6 +678,7 @@ export default function MarketProviderScreen() {
             </ScrollView>
         );
     };
+
 
     const renderRegionSettings = () => (
         <Modal
@@ -1040,9 +1103,14 @@ export default function MarketProviderScreen() {
                                                 })()}
                                             </ScrollView>
 
-                                            <TouchableOpacity style={styles.modalBtn} onPress={submitBid}>
-                                                <Text allowFontScaling={false} style={styles.modalBtnText}>TEKLİFİ GÖNDER</Text>
-                                            </TouchableOpacity>
+                                            <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+                                                <TouchableOpacity style={[styles.modalBtn, { flex: 1, backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: '#333' }]} onPress={() => submitBid(true)}>
+                                                    <Text allowFontScaling={false} style={[styles.modalBtnText, { color: '#fff' }]}>+ ALTERNATİF EKLE</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity style={[styles.modalBtn, { flex: 1 }]} onPress={() => submitBid(false)}>
+                                                    <Text allowFontScaling={false} style={styles.modalBtnText}>TEKLİFİ GÖNDER</Text>
+                                                </TouchableOpacity>
+                                            </View>
                                         </ScrollView>
                                     )}
                                 </View>
@@ -1052,216 +1120,107 @@ export default function MarketProviderScreen() {
 
                 {/* --- READ-ONLY BID DETAILS MODAL --- */}
                 <Modal
-                    animationType="fade"
+                    animationType="slide"
                     transparent={true}
                     visible={viewBidModalVisible}
                     onRequestClose={() => setViewBidModalVisible(false)}
                 >
-                    <View style={styles.modalOverlay}>
-                        <View style={styles.modalContent}>
-                            <View style={styles.modalHeader}>
-                                <Text allowFontScaling={false} style={styles.modalTitle}>Teklif Detayları</Text>
-                                <TouchableOpacity onPress={() => setViewBidModalVisible(false)} style={{ padding: 4 }}>
-                                    <Ionicons name="close" size={26} color="#94a3b8" />
-                                </TouchableOpacity>
-                            </View>
+                    <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.6)' }}>
+                        <TouchableOpacity style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} activeOpacity={1} onPress={() => setViewBidModalVisible(false)} />
+                        <View style={{ backgroundColor: '#0f172a', borderTopLeftRadius: 24, borderTopRightRadius: 24, borderTopWidth: 1, borderColor: '#1e293b', padding: 20, paddingBottom: 36 }}>
+                        {/* Handle */}
+                        <View style={{ width: 40, height: 4, backgroundColor: '#334155', borderRadius: 2, alignSelf: 'center', marginBottom: 16 }} />
 
-                            <ScrollView showsVerticalScrollIndicator={false}>
-                                {selectedBid && selectedBid.request && (() => {
-                                    const req = selectedBid.request;
-                                    const parsedOptions = parseBidNotes(selectedBid.notes);
-                                    
-                                    // Calculate total simply by Unit Price * Quantity
-                                    const q = req.items?.[0]?.quantity;
-                                    let parsedQ = 0;
-                                    if (typeof q === 'number') parsedQ = q;
-                                    else if (typeof q === 'string') {
-                                        parsedQ = parseFloat(q.replace(/[^0-9.,]/g, '').replace(',', '.')) || 0;
-                                    }
-                                    const totalAmnt = (parseFloat(selectedBid.price) || 0) * parsedQ;
+                        {selectedBid && (() => {
+                            const req = selectedBid.request;
+                            const p = parseBidNotes(selectedBid.notes);
+                            const statusColor = selectedBid.status === 'ACCEPTED' ? '#4ade80' : selectedBid.status === 'REJECTED' ? '#ef4444' : '#fbbf24';
+                            const statusText = selectedBid.status === 'ACCEPTED' ? '✓ Kabul edildi' : selectedBid.status === 'REJECTED' ? '✕ Reddedildi' : '⏳ Beklemede';
+                            const q = req?.items?.[0]?.quantity || req?.quantity || 1;
+                            let parsedQ = 1;
+                            if (typeof q === 'number') {
+                                parsedQ = q;
+                            } else if (typeof q === 'string') {
+                                let numStr = q.trim().split(/\s+/)[0];
+                                if (numStr.includes('.') && numStr.split('.')[1]?.length === 3) {
+                                    numStr = numStr.replace(/\./g, '');
+                                }
+                                numStr = numStr.replace(/[^0-9.,]/g, '').replace(',', '.');
+                                parsedQ = parseFloat(numStr) || 1;
+                            }
+                            const totalAmnt = (parseFloat(selectedBid.price) || 0) * parsedQ;
 
-                                    return (
+                            return (
+                                <View>
+                                    {/* Title row */}
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                                         <View>
-                                            <View style={styles.reqSummary}>
-                                                <Text allowFontScaling={false} style={styles.summaryTitle} numberOfLines={2}>{req.title}</Text>
-                                                <View style={[styles.hDivider, { marginVertical: 10, height: 1, backgroundColor: 'rgba(255,255,255,0.1)' }]} />
-                                                <View style={{ flexDirection: 'row', gap: 20 }}>
-                                                    <View>
-                                                        <Text allowFontScaling={false} style={styles.detailLabel}>MİKTAR</Text>
-                                                        <Text allowFontScaling={false} style={styles.detailValue}>{req.items ? req.items[0]?.quantity : '-'} {req.items ? req.items[0]?.unit : ''}</Text>
-                                                    </View>
-                                                    <View style={{ flex: 1 }}>
-                                                        <Text allowFontScaling={false} style={styles.detailLabel}>TESLİMAT YERİ</Text>
-                                                        <Text allowFontScaling={false} style={styles.detailValue} numberOfLines={1}>{req.location.replace('(Varsayılan)', '').trim()}</Text>
-                                                    </View>
-                                                </View>
-                                            </View>
-
-                                            {(parsedOptions.offerBrand || parsedOptions.offerTechSpec) && (
-                                                <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
-                                                    {parsedOptions.offerBrand && (
-                                                        <View style={{ flex: 1, backgroundColor: '#1e293b', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#334155' }}>
-                                                            <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 11, fontWeight: 'bold', marginBottom: 4 }}>TEDARİKÇİ MARKASI</Text>
-                                                            <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 14, fontWeight: '500' }}>{parsedOptions.offerBrand}</Text>
-                                                        </View>
-                                                    )}
-                                                    {parsedOptions.offerTechSpec && (
-                                                        <View style={{ flex: 1, backgroundColor: '#1e293b', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#334155' }}>
-                                                            <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 11, fontWeight: 'bold', marginBottom: 4 }}>TEDARİKÇİ ÖZELLİĞİ</Text>
-                                                            <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 14, fontWeight: '500' }}>{parsedOptions.offerTechSpec}</Text>
-                                                        </View>
-                                                    )}
-                                                </View>
-                                            )}
-
-                                            {(req.title.toLowerCase().includes('beton') || req.items?.some(i => i.product_name.toLowerCase().includes('beton'))) ? (
-                                                <View style={styles.dynamicSection}>
-                                                    <View style={{ flexDirection: 'row', gap: 10 }}>
-                                                        <View style={{ flex: 1 }}>
-                                                            <Text allowFontScaling={false} style={styles.label}>Birim Fiyat ({req.items ? req.items[0]?.unit : 'm³'})</Text>
-                                                            <View>
-                                                                <View style={[styles.bigInput, { justifyContent: 'center' }]}><Text allowFontScaling={false} style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>{selectedBid.price}</Text></View>
-
-                                                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 8 }}>
-                                                                    <View style={{ flexDirection: 'row', gap: 8 }}>
-                                                                        <View style={{ paddingVertical: 6, paddingHorizontal: 10, borderRadius: 6, backgroundColor: !parsedOptions.vatIncluded ? 'rgba(255, 215, 0, 0.15)' : '#1a1a1a', borderWidth: 1, borderColor: !parsedOptions.vatIncluded ? '#FFD700' : '#404040' }}>
-                                                                            <Text allowFontScaling={false} style={{ color: !parsedOptions.vatIncluded ? '#FFD700' : '#737373', fontSize: 13, fontWeight: '700' }}>+ KDV</Text>
-                                                                        </View>
-                                                                        <View style={{ paddingVertical: 6, paddingHorizontal: 10, borderRadius: 6, backgroundColor: parsedOptions.vatIncluded ? 'rgba(255, 215, 0, 0.15)' : '#1a1a1a', borderWidth: 1, borderColor: parsedOptions.vatIncluded ? '#FFD700' : '#404040' }}>
-                                                                            <Text allowFontScaling={false} style={{ color: parsedOptions.vatIncluded ? '#FFD700' : '#737373', fontSize: 13, fontWeight: '700' }}>KDV Dahil</Text>
-                                                                        </View>
-                                                                    </View>
-
-                                                                    <View style={{ alignItems: 'flex-end', flex: 1, paddingLeft: 10 }}>
-                                                                        <Text allowFontScaling={false} style={{ color: '#F1F5F9', fontSize: 13, marginBottom: 4, fontWeight: '700' }}>TOPLAM TUTAR</Text>
-                                                                        <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 24, fontWeight: '900', textAlign: 'right' }} numberOfLines={1} adjustsFontSizeToFit>
-                                                                            ≈ {totalAmnt.toLocaleString('tr-TR')} TL{!parsedOptions.vatIncluded && <Text allowFontScaling={false} style={{ fontSize: 14, color: '#94a3b8' }}> + KDV</Text>}
-                                                                        </Text>
-                                                                    </View>
-                                                                </View>
-                                                            </View>
-                                                        </View>
-                                                        <View style={{ flex: 1 }}>
-                                                            <Text allowFontScaling={false} style={styles.label}>Pompa (TL)</Text>
-                                                            <View style={[styles.bigInput, { justifyContent: 'center' }]}><Text allowFontScaling={false} style={{ color: '#fff', fontSize: 16 }}>{parsedOptions.pumpFee || '-'}</Text></View>
-                                                        </View>
-                                                    </View>
-
-                                                    <Text allowFontScaling={false} style={styles.label}>Döküm Tarihi Uygunluğu</Text>
-                                                    <View style={[styles.inputBox, { justifyContent: 'center' }]}><Text allowFontScaling={false} style={{ color: '#fff' }}>{parsedOptions.deliveryDate || '-'}</Text></View>
-                                                </View>
-                                            ) : (
-                                                <View style={styles.dynamicSection}>
-                                                    <Text allowFontScaling={false} style={styles.label}>Birim Fiyat (Adet/Kg)</Text>
-                                                    <View>
-                                                        <View style={[styles.bigInput, { justifyContent: 'center' }]}><Text allowFontScaling={false} style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>{selectedBid.price}</Text></View>
-
-                                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 8 }}>
-                                                            <View style={{ flexDirection: 'row', gap: 8 }}>
-                                                                <View style={{ paddingVertical: 6, paddingHorizontal: 10, borderRadius: 6, backgroundColor: !parsedOptions.vatIncluded ? 'rgba(255, 215, 0, 0.15)' : '#1a1a1a', borderWidth: 1, borderColor: !parsedOptions.vatIncluded ? '#FFD700' : '#404040' }}>
-                                                                    <Text allowFontScaling={false} style={{ color: !parsedOptions.vatIncluded ? '#FFD700' : '#737373', fontSize: 13, fontWeight: '700' }}>+ KDV</Text>
-                                                                </View>
-                                                                <View style={{ paddingVertical: 6, paddingHorizontal: 10, borderRadius: 6, backgroundColor: parsedOptions.vatIncluded ? 'rgba(255, 215, 0, 0.15)' : '#1a1a1a', borderWidth: 1, borderColor: parsedOptions.vatIncluded ? '#FFD700' : '#404040' }}>
-                                                                    <Text allowFontScaling={false} style={{ color: parsedOptions.vatIncluded ? '#FFD700' : '#737373', fontSize: 13, fontWeight: '700' }}>KDV Dahil</Text>
-                                                                </View>
-                                                            </View>
-
-                                                            <View style={{ alignItems: 'flex-end', flex: 1, paddingLeft: 10 }}>
-                                                                <Text allowFontScaling={false} style={{ color: '#F1F5F9', fontSize: 13, marginBottom: 4, fontWeight: '700' }}>TOPLAM TUTAR</Text>
-                                                                <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 24, fontWeight: '900', textAlign: 'right' }} numberOfLines={1} adjustsFontSizeToFit>
-                                                                    ≈ {totalAmnt.toLocaleString('tr-TR')} TL{!parsedOptions.vatIncluded && <Text allowFontScaling={false} style={{ fontSize: 14, color: '#94a3b8' }}> + KDV</Text>}
-                                                                </Text>
-                                                            </View>
-                                                        </View>
-                                                    </View>
-
-                                                    <Text allowFontScaling={false} style={styles.label}>Stok Durumu</Text>
-                                                    <View style={{ flexDirection: 'row', marginBottom: 12, gap: 8 }}>
-                                                        <View style={[styles.chip, parsedOptions.stockStatus === 'immediate' && styles.chipActive]}><Text allowFontScaling={false} style={[styles.chipText, parsedOptions.stockStatus === 'immediate' && styles.chipTextActive]}>Hemen Teslim</Text></View>
-                                                        <View style={[styles.chip, parsedOptions.stockStatus === 'wait' && styles.chipActive]}><Text allowFontScaling={false} style={[styles.chipText, parsedOptions.stockStatus === 'wait' && styles.chipTextActive]}>2-3 Gün</Text></View>
-                                                    </View>
-
-                                                    <Text allowFontScaling={false} style={styles.label}>Teslimat / Nakliye Durumu</Text>
-                                                    <View style={{ flexDirection: 'row', marginBottom: 12, gap: 8 }}>
-                                                        <View style={[styles.chip, parsedOptions.shippingType === 'Dahil' && styles.chipActive]}><Text allowFontScaling={false} style={[styles.chipText, parsedOptions.shippingType === 'Dahil' && styles.chipTextActive]}>Dahil</Text></View>
-                                                        <View style={[styles.chip, parsedOptions.shippingType === 'Hariç' && styles.chipActive]}><Text allowFontScaling={false} style={[styles.chipText, parsedOptions.shippingType === 'Hariç' && styles.chipTextActive]}>Hariç</Text></View>
-                                                        <View style={[styles.chip, parsedOptions.shippingType === 'Alıcı Öder' && styles.chipActive]}><Text allowFontScaling={false} style={[styles.chipText, parsedOptions.shippingType === 'Alıcı Öder' && styles.chipTextActive]}>Alıcı Öder</Text></View>
-                                                    </View>
-                                                    
-                                                    {parsedOptions.shippingType === 'Alıcı Öder' && (
-                                                        <View style={{ marginBottom: 16 }}>
-                                                            <Text allowFontScaling={false} style={styles.label}>Nakliye Ücreti (TL)</Text>
-                                                            <View style={[styles.inputBox, { justifyContent: 'center' }]}><Text allowFontScaling={false} style={{ color: '#fff' }}>{parsedOptions.shippingFee || 'Belirtilmedi'}</Text></View>
-                                                        </View>
-                                                    )}
-                                                </View>
-                                            )}
-
-                                            <TouchableOpacity 
-                                                style={{ 
-                                                    marginTop: 24, 
-                                                    backgroundColor: 'rgba(212, 175, 55, 0.1)', 
-                                                    borderWidth: 1, 
-                                                    borderColor: '#D4AF37', 
-                                                    paddingVertical: 14, 
-                                                    borderRadius: 12, 
-                                                    alignItems: 'center',
-                                                    flexDirection: 'row',
-                                                    justifyContent: 'center',
-                                                    gap: 8
-                                                }} 
-                                                onPress={() => {
-                                                    setViewBidModalVisible(false);
-                                                    openBidModal(req);
-                                                }}
-                                            >
-                                                <Ionicons name="add-circle-outline" size={20} color="#D4AF37" />
-                                                <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 14 }}>YENİ ALTERNATİF TEKLİF SUN</Text>
-                                            </TouchableOpacity>
-
-                                            <Text allowFontScaling={false} style={styles.label}>Teklif Geçerlilik Süresi</Text>
-                                            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
-                                                {[24, 48, 168].map(h => (
-                                                    <View key={h} style={[styles.chip, parsedOptions.validity === h && styles.chipActive]}>
-                                                        <Text allowFontScaling={false} style={[styles.chipText, parsedOptions.validity === h && styles.chipTextActive]}>{h === 168 ? '1 Hafta' : h + ' Saat'}</Text>
-                                                    </View>
-                                                ))}
-                                            </View>
-
-                                            <Text allowFontScaling={false} style={styles.label}>Ödeme Vadesi</Text>
-                                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsScroll}>
-                                                {TERMS_OPTIONS.map(opt => {
-                                                    const isSelected = selectedBid.notes && selectedBid.notes.includes(opt);
-                                                    return (
-                                                        <View
-                                                            key={opt}
-                                                            style={[
-                                                                styles.chip,
-                                                                { flexDirection: 'column', paddingVertical: 8, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
-                                                                isSelected && styles.chipActive
-                                                            ]}
-                                                        >
-                                                            <Text allowFontScaling={false} style={[styles.chipText, isSelected && styles.chipTextActive]}>{opt}</Text>
-                                                            {opt !== 'EFT' && opt !== 'Kredi Kartı' && (
-                                                                <Text allowFontScaling={false} style={{ fontSize: 10, marginTop: 2, fontWeight: '600', color: isSelected ? '#000' : '#737373' }}>Çek / Senet</Text>
-                                                            )}
-                                                        </View>
-                                                    );
-                                                })}
-                                            </ScrollView>
-
-                                            <TouchableOpacity style={[styles.modalBtn, { backgroundColor: '#334155', marginTop: 20 }]} onPress={() => setViewBidModalVisible(false)}>
-                                                <Text allowFontScaling={false} style={[styles.modalBtnText, { color: '#f8fafc' }]}>KAPAT</Text>
-                                            </TouchableOpacity>
+                                            <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 16, fontWeight: '800' }}>Verilen Teklif</Text>
+                                            <Text allowFontScaling={false} style={{ color: statusColor, fontSize: 12, fontWeight: '700', marginTop: 2 }}>{statusText}</Text>
                                         </View>
-                                    );
-                                })()}
-                            </ScrollView>
-                        </View>
+                                        <TouchableOpacity onPress={() => setViewBidModalVisible(false)} style={{ padding: 6 }}>
+                                            <Ionicons name="close" size={22} color="#475569" />
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    {/* Price + Total on same row */}
+                                    <View style={{ backgroundColor: '#0a1628', borderRadius: 14, padding: 14, marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderLeftWidth: 3, borderLeftColor: '#FFD700', borderWidth: 1, borderColor: 'rgba(255,215,0,0.15)' }}>
+                                        <View>
+                                            <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>BİRİM FİYAT</Text>
+                                            <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 26, fontWeight: '900', marginTop: 2 }}>{parseFloat(selectedBid.price).toLocaleString('tr-TR')} ₺</Text>
+                                            <Text allowFontScaling={false} style={{ color: p.vatIncluded ? '#FFD700' : '#64748b', fontSize: 11, marginTop: 4 }}>{p.vatIncluded ? 'KDV Dahil' : '+ KDV Hariç'}</Text>
+                                        </View>
+                                        {totalAmnt > 0 && (
+                                            <View style={{ alignItems: 'flex-end' }}>
+                                                <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>TOPLAM</Text>
+                                                <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 22, fontWeight: '900', marginTop: 2 }}>≈ {totalAmnt.toLocaleString('tr-TR')} ₺</Text>
+                                            </View>
+                                        )}
+                                    </View>
+
+                                    {/* 2-col info grid */}
+                                    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                                        <View style={{ flex: 1, backgroundColor: '#111827', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#1e293b' }}>
+                                            <Text allowFontScaling={false} style={{ color: '#475569', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>STOK</Text>
+                                            <Text allowFontScaling={false} style={{ color: '#e2e8f0', fontSize: 13, fontWeight: '700', marginTop: 4 }}>{p.stockStatus === 'immediate' ? 'Hemen Teslim' : '2-3 Gün'}</Text>
+                                        </View>
+                                        <View style={{ flex: 1, backgroundColor: '#111827', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#1e293b' }}>
+                                            <Text allowFontScaling={false} style={{ color: '#475569', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>NAKLİYE</Text>
+                                            <Text allowFontScaling={false} style={{ color: '#e2e8f0', fontSize: 13, fontWeight: '700', marginTop: 4 }}>{p.shippingType || 'Dahil'}{p.shippingFee ? ` · ${p.shippingFee}₺` : ''}</Text>
+                                        </View>
+                                    </View>
+                                    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
+                                        <View style={{ flex: 1, backgroundColor: '#111827', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#1e293b' }}>
+                                            <Text allowFontScaling={false} style={{ color: '#475569', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>VADE</Text>
+                                            <Text allowFontScaling={false} style={{ color: '#e2e8f0', fontSize: 13, fontWeight: '700', marginTop: 4 }}>{TERMS_OPTIONS.find(o => selectedBid.notes?.includes(o)) || 'EFT'}</Text>
+                                        </View>
+                                        <View style={{ flex: 1, backgroundColor: '#111827', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#1e293b' }}>
+                                            <Text allowFontScaling={false} style={{ color: '#475569', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>GEÇERLİLİK</Text>
+                                            <Text allowFontScaling={false} style={{ color: '#e2e8f0', fontSize: 13, fontWeight: '700', marginTop: 4 }}>{p.validity === 168 ? '1 Hafta' : p.validity ? `${p.validity} Saat` : '24 Saat'}</Text>
+                                        </View>
+                                    </View>
+
+                                    {/* Marka/Özellik if present */}
+                                    {(p.offerBrand || p.offerTechSpec) && (
+                                        <View style={{ backgroundColor: '#111827', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#1e293b', marginBottom: 14 }}>
+                                            <Text allowFontScaling={false} style={{ color: '#475569', fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>MARKA / ÖZELLİK</Text>
+                                            <Text allowFontScaling={false} style={{ color: '#f472b6', fontSize: 14, fontWeight: '700' }}>{[p.offerBrand, p.offerTechSpec].filter(Boolean).join(' · ')}</Text>
+                                        </View>
+                                    )}
+
+                                    {/* Date + close */}
+                                    <Text allowFontScaling={false} style={{ color: '#334155', fontSize: 11, textAlign: 'center', marginBottom: 2 }}>
+                                        {new Date(selectedBid.created_at).toLocaleDateString('tr-TR', { day:'numeric', month:'long', year:'numeric' })}
+                                    </Text>
+                                </View>
+                            );
+                        })()}
+                    </View>
                     </View>
                 </Modal>
 
                 {/* --- PREMIUM SUCCESS MODAL --- */}
+
                 <Modal
                     animationType="fade"
                     transparent={true}

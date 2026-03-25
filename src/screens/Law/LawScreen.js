@@ -14,7 +14,6 @@ import {
     Dimensions,
     InputAccessoryView,
     Keyboard,
-    KeyboardAvoidingView,
     Platform,
     ScrollView,
     StatusBar,
@@ -22,7 +21,7 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
@@ -111,7 +110,8 @@ function RecentCard({ cat, score, time }) {
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 export default function LawScreen() {
     const navigation = useNavigation();
-    const scrollRef  = useRef(null);
+    const scrollRef    = useRef(null);
+    const inputWrapRef = useRef(null);
 
     const [inputText, setInputText]           = useState('');
     const [isRecording, setIsRecording]       = useState(false);
@@ -182,7 +182,11 @@ export default function LawScreen() {
             if (result.success) {
                 setCaseData(result.data);
                 setIsAnalyzing(false);
-                setPanelVisible(true);
+                // Navigate to the new premium analysis result screen
+                navigation.navigate('LawAnalysisResult', {
+                    analysisData: result.data,
+                    caseText: text || inputText,
+                });
             }
         } catch {
             setIsAnalyzing(false);
@@ -191,9 +195,9 @@ export default function LawScreen() {
     };
 
     const handleLawyerConnect = (lawyer) => {
-        setPanelVisible(false);
         navigation.navigate('LawSuccess', { lawyer, caseData });
     };
+
 
     return (
         <View style={s.container}>
@@ -209,13 +213,13 @@ export default function LawScreen() {
                 pointerEvents="none"
             />
 
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={0} style={{ flex: 1 }}>
-                <SafeAreaView style={{ flex: 1 }}>
+            <SafeAreaView style={{ flex: 1 }}>
                     <ScrollView
                         ref={scrollRef}
                         contentContainerStyle={s.scrollContent}
                         showsVerticalScrollIndicator={false}
                         keyboardShouldPersistTaps="handled"
+                        automaticallyAdjustKeyboardInsets={true}
                     >
                         {/* ── HEADER ── */}
                         <View style={s.header}>
@@ -253,7 +257,7 @@ export default function LawScreen() {
                         </View>
 
                         {/* ── GLASSMORPHISM INPUT ── */}
-                        <View style={s.inputWrap}>
+                        <View ref={inputWrapRef} style={s.inputWrap}>
                             {/* Glow aura behind card */}
                             <Animated.View
                                 style={[s.inputGlow, { opacity: auraOpacity, transform: [{ scale: auraScale }] }]}
@@ -270,17 +274,23 @@ export default function LawScreen() {
 
                                 <TextInput allowFontScaling={false}
                                     style={s.input}
-                                    placeholder={'Sadece probleminizi anlatın veya belge yükleyin…\n\nSes, fotoğraf veya PDF'}
-                                    placeholderTextColor="rgba(255,255,255,0.22)"
+                                    placeholder={'Probleminizi buraya yazın, ses veya belge yükleyin…'}
+                                    placeholderTextColor="rgba(255,255,255,0.25)"
                                     multiline
                                     value={inputText}
                                     onChangeText={setInputText}
                                     onFocus={() => {
                                         setIsInputFocused(true);
+                                        // Scroll to bring input into view above the keyboard
+                                        setTimeout(() => {
+                                            scrollRef.current?.scrollTo({ y: 320, animated: true });
+                                        }, 100);
                                     }}
                                     onBlur={() => setIsInputFocused(false)}
                                     inputAccessoryViewID="LawDone"
                                     textAlignVertical="top"
+                                    selectionColor={GOLD}
+                                    cursorColor={GOLD}
                                 />
 
                                 {/* Bottom action row */}
@@ -359,7 +369,7 @@ export default function LawScreen() {
                         </View>
                     </ScrollView>
                 </SafeAreaView>
-            </KeyboardAvoidingView>
+
 
             {Platform.OS === 'ios' && (
                 <InputAccessoryView nativeID="LawDone">
@@ -452,13 +462,15 @@ const s = StyleSheet.create({
         opacity: 0.6,
     },
     input: {
-        color: '#E8E8E8',
+        color: '#FFFFFF',
         fontSize: 15,
         lineHeight: 24,
         padding: 18,
-        paddingBottom: 6,
-        minHeight: 120,
+        paddingTop: 16,
+        paddingBottom: 8,
+        minHeight: 130,
         textAlignVertical: 'top',
+        letterSpacing: 0.2,
     },
     inputFooter: {
         flexDirection: 'row', alignItems: 'center',

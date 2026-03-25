@@ -37,6 +37,7 @@ import SmartSketchScreen from '../screens/Cost/SmartSketchScreen';
 import UserRequestsScreen from '../screens/Cost/UserRequestsScreen';
 import EngineeringScreen from '../screens/Engineering/EngineeringScreen';
 import OnlineDiscoveryScreen from '../screens/Engineering/OnlineDiscoveryScreen';
+import LawAnalysisResultScreen from '../screens/Law/LawAnalysisResultScreen';
 import LawScreen from '../screens/Law/LawScreen';
 import LawSuccessScreen from '../screens/Law/LawSuccessScreen';
 import LawyerDashboardScreen from '../screens/Law/LawyerDashboardScreen';
@@ -79,6 +80,7 @@ import StyleSelectionScreen from '../screens/Renovation/StyleSelectionScreen';
 import ProjectProposalScreen from '../screens/Rental/ProjectProposalScreen';
 import RentalProposalScreen from '../screens/Rental/RentalProposalScreen';
 import CustomSplashScreen from '../screens/Splash/CustomSplashScreen';
+import TeknikOfisScreen from '../screens/TeknikOfis/TeknikOfisScreen';
 import TransformationExpertChatScreen from '../screens/Transformation/TransformationExpertChatScreen';
 import UrbanTransformationScreen from '../screens/Transformation/UrbanTransformationScreen';
 
@@ -329,10 +331,12 @@ export default function AppNavigator() {
             <Stack.Screen name="Mühendislik" component={EngineeringScreen} />
             <Stack.Screen name="OnlineDiscovery" component={OnlineDiscoveryScreen} />
             <Stack.Screen name="AI_Galeri" component={AiArchitectScreen} />
+            <Stack.Screen name="TeknikOfis" component={TeknikOfisScreen} options={{ headerShown: false }} />
 
             {/* Law */}
             <Stack.Screen name="Hukuk" component={LawScreen} options={{ title: 'Hukuki Destek' }} />
             <Stack.Screen name="LawSuccess" component={LawSuccessScreen} />
+            <Stack.Screen name="LawAnalysisResult" component={LawAnalysisResultScreen} options={{ headerShown: false, animation: 'slide_from_bottom', presentation: 'modal' }} />
 
             {/* Logistics */}
             <Stack.Screen name="Nakliye" component={LogisticsScreen} options={{ title: 'Nakliye & Lojistik' }} />

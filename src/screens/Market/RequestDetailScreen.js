@@ -6,6 +6,7 @@ import { ActivityIndicator, Alert, Image, Modal, ScrollView, StatusBar, StyleShe
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { ConstructionService } from '../../services/ConstructionService';
+import { MarketService } from '../../services/MarketService';
 
 export default function RequestDetailScreen() {
     const navigation = useNavigation();
@@ -112,6 +113,9 @@ export default function RequestDetailScreen() {
         }
     };
 
+    // isOwner check for both views
+    const isOwner = currentUserId && request?.user_id === currentUserId;
+
     const handleDeleteRequest = () => {
         Alert.alert(
             'Talebi Sil',
@@ -123,14 +127,21 @@ export default function RequestDetailScreen() {
                     style: 'destructive',
                     onPress: async () => {
                         setLoading(true);
-                        const { success, error } = await ConstructionService.deleteRequest(request.id);
+                        
+                        let result;
+                        if (type === 'construction') {
+                            result = await ConstructionService.deleteRequest(request.id);
+                        } else {
+                            result = await MarketService.deleteRequest(request.id);
+                        }
+                        
                         setLoading(false);
-                        if (success) {
+                        if (result.success) {
                             Alert.alert('Başarılı', 'Talep başarıyla silindi.', [
                                 { text: 'Tamam', onPress: () => navigation.goBack() }
                             ]);
                         } else {
-                            Alert.alert('Hata', 'Silme işlemi başarısız oldu: ' + error?.message);
+                            Alert.alert('Hata', 'Silme işlemi başarısız oldu: ' + result.error?.message);
                         }
                     }
                 }
@@ -167,7 +178,6 @@ export default function RequestDetailScreen() {
 
         const offerLabel = request?.offer_type === 'anahtar_teslim_tadilat' ? 'Anahtar Teslim Tadilat' :
                            isFlatForLand ? 'Kat Karşılığı' : 'Komple Yapım (Anahtar Teslim)';
-        const isOwner = currentUserId && request.user_id === currentUserId;
 
         let tadilatDetails = { propertyType: '-', areaSize: '-', style: '-' };
         if (request?.offer_type === 'anahtar_teslim_tadilat' && request?.description) {
@@ -620,7 +630,7 @@ export default function RequestDetailScreen() {
                     {loading ? (
                         <ActivityIndicator color="#D4AF37" style={{ marginTop: 20 }} />
                     ) : (
-                        <View style={styles.itemsContainer}>
+                        <View style={{ gap: 12, marginBottom: 24 }}>
                             {items.map((item, index) => {
                                 let displayName = item.product_name || '';
                                 let brand = null;
@@ -639,35 +649,86 @@ export default function RequestDetailScreen() {
                                 }
 
                                 return (
-                                    <View key={item.id} style={[styles.itemRow, index !== items.length - 1 && styles.itemBorder, { flexDirection: 'column', alignItems: 'stretch', paddingVertical: 16 }]}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: (brand || spec || item.details) ? 12 : 0 }}>
-                                            <View style={styles.itemIndex}>
-                                                <Text allowFontScaling={false} style={styles.indexText}>{index + 1}</Text>
+                                    <View key={item.id} style={{
+                                        backgroundColor: '#0c0c0c',
+                                        borderRadius: 16,
+                                        borderWidth: 1,
+                                        borderColor: 'rgba(212, 175, 55, 0.25)',
+                                        overflow: 'hidden',
+                                        position: 'relative',
+                                        padding: 16
+                                    }}>
+                                        {/* Neon Sol Çizgi Efekti */}
+                                        <LinearGradient
+                                            colors={['#D4AF37', '#E8890C', 'transparent']}
+                                            style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4 }}
+                                        />
+
+                                        {/* Üst Kısım: Ürün Adı ve Miktarı */}
+                                        <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: (brand || spec || item.details) ? 14 : 0 }}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'flex-start', flex: 1, paddingRight: 10 }}>
+                                                {/* İkon / Sıra No */}
+                                                <View style={{
+                                                    width: 38,
+                                                    height: 38,
+                                                    borderRadius: 12,
+                                                    backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                                                    borderWidth: 1,
+                                                    borderColor: 'rgba(212, 175, 55, 0.3)',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    marginRight: 12
+                                                }}>
+                                                    <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 16, fontWeight: '900' }}>{index + 1}</Text>
+                                                </View>
+
+                                                {/* İsim */}
+                                                <View style={{ flex: 1, justifyContent: 'center', minHeight: 38 }}>
+                                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 17, fontWeight: '800', lineHeight: 22 }}>
+                                                        {displayName}
+                                                    </Text>
+                                                </View>
                                             </View>
-                                            <View style={{ flex: 1, paddingRight: 10 }}>
-                                                <Text allowFontScaling={false} style={styles.itemName}>{displayName}</Text>
+
+                                            {/* Miktar */}
+                                            <View style={{ alignItems: 'flex-end', paddingTop: 2 }}>
+                                                <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginBottom: 2 }}>MİKTAR</Text>
+                                                <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 18, fontWeight: '900' }}>
+                                                    {item.quantity}
+                                                </Text>
                                             </View>
-                                            <Text allowFontScaling={false} style={styles.itemQty}>{item.quantity}</Text>
                                         </View>
                                         
+                                        {/* Alt Kısım: Detaylar (Marka, Özellik) */}
                                         {(brand || spec || item.details) && (
-                                            <View style={{ marginLeft: 36, padding: 12, backgroundColor: 'rgba(212, 175, 55, 0.05)', borderRadius: 8, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.15)', gap: 6 }}>
+                                            <View style={{
+                                                backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                                                borderRadius: 12,
+                                                padding: 14,
+                                                marginLeft: 50,
+                                                borderWidth: 1,
+                                                borderColor: 'rgba(255, 255, 255, 0.05)',
+                                                gap: 8
+                                            }}>
                                                 {brand && (
-                                                    <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-                                                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, width: 60 }}>Marka:</Text>
-                                                        <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 12, fontWeight: 'bold', flex: 1 }}>{brand}</Text>
+                                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#D4AF37', marginRight: 8 }} />
+                                                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 13, width: 65, fontWeight: '600' }}>Marka:</Text>
+                                                        <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 14, fontWeight: 'bold', flex: 1 }}>{brand}</Text>
                                                     </View>
                                                 )}
                                                 {spec && (
-                                                    <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-                                                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, width: 60 }}>Özellik:</Text>
-                                                        <Text allowFontScaling={false} style={{ color: '#DDD', fontSize: 12, flex: 1 }}>{spec}</Text>
+                                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#38bdf8', marginRight: 8 }} />
+                                                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 13, width: 65, fontWeight: '600' }}>Özellik:</Text>
+                                                        <Text allowFontScaling={false} style={{ color: '#38bdf8', fontSize: 14, fontWeight: 'bold', flex: 1 }}>{spec}</Text>
                                                     </View>
                                                 )}
                                                 {item.details && (
                                                     <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-                                                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, width: 60 }}>Detaylar:</Text>
-                                                        <Text allowFontScaling={false} style={{ color: '#DDD', fontSize: 12, flex: 1 }}>{item.details}</Text>
+                                                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#a855f7', marginRight: 8, marginTop: 6 }} />
+                                                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 13, width: 65, fontWeight: '600', marginTop: 1 }}>Not:</Text>
+                                                        <Text allowFontScaling={false} style={{ color: '#E2E8F0', fontSize: 13, lineHeight: 18, flex: 1 }}>{item.details}</Text>
                                                     </View>
                                                 )}
                                             </View>
@@ -694,40 +755,106 @@ export default function RequestDetailScreen() {
                             </View>
                         </>
                     ) : (
-                        <View style={{ marginBottom: 30 }}>
+                        <View style={{ marginBottom: 40, marginTop: 10 }}>
                             <Text allowFontScaling={false} style={styles.sectionTitle}>GELEN TEKLİFLER</Text>
-                            <View style={styles.card}>
-                                <View style={{ alignItems: 'center', paddingVertical: 20 }}>
-                                    <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(212, 175, 55, 0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-                                        <MaterialCommunityIcons name="email-multiple-outline" size={30} color="#D4AF37" />
+                            
+                            <View style={{
+                                borderRadius: 24,
+                                borderWidth: 1,
+                                borderColor: 'rgba(212, 175, 55, 0.25)',
+                                overflow: 'hidden',
+                                elevation: 8,
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 8 },
+                                shadowOpacity: 0.8,
+                                shadowRadius: 10,
+                                position: 'relative'
+                            }}>
+                                {/* Kart Zemin Gradienti (Bozulmayan yapı) */}
+                                <LinearGradient
+                                    colors={['#17130A', '#0D0C09', '#050505']}
+                                    style={{ ...StyleSheet.absoluteFillObject }}
+                                    start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+                                />
+
+                                {/* Üst Neon Çizgi Parıltısı */}
+                                <LinearGradient
+                                    colors={['rgba(212, 175, 55, 0)', 'rgba(212, 175, 55, 0.6)', 'rgba(212, 175, 55, 0)']}
+                                    style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, zIndex: 10 }}
+                                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                                />
+
+                                <View style={{ alignItems: 'center', paddingVertical: 40, paddingHorizontal: 20, zIndex: 5 }}>
+                                    
+                                    {/* Zarif Altın İkon */}
+                                    <View style={{
+                                        width: 80,
+                                        height: 80,
+                                        borderRadius: 40,
+                                        backgroundColor: 'rgba(212, 175, 55, 0.08)',
+                                        borderWidth: 1,
+                                        borderColor: 'rgba(212, 175, 55, 0.3)',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        marginBottom: 16
+                                    }}>
+                                        <MaterialCommunityIcons name="email-multiple-outline" size={38} color="#E8B923" />
                                     </View>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold' }}>
-                                        {bids.length} Adet Teklifiniz Var
-                                    </Text>
-                                    <Text allowFontScaling={false} style={{ color: '#888', textAlign: 'center', marginTop: 8, paddingHorizontal: 20 }}>
-                                        Gelen tekliflerin detaylarını ve alternatif seçenekleri incelemek için tıklayın.
+
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 24, fontWeight: '900', letterSpacing: 0.5, marginBottom: 24, textAlign: 'center' }}>
+                                        <Text style={{ color: '#FFD700', fontSize: 28 }}>{bids.length}</Text> ADET TEKLİFİNİZ VAR
                                     </Text>
 
                                     <TouchableOpacity
-                                        style={{
-                                            marginTop: 20,
-                                            backgroundColor: '#D4AF37',
-                                            paddingVertical: 12,
-                                            paddingHorizontal: 24,
-                                            borderRadius: 24,
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            gap: 8
-                                        }}
-                                        onPress={() => navigation.navigate('MarketOffers', { request, bids })}
+                                        activeOpacity={0.8}
+                                        style={{ width: '100%', overflow: 'hidden', borderRadius: 16 }}
+                                        onPress={() => navigation.navigate('MarketOffers', { request: { ...request, items }, bids })}
                                     >
-                                        <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold' }}>TEKLİFLERİ İNCELE</Text>
-                                        <MaterialCommunityIcons name="arrow-right" size={20} color="#000" />
+                                        <LinearGradient
+                                            colors={['#D4AF37', '#E8890C']}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                            style={{
+                                                paddingVertical: 18,
+                                                flexDirection: 'row',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: 12
+                                            }}
+                                        >
+                                            <Text allowFontScaling={false} style={{ color: '#000', fontSize: 16, fontWeight: '900', letterSpacing: 1.5 }}>
+                                                TEKLİFLERİ GÖRÜNTÜLE
+                                            </Text>
+                                            <MaterialCommunityIcons name="arrow-right-circle" size={24} color="#000" />
+                                        </LinearGradient>
                                     </TouchableOpacity>
                                 </View>
                             </View>
                         </View>
                     )}
+
+                    {/* OWNER ACTIONS - DELETE (MARKET) */}
+                    {isOwner && (
+                        <View style={{ gap: 12, marginTop: 20, marginBottom: 40 }}>
+                            <TouchableOpacity
+                                style={{
+                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                    borderWidth: 1,
+                                    borderColor: '#EF4444',
+                                    borderRadius: 12,
+                                    paddingVertical: 16,
+                                    alignItems: 'center',
+                                }}
+                                onPress={handleDeleteRequest}
+                            >
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <MaterialCommunityIcons name="trash-can-outline" size={20} color="#EF4444" />
+                                    <Text allowFontScaling={false} style={{ color: '#EF4444', fontWeight: 'bold', fontSize: 16 }}>TALEBİ SİL</Text>
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
                 </ScrollView>
             </SafeAreaView>
         </View>

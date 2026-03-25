@@ -194,8 +194,9 @@ export default function KitchenBathWizardScreen() {
 
     // Step 2 State
     const [occupancy, setOccupancy] = useState(null); // 'empty' | 'occupied'
-    const [kitchenArea, setKitchenArea] = useState(15);
-    const [kitchenType, setKitchenType] = useState('Kapalı Mutfak');
+    const [kitchenCount, setKitchenCount] = useState(1);
+    const [kitchenAreas, setKitchenAreas] = useState({ 0: 15, 1: 15, 2: 15 });
+    const [kitchenTypes, setKitchenTypes] = useState({ 0: 'Kapalı' });
     const [bathCount, setBathCount] = useState(1);
     const [bathAreas, setBathAreas] = useState({ 0: 6, 1: 5, 2: 4 });
 
@@ -260,12 +261,15 @@ export default function KitchenBathWizardScreen() {
             fullDescription += `KAPSAM: ${getScopeTitle()}\n`;
 
             let areaDet = [];
-            if (showKitchen) areaDet.push(`Mutfak (${kitchenArea} m², ${kitchenType})`);
+            if (showKitchen) {
+                const kAreasStr = Array.from({ length: kitchenCount }).map((_, i) => `${kitchenAreas[i] || 15}m² ${kitchenTypes[i] || 'Kapalı'}`).join(' + ');
+                areaDet.push(`${kitchenCount} Mutfak (${kAreasStr})`);
+            }
             if (showBath) {
                 const bAreasStr = Array.from({ length: bathCount }).map((_, i) => bathAreas[i] || 5).join('m², ') + 'm²';
                 areaDet.push(`${bathCount} Banyo (${bAreasStr})`);
             }
-            fullDescription += `MEKAN: ${areaDet.join(' + ')}\n`;
+            fullDescription += `MEKAN: ${areaDet.join(' | ')}\n`;
             
             let styleDet = [];
             if (showKitchen && kStyle) styleDet.push(`Mutfak: ${kStyle}`);
@@ -366,21 +370,41 @@ export default function KitchenBathWizardScreen() {
                 <View style={s2.cardBlock}>
                     <View style={s.rowHeader}>
                         <MaterialCommunityIcons name="countertop" size={20} color={TH.gold} />
-                        <Text allowFontScaling={false} style={s.rowTitle}>Mutfak Alanı</Text>
+                        <Text allowFontScaling={false} style={s.rowTitle}>Mutfak Detayları</Text>
                     </View>
-                    <CustomSlider label="Alan (Yaklaşık)" value={kitchenArea} min={5} max={60} onChange={v => setKitchenArea(Math.round(v))} />
 
-                    <Text allowFontScaling={false} style={s2.subLabel}>Mutfak Tipi</Text>
-                    <View style={{ flexDirection: 'row', gap: 10 }}>
-                        {['Kapalı', 'Açık / Ada'].map(t => {
-                            const isSel = kitchenType === t;
+                    <Text allowFontScaling={false} style={s2.subLabel}>Kaç mutfak yenilenecek?</Text>
+                    <View style={s2.circRow}>
+                        {[1, 2, 3].map(n => {
+                            const isSel = kitchenCount === n;
                             return (
-                                <TouchableOpacity key={t} style={[s2.typeBtn, isSel && s2.typeBtnActive]} onPress={() => setKitchenType(t)} activeOpacity={0.8}>
-                                    <Text allowFontScaling={false} style={[s2.typeBtnText, isSel && { color: TH.gold }]}>{t}</Text>
+                                <TouchableOpacity key={n} style={[s2.circBtn, isSel && s2.circBtnActive]} onPress={() => setKitchenCount(n)} activeOpacity={0.8}>
+                                    {isSel ? (
+                                        <LinearGradient colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ position: 'absolute', width: '100%', height: '100%', borderRadius: 28 }} />
+                                    ) : null}
+                                    <Text allowFontScaling={false} style={[s2.circText, isSel && { color: '#000', fontWeight: '800', zIndex: 2 }]}>{n}{n === 3 ? '+' : ''}</Text>
                                 </TouchableOpacity>
                             );
                         })}
                     </View>
+
+                    {Array.from({ length: kitchenCount }).map((_, i) => (
+                        <View key={i} style={{ marginTop: 20 }}>
+                            <CustomSlider label={kitchenCount === 1 ? 'Mutfak Alanı' : `Mutfak ${i + 1} Alanı`} value={kitchenAreas[i] || 15} min={5} max={60} onChange={v => setKitchenAreas(prev => ({ ...prev, [i]: Math.round(v) }))} />
+                            
+                            <Text allowFontScaling={false} style={[s2.subLabel, { marginTop: 10 }]}>{kitchenCount === 1 ? 'Mutfak Tipi' : `Mutfak ${i + 1} Tipi`}</Text>
+                            <View style={{ flexDirection: 'row', gap: 10 }}>
+                                {['Kapalı', 'Açık / Ada'].map(t => {
+                                    const isSel = (kitchenTypes[i] || 'Kapalı') === t;
+                                    return (
+                                        <TouchableOpacity key={t} style={[s2.typeBtn, isSel && s2.typeBtnActive]} onPress={() => setKitchenTypes(prev => ({ ...prev, [i]: t }))} activeOpacity={0.8}>
+                                            <Text allowFontScaling={false} style={[s2.typeBtnText, isSel && { color: TH.gold }]}>{t}</Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        </View>
+                    ))}
                 </View>
             )}
 
@@ -398,7 +422,10 @@ export default function KitchenBathWizardScreen() {
                             const isSel = bathCount === n;
                             return (
                                 <TouchableOpacity key={n} style={[s2.circBtn, isSel && s2.circBtnActive]} onPress={() => setBathCount(n)} activeOpacity={0.8}>
-                                    <Text allowFontScaling={false} style={[s2.circText, isSel && { color: TH.bg, fontWeight: '800' }]}>{n}{n === 3 ? '+' : ''}</Text>
+                                    {isSel ? (
+                                        <LinearGradient colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ position: 'absolute', width: '100%', height: '100%', borderRadius: 28 }} />
+                                    ) : null}
+                                    <Text allowFontScaling={false} style={[s2.circText, isSel && { color: '#000', fontWeight: '800', zIndex: 2 }]}>{n}{n === 3 ? '+' : ''}</Text>
                                 </TouchableOpacity>
                             );
                         })}
@@ -681,7 +708,7 @@ const s2 = StyleSheet.create({
     typeBtnText: { color: TH.textMuted, fontSize: 14, fontWeight: '600' },
     circRow: { flexDirection: 'row', gap: 14, marginBottom: 10 },
     circBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#111', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: TH.borderLight },
-    circBtnActive: { backgroundColor: TH.gold, borderColor: TH.gold },
+    circBtnActive: { borderColor: TH.gold, overflow: 'hidden' }, // Ensure gradient stays inside
     circText: { color: TH.textMuted, fontSize: 16, fontWeight: '600' },
 });
 

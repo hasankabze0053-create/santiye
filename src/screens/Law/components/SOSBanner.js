@@ -13,8 +13,8 @@ export default function SOSBanner({ onPress }) {
             Animated.timing(pulse, { toValue: 1, duration: 700, useNativeDriver: true }),
         ])).start();
         Animated.loop(Animated.sequence([
-            Animated.timing(dotOpacity, { toValue: 0.2, duration: 600, useNativeDriver: true }),
-            Animated.timing(dotOpacity, { toValue: 1, duration: 600, useNativeDriver: true }),
+            Animated.timing(dotOpacity, { toValue: 0.15, duration: 700, useNativeDriver: true }),
+            Animated.timing(dotOpacity, { toValue: 1, duration: 700, useNativeDriver: true }),
         ])).start();
     }, []);
 
@@ -22,22 +22,16 @@ export default function SOSBanner({ onPress }) {
         <TouchableOpacity activeOpacity={0.82} onPress={onPress} style={styles.wrap}>
             <Animated.View style={[styles.container, { transform: [{ scale: pulse }] }]}>
                 <LinearGradient
-                    colors={['rgba(220,38,38,0.18)', 'rgba(234,88,12,0.08)']}
+                    colors={['rgba(220,38,38,0.14)', 'rgba(234,88,12,0.04)']}
                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                     style={StyleSheet.absoluteFill}
                 />
-                {/* Left accent line */}
                 <View style={styles.accentLine} />
-
                 <View style={styles.inner}>
-                    {/* Live dot */}
                     <Animated.View style={[styles.liveDot, { opacity: dotOpacity }]} />
-                    <View style={styles.textBlock}>
-                        <Text allowFontScaling={false} style={styles.title}>ACİL S.O.S.</Text>
-                        <Text allowFontScaling={false} style={styles.subtitle}>İş Kazası · Baskın · Mühürleme → Canlı Destek</Text>
-                    </View>
+                    <Text allowFontScaling={false} style={styles.title}>7/24  ACİL DESTEK</Text>
                     <View style={styles.arrow}>
-                        <MaterialCommunityIcons name="chevron-right" size={18} color="rgba(239,68,68,0.8)" />
+                        <MaterialCommunityIcons name="chevron-right" size={16} color="rgba(239,68,68,0.7)" />
                     </View>
                 </View>
             </Animated.View>
@@ -48,13 +42,13 @@ export default function SOSBanner({ onPress }) {
 const styles = StyleSheet.create({
     wrap: { paddingHorizontal: 20, marginBottom: 28 },
     container: {
-        borderRadius: 14,
+        borderRadius: 12,
         borderWidth: 1,
-        borderColor: 'rgba(239,68,68,0.25)',
+        borderColor: 'rgba(239,68,68,0.2)',
         overflow: 'hidden',
         shadowColor: '#EF4444',
-        shadowOpacity: 0.2,
-        shadowRadius: 10,
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
         elevation: 4,
     },
     accentLine: {
@@ -62,38 +56,33 @@ const styles = StyleSheet.create({
         left: 0, top: 0, bottom: 0,
         width: 3,
         backgroundColor: '#EF4444',
-        borderTopLeftRadius: 14,
-        borderBottomLeftRadius: 14,
+        borderTopLeftRadius: 12,
+        borderBottomLeftRadius: 12,
     },
     inner: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 13,
+        paddingVertical: 11,
         paddingLeft: 18,
         paddingRight: 14,
         gap: 10,
     },
     liveDot: {
-        width: 8, height: 8, borderRadius: 4,
+        width: 7, height: 7, borderRadius: 3.5,
         backgroundColor: '#EF4444',
-        shadowColor: '#EF4444', shadowOpacity: 1, shadowRadius: 6,
+        shadowColor: '#EF4444', shadowOpacity: 1, shadowRadius: 5,
     },
-    textBlock: { flex: 1 },
     title: {
+        flex: 1,
         color: '#EF4444',
         fontSize: 11,
         fontWeight: '800',
-        letterSpacing: 2,
-    },
-    subtitle: {
-        color: 'rgba(255,255,255,0.45)',
-        fontSize: 11,
-        marginTop: 2,
-        letterSpacing: 0.2,
+        letterSpacing: 2.5,
     },
     arrow: {
-        width: 28, height: 28, borderRadius: 14,
-        backgroundColor: 'rgba(239,68,68,0.1)',
+        width: 26, height: 26, borderRadius: 13,
+        backgroundColor: 'rgba(239,68,68,0.08)',
         alignItems: 'center', justifyContent: 'center',
     },
 });
+

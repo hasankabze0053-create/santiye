@@ -94,7 +94,11 @@ export default function LawSuccessScreen({ navigation, route }) {
                                 </View>
                                 <View style={styles.lawyerRow}>
                                     <View style={styles.lawyerAvatar}>
-                                        <Text allowFontScaling={false} style={{ fontSize: 26 }}>{lawyer.avatar}</Text>
+                                        {lawyer.initials ? (
+                                            <Text allowFontScaling={false} style={{ fontSize: 20, fontWeight: '900', color: '#fff' }}>{lawyer.initials}</Text>
+                                        ) : (
+                                            <Text allowFontScaling={false} style={{ fontSize: 26 }}>{lawyer.avatar}</Text>
+                                        )}
                                     </View>
                                     <View style={{ flex: 1 }}>
                                         <Text allowFontScaling={false} style={styles.lawyerName}>{lawyer.name}</Text>
@@ -106,22 +110,25 @@ export default function LawSuccessScreen({ navigation, route }) {
                         )}
 
                         {/* AI Summary snippet */}
-                        {caseData && (
-                            <View style={styles.summaryCard}>
-                                <MaterialCommunityIcons name="robot-outline" size={16} color={GOLD_MAIN} />
-                                <View style={{ flex: 1 }}>
-                                    <Text allowFontScaling={false} style={styles.summaryLabel}>AI ÖZET</Text>
-                                    <Text allowFontScaling={false} style={styles.summaryText}>{caseData.kisa_ozet}</Text>
-                                </View>
+                        <View style={styles.summaryCard}>
+                            <MaterialCommunityIcons name="robot-outline" size={16} color={GOLD_MAIN} />
+                            <View style={{ flex: 1 }}>
+                                <Text allowFontScaling={false} style={styles.summaryLabel}>AI ÖZET</Text>
+                                <Text allowFontScaling={false} style={styles.summaryText}>
+                                    {caseData?.kisa_ozet ||
+                                     caseData?.title ||
+                                     caseData?.caseText ||
+                                     'Vaka analizi tamamlandı. Hukuki dayanak ve risk faktörleri belirlenerek seçtiğiniz avukata iletildi. Süreciniz yakında başlayacak.'}
+                                </Text>
                             </View>
-                        )}
+                        </View>
 
                         {/* Timeline */}
                         <View style={styles.timelineCard}>
                             <Text allowFontScaling={false} style={styles.timelineTitle}>Süreç Adımları</Text>
                             {[
                                 { icon: 'check-circle', color: SUCCESS_GREEN, text: 'Yapay Zeka Analizi Tamamlandı', done: true },
-                                { icon: 'clock-outline', color: GOLD_MAIN, text: 'Avukat 24 saat içinde yanıt verecek', done: false },
+                                { icon: 'clock-outline', color: GOLD_MAIN, text: 'Avukat en kısa sürede dönüş yapacak', done: false },
                                 { icon: 'message-outline', color: '#60A5FA', text: 'Mesaj kanalı açılacak', done: false },
                             ].map((step, i) => (
                                 <View key={i} style={styles.timelineRow}>
@@ -135,7 +142,7 @@ export default function LawSuccessScreen({ navigation, route }) {
                         <TouchableOpacity
                             style={styles.primaryBtn}
                             activeOpacity={0.88}
-                            onPress={() => navigation.navigate('MainTabs')}
+                            onPress={() => navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] })}
                         >
                             <LinearGradient colors={[GOLD_MAIN, GOLD_DARK]} style={styles.primaryBtnGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
                                 <Text allowFontScaling={false} style={styles.primaryBtnText}>ANA SAYFAYA DÖN</Text>

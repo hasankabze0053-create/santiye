@@ -3,7 +3,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Animated, Dimensions, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Dimensions, Easing, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMarketCart } from '../../context/MarketCartContext';
 import { supabase } from '../../lib/supabase';
@@ -11,6 +11,61 @@ import { MarketService } from '../../services/MarketService';
 import { getMarketImage } from '../../utils/marketAssets';
 
 const { width } = Dimensions.get('window');
+
+// ─── MARKET PRICE TICKER ──────────────────────────────────────────────────
+const MARKET_PRICES = [
+    { label: 'Nervürlü Demir', value: '₺28.40', unit: '/kg',    trend: 'up' },
+    { label: 'Beton C30',      value: '₺3.850', unit: '/m³',   trend: 'up' },
+    { label: 'Çimento 50kg',   value: '₺285',   unit: '/torba', trend: 'down' },
+    { label: 'Kum',            value: '₺180',   unit: '/m³',   trend: 'up' },
+    { label: 'Hazır Beton',    value: '₺3.650', unit: '/m³',   trend: 'down' },
+    { label: 'Tuğla',          value: '₺4.20',  unit: '/adet',  trend: 'up' },
+];
+
+function MarketPriceTicker() {
+    const scrollX = useRef(new Animated.Value(0)).current;
+    const totalW  = MARKET_PRICES.length * 160;
+    useEffect(() => {
+        Animated.loop(
+            Animated.timing(scrollX, { toValue: -totalW, duration: MARKET_PRICES.length * 2800, easing: Easing.linear, useNativeDriver: true })
+        ).start();
+    }, []);
+    const items = [...MARKET_PRICES, ...MARKET_PRICES];
+    return (
+        <View style={tk.wrap}>
+            <View style={tk.dot} />
+            <Text allowFontScaling={false} style={tk.live}>CANLI</Text>
+            <View style={{ flex: 1, overflow: 'hidden' }}>
+                <Animated.View style={{ flexDirection: 'row', transform: [{ translateX: scrollX }] }}>
+                    {items.map((p, i) => (
+                        <View key={i} style={tk.item}>
+                            <Text allowFontScaling={false} style={tk.label}>{p.label}</Text>
+                            <Text allowFontScaling={false} style={[tk.val, { color: p.trend === 'up' ? '#F97316' : '#10B981' }]}>
+                                {p.value}<Text style={tk.unit}>{p.unit}</Text>
+                            </Text>
+                            <MaterialCommunityIcons
+                                name={p.trend === 'up' ? 'trending-up' : 'trending-down'}
+                                size={12}
+                                color={p.trend === 'up' ? '#F97316' : '#10B981'}
+                            />
+                        </View>
+                    ))}
+                </Animated.View>
+            </View>
+        </View>
+    );
+}
+
+const tk = StyleSheet.create({
+    wrap:  { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 7, backgroundColor: '#0a0a0a', borderBottomWidth: 1, borderBottomColor: '#1a1a1a', gap: 8 },
+    dot:   { width: 6, height: 6, borderRadius: 3, backgroundColor: '#EF4444' },
+    live:  { color: '#EF4444', fontSize: 9, fontWeight: '800', letterSpacing: 1.5 },
+    item:  { flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: 22, width: 150 },
+    label: { color: '#666', fontSize: 10 },
+    val:   { fontSize: 11, fontWeight: '700' },
+    unit:  { fontSize: 9, fontWeight: '400', color: '#555' },
+});
+
 export default function MarketScreen() {
     const navigation = useNavigation();
     const route = useRoute();
@@ -207,6 +262,9 @@ export default function MarketScreen() {
                     </View>
                 </View>
 
+                {/* PRICE TICKER */}
+                <MarketPriceTicker />
+
                 {/* SEARCH BAR (In-Flow) */}
                 <View style={styles.searchContainer}>
                     <Ionicons name="search" size={20} color="#D4AF37" style={{ marginRight: 8 }} />
@@ -246,14 +304,28 @@ export default function MarketScreen() {
                                                     contentFit="cover"
                                                     transition={500}
                                                 />
-                                                <LinearGradient colors={['transparent', 'rgba(0,0,0,0.9)']} style={StyleSheet.absoluteFill} />
+                                                <LinearGradient colors={['transparent', '#000000']} style={StyleSheet.absoluteFill} />
                                                 <View style={styles.heroTag}><Text allowFontScaling={false} style={styles.heroTagText}>{item.tag}</Text></View>
-                                                {item.title ? (
-                                                    <View style={styles.heroContent}>
-                                                        <Text allowFontScaling={false} style={styles.heroTitle}>{item.title}</Text>
-                                                        <Text allowFontScaling={false} style={styles.heroSubtitle}>{item.subtitle}</Text>
-                                                    </View>
-                                                ) : null}
+                                                <View style={styles.heroContent}>
+                                                    {item.title ? <Text allowFontScaling={false} style={styles.heroTitle}>{item.title}</Text> : null}
+                                                    {item.subtitle ? <Text allowFontScaling={false} style={styles.heroSubtitle}>{item.subtitle}</Text> : null}
+                                                    
+                                                    {/* Premium Button */}
+                                                    <TouchableOpacity 
+                                                        style={styles.heroPremiumBtn}
+                                                        onPress={() => navigation.navigate('MarketRequest')}
+                                                        activeOpacity={0.8}
+                                                    >
+                                                        <LinearGradient
+                                                            colors={['#D4AF37', '#B8860B']}
+                                                            style={StyleSheet.absoluteFillObject}
+                                                            start={{ x: 0, y: 0 }}
+                                                            end={{ x: 1, y: 0 }}
+                                                        />
+                                                        <Text allowFontScaling={false} style={styles.heroPremiumBtnText}>Şimdi En Uygun Fiyatı Öğren</Text>
+                                                        <MaterialCommunityIcons name="arrow-right" size={16} color="#000" style={{ marginLeft: 6 }} />
+                                                    </TouchableOpacity>
+                                                </View>
                                             </View>
                                         </View>
                                     ))}
@@ -595,8 +667,10 @@ const styles = StyleSheet.create({
     heroTag: { position: 'absolute', top: 50, left: 20, backgroundColor: '#D4AF37', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, zIndex: 10 },
     heroTagText: { fontSize: 10, fontWeight: 'bold', color: '#000' },
     heroContent: { marginBottom: 20 },
-    heroTitle: { color: '#fff', fontSize: 24, fontWeight: '900', marginBottom: 4, textShadowColor: 'rgba(0,0,0,0.8)', textShadowRadius: 5 },
-    heroSubtitle: { color: '#ddd', fontSize: 13, textShadowColor: 'rgba(0,0,0,0.8)', textShadowRadius: 5 },
+    heroTitle: { color: '#fff', fontSize: 24, fontWeight: '900', marginBottom: 4, textShadowColor: '#000', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 10 },
+    heroSubtitle: { color: '#ddd', fontSize: 13, textShadowColor: '#000', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
+    heroPremiumBtn: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, marginTop: 12, overflow: 'hidden' },
+    heroPremiumBtnText: { color: '#000', fontSize: 13, fontWeight: 'bold' },
 
     // Pagination
     pagination: { flexDirection: 'row', position: 'absolute', bottom: 10, alignSelf: 'center' },

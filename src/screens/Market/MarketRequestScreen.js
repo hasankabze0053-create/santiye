@@ -374,6 +374,10 @@ export default function MarketRequestScreen() {
             keyboardShouldPersistTaps="handled" 
             nestedScrollEnabled={true} 
             contentContainerStyle={{ paddingBottom: 100 }}
+            onScrollBeginDrag={() => {
+                Keyboard.dismiss();
+                setItems(prev => prev.map(it => ({...it, suggestions: []})));
+            }}
         >
             <Text allowFontScaling={false} style={styles.sectionTitle}>MALZEME LİSTESİ</Text>
 
@@ -393,8 +397,7 @@ export default function MarketRequestScreen() {
             ))}
 
             <TouchableOpacity style={styles.addBtn} onPress={handleAddItem}>
-                <Ionicons name="add" size={20} color="#D4AF37" />
-                <Text allowFontScaling={false} style={styles.addBtnText}>SATIR EKLE</Text>
+                <Text allowFontScaling={false} style={styles.addBtnText}>+ SATIR EKLE</Text>
             </TouchableOpacity>
         </ScrollView>
     );
@@ -448,14 +451,7 @@ export default function MarketRequestScreen() {
                 )}
 
                 {/* Content */}
-                <TouchableWithoutFeedback 
-                    onPress={() => {
-                        Keyboard.dismiss();
-                        setItems(items.map(it => ({...it, suggestions: []})));
-                    }}
-                    accessible={false}
-                >
-                    <View style={{ flex: 1 }}>
+                <View style={{ flex: 1 }}>
                     <View style={{ flex: 1 }}>
                         <View style={styles.content}>
                     {step === 1 && mode === 'manual' && renderStep1_Manual()}
@@ -626,7 +622,6 @@ export default function MarketRequestScreen() {
                     </TouchableOpacity>
                 </View>
                 </View>
-                </TouchableWithoutFeedback>
 
                 {/* --- UNIT SELECTION MODAL --- */}
                 <Modal
@@ -697,52 +692,46 @@ const styles = StyleSheet.create({
     content: { flex: 1, paddingHorizontal: 20 },
     sectionTitle: { color: '#D4AF37', fontSize: 13, fontWeight: 'bold', marginBottom: 12, letterSpacing: 1, textTransform: 'uppercase' },
 
-    // Item Card (Premium)
+    // Item Card (Orijinal Tasarım)
     itemCard: {
-        backgroundColor: 'rgba(255,255,255,0.03)',
-        borderRadius: 16,
+        backgroundColor: 'transparent',
+        borderRadius: 12,
         padding: 16,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
-        // Subtle glow
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.5,
-        shadowRadius: 10,
-        elevation: 5,
+        borderColor: 'rgba(255,255,255,0.05)',
     },
     indexCircle: {
         width: 24, height: 24, borderRadius: 12,
         backgroundColor: '#D4AF37',
         alignItems: 'center', justifyContent: 'center',
-        marginTop: 6
+        marginTop: 12
     },
     indexText: { color: '#000', fontSize: 13, fontWeight: 'bold' },
 
     // Inputs inside card
     premiumInputContainer: {
         flexDirection: 'row', alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.3)', // Slightly lighter than card
+        backgroundColor: 'rgba(255,255,255,0.03)',
         borderRadius: 12,
-        borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
+        borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
         paddingHorizontal: 12,
         height: 50,
     },
-    premiumInput: { flex: 1, color: '#FFF', fontSize: 15, fontWeight: '500' },
+    premiumInput: { flex: 1, color: '#FFF', fontSize: 13 },
 
     deleteBtn: { marginLeft: 8 },
 
     unitButton: {
         width: 80, height: 50,
-        backgroundColor: 'rgba(0,0,0,0.3)',
+        backgroundColor: 'rgba(255,255,255,0.03)',
         borderRadius: 12,
-        borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
+        borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6
     },
-    unitText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+    unitText: { color: '#FFF', fontSize: 13, fontWeight: 'bold' },
 
-    addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 18, borderRadius: 16, borderWidth: 1, borderColor: '#333', borderStyle: 'dashed', backgroundColor: 'rgba(255,255,255,0.02)', gap: 8, marginTop: 4 },
+    addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 18, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', borderStyle: 'dashed', backgroundColor: 'transparent', gap: 8, marginTop: 4 },
     addBtnText: { color: '#D4AF37', fontWeight: 'bold', fontSize: 13, letterSpacing: 0.5 },
 
     // Autocomplete Dropdown
