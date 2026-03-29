@@ -375,13 +375,14 @@ export default function ConstructionOfferScreen() {
                 {/* Main Scroll View with Keyboard Handling */}
                 <KeyboardAwareScrollView
                     enableOnAndroid={true}
-                    enableAutomaticScroll={Platform.OS === 'ios'}
-                    extraHeight={120}
-                    extraScrollHeight={80}
+                    enableAutomaticScroll={Platform.OS === 'android'}
+                    extraHeight={100}
+                    extraScrollHeight={Platform.OS === 'ios' ? 50 : 80}
                     enableResetScrollToCoords={false}
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
+                    viewIsInsideTabBar={false}
                 >
                     {/* Tap Outside to Dismiss Wrapper */}
                     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -520,14 +521,15 @@ export default function ConstructionOfferScreen() {
                                 </GlassCard>
                             </View>
 
-                            {/* 1. KONUM BİLGİSİ */}
+                            {/* TAPU / İMAR / LOKASYON BİLGİLERİ (HEPSİ TEK PARÇA) */}
                             <View style={styles.sectionContainer}>
                                 <View style={styles.sectionHeader}>
-                                    <MaterialCommunityIcons name="map-marker-radius" size={20} color="#D4AF37" />
-                                    <Text allowFontScaling={false} style={styles.sectionTitle}>LOKASYON</Text>
+                                    <MaterialCommunityIcons name="land-plots" size={20} color="#D4AF37" />
+                                    <Text allowFontScaling={false} style={styles.sectionTitle}>TAPU / İMAR BİLGİLERİ</Text>
                                 </View>
 
                                 <GlassCard style={styles.card}>
+                                    {/* Lokasyon Parçası */}
                                     <View style={styles.readOnlyRow}>
                                         <View style={{ flex: 1 }}>
                                             <Text allowFontScaling={false} style={styles.label}>İL</Text>
@@ -548,7 +550,7 @@ export default function ConstructionOfferScreen() {
                                         </TouchableOpacity>
                                     </View>
 
-                                    <View style={styles.divider} />
+                                    <View style={[styles.divider, { marginVertical: 12 }]} />
 
                                     <Text allowFontScaling={false} style={styles.label}>MAHALLE</Text>
                                     <TextInput allowFontScaling={false}
@@ -561,17 +563,10 @@ export default function ConstructionOfferScreen() {
                                         onSubmitEditing={() => adaRef.current?.focus()}
                                         blurOnSubmit={false}
                                     />
-                                </GlassCard>
-                            </View>
 
-                            {/* 2. TEKNİK KİMLİK (ADA/PARSEL) */}
-                            <View style={styles.sectionContainer}>
-                                <View style={styles.sectionHeader}>
-                                    <MaterialCommunityIcons name="land-plots" size={20} color="#D4AF37" />
-                                    <Text allowFontScaling={false} style={styles.sectionTitle}>TAPU / İMAR BİLGİLERİ</Text>
-                                </View>
+                                    <View style={[styles.divider, { marginVertical: 12 }]} />
 
-                                <GlassCard style={styles.card}>
+                                    {/* Tapu İmar Parçası */}
                                     <View style={styles.rowTwo}>
                                         <View style={{ flex: 1, marginRight: 8 }}>
                                             <Text allowFontScaling={false} style={styles.label}>ADA NO</Text>
@@ -611,7 +606,7 @@ export default function ConstructionOfferScreen() {
                                         <Text allowFontScaling={false} style={styles.label}>PAFTA (Opsiyonel)</Text>
                                         <TextInput allowFontScaling={false}
                                             ref={paftaRef}
-                                            style={[styles.input, styles.numberInput, { fontSize: 16 }]} // Slightly smaller than Ada/Parsel
+                                            style={[styles.input, styles.numberInput, { fontSize: 16 }]}
                                             placeholder="Varsa pafta no"
                                             placeholderTextColor="#666"
                                             keyboardType="numeric"

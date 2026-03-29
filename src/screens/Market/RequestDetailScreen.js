@@ -180,20 +180,87 @@ export default function RequestDetailScreen() {
                            isFlatForLand ? 'Kat Karşılığı' : 'Komple Yapım (Anahtar Teslim)';
 
         let tadilatDetails = { propertyType: '-', areaSize: '-', style: '-' };
-        if (request?.offer_type === 'anahtar_teslim_tadilat' && request?.description) {
+        let budget = '-';
+        let urgency = 'Detaylarda Gizli';
+        let notes = '-';
+        let operations = [];
+
+        let projeTipi = 'Anahtar Teslim Tadilat';
+        let iconName = 'home-edit';
+
+        if (request?.description) {
             const lines = request.description.split('\n');
+            const tipLine = lines.find(l => l.startsWith('PROJE TİPİ:'));
+            if (tipLine) {
+                projeTipi = tipLine.replace('PROJE TİPİ:', '').trim();
+                if (projeTipi.includes('Boya')) iconName = 'format-paint';
+                else if (projeTipi.includes('Mutfak') || projeTipi.includes('Banyo')) iconName = 'water-pump';
+            }
+            const budgetLine = lines.find(l => l.startsWith('BÜTÇE:'));
+            if (budgetLine) budget = budgetLine.replace('BÜTÇE:', '').trim();
+
+            const yenilemeLine = lines.find(l => l.startsWith('YENİLEME:'));
+            if (yenilemeLine) urgency = yenilemeLine.replace('YENİLEME:', '').trim();
+
             const mekanLine = lines.find(l => l.startsWith('MEKAN:'));
-            const tarzLine = lines.find(l => l.startsWith('TARZ:'));
             if (mekanLine) {
-                 const mekanPart = mekanLine.replace('MEKAN:', '').trim();
-                 const split = mekanPart.split('(');
-                 tadilatDetails.propertyType = split[0].trim();
-                 tadilatDetails.areaSize = split.length > 1 ? split[1].replace(')', '').trim() : '-';
+                const mekanPart = mekanLine.replace('MEKAN:', '').trim();
+                tadilatDetails.propertyType = mekanPart;
+                const matchSq = mekanPart.match(/(\d+)\s*m²/g);
+                if (matchSq && matchSq.length > 0) {
+                    let sum = 0;
+                    matchSq.forEach(m => {
+                        const num = parseInt(m.replace(/[^0-9]/g, ''));
+                        if (!isNaN(num)) sum += num;
+                    });
+                    tadilatDetails.areaSize = `${sum} m²`;
+                } else {
+                    tadilatDetails.areaSize = '-';
+                }
             }
-            if (tarzLine) {
-                 tadilatDetails.style = tarzLine.replace('TARZ:', '').trim();
+
+            const tarzLine = lines.find(l => l.startsWith('TARZ:'));
+            if (tarzLine) tadilatDetails.style = tarzLine.replace('TARZ:', '').trim();
+
+            const notIndex = lines.findIndex(l => l.startsWith('NOT:'));
+            if (notIndex !== -1) notes = lines.slice(notIndex + 1).join('\n').trim();
+            else notes = 'Ek not bulunmuyor.';
+
+            const scopeLine = lines.find(l => l.startsWith('KAPSAM:'));
+            const scopeText = scopeLine ? scopeLine.toLowerCase() : '';
+            const yenilemeText = yenilemeLine ? yenilemeLine.toLowerCase() : '';
+
+            if (scopeText.includes('mutfak')) {
+                operations.push('Mutfak Dolabı & Tezgah');
+                if (yenilemeText.includes('kapsamlı') || yenilemeText.includes('premium')) operations.push('Mutfak Tesisat Yenileme');
             }
+            if (scopeText.includes('banyo')) {
+                operations.push('Banyo Dolabı & Vitrifiye');
+                operations.push('Duşakabin / Küvet Değişimi');
+                if (yenilemeText.includes('kapsamlı') || yenilemeText.includes('premium')) operations.push('Banyo Tesisat & Gider Yenileme');
+            }
+            if (yenilemeText.includes('kapsamlı') || yenilemeText.includes('premium')) {
+                operations.push('Zemin Seramiği / Parke Yenileme');
+                operations.push('Kırım & Hafriyat İşleri');
+            }
+            if (projeTipi.includes('Boya')) {
+                operations.push('İç Cephe Boya Badana');
+                operations.push('Alçı / Sıva Tamiratı');
+            }
+            if (operations.length === 0) operations.push('Genel Tadilat / Dekorasyon');
         }
+
+        const hasPhotos = request.document_urls && request.document_urls.length > 0;
+        const locationText = request.district && request.district !== 'Tümü' ? `${request.district}, ${request.city}` : (request.city || 'Türkiye Geneli');
+
+        let styleIcons = [];
+        const styleString = tadilatDetails.style.toLowerCase();
+        if (styleString.includes('modern')) styleIcons.push({ icon: 'sofa-outline', label: 'Modern' });
+        if (styleString.includes('rustik') || styleString.includes('doğal')) styleIcons.push({ icon: 'leaf', label: 'Rustik/Doğal' });
+        if (styleString.includes('klasik')) styleIcons.push({ icon: 'chandelier', label: 'Klasik' });
+        if (styleString.includes('endüstriyel') || styleString.includes('loft')) styleIcons.push({ icon: 'factory', label: 'Endüstriyel' });
+        if (styleIcons.length === 0) styleIcons.push({ icon: 'palette-outline', label: 'Özel' });
+        if (styleIcons.length > 2) styleIcons = styleIcons.slice(0, 2);
 
         return (
             <View style={styles.container}>
@@ -211,86 +278,132 @@ export default function RequestDetailScreen() {
 
                     <ScrollView contentContainerStyle={styles.content}>
                         {request.offer_type === 'anahtar_teslim_tadilat' ? (
-                            <View style={{ backgroundColor: '#161616', borderRadius: 16, padding: 20, gap: 20, borderWidth: 1, borderColor: '#2A2A2A', marginBottom: 24 }}>
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                                        <MaterialCommunityIcons name="home-edit" size={28} color="#FFD700" />
-                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold' }}>Anahtar Teslim Tadilat</Text>
+                            <View style={{ marginBottom: 40, marginTop: 16 }}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24, paddingVertical: 16, borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#2A2A2A' }}>
+                                    <View style={{ alignItems: 'center', flex: 1, paddingHorizontal: 4 }}>
+                                        <Ionicons name="location-outline" size={24} color="#FFD700" />
+                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, marginTop: 8, textAlign: 'center', fontWeight: 'bold' }} numberOfLines={2}>{locationText}</Text>
                                     </View>
-                                    <View style={{ backgroundColor: 'rgba(255, 215, 0, 0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
-                                        <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 12, fontWeight: 'bold' }}>#{request.id?.slice(0, 8).toUpperCase()}</Text>
+                                    <View style={{ width: 1, backgroundColor: '#2A2A2A' }} />
+                                    <View style={{ alignItems: 'center', flex: 1, paddingHorizontal: 4 }}>
+                                        <MaterialCommunityIcons name="wallet-outline" size={24} color="#FFD700" />
+                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, marginTop: 8, textAlign: 'center', fontWeight: 'bold' }}>Bütçe:{'\n'}{budget}</Text>
                                     </View>
-                                </View>
-                                
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-                                    <View style={{ flex: 1, minWidth: '30%', gap: 4 }}>
-                                        <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 11, fontWeight: '600', letterSpacing: 0.5 }}>MEKAN</Text>
-                                        <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>{tadilatDetails.propertyType}</Text>
-                                    </View>
-                                    <View style={{ flex: 1, minWidth: '30%', gap: 4 }}>
-                                        <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 11, fontWeight: '600', letterSpacing: 0.5 }}>ALAN</Text>
-                                        <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>{tadilatDetails.areaSize}</Text>
-                                    </View>
-                                    <View style={{ flex: 1, minWidth: '30%', gap: 4 }}>
-                                        <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 11, fontWeight: '600', letterSpacing: 0.5 }}>TARZ</Text>
-                                        <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>{tadilatDetails.style}</Text>
+                                    <View style={{ width: 1, backgroundColor: '#2A2A2A' }} />
+                                    <View style={{ alignItems: 'center', flex: 1, paddingHorizontal: 4 }}>
+                                        <MaterialCommunityIcons name="home-search-outline" size={24} color="#FFD700" />
+                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 11, marginTop: 8, textAlign: 'center', fontWeight: 'bold' }} numberOfLines={3}>{urgency}</Text>
                                     </View>
                                 </View>
 
-                                {request.description && (
-                                    <View style={{ gap: 8 }}>
-                                        <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 13, fontWeight: 'bold', textTransform: 'uppercase' }}>Ek Notlar</Text>
-                                        <Text allowFontScaling={false} style={{ color: '#DDD', fontSize: 14, lineHeight: 20 }}>
-                                            {request.description.split('NOT:')[1]?.trim() || '-'}
-                                        </Text>
-                                    </View>
-                                )}
-
-                                <View style={{ gap: 12 }}>
-                                    <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 13, fontWeight: 'bold', textTransform: 'uppercase' }}>Mevcut Alan & İlham</Text>
-                                    {request.document_urls && request.document_urls.length > 0 ? (
+                                <View style={{ marginBottom: 24 }}>
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>Eklediğim Medyalar</Text>
+                                    {hasPhotos ? (
                                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
                                             {request.document_urls.map((url, idx) => (
-                                                <TouchableOpacity key={idx} onPress={() => setSelectedImage(url)}>
-                                                    <Image source={{ uri: url }} style={{ width: 100, height: 100, borderRadius: 12, backgroundColor: '#2A2A2A' }} />
-                                                </TouchableOpacity>
+                                                <View key={idx} style={{ width: 120 }}>
+                                                    <TouchableOpacity onPress={() => setSelectedImage(url)}>
+                                                        <Image source={{ uri: url }} style={{ width: 120, height: 120, borderRadius: 12, borderWidth: 1, borderColor: '#333' }} />
+                                                    </TouchableOpacity>
+                                                    <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 12, marginTop: 6, textAlign: 'center', fontWeight: '600' }}>Görsel {idx + 1}</Text>
+                                                </View>
                                             ))}
                                         </ScrollView>
                                     ) : (
-                                        <View style={{ height: 100, borderRadius: 12, borderWidth: 1, borderColor: '#333', borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center' }}>
-                                            <MaterialCommunityIcons name="image-off-outline" size={24} color="#555" />
-                                            <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 12, marginTop: 8 }}>Görsel yüklenmemiş</Text>
+                                        <View style={styles.emptyPhotoContainer}>
+                                            <View style={styles.emptyPhotoBox}>
+                                                <MaterialCommunityIcons name="image-off-outline" size={28} color="#555" />
+                                                <Text allowFontScaling={false} style={styles.emptyPhotoText}>Görsel eklemediniz.</Text>
+                                            </View>
                                         </View>
                                     )}
                                 </View>
 
-                                {isOwner && (
-                                    <TouchableOpacity 
-                                        style={{ backgroundColor: '#FFD700', borderRadius: 12, paddingVertical: 14, alignItems: 'center', justifyContent: 'center', marginTop: 4 }}
-                                        activeOpacity={0.8}
-                                        onPress={() => {
-                                            const grouped = {};
-                                            constructionOffers.forEach(o => {
-                                                if (!grouped[o.contractor_id]) grouped[o.contractor_id] = [];
-                                                grouped[o.contractor_id].push(o);
-                                            });
-                                            const contractorIds = Object.keys(grouped);
-                                            if (contractorIds.length === 1) {
-                                                navigation.navigate('OfferDetail', {
-                                                    request: request,
-                                                    offers: grouped[contractorIds[0]],
-                                                    contractor_id: contractorIds[0],
-                                                    request_id: request.id
-                                                });
-                                            } else {
-                                                navigation.navigate('MainTabs', { screen: 'Inbox' });
-                                            }
-                                        }}
-                                    >
-                                        <Text allowFontScaling={false} style={{ color: '#121212', fontSize: 15, fontWeight: 'bold' }}>
-                                            {constructionOffers.length > 0 ? `${constructionOffers.length} Gelen Teklifi Gör` : 'Gelen Teklifleri Gör'}
-                                        </Text>
-                                    </TouchableOpacity>
+                                <View style={{ backgroundColor: '#111', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#2A2A2A', marginBottom: 24 }}>
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>Teknik Detaylarım</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 24, fontWeight: '900', marginBottom: 16, textAlign: 'center' }}>ALAN: {tadilatDetails.areaSize}</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 14, marginBottom: 24, textAlign: 'center' }}>{tadilatDetails.propertyType}</Text>
+
+                                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 13, fontWeight: 'bold', marginBottom: 12, letterSpacing: 1 }}>İSTENEN İŞLEMLER</Text>
+                                    <View style={{ gap: 14, marginBottom: 24 }}>
+                                        {operations.map((item, idx) => (
+                                            <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                                <Ionicons name="checkmark-circle" size={26} color="#FFD700" />
+                                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 14, fontWeight: '500', flex: 1 }} numberOfLines={2}>{item}</Text>
+                                            </View>
+                                        ))}
+                                    </View>
+
+                                    {tadilatDetails.style !== '-' && (
+                                        <>
+                                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 13, fontWeight: 'bold', marginBottom: 12, letterSpacing: 1 }}>TARZ TERCİHİM: {tadilatDetails.style.toUpperCase()}</Text>
+                                            <View style={{ flexDirection: 'row', gap: 16 }}>
+                                                {styleIcons.map((styleObj, idx) => (
+                                                    <View key={idx} style={{ flex: 1, backgroundColor: 'rgba(255, 215, 0, 0.1)', borderWidth: 1, borderColor: '#FFD700', borderRadius: 12, padding: 16, alignItems: 'center' }}>
+                                                        <MaterialCommunityIcons name={styleObj.icon} size={36} color="#FFD700" />
+                                                        <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 14, fontWeight: 'bold', marginTop: 8 }}>{styleObj.label}</Text>
+                                                    </View>
+                                                ))}
+                                            </View>
+                                        </>
+                                    )}
+                                </View>
+
+                                <View style={{ backgroundColor: '#111', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#2A2A2A', marginBottom: 40 }}>
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold', marginBottom: 12 }}>Eklediğim Notlar</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 15, lineHeight: 24, marginBottom: 20, fontStyle: 'italic' }}>
+                                        "{notes}"
+                                    </Text>
+                                    {request.audio_url ? (
+                                        <View style={{ backgroundColor: '#1C1C1E', borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#333' }}>
+                                            <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: '#FFD700', alignItems: 'center', justifyContent: 'center', marginRight: 14 }}>
+                                                <Ionicons name="play" size={24} color="#000" style={{ marginLeft: 3 }} />
+                                            </TouchableOpacity>
+                                            <View style={{ flex: 1, height: 30, flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                                                {[0.3, 0.6, 1, 0.8, 0.4, 0.9, 0.6, 0.5, 0.2, 0.7].map((height, i) => (
+                                                    <View key={i} style={{ flex: 1, height: 30 * height, backgroundColor: i < 6 ? '#FFD700' : '#444', borderRadius: 4 }} />
+                                                ))}
+                                            </View>
+                                            <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 12, marginLeft: 12, fontWeight: 'bold' }}>0:15</Text>
+                                        </View>
+                                    ) : null}
+                                </View>
+
+                                {request?.status === 'COMPLETED' ? (
+                                    <View style={{ marginBottom: 40 }}>
+                                        <Text allowFontScaling={false} style={[styles.sectionTitle, { color: '#FFF', marginBottom: 16 }]}>GELEN TEKLİFLER</Text>
+                                        <View style={[styles.emptyBids, { backgroundColor: '#111', borderWidth: 1, borderColor: '#333' }]}>
+                                            <Text allowFontScaling={false} style={styles.emptyText}>Bu talep için alım tamamlanmış.</Text>
+                                        </View>
+                                    </View>
+                                ) : bids.length === 0 ? (
+                                    <View style={{ marginBottom: 40 }}>
+                                        <Text allowFontScaling={false} style={[styles.sectionTitle, { color: '#FFF', marginBottom: 16 }]}>GELEN TEKLİFLER</Text>
+                                        <View style={[styles.emptyBids, { backgroundColor: '#111', borderWidth: 1, borderColor: '#333' }]}>
+                                            <MaterialCommunityIcons name="timer-sand" size={32} color="#666" />
+                                            <Text allowFontScaling={false} style={styles.emptyText}>Henüz teklif gelmedi.</Text>
+                                        </View>
+                                    </View>
+                                ) : (
+                                    <View style={{ marginBottom: 60 }}>
+                                        <Text allowFontScaling={false} style={[styles.sectionTitle, { color: '#FFF', marginBottom: 16 }]}>GELEN TEKLİFLER</Text>
+                                        <View style={{ borderRadius: 24, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.4)', overflow: 'hidden', shadowColor: '#FFD700', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10 }}>
+                                            <LinearGradient colors={['#1A1A1A', '#0A0A0A']} style={{ ...StyleSheet.absoluteFillObject }} />
+                                            <View style={{ alignItems: 'center', paddingVertical: 40, paddingHorizontal: 20 }}>
+                                                <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(212, 175, 55, 0.1)', borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.4)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                                                    <MaterialCommunityIcons name="email-multiple-outline" size={38} color="#FFD700" />
+                                                </View>
+                                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 22, fontWeight: '900', letterSpacing: 0.5, marginBottom: 24, textAlign: 'center' }}>
+                                                    <Text style={{ color: '#FFD700', fontSize: 26 }}>{bids.length}</Text> MİMAR TEKLİF VERDİ
+                                                </Text>
+                                                <TouchableOpacity activeOpacity={0.8} style={{ width: '100%', borderRadius: 16, overflow: 'hidden' }} onPress={() => navigation.navigate('MarketOffers', { request, bids })}>
+                                                    <LinearGradient colors={['#FFD700', '#D4AF37']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ paddingVertical: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                                                        <Text allowFontScaling={false} style={{ color: '#000', fontSize: 16, fontWeight: '900', letterSpacing: 1.5 }}>TEKLİFLERİ GÖRÜNTÜLE</Text>
+                                                    </LinearGradient>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
+                                    </View>
                                 )}
                             </View>
                         ) : (

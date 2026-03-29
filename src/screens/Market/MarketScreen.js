@@ -9,6 +9,7 @@ import { useMarketCart } from '../../context/MarketCartContext';
 import { supabase } from '../../lib/supabase';
 import { MarketService } from '../../services/MarketService';
 import { getMarketImage } from '../../utils/marketAssets';
+import { PermissionService } from '../../services/PermissionService';
 
 const { width } = Dimensions.get('window');
 
@@ -78,17 +79,17 @@ export default function MarketScreen() {
         checkUserStatus();
     }, []);
 
+    const [hasMarketAccess, setHasMarketAccess] = useState(false);
+
     const checkUserStatus = async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                const { data } = await supabase
-                    .from('profiles')
-                    .select('is_admin, is_seller')
-                    .eq('id', user.id)
-                    .single();
-                setIsAdmin(data?.is_admin || false);
-                setIsSeller(data?.is_seller || false);
+                const roles = await PermissionService.getUserRoles();
+                setIsAdmin(roles.isAdmin);
+
+                const hasAccess = await PermissionService.checkAccess('market_seller');
+                setHasMarketAccess(hasAccess);
             }
         } catch (e) {
             console.warn('User status check failed', e);
@@ -247,17 +248,17 @@ export default function MarketScreen() {
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                         <TouchableOpacity
-                            style={[styles.headerIconBtn, !isSeller && !isAdmin && { opacity: 0.5 }]}
+                            style={[styles.headerIconBtn, !hasMarketAccess && !isAdmin && { opacity: 0.5 }]}
                             onPress={() => {
-                                if (isAdmin || isSeller) {
+                                if (isAdmin || hasMarketAccess) {
                                     navigation.navigate('MarketProvider');
                                 } else {
                                     Alert.alert("Yetkisiz Erişim", "Yalnızca onaylı 'Yapı Market / Satıcı' hesapları bu panele erişebilir.");
                                 }
                             }}
-                            activeOpacity={isAdmin || isSeller ? 0.7 : 1}
+                            activeOpacity={isAdmin || hasMarketAccess ? 0.7 : 1}
                         >
-                            <MaterialCommunityIcons name="storefront-outline" size={24} color={isAdmin || isSeller ? "#D4AF37" : "#666"} />
+                            <MaterialCommunityIcons name="storefront-outline" size={24} color={isAdmin || hasMarketAccess ? "#D4AF37" : "#666"} />
                         </TouchableOpacity>
                     </View>
                 </View>

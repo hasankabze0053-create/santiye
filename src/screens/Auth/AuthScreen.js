@@ -7,7 +7,7 @@ import {
     ActivityIndicator,
     Alert,
     Dimensions,
-    KeyboardAvoidingView,
+    Keyboard,
     Platform,
     ScrollView,
     StatusBar,
@@ -15,6 +15,7 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
+    TouchableWithoutFeedback,
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -35,10 +36,16 @@ const TEXT_WHITE = '#FFFFFF';
 const TEXT_GREY = '#B3B3B3';
 
 // Custom Styled Input Component (Defined outside to prevent re-renders)
-const PremiumInput = ({ label, placeholder, value, onChangeText, isPassword, togglePass, secureTextEntry }) => (
+const PremiumInput = ({ label, placeholder, value, onChangeText, isPassword, togglePass, secureTextEntry, prefix, keyboardType }) => (
     <View style={styles.inputGroup}>
         <Text allowFontScaling={false} style={styles.inputLabel}>{label}</Text>
         <View style={styles.inputContainer}>
+            {prefix && (
+                <Text allowFontScaling={false} style={styles.prefixText}>{prefix}</Text>
+            )}
+            {prefix && (
+                <View style={styles.prefixDivider} />
+            )}
             <TextInput allowFontScaling={false}
                 style={styles.input}
                 placeholder={placeholder}
@@ -48,6 +55,7 @@ const PremiumInput = ({ label, placeholder, value, onChangeText, isPassword, tog
                 secureTextEntry={secureTextEntry}
                 autoCapitalize="none"
                 selectionColor={GOLD_MAIN}
+                keyboardType={keyboardType || 'default'}
             />
             {isPassword && (
                 <TouchableOpacity onPress={togglePass} style={styles.eyeIcon}>
@@ -62,6 +70,7 @@ export default function AuthScreen() {
     const navigation = useNavigation();
     const [isLogin, setIsLogin] = useState(true);
     const [fullName, setFullName] = useState('');
+    const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(true);
@@ -122,9 +131,21 @@ export default function AuthScreen() {
                     return;
                 }
 
+                if (!phone) {
+                    Alert.alert('Eksik Bilgi', 'Lütfen telefon numaranızı giriniz.');
+                    setLoading(false);
+                    return;
+                }
+
+                if (phone.startsWith('0')) {
+                    Alert.alert('Hatalı Format', 'Lütfen telefon numaranızı başında sıfır olmadan girin.');
+                    setLoading(false);
+                    return;
+                }
+
                 console.log('[AuthScreen] Attempting signUp...');
                 // Create Auth User
-                const { session, user } = await AuthService.signUp(email, password, fullName);
+                const { session, user } = await AuthService.signUp(email, password, fullName, phone);
                 console.log('[AuthScreen] signUp result - session:', !!session, 'user:', user?.id);
 
                 if (!session) {
@@ -192,14 +213,12 @@ export default function AuthScreen() {
             />
 
             <SafeAreaView style={{ flex: 1 }}>
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    style={{ flex: 1 }}
-                >
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
                     <ScrollView
                         contentContainerStyle={styles.scrollContent}
                         showsVerticalScrollIndicator={false}
                         keyboardShouldPersistTaps="handled"
+                        automaticallyAdjustKeyboardInsets={true}
                     >
 
                         {/* 2. LOGO: Coded Typography */}
@@ -213,12 +232,22 @@ export default function AuthScreen() {
                         <View style={styles.formSection}>
 
                             {!isLogin && (
-                                <PremiumInput
-                                    label="Ad Soyad"
-                                    placeholder="Adınız ve Soyadınız"
-                                    value={fullName}
-                                    onChangeText={setFullName}
-                                />
+                                <>
+                                    <PremiumInput
+                                        label="Ad Soyad"
+                                        placeholder="Adınız ve Soyadınız"
+                                        value={fullName}
+                                        onChangeText={setFullName}
+                                    />
+                                    <PremiumInput
+                                        label="Telefon Numarası"
+                                        placeholder="başında 0 olmadan giriniz"
+                                        value={phone}
+                                        onChangeText={setPhone}
+                                        prefix="+90"
+                                        keyboardType="phone-pad"
+                                    />
+                                </>
                             )}
 
                             <PremiumInput
@@ -316,7 +345,7 @@ export default function AuthScreen() {
 
                         </View>
                     </ScrollView>
-                </KeyboardAvoidingView>
+                </TouchableWithoutFeedback>
             </SafeAreaView>
         </View>
     );
@@ -380,8 +409,21 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: INPUT_BORDER, // Thin gold border
         height: 54, // Comfortable touch target
-        justifyContent: 'center',
+        flexDirection: 'row',
+        alignItems: 'center',
         paddingHorizontal: 16,
+    },
+    prefixText: {
+        color: '#FFF',
+        fontSize: 15,
+        fontWeight: 'bold',
+        marginRight: 8,
+    },
+    prefixDivider: {
+        width: 1,
+        height: 24,
+        backgroundColor: 'rgba(212, 175, 55, 0.3)',
+        marginRight: 10,
     },
     input: {
         color: '#FFF',

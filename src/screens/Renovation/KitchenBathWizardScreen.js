@@ -215,6 +215,8 @@ export default function KitchenBathWizardScreen() {
     const [details, setDetails] = useState('');
     const [isRecording, setIsRecording] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [city, setCity] = useState('');
+    const [district, setDistrict] = useState('');
 
     const TITLES = {
         1: "Yenilenme Neresi\nİçin Yapılacak?",
@@ -285,7 +287,7 @@ export default function KitchenBathWizardScreen() {
             const allDocumentUrls = [...currentUrls, ...inspirationUrls];
 
             const { error } = await supabase.from('construction_requests').insert({
-                user_id: user.id, city: 'Türkiye Geneli', district: 'Tümü', neighborhood: 'Tümü',
+                user_id: user.id, city: city || 'Türkiye Geneli', district: district || 'Tümü', neighborhood: 'Tümü',
                 ada: '', parsel: '', pafta: '', full_address: 'Mutfak & Banyo Talebi',
                 offer_type: 'anahtar_teslim_tadilat', description: fullDescription, status: 'pending',
                 document_urls: allDocumentUrls, deed_image_url: allDocumentUrls.length > 0 ? allDocumentUrls[0] : null
@@ -548,6 +550,35 @@ export default function KitchenBathWizardScreen() {
 
     const renderStep5 = () => (
         <View style={s.stepBlock}>
+            {/* Location Inputs */}
+            <View style={{ marginBottom: 24 }}>
+                <SLabel text="Proje Konumu" sub="Mimara doğru bölge bilgisi sunmak için önemlidir." />
+                <View style={{ flexDirection: 'row', gap: 12 }}>
+                    <View style={{ flex: 1 }}>
+                        <Text allowFontScaling={false} style={{ color: TH.textMuted, fontSize: 11, fontWeight: 'bold', marginBottom: 6, marginLeft: 4 }}>İL</Text>
+                        <TextInput allowFontScaling={false}
+                            style={{ backgroundColor: TH.cardLight, color: TH.textPrimary, fontSize: 16, fontWeight: 'bold', padding: 14, borderRadius: 12, borderWidth: 1, borderColor: TH.border }}
+                            placeholder="Örn: İstanbul"
+                            placeholderTextColor={TH.textMuted}
+                            value={city}
+                            onChangeText={setCity}
+                            inputAccessoryViewID="KBDecor"
+                        />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text allowFontScaling={false} style={{ color: TH.textMuted, fontSize: 11, fontWeight: 'bold', marginBottom: 6, marginLeft: 4 }}>İLÇE</Text>
+                        <TextInput allowFontScaling={false}
+                            style={{ backgroundColor: TH.cardLight, color: TH.textPrimary, fontSize: 16, fontWeight: 'bold', padding: 14, borderRadius: 12, borderWidth: 1, borderColor: TH.border }}
+                            placeholder="Örn: Kadıköy"
+                            placeholderTextColor={TH.textMuted}
+                            value={district}
+                            onChangeText={setDistrict}
+                            inputAccessoryViewID="KBDecor"
+                        />
+                    </View>
+                </View>
+            </View>
+
             <UploadZone iconName="camera-plus-outline" label="Mevcut Durum Görselleri" images={currentPhotos} onPick={() => pickImages(setCurrentPhotos)} onRemove={i => setCurrentPhotos(p => p.filter((_, idx) => idx !== i))} />
             <UploadZone iconName="image-multiple-outline" label="Referans Görselleri" images={inspirationPhotos} onPick={() => pickImages(setInspirationPhotos)} onRemove={i => setInspirationPhotos(p => p.filter((_, idx) => idx !== i))} />
 

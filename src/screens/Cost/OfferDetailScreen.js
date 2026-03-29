@@ -258,6 +258,24 @@ export default function OfferDetailScreen() {
                             <Text allowFontScaling={false} style={styles.label}>TAHMİNİ FİYAT</Text>
                             <Text allowFontScaling={false} style={styles.priceValue}>{formatCurrency(offer.price_estimate)} TL</Text>
                             <Text allowFontScaling={false} style={styles.priceWords}>{numberToTurkishWords(offer.price_estimate)}</Text>
+                            
+                            {/* Added Total Area and Unit Price details if available */}
+                            {(offer.total_area > 0 || offer.unit_price > 0) && (
+                                <View style={{ flexDirection: 'row', marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.05)', gap: 20 }}>
+                                    {offer.total_area > 0 && (
+                                        <View style={{ flex: 1 }}>
+                                            <Text allowFontScaling={false} style={styles.label}>TOPLAM ALAN</Text>
+                                            <Text allowFontScaling={false} style={styles.subValue}>{offer.total_area} m²</Text>
+                                        </View>
+                                    )}
+                                    {offer.unit_price > 0 && (
+                                        <View style={{ flex: 1 }}>
+                                            <Text allowFontScaling={false} style={styles.label}>BİRİM FİYAT</Text>
+                                            <Text allowFontScaling={false} style={styles.subValue}>{formatCurrency(offer.unit_price)} TL/m²</Text>
+                                        </View>
+                                    )}
+                                </View>
+                            )}
                         </View>
                     ) : (
                         <View>
@@ -309,6 +327,7 @@ export default function OfferDetailScreen() {
                     campaignPolicy={offer.campaign_policy}
                     containerStyle={{ marginTop: 20 }}
                     viewerMode={viewerMode}
+                    offerType={request?.offer_type || offer.offer_type}
                 />
 
                 {/* 3. Description & Notes */}
@@ -381,8 +400,10 @@ export default function OfferDetailScreen() {
                     <View style={{ alignItems: 'center' }}>
                         <Text allowFontScaling={false} style={styles.headerTitle}>{contractor?.company_name?.toUpperCase() || contractor?.full_name?.toUpperCase() || 'MÜTEAHHİT'}</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                            <MaterialCommunityIcons name="check-decagram" size={14} color="#38BDF8" />
-                            <Text allowFontScaling={false} style={{ color: '#BBB', fontSize: 11 }}>Onaylı Yüklenici</Text>
+                            <MaterialCommunityIcons name="check-decagram" size={14} color="#D4AF37" />
+                            <Text allowFontScaling={false} style={{ color: '#BBB', fontSize: 11 }}>
+                                {request?.offer_type === 'anahtar_teslim_tadilat' ? 'Onaylı Tadilat Firması' : 'Onaylı Yüklenici'}
+                            </Text>
                         </View>
                     </View>
                     <TouchableOpacity style={styles.backBtn}>
@@ -489,6 +510,7 @@ const styles = StyleSheet.create({
     label: { color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 4 },
     priceValue: { color: '#D4AF37', fontSize: 24, fontWeight: 'bold' },
     priceWords: { color: '#666', fontSize: 11, fontStyle: 'italic' },
+    subValue: { color: '#FFF', fontSize: 16, fontWeight: 'bold', marginTop: 2 },
     value: { color: '#FFF', fontSize: 15, fontWeight: '600' },
 
     sectionTitle: { color: '#D4AF37', fontSize: 13, fontWeight: 'bold', marginTop: 24, marginBottom: 12, marginLeft: 4 },

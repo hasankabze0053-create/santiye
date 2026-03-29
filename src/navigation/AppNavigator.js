@@ -66,6 +66,8 @@ import LogisticsProviderScreen from '../screens/Provider/LogisticsProviderScreen
 import MachineryProviderScreen from '../screens/Provider/MachineryProviderScreen';
 import MarketProviderScreen from '../screens/Provider/MarketProviderScreen';
 import ProviderDashboardScreen from '../screens/Provider/ProviderDashboardScreen';
+import ProviderProfileEditScreen from '../screens/Provider/ProviderProfileEditScreen';
+import ProviderPublicProfileScreen from '../screens/Provider/ProviderPublicProfileScreen';
 import ProviderWizardScreen from '../screens/Provider/ProviderWizardScreen';
 import RenovationProviderScreen from '../screens/Provider/RenovationProviderScreen';
 import TechnicalProviderScreen from '../screens/Provider/TechnicalProviderScreen';
@@ -387,6 +389,8 @@ export default function AppNavigator() {
             <Stack.Screen name="CompanyRegistration" component={CompanyRegistrationScreen} />
 
             <Stack.Screen name="ProviderDashboard" component={ProviderDashboardScreen} />
+            <Stack.Screen name="ProviderProfileEdit" component={ProviderProfileEditScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
+            <Stack.Screen name="ProviderPublicProfile" component={ProviderPublicProfileScreen} options={{ headerShown: false, animation: 'slide_from_bottom' }} />
             <Stack.Screen name="ProviderWizard" component={ProviderWizardScreen} />
             <Stack.Screen name="AdminDashboard" component={AdminPortal} />
         </Stack.Navigator>

@@ -74,6 +74,7 @@ const MOCK_SUPPLIERS = [
 ];
 
 import { supabase } from '../../lib/supabase';
+import { PermissionService } from '../../services/PermissionService';
 
 export default function LogisticsScreen() {
     const navigation = useNavigation();
@@ -86,17 +87,17 @@ export default function LogisticsScreen() {
         checkUserStatus();
     }, []);
 
+    const [hasLogisticsAccess, setHasLogisticsAccess] = useState(false);
+
     const checkUserStatus = async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                const { data } = await supabase
-                    .from('profiles')
-                    .select('is_admin, is_transporter')
-                    .eq('id', user.id)
-                    .single();
-                setIsAdmin(data?.is_admin || false);
-                setIsTransporter(data?.is_transporter || false);
+                const roles = await PermissionService.getUserRoles();
+                setIsAdmin(roles.isAdmin);
+
+                const hasAccess = await PermissionService.checkAccess('logistics_company');
+                setHasLogisticsAccess(hasAccess);
             }
         } catch (e) {
             console.warn('User status check failed', e);
@@ -149,17 +150,17 @@ export default function LogisticsScreen() {
                         <Text allowFontScaling={false} style={styles.headerSubtitle}>Güvenilir Taşıma Ağı</Text>
                     </View>
                     <TouchableOpacity
-                        style={[styles.headerIconBtn, !isTransporter && !isAdmin && { opacity: 0.5 }]}
+                        style={[styles.headerIconBtn, !hasLogisticsAccess && !isAdmin && { opacity: 0.5 }]}
                         onPress={() => {
-                            if (isAdmin || isTransporter) {
+                            if (isAdmin || hasLogisticsAccess) {
                                 navigation.navigate('LogisticsProvider');
                             } else {
                                 Alert.alert("Yetkisiz Erişim", "Yalnızca onaylı 'Nakliye / Lojistik' hesapları bu panele erişebilir.");
                             }
                         }}
-                        activeOpacity={isAdmin || isTransporter ? 0.7 : 1}
+                        activeOpacity={isAdmin || hasLogisticsAccess ? 0.7 : 1}
                     >
-                        <MaterialCommunityIcons name="truck-check" size={24} color={isAdmin || isTransporter ? "#D4AF37" : "#666"} />
+                        <MaterialCommunityIcons name="truck-check" size={24} color={isAdmin || hasLogisticsAccess ? "#D4AF37" : "#666"} />
                     </TouchableOpacity>
                 </View>
 

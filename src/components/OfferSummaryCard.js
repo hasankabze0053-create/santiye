@@ -48,7 +48,8 @@ export default function OfferSummaryCard({
     totalPrice = 0,
     campaignPolicy = 'standard', // 'included' | 'excluded' | 'standard'
     containerStyle,
-    viewerMode = 'contractor' // 'contractor' | 'landowner'
+    viewerMode = 'contractor', // 'contractor' | 'landowner'
+    offerType = 'kat_karsiligi' // Default to urban renewal, 'anahtar_teslim_tadilat' for renovation
 }) {
     // 1. Find Unit Names
     const unitNames = [];
@@ -85,90 +86,121 @@ export default function OfferSummaryCard({
 
     const isLandowner = viewerMode === 'landowner';
 
+    const isTadilat = offerType === 'anahtar_teslim_tadilat';
+
     return (
-        <GlassCard style={[styles.card, containerStyle]}>
+        <GlassCard style={[styles.card, containerStyle, isTadilat && { borderColor: '#4CAF50', backgroundColor: 'rgba(76, 175, 80, 0.05)' }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <MaterialCommunityIcons name="file-document-edit-outline" size={24} color="#D4AF37" style={{ marginRight: 8 }} />
-                <Text allowFontScaling={false} style={styles.headerTitle}>TEKLİF ÖZETİ</Text>
+                <MaterialCommunityIcons 
+                    name={isTadilat ? "home-edit-outline" : "file-document-edit-outline"} 
+                    size={24} 
+                    color={isTadilat ? "#4CAF50" : "#D4AF37"} 
+                    style={{ marginRight: 8 }} 
+                />
+                <Text allowFontScaling={false} style={[styles.headerTitle, isTadilat && { color: '#4CAF50' }]}>
+                    {isTadilat ? 'TADİLAT TEKLİF ÖZETİ' : 'TEKLİF ÖZETİ'}
+                </Text>
             </View>
 
             <Text allowFontScaling={false} style={styles.bodyText}>
-                <Text allowFontScaling={false} style={{ fontWeight: 'bold', color: '#FFF' }}>
-                    {isLandowner
-                        ? 'Söz konusu inşaat yapım işi için müteahhit firmanın talebi;'
-                        : 'Söz konusu inşaat yapım işi için müteahhit firma olarak talebim;'}
-                </Text>
-                {'\n\n'}
-
-                {!isFlatForLand ? (
+                {isTadilat ? (
                     <>
-                        {unitNames.length > 0 ? (
-                            <>
-                                Binada yer alan <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>{unitNames.join(', ')}</Text>
-                                {unitNames.length > 1 ? ' bağımsız bölümlerinin ' : ' bağımsız bölümünün '}
-                                {isLandowner ? 'müteahhit firmaya devredilmesi,' : 'tarafıma devredilmesi,'} kalan tüm bağımsız bölümlerin hak sahiplerine teslim edilmesi ve inşaat yapım bedeli olarak;
-                            </>
-                        ) : (
-                            <>
-                                Binada yer alan <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>tüm bağımsız bölümlerin</Text> hak sahiplerine teslim edilmesi ve inşaat yapım bedeli olarak;
-                            </>
-                        )}
+                        <Text allowFontScaling={false} style={{ fontWeight: 'bold', color: '#FFF' }}>
+                            {isLandowner
+                                ? 'Söz konusu tadilat ve yenileme işi için firmanın teklifi;'
+                                : 'Söz konusu tadilat ve yenileme işi için firma olarak teklifim;'}
+                        </Text>
                         {'\n\n'}
-                        {isIncluded && grantAmount > 0 ? (
-                            <>
-                                Üstlenicinin toplam <Text allowFontScaling={false} style={{ color: '#FFF', fontWeight: 'bold' }}>{formattedTotalPrice}</Text> tutarındaki talebinden, devletin sağladığı <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedGrant}</Text> hibe/kredi desteği düşüldüğünde;
-                                {'\n\n'}
-                                Hak sahipleri tarafından <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 16 }}>{formattedNetPrice}</Text>
-                                <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(Math.max(0, netPrice))})</Text>
-                                {isLandowner ? ' nakit ödeme yapılması talep edilmektedir.' : ' nakit ödeme yapılması talep ediyorum.'}
-                            </>
-                        ) : (
-                            <>
-                                <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 16 }}>{formattedTotalPrice}</Text>
-                                <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(tPrice)})</Text>
-                                {isLandowner ? ' nakit ödeme talep edilmektedir.' : ' nakit ödeme talep ediyorum.'}
-                            </>
-                        )}
+                        Dairenizde/Mülkünüzde yapılacak olan tadilat işlemleri için; malzeme tedariği, işçilik ve uygulama dahil olmak üzere belirlenen toplam hizmet bedeli;
+                        {'\n\n'}
+                        <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold', fontSize: 16 }}>{formattedTotalPrice}</Text>
+                        <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(tPrice)})</Text>
+                        {isLandowner ? ' nakit ödeme talep edilmektedir.' : ' nakit ödeme talep ediyorum.'}
+                        {'\n\n'}
+                        <Text allowFontScaling={false} style={{ fontSize: 11, color: '#AAA' }}>
+                            * Fiyatlara KDV dahil değildir (Aksi belirtilmedikçe).
+                        </Text>
                     </>
                 ) : (
                     <>
-                        {unitNames.length > 0 ? (
+                        <Text allowFontScaling={false} style={{ fontWeight: 'bold', color: '#FFF' }}>
+                            {isLandowner
+                                ? 'Söz konusu inşaat yapım işi için müteahhit firmanın talebi;'
+                                : 'Söz konusu inşaat yapım işi için müteahhit firma olarak talebim;'}
+                        </Text>
+                        {'\n\n'}
+
+                        {!isFlatForLand ? (
                             <>
-                                Binada yer alan <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>{unitNames.join(', ')}</Text>
-                                {unitNames.length > 1 ? ' bağımsız bölümlerinin ' : ' bağımsız bölümünün '}
-                                {isLandowner ? 'müteahhit firmaya devredilmesi' : 'tarafıma devredilmesi'}
+                                {unitNames.length > 0 ? (
+                                    <>
+                                        Binada yer alan <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>{unitNames.join(', ')}</Text>
+                                        {unitNames.length > 1 ? ' bağımsız bölümlerinin ' : ' bağımsız bölümünün '}
+                                        {isLandowner ? 'müteahhit firmaya devredilmesi,' : 'tarafıma devredilmesi,'} kalan tüm bağımsız bölümlerin hak sahiplerine teslim edilmesi ve inşaat yapım bedeli olarak;
+                                    </>
+                                ) : (
+                                    <>
+                                        Binada yer alan <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>tüm bağımsız bölümlerin</Text> hak sahiplerine teslim edilmesi ve inşaat yapım bedeli olarak;
+                                    </>
+                                )}
+                                {'\n\n'}
+                                {isIncluded && grantAmount > 0 ? (
+                                    <>
+                                        Üstlenicinin toplam <Text allowFontScaling={false} style={{ color: '#FFF', fontWeight: 'bold' }}>{formattedTotalPrice}</Text> tutarındaki talebinden, devletin sağladığı <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedGrant}</Text> hibe/kredi desteği düşüldüğünde;
+                                        {'\n\n'}
+                                        Hak sahipleri tarafından <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 16 }}>{formattedNetPrice}</Text>
+                                        <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(netPrice)})</Text>
+                                        {isLandowner ? ' nakit ödeme yapılması talep edilmektedir.' : ' nakit ödeme yapılması talep ediyorum.'}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 16 }}>{formattedTotalPrice}</Text>
+                                        <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(tPrice)})</Text>
+                                        {isLandowner ? ' nakit ödeme talep edilmektedir.' : ' nakit ödeme talep ediyorum.'}
+                                    </>
+                                )}
                             </>
                         ) : (
-                            <Text allowFontScaling={false} style={{ color: '#FFF', fontWeight: 'bold' }}>Binada yer alan tüm bağımsız bölümlerin hak sahiplerine teslim edilmesi </Text>
-                        )}
+                            <>
+                                {unitNames.length > 0 ? (
+                                    <>
+                                        Binada yer alan <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>{unitNames.join(', ')}</Text>
+                                        {unitNames.length > 1 ? ' bağımsız bölümlerinin ' : ' bağımsız bölümünün '}
+                                        {isLandowner ? 'müteahhit firmaya devredilmesi' : 'tarafıma devredilmesi'}
+                                    </>
+                                ) : (
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontWeight: 'bold' }}>Binada yer alan tüm bağımsız bölümlerin hak sahiplerine teslim edilmesi </Text>
+                                )}
 
-                        {grantAmount > 0 && (
-                            <Text allowFontScaling={false}>
-                                {' ve kentsel dönüşüm kapsamında sağlanan '}
-                                <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedGrant}</Text>
-                                <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(grantAmount)})</Text>
-                                {' hibe/kredi desteği hak edişinin '}
-                                {isLandowner ? 'müteahhit firma tarafından alınması' : 'tarafımca alınması'}
-                            </Text>
-                        )}
-                        {' karşılığında; '}
+                                {grantAmount > 0 && (
+                                    <Text allowFontScaling={false}>
+                                        {' ve kentsel dönüşüm kapsamında sağlanan '}
+                                        <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedGrant}</Text>
+                                        <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(grantAmount)})</Text>
+                                        {' hibe/kredi desteği hak edişinin '}
+                                        {isLandowner ? 'müteahhit firma tarafından alınması' : 'tarafımca alınması'}
+                                    </Text>
+                                )}
+                                {' karşılığında; '}
 
-                        {cashAdjustmentType === 'payment' && cashAmount > 0 ? (
-                            <Text allowFontScaling={false}>
-                                hak sahiplerine toplam <Text allowFontScaling={false} style={{ color: '#FF5252', fontWeight: 'bold' }}>{formattedCash}</Text>
-                                <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(cashAmount)})</Text>
-                                {isLandowner ? ' nakit ödeme yapmayı taahhüt etmektedir.' : ' nakit ödeme yapmayı taahhüt ediyorum.'}
-                            </Text>
-                        ) : cashAdjustmentType === 'request' && cashAmount > 0 ? (
-                            <Text allowFontScaling={false}>
-                                hak sahiplerinden inşaat yapım bedeline ek olarak <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedCash}</Text>
-                                <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(cashAmount)})</Text>
-                                {isLandowner ? ' nakit ödeme talep etmektedir.' : ' nakit ödeme talep ediyorum.'}
-                            </Text>
-                        ) : (
-                            <Text allowFontScaling={false}>
-                                taraflar arasında herhangi bir nakit ödemesi talep edilmemektedir.
-                            </Text>
+                                {cashAdjustmentType === 'payment' && cashAmount > 0 ? (
+                                    <Text allowFontScaling={false}>
+                                        hak sahiplerine toplam <Text allowFontScaling={false} style={{ color: '#FF5252', fontWeight: 'bold' }}>{formattedCash}</Text>
+                                        <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(cashAmount)})</Text>
+                                        {isLandowner ? ' nakit ödeme yapmayı taahhüt etmektedir.' : ' nakit ödeme yapmayı taahhüt ediyorum.'}
+                                    </Text>
+                                ) : cashAdjustmentType === 'request' && cashAmount > 0 ? (
+                                    <Text allowFontScaling={false}>
+                                        hak sahiplerinden inşaat yapım bedeline ek olarak <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedCash}</Text>
+                                        <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(cashAmount)})</Text>
+                                        {isLandowner ? ' nakit ödeme talep etmektedir.' : ' nakit ödeme talep ediyorum.'}
+                                    </Text>
+                                ) : (
+                                    <Text allowFontScaling={false}>
+                                        taraflar arasında herhangi bir nakit ödemesi talep edilmemektedir.
+                                    </Text>
+                                )}
+                            </>
                         )}
                     </>
                 )}

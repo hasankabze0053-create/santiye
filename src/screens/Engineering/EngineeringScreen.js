@@ -79,6 +79,7 @@ const GreenHighlightCard = ({ children, style, onPress }) => (
 );
 
 import { supabase } from '../../lib/supabase';
+import { PermissionService } from '../../services/PermissionService';
 
 export default function EngineeringScreen() {
     const navigation = useNavigation();
@@ -92,17 +93,17 @@ export default function EngineeringScreen() {
         checkUserStatus();
     }, []);
 
+    const [hasEngineeringAccess, setHasEngineeringAccess] = useState(false);
+
     const checkUserStatus = async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                const { data } = await supabase
-                    .from('profiles')
-                    .select('is_admin, is_engineer')
-                    .eq('id', user.id)
-                    .single();
-                setIsAdmin(data?.is_admin || false);
-                setIsEngineer(data?.is_engineer || false);
+                const roles = await PermissionService.getUserRoles();
+                setIsAdmin(roles.isAdmin);
+
+                const hasAccess = await PermissionService.checkAccess('technical_office');
+                setHasEngineeringAccess(hasAccess);
             }
         } catch (e) {
             console.warn('User status check failed', e);
@@ -157,17 +158,17 @@ export default function EngineeringScreen() {
                                 <Text allowFontScaling={false} style={styles.headerSubtitle}>DANIŞMANLIK OFİSİ</Text>
                             </View>
                             <TouchableOpacity
-                                style={[styles.headerIconBtn, !isEngineer && !isAdmin && { opacity: 0.5 }]}
+                                style={[styles.headerIconBtn, !hasEngineeringAccess && !isAdmin && { opacity: 0.5 }]}
                                 onPress={() => {
-                                    if (isAdmin || isEngineer) {
+                                    if (isAdmin || hasEngineeringAccess) {
                                         navigation.navigate('TechnicalProvider');
                                     } else {
-                                        Alert.alert("Yetkisiz Erişim", "Bu panele sadece 'Mühendis' yetkisi olan hesaplar erişebilir.");
+                                        Alert.alert("Yetkisiz Erişim", "Yalnızca onaylı 'Teknik Ofis' hesapları bu panele erişebilir.");
                                     }
                                 }}
-                                activeOpacity={isAdmin || isEngineer ? 0.7 : 1}
+                                activeOpacity={isAdmin || hasEngineeringAccess ? 0.7 : 1}
                             >
-                                <MaterialCommunityIcons name="ruler-square" size={24} color={isAdmin || isEngineer ? GOLD_MAIN : "#666"} />
+                                <MaterialCommunityIcons name="ruler-square" size={24} color={isAdmin || hasEngineeringAccess ? GOLD_MAIN : "#666"} />
                             </TouchableOpacity>
                         </View>
 

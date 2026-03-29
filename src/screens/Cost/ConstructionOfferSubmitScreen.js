@@ -84,6 +84,27 @@ export default function ConstructionOfferSubmitScreen() {
 
     const [price, setPrice] = useState('');
     const [details, setDetails] = useState('');
+    // --- Renovation Specific State ---
+    const [materialCost, setMaterialCost] = useState('');
+    const [laborCost, setLaborCost] = useState('');
+    const [otherCost, setOtherCost] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [deliveryTime, setDeliveryTime] = useState('30 Gün');
+    const [validityPeriod, setValidityPeriod] = useState('7 Gün');
+    const [paymentPlan, setPaymentPlan] = useState('%30 Peşinat / %70 İş Sonu');
+    const [architectNote, setArchitectNote] = useState('');
+    const [totalPriceCalculated, setTotalPriceCalculated] = useState(0);
+    const [isDetailedCost, setIsDetailedCost] = useState(true);
+    const [lineItems, setLineItems] = useState([{ id: 1, name: '', price: '' }]);
+    const [estimatedTotalRange, setEstimatedTotalRange] = useState('');
+    const [offerCity, setOfferCity] = useState('');
+    const [offerDistrict, setOfferDistrict] = useState('');
+    // Kentsel Dönüşüm (KD) specific fields - pre-populated from request
+    const [kdAdres, setKdAdres] = useState(request?.full_address || '');
+    const [kdAda, setKdAda] = useState(request?.ada || '');
+    const [kdParsel, setKdParsel] = useState(request?.parsel || '');
+    const [kdPafta, setKdPafta] = useState(request?.pafta || '');
+    // ---------------------------------
     const [totalArea, setTotalArea] = useState('');
     const [unitBreakdown, setUnitBreakdown] = useState([]);
     const [campaignPolicy, setCampaignPolicy] = useState('standard');
@@ -198,7 +219,7 @@ export default function ConstructionOfferSubmitScreen() {
 
     const parseCurrency = (val) => {
         if (!val) return 0;
-        return parseFloat(val.replace(/\./g, ''));
+        return parseFloat(val.toString().replace(/\./g, ''));
     };
 
     const numberToTurkishWords = (num) => {
@@ -302,6 +323,22 @@ export default function ConstructionOfferSubmitScreen() {
             generateDefaultFloorMap();
         }
     }, [floorCount, basementCount, isBasementResidential, groundFloorType, floorDesignType]);
+
+    // Renovation specific effect to auto-calc total
+    useEffect(() => {
+        if (request?.offer_type === 'anahtar_teslim_tadilat') {
+            if (isDetailedCost) {
+                // Kalem Kalem (Dynamic List) - No auto sum for unit prices
+                setTotalPriceCalculated(0);
+            } else {
+                // Tek Fiyat (Standard Breakdown)
+                const mat = parseCurrency(materialCost) || 0;
+                const lab = parseCurrency(laborCost) || 0;
+                const oth = parseCurrency(otherCost) || 0;
+                setTotalPriceCalculated(mat + lab + oth);
+            }
+        }
+    }, [materialCost, laborCost, otherCost, lineItems, isDetailedCost, request?.offer_type]);
 
     const generateDefaultFloorMap = () => {
         const count = parseInt(floorCount) || 0;
@@ -430,6 +467,10 @@ export default function ConstructionOfferSubmitScreen() {
         setDetails('');
         setPrice(''); // If used
         setTotalArea(''); // If used
+        setMaterialCost('');
+        setLaborCost('');
+        setOtherCost('');
+        setArchitectNote('');
         // Reset floor map? Maybe not needed if valid.
         Alert.alert('Yeni Teklif', 'Form temizlendi, yeni bir teklif oluşturabilirsiniz.');
     };
@@ -442,7 +483,9 @@ export default function ConstructionOfferSubmitScreen() {
         // Check if current form is empty
         const isCurrentFormEmpty = isFlatForLand
             ? (selectedUnits.length === 0 && !cashAdjustmentAmount && !details)
-            : (!price && !details);
+            : request?.offer_type === 'anahtar_teslim_tadilat'
+                ? (isDetailedCost ? (lineItems.length === 1 && !lineItems[0].name && !lineItems[0].price && !estimatedTotalRange && !architectNote) : (!materialCost && !laborCost && !architectNote))
+                : (!price && !details);
 
         // If we have saved strategies and the current form is empty, we can just proceed (exit)
         if (shouldExit && savedStrategies.length > 0 && isCurrentFormEmpty) {
@@ -469,9 +512,24 @@ export default function ConstructionOfferSubmitScreen() {
             return;
         }
 
-        if (!isFlatForLand && !price) {
+        if (!isFlatForLand && request?.offer_type !== 'anahtar_teslim_tadilat' && !price) {
             Alert.alert('Eksik Bilgi', 'Lütfen fiyat teklifi giriniz.');
             return;
+        }
+
+        if (request?.offer_type === 'anahtar_teslim_tadilat') {
+            if (isDetailedCost) {
+                const hasValidItems = lineItems.some(i => i.name.trim() !== '' && parseCurrency(i.price) > 0);
+                if (!hasValidItems && !estimatedTotalRange) {
+                    Alert.alert('Eksik Bilgi', 'Lütfen en az bir gider kalemi veya tahmini bütçe aralığı giriniz.');
+                    return;
+                }
+            } else {
+                if (!materialCost || !laborCost) {
+                    Alert.alert('Eksik Bilgi', 'Lütfen malzeme ve işçilik maliyetlerini giriniz.');
+                    return;
+                }
+            }
         }
 
         if (isFlatForLand && selectedUnits.length === 0 && !cashAdjustmentAmount) {
@@ -497,7 +555,7 @@ export default function ConstructionOfferSubmitScreen() {
             const offerData = {
                 request_id: request.id,
                 contractor_id: user.id,
-                offer_details: details,
+                offer_details: request?.offer_type === 'anahtar_teslim_tadilat' ? architectNote : details,
                 total_area: parseFloat(totalArea) || 0,
                 campaign_policy: campaignPolicy,
                 floor_count: floorCount ? parseInt(floorCount) : null,
@@ -525,7 +583,31 @@ export default function ConstructionOfferSubmitScreen() {
             if (isFlatForLand) {
                 offerData.price_estimate = 0;
                 offerData.unit_price = 0;
-                offerData.unit_breakdown = metadata;
+                offerData.unit_breakdown = {
+                    ...metadata,
+                    kdAdres,
+                    kdAda,
+                    kdParsel,
+                    kdPafta
+                };
+            } else if (request?.offer_type === 'anahtar_teslim_tadilat') {
+                offerData.price_estimate = totalPriceCalculated;
+                offerData.unit_price = 0;
+                offerData.unit_breakdown = {
+                    isRenovation: true,
+                    isDetailedCost,
+                    customLineItems: isDetailedCost ? lineItems.filter(i => i.name.trim() || i.price) : [],
+                    estimatedTotalRange: isDetailedCost ? estimatedTotalRange : null,
+                    materialCost: !isDetailedCost ? (parseCurrency(materialCost) || 0) : 0,
+                    laborCost: !isDetailedCost ? (parseCurrency(laborCost) || 0) : 0,
+                    otherCost: !isDetailedCost ? (parseCurrency(otherCost) || 0) : 0,
+                    offerCity,
+                    offerDistrict,
+                    startDate,
+                    deliveryTime,
+                    validityPeriod,
+                    paymentPlan
+                };
             } else {
                 // Standard/Turnkey Offer
                 offerData.price_estimate = parseCurrency(price);
@@ -847,6 +929,247 @@ export default function ConstructionOfferSubmitScreen() {
         </>
     );
 
+    const renderRenovationOffer = () => (
+        <>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 12, paddingHorizontal: 4 }}>
+                <Text allowFontScaling={false} style={[styles.sectionHeader, { marginBottom: 0 }]}>MALİYET DAĞILIMI</Text>
+                
+                {/* Cost Toggle */}
+                <View style={{ flexDirection: 'row', backgroundColor: '#111', borderRadius: 20, padding: 3, borderWidth: 1, borderColor: '#2A2A2A' }}>
+                    <TouchableOpacity
+                        style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, backgroundColor: isDetailedCost ? '#2A2A2A' : 'transparent' }}
+                        onPress={() => setIsDetailedCost(true)}
+                    >
+                        <Text allowFontScaling={false} style={{ color: isDetailedCost ? '#FFF' : '#888', fontSize: 11, fontWeight: 'bold' }}>Kalem Kalem</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, backgroundColor: !isDetailedCost ? '#2A2A2A' : 'transparent' }}
+                        onPress={() => setIsDetailedCost(false)}
+                    >
+                        <Text allowFontScaling={false} style={{ color: !isDetailedCost ? '#FFF' : '#888', fontSize: 11, fontWeight: 'bold' }}>Tek Fiyat</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            <GlassCard style={[styles.card, { paddingVertical: 20 }]}>
+                {isDetailedCost ? (
+                    <View style={{ gap: 12 }}>
+                        {lineItems.map((item, index) => (
+                            <View key={item.id} style={{ marginBottom: 4, padding: 16, backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: 16, borderWidth: 1, borderColor: '#222' }}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                                    <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 12, fontWeight: 'bold' }}>KALEM {index + 1}</Text>
+                                    {lineItems.length > 1 && (
+                                        <TouchableOpacity 
+                                            style={{ padding: 6, backgroundColor: 'rgba(255, 82, 82, 0.08)', borderRadius: 8 }}
+                                            onPress={() => {
+                                                const newArr = lineItems.filter(i => i.id !== item.id);
+                                                setLineItems(newArr);
+                                            }}
+                                        >
+                                            <Ionicons name="trash-outline" size={18} color="#FF5252" />
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
+
+                                <View style={{ gap: 12 }}>
+                                    <View>
+                                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 6, marginLeft: 4 }}>AÇIKLAMA (Örn: Duvar Kırımı m²)</Text>
+                                        <TextInput allowFontScaling={false}
+                                            style={{ backgroundColor: '#111', color: '#FFF', fontSize: 14, fontWeight: 'bold', padding: 14, borderRadius: 12, borderWidth: 1, borderColor: '#1A1A1A' }}
+                                            placeholder="Gider kalemini yazın..."
+                                            placeholderTextColor="#444"
+                                            value={item.name}
+                                            onChangeText={(t) => {
+                                                const newArr = [...lineItems];
+                                                newArr[index].name = t;
+                                                setLineItems(newArr);
+                                            }}
+                                        />
+                                    </View>
+                                    <View>
+                                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 6, marginLeft: 4 }}>ÖNGÖRÜLEN BİRİM FİYAT (TL)</Text>
+                                        <TextInput allowFontScaling={false}
+                                            style={{ backgroundColor: '#111', color: '#FFF', fontSize: 14, fontWeight: 'bold', padding: 14, borderRadius: 12, borderWidth: 1, borderColor: '#1A1A1A' }}
+                                            placeholder="0"
+                                            placeholderTextColor="#444"
+                                            keyboardType="numeric"
+                                            value={item.price}
+                                            onChangeText={(t) => {
+                                                const newArr = [...lineItems];
+                                                newArr[index].price = formatCurrency(t);
+                                                setLineItems(newArr);
+                                            }}
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+                        ))}
+                        
+                        <TouchableOpacity 
+                            style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', marginTop: 12, paddingVertical: 10, paddingHorizontal: 16, backgroundColor: 'rgba(212, 175, 55, 0.05)', borderRadius: 20, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.3)' }}
+                            onPress={() => setLineItems([...lineItems, { id: Date.now(), name: '', price: '' }])}
+                        >
+                            <Ionicons name="add" size={18} color="#D4AF37" style={{ marginRight: 6 }} />
+                            <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 11, fontWeight: 'bold' }}>YENİ KALEM EKLE</Text>
+                        </TouchableOpacity>
+                    </View>
+                ) : (
+                    <View style={{ gap: 16 }}>
+                        <View>
+                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 8, marginLeft: 4 }}>MALZEME MALİYETİ (TL)</Text>
+                            <TextInput allowFontScaling={false}
+                                style={{ backgroundColor: '#111', color: '#FFF', fontSize: 16, fontWeight: 'bold', padding: 16, borderRadius: 12 }}
+                                placeholder="Örn: 15.000"
+                                placeholderTextColor="#444"
+                                keyboardType="numeric"
+                                value={materialCost}
+                                onChangeText={(t) => setMaterialCost(formatCurrency(t))}
+                            />
+                        </View>
+                        
+                        <View>
+                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 8, marginLeft: 4 }}>İŞÇİLİK MALİYETİ (TL)</Text>
+                            <TextInput allowFontScaling={false}
+                                style={{ backgroundColor: '#111', color: '#FFF', fontSize: 16, fontWeight: 'bold', padding: 16, borderRadius: 12 }}
+                                placeholder="Örn: 20.000"
+                                placeholderTextColor="#444"
+                                keyboardType="numeric"
+                                value={laborCost}
+                                onChangeText={(t) => setLaborCost(formatCurrency(t))}
+                            />
+                        </View>
+                        
+                        <View>
+                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 8, marginLeft: 4 }}>EKSTRA GİDERLER (İsteğe Bağlı - TL)</Text>
+                            <TextInput allowFontScaling={false}
+                                style={{ backgroundColor: '#111', color: '#FFF', fontSize: 16, fontWeight: 'bold', padding: 16, borderRadius: 12 }}
+                                placeholder="Örn: 2.500"
+                                placeholderTextColor="#444"
+                                keyboardType="numeric"
+                                value={otherCost}
+                                onChangeText={(t) => setOtherCost(formatCurrency(t))}
+                            />
+                        </View>
+                    </View>
+                )}
+
+                {/* Total */}
+                {!isDetailedCost ? (
+                    <View style={{ marginTop: 24, backgroundColor: '#1A1A1A', padding: 20, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#D4AF37' }}>
+                        <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 12, fontWeight: 'bold', marginBottom: 8 }}>TOPLAM TUTAR</Text>
+                        <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 32, fontWeight: 'bold' }}>
+                            {formatCurrency(totalPriceCalculated.toString())} ₺
+                        </Text>
+                        {totalPriceCalculated > 0 && (
+                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, fontStyle: 'italic', marginTop: 8 }}>
+                                Yalnız: {numberToTurkishWords(totalPriceCalculated)}
+                            </Text>
+                        )}
+                    </View>
+                ) : (
+                    <View style={{ marginTop: 24, backgroundColor: '#1A1A1A', padding: 20, borderRadius: 12, borderWidth: 1, borderColor: '#D4AF37' }}>
+                        <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 12, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' }}>TAHMİNİ TOPLAM TUTAR ARALIĞI</Text>
+                        <TextInput allowFontScaling={false}
+                            style={{ backgroundColor: '#000', color: '#FFD700', fontSize: 18, fontWeight: 'bold', padding: 16, borderRadius: 12, textAlign: 'center', borderWidth: 1, borderColor: '#333' }}
+                            placeholder="Örn: 250.000 - 300.000 TL"
+                            placeholderTextColor="#555"
+                            value={estimatedTotalRange}
+                            onChangeText={setEstimatedTotalRange}
+                        />
+                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, fontStyle: 'italic', marginTop: 12, textAlign: 'center', lineHeight: 16 }}>
+                            Müşteriye yaklaşık bir bütçe sunmak için aralık belirtebilirsiniz. Doğru hesaplama keşif sonrası yapılacaktır.
+                        </Text>
+                    </View>
+                )}
+            </GlassCard>
+
+            <Text allowFontScaling={false} style={styles.sectionHeader}>ZAMANLAMA VE GEÇERLİLİK</Text>
+            <GlassCard style={styles.card}>
+                <View style={styles.inputRow}>
+                    <View style={styles.inputWrapper}>
+                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 8, marginLeft: 4 }}>BAŞLANGIÇ TAHMİNİ</Text>
+                        <TextInput allowFontScaling={false}
+                            style={{ backgroundColor: '#111', color: '#FFF', fontSize: 16, fontWeight: 'bold', padding: 16, borderRadius: 12 }}
+                            placeholder="Örn: Hemen"
+                            placeholderTextColor="#444"
+                            value={startDate}
+                            onChangeText={setStartDate}
+                        />
+                    </View>
+                    <View style={styles.inputWrapper}>
+                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 8, marginLeft: 4 }}>TESLİMAT SÜRESİ</Text>
+                        <TextInput allowFontScaling={false}
+                            style={{ backgroundColor: '#111', color: '#FFF', fontSize: 16, fontWeight: 'bold', padding: 16, borderRadius: 12 }}
+                            placeholder="Örn: 15 Gün"
+                            placeholderTextColor="#444"
+                            value={deliveryTime}
+                            onChangeText={setDeliveryTime}
+                        />
+                    </View>
+                </View>
+                <View style={[styles.divider, { marginVertical: 12 }]} />
+                <View style={styles.inputWrapper}>
+                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 8, marginLeft: 4 }}>TEKLİF GEÇERLİLİK SÜRESİ</Text>
+                    <TextInput allowFontScaling={false}
+                        style={{ backgroundColor: '#111', color: '#FFF', fontSize: 16, fontWeight: 'bold', padding: 16, borderRadius: 12 }}
+                        placeholder="Örn: 7 Gün"
+                        placeholderTextColor="#444"
+                        value={validityPeriod}
+                        onChangeText={setValidityPeriod}
+                    />
+                </View>
+            </GlassCard>
+
+            <Text allowFontScaling={false} style={styles.sectionHeader}>PROFESYONEL NOT VE ÖDEME</Text>
+            <GlassCard style={styles.card}>
+                <View style={styles.inputWrapper}>
+                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 8, marginLeft: 4 }}>ÖDEME KOŞULLARI</Text>
+                    <TextInput allowFontScaling={false}
+                        style={{ backgroundColor: '#111', color: '#FFF', fontSize: 15, fontWeight: 'bold', padding: 16, borderRadius: 12 }}
+                        placeholder="%30 Peşinat / %70 İş Sonu"
+                        placeholderTextColor="#444"
+                        value={paymentPlan}
+                        onChangeText={setPaymentPlan}
+                    />
+                </View>
+                <View style={[styles.divider, { marginVertical: 12 }]} />
+                <View style={styles.inputWrapper}>
+                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 8, marginLeft: 4 }}>MÜŞTERİYE NOT / MALZEME DETAYLARI</Text>
+                    <TextInput allowFontScaling={false}
+                        style={{ backgroundColor: '#111', color: '#FFF', fontSize: 14, padding: 16, borderRadius: 12, minHeight: 120 }}
+                        placeholder="Kullanılacak seramiklerin markası, dolap kapaklarının kalitesi gibi fark yaratan detayları buraya yazabilirsiniz..."
+                        placeholderTextColor="#444"
+                        multiline
+                        textAlignVertical="top"
+                        value={architectNote}
+                        onChangeText={setArchitectNote}
+                    />
+                </View>
+                <View style={[styles.divider, { marginVertical: 12 }]} />
+                
+                {/* File Upload Mock UI */}
+                <TouchableOpacity style={{ 
+                    borderWidth: 1, 
+                    borderStyle: 'dashed', 
+                    borderColor: 'rgba(212, 175, 55, 0.5)', 
+                    backgroundColor: 'rgba(212, 175, 55, 0.05)', 
+                    padding: 20, 
+                    borderRadius: 12, 
+                    alignItems: 'center', 
+                    flexDirection: 'row', 
+                    justifyContent: 'center',
+                    marginTop: 8
+                }}>
+                    <MaterialCommunityIcons name="cloud-upload-outline" size={24} color="#D4AF37" style={{ marginRight: 10 }} />
+                    <View>
+                        <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 13 }}>MOODBOARD VEYA PDF EKLE</Text>
+                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, marginTop: 4 }}>(Şu an geliştirme aşamasındadır)</Text>
+                    </View>
+                </TouchableOpacity>
+            </GlassCard>
+        </>
+    );
+
     return (
         <PremiumBackground>
             <SafeAreaView style={{ flex: 1 }}>
@@ -861,11 +1184,12 @@ export default function ConstructionOfferSubmitScreen() {
 
                 <KeyboardAwareScrollView
                     enableOnAndroid={true}
-                    extraScrollHeight={Platform.OS === 'ios' ? 120 : 100}
+                    extraScrollHeight={Platform.OS === 'ios' ? 50 : 100}
                     contentContainerStyle={[styles.content, { paddingBottom: 150 }]}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
-                    enableAutomaticScroll={true}
+                    enableAutomaticScroll={Platform.OS === 'android'}
+                    viewIsInsideTabBar={false}
                 >
                     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                         <View>
@@ -885,7 +1209,7 @@ export default function ConstructionOfferSubmitScreen() {
                                 <View style={styles.summaryGrid}>
                                     <View style={styles.summaryItem}>
                                         <Text allowFontScaling={false} style={styles.summaryLabel}>KONUM</Text>
-                                        <Text allowFontScaling={false} style={styles.summaryValue} numberOfLines={1}>{request?.district}</Text>
+                                        <Text allowFontScaling={false} style={styles.summaryValue} numberOfLines={1}>{request?.city}{request?.district ? `, ${request.district}` : ''}</Text>
                                     </View>
                                     <View style={styles.summaryItem}>
                                         <Text allowFontScaling={false} style={styles.summaryLabel}>MODEL</Text>
@@ -893,39 +1217,35 @@ export default function ConstructionOfferSubmitScreen() {
                                     </View>
                                 </View>
 
-                                {/* Ada / Parsel / Pafta Row - Always Visible */}
-                                <View style={[styles.summaryGrid, { marginTop: 12 }]}>
-                                    <View style={styles.summaryItem}>
-                                        <Text allowFontScaling={false} style={styles.summaryLabel}>ADA / PARSEL</Text>
+                                {/* Kapsam / Adres - Context sensitive */}
+                                {request?.offer_type === 'anahtar_teslim_tadilat' ? (
+                                    <View style={{ marginTop: 12 }}>
+                                        <Text allowFontScaling={false} style={styles.summaryLabel}>KAPSAM</Text>
                                         <Text allowFontScaling={false} style={[
                                             styles.summaryValue,
-                                            (!request?.ada && !request?.parsel) && { color: '#666', fontStyle: 'italic' }
-                                        ]}>
-                                            {(request?.ada || request?.parsel) ? `${request?.ada || '-'} / ${request?.parsel || '-'}` : 'Belirtilmemiş'}
+                                            { fontSize: 12 },
+                                            !request?.full_address && { color: '#666', fontStyle: 'italic' }
+                                        ]} numberOfLines={2}>
+                                            {request?.full_address || 'Belirtilmemiş.'}
                                         </Text>
                                     </View>
-                                    <View style={styles.summaryItem}>
-                                        <Text allowFontScaling={false} style={styles.summaryLabel}>PAFTA</Text>
+                                ) : (
+                                    <View style={{ marginTop: 12 }}>
+                                        <Text allowFontScaling={false} style={styles.summaryLabel}>AÇIK ADRES</Text>
                                         <Text allowFontScaling={false} style={[
                                             styles.summaryValue,
-                                            !request?.pafta && { color: '#666', fontStyle: 'italic' }
-                                        ]}>
-                                            {request?.pafta || 'Belirtilmemiş'}
+                                            { fontSize: 12 },
+                                            !kdAdres && { color: '#666', fontStyle: 'italic' }
+                                        ]} numberOfLines={2}>
+                                            {kdAdres || 'Henüz girilmedi.'}
                                         </Text>
+                                        <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
+                                            <Text allowFontScaling={false} style={{ color: kdAda ? '#D4AF37' : '#555', fontSize: 11, fontWeight: 'bold' }}>ADA: {kdAda || '-'}</Text>
+                                            <Text allowFontScaling={false} style={{ color: kdParsel ? '#D4AF37' : '#555', fontSize: 11, fontWeight: 'bold' }}>PARSEL: {kdParsel || '-'}</Text>
+                                            <Text allowFontScaling={false} style={{ color: kdPafta ? '#D4AF37' : '#555', fontSize: 11, fontWeight: 'bold' }}>PAFTA: {kdPafta || '-'}</Text>
+                                        </View>
                                     </View>
-                                </View>
-
-                                {/* Full Address - Always Visible */}
-                                <View style={{ marginTop: 12 }}>
-                                    <Text allowFontScaling={false} style={styles.summaryLabel}>ADRES</Text>
-                                    <Text allowFontScaling={false} style={[
-                                        styles.summaryValue,
-                                        { fontSize: 12 },
-                                        !request?.full_address && { color: '#666', fontStyle: 'italic' }
-                                    ]} numberOfLines={2}>
-                                        {request?.full_address || 'Açık adres belirtilmemiş.'}
-                                    </Text>
-                                </View>
+                                )}
 
                                 {/* Campaign Units (Hibe/Kredi) */}
                                 {request?.is_campaign_active && (
@@ -960,133 +1280,140 @@ export default function ConstructionOfferSubmitScreen() {
                                 </View>
                             </GlassCard>
 
-                            {isFlatForLand ? renderFlatForLandDetails() : renderFinancialDetails()}
+                            {request?.offer_type === 'anahtar_teslim_tadilat' ? renderRenovationOffer() : (
+                                <>
+                                    {isFlatForLand ? renderFlatForLandDetails() : renderFinancialDetails()}
 
-                            <Text allowFontScaling={false} style={styles.sectionHeader}>MİMARİ YAPILANDIRMA</Text>
-                            <GlassCard style={styles.card}>
-                                <View style={styles.inputRow}>
-                                    <View style={styles.inputWrapper}>
-                                        <Text allowFontScaling={false} style={styles.inputLabel}>KAT SAYISI</Text>
-                                        <TextInput allowFontScaling={false}
-                                            style={styles.input}
-                                            placeholder="Zemin Üstü"
-                                            placeholderTextColor="#555"
-                                            keyboardType="numeric"
-                                            value={floorCount}
-                                            onChangeText={setFloorCount}
-                                            onBlur={() => generateDefaultFloorMap()}
-                                        />
-                                    </View>
-                                    <View style={styles.inputWrapper}>
-                                        <Text allowFontScaling={false} style={styles.inputLabel}>STANDART DAİRE</Text>
-                                        <TextInput allowFontScaling={false}
-                                            style={styles.input}
-                                            placeholder="Kat Başına"
-                                            placeholderTextColor="#555"
-                                            keyboardType="numeric"
-                                            value={floorDesignType}
-                                            onChangeText={setFloorDesignType}
-                                            onBlur={() => generateDefaultFloorMap()}
-                                        />
-                                    </View>
-                                </View>
-
-                                <View style={styles.divider} />
-
-                                <StepperInput
-                                    label="BODRUM KAT SAYISI"
-                                    value={basementCount}
-                                    onChange={(val) => {
-                                        setBasementCount(val);
-                                        generateDefaultFloorMap();
-                                    }}
-                                    min={0}
-                                    max={10}
-                                />
-
-                                <View style={{ marginTop: 20 }}>
-                                    <TouchableOpacity
-                                        style={styles.configButton}
-                                        onPress={() => {
-                                            if (!floorCount) {
-                                                Alert.alert('Uyarı', 'Önce kat sayısını giriniz.');
-                                            } else {
-                                                generateDefaultFloorMap();
-                                                setFloorConfigModalVisible(true);
-                                            }
-                                        }}
-                                    >
-                                        <LinearGradient
-                                            colors={['#D4AF37', '#B8860B']}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 0 }}
-                                            style={styles.configButtonGradient}
-                                        >
-                                            <MaterialCommunityIcons name="floor-plan" size={24} color="#000" />
-                                            <View style={{ flex: 1 }}>
-                                                <Text allowFontScaling={false} style={styles.configButtonTitle}>DETAYLI KAT PLANI DÜZENLE</Text>
-                                                <Text allowFontScaling={false} style={styles.configButtonSubtitle}>Dükkan, Daire m² ve İsim Ekleme</Text>
+                                    <Text allowFontScaling={false} style={styles.sectionHeader}>MİMARİ YAPILANDIRMA</Text>
+                                    <GlassCard style={styles.card}>
+                                        <View style={styles.inputRow}>
+                                            <View style={styles.inputWrapper}>
+                                                <Text allowFontScaling={false} style={styles.inputLabel}>KAT SAYISI</Text>
+                                                <TextInput allowFontScaling={false}
+                                                    style={styles.input}
+                                                    placeholder="Zemin Üstü"
+                                                    placeholderTextColor="#555"
+                                                    keyboardType="numeric"
+                                                    value={floorCount}
+                                                    onChangeText={setFloorCount}
+                                                    onBlur={() => generateDefaultFloorMap()}
+                                                />
                                             </View>
-                                            <MaterialCommunityIcons name="chevron-right" size={24} color="#000" />
-                                        </LinearGradient>
-                                    </TouchableOpacity>
-                                </View>
-                            </GlassCard>
+                                            <View style={styles.inputWrapper}>
+                                                <Text allowFontScaling={false} style={styles.inputLabel}>STANDART DAİRE</Text>
+                                                <TextInput allowFontScaling={false}
+                                                    style={styles.input}
+                                                    placeholder="Kat Başına"
+                                                    placeholderTextColor="#555"
+                                                    keyboardType="numeric"
+                                                    value={floorDesignType}
+                                                    onChangeText={setFloorDesignType}
+                                                    onBlur={() => generateDefaultFloorMap()}
+                                                />
+                                            </View>
+                                        </View>
 
-                            {/* Visualization */}
+                                        <View style={styles.divider} />
 
-                            <View style={styles.schemaContainer}>
-                                <BuildingSchema
-                                    floorCount={floorCount}
-                                    floorDetails={floorDetails}
-                                    groundFloorType={groundFloorType}
-                                    isBasementResidential={isBasementResidential}
-                                    basementCount={basementCount}
-                                    selectable={true}
-                                    selectedUnits={selectedUnits}
-                                    onUnitSelect={handleUnitSelect}
-                                    campaignData={{
-                                        unitCount: request?.campaign_unit_count || 0,
-                                        commercialCount: request?.campaign_commercial_count || 0
-                                    }}
-                                    cashAdjustment={{
-                                        type: cashAdjustmentType, // 'request' or 'payment'
-                                        amount: parseCurrency(cashAdjustmentAmount) || 0
-                                    }}
-                                    isFlatForLand={isFlatForLand}
-                                    turnkeyData={{
-                                        totalPrice: parseCurrency(price) || 0,
-                                        campaignPolicy: campaignPolicy
-                                    }}
-                                />
-                            </View>
+                                        <StepperInput
+                                            label="BODRUM KAT SAYISI"
+                                            value={basementCount}
+                                            onChange={(val) => {
+                                                setBasementCount(val);
+                                                generateDefaultFloorMap();
+                                            }}
+                                            min={0}
+                                            max={10}
+                                        />
 
-                            {/* Dynamic Offer Summary */}
-                            <OfferSummaryCard
-                                selectedUnits={selectedUnits}
-                                floorDetails={floorDetails}
-                                cashAdjustmentType={cashAdjustmentType}
-                                cashAdjustmentAmount={cashAdjustmentAmount}
-                                campaignUnitCount={request?.campaign_unit_count}
-                                campaignCommercialCount={request?.campaign_commercial_count}
-                                isFlatForLand={isFlatForLand}
-                                totalPrice={price}
-                                campaignPolicy={campaignPolicy}
-                            />
+                                        <View style={{ marginTop: 20 }}>
+                                            <TouchableOpacity
+                                                style={styles.configButton}
+                                                onPress={() => {
+                                                    if (!floorCount) {
+                                                        Alert.alert('Uyarı', 'Önce kat sayısını giriniz.');
+                                                    } else {
+                                                        generateDefaultFloorMap();
+                                                        setFloorConfigModalVisible(true);
+                                                    }
+                                                }}
+                                            >
+                                                <LinearGradient
+                                                    colors={['#D4AF37', '#B8860B']}
+                                                    start={{ x: 0, y: 0 }}
+                                                    end={{ x: 1, y: 0 }}
+                                                    style={styles.configButtonGradient}
+                                                >
+                                                    <MaterialCommunityIcons name="floor-plan" size={24} color="#000" />
+                                                    <View style={{ flex: 1 }}>
+                                                        <Text allowFontScaling={false} style={styles.configButtonTitle}>DETAYLI KAT PLANI DÜZENLE</Text>
+                                                        <Text allowFontScaling={false} style={styles.configButtonSubtitle}>Dükkan, Daire m² ve İsim Ekleme</Text>
+                                                    </View>
+                                                    <MaterialCommunityIcons name="chevron-right" size={24} color="#000" />
+                                                </LinearGradient>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </GlassCard>
+
+                                    {/* Visualization */}
+
+                                    <View style={styles.schemaContainer}>
+                                        <BuildingSchema
+                                            floorCount={floorCount}
+                                            floorDetails={floorDetails}
+                                            groundFloorType={groundFloorType}
+                                            isBasementResidential={isBasementResidential}
+                                            basementCount={basementCount}
+                                            selectable={true}
+                                            selectedUnits={selectedUnits}
+                                            onUnitSelect={handleUnitSelect}
+                                            campaignData={{
+                                                unitCount: request?.campaign_unit_count || 0,
+                                                commercialCount: request?.campaign_commercial_count || 0
+                                            }}
+                                            cashAdjustment={{
+                                                type: cashAdjustmentType, // 'request' or 'payment'
+                                                amount: parseCurrency(cashAdjustmentAmount) || 0
+                                            }}
+                                            isFlatForLand={isFlatForLand}
+                                            turnkeyData={{
+                                                totalPrice: parseCurrency(price) || 0,
+                                                campaignPolicy: campaignPolicy
+                                            }}
+                                        />
+                                    </View>
+
+                                    {/* Dynamic Offer Summary */}
+                                    <OfferSummaryCard
+                                        selectedUnits={selectedUnits}
+                                        floorDetails={floorDetails}
+                                        cashAdjustmentType={cashAdjustmentType}
+                                        cashAdjustmentAmount={cashAdjustmentAmount}
+                                        campaignUnitCount={request?.campaign_unit_count}
+                                        campaignCommercialCount={request?.campaign_commercial_count}
+                                        isFlatForLand={isFlatForLand}
+                                        totalPrice={price}
+                                        campaignPolicy={campaignPolicy}
+                                    />
 
 
-                            <Text allowFontScaling={false} style={styles.sectionHeader}>AÇIKLAMA VE DETAYLAR</Text>
-                            <GlassCard style={styles.card}>
-                                <TextInput allowFontScaling={false}
-                                    style={styles.textArea}
-                                    placeholder="Teklifinizin kapsamı, malzeme kalitesi ve diğer detayları buraya yazınız..."
-                                    placeholderTextColor="#555"
-                                    multiline
-                                    textAlignVertical="top"
-                                    value={details}
-                                    onChangeText={setDetails}
-                                />
-                                <View style={{ marginBottom: 20 }}>
+                                    <Text allowFontScaling={false} style={styles.sectionHeader}>AÇIKLAMA VE DETAYLAR</Text>
+                                    <GlassCard style={styles.card}>
+                                        <TextInput allowFontScaling={false}
+                                            style={styles.textArea}
+                                            placeholder="Teklifinizin kapsamı, malzeme/inşaat kalitesi ve diğer detayları buraya yazınız..."
+                                            placeholderTextColor="#555"
+                                            multiline
+                                            textAlignVertical="top"
+                                            value={details}
+                                            onChangeText={setDetails}
+                                        />
+                                    </GlassCard>
+                                </>
+                            )}
+                            
+                            <View style={{ paddingHorizontal: 12 }}>
+                                <View style={{ marginBottom: 20, marginTop: 12 }}>
                                     {editingStrategy ? (
                                         <View style={{ backgroundColor: 'rgba(212, 175, 55, 0.1)', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#D4AF37' }}>
                                             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
@@ -1210,7 +1537,7 @@ export default function ConstructionOfferSubmitScreen() {
                                         </TouchableOpacity>
                                     )}
                                 </View>
-                            </GlassCard>
+                            </View>
                         </View>
                     </TouchableWithoutFeedback>
                 </KeyboardAwareScrollView >

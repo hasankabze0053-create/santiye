@@ -16,6 +16,7 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PermissionService } from '../../services/PermissionService';
 
 const { width } = Dimensions.get('window');
 
@@ -41,15 +42,15 @@ const HERO_SLIDES = [
     },
     {
         id: 3,
-        title: "Tarihi Yalı\nRestorasyonu",
+        title: "Asansör Revizyon\n& Bakım",
         image: { uri: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=800&auto=format&fit=crop' },
-        tag: "Klasik"
+        tag: "Premium"
     }
 ];
 
 const SERVICES = [
     { id: 'turnkey',    title: 'Anahtar Teslim\nTadilat',        subtitle: 'Yıkım, proje ve uygulama.',           icon: 'key',             lib: 'Ionicons' },
-    { id: 'restoration',title: 'Restorasyon',                   subtitle: 'Tarihi dokuya uygun güçlendirme.',    icon: 'pillar',          lib: 'MaterialCommunityIcons' },
+    { id: 'elevator_maintenance', title: 'Asansör\nBakımı', subtitle: 'Periyodik kontrol ve modernizasyon.', icon: 'elevator-passenger', lib: 'MaterialCommunityIcons' },
     { id: 'paint',      title: 'Boya & Dekorasyon',             subtitle: 'Duvar kağıdı, boya ve alçıpan.',     icon: 'format-paint',    lib: 'MaterialCommunityIcons' },
     { id: 'kitchen',    title: 'Mutfak & Banyo\nYenileme',      subtitle: 'Modern ve fonksiyonel alanlar.',     icon: 'water-pump',      lib: 'MaterialCommunityIcons' },
     { id: 'outdoor',    title: 'Açık Alan, Teras\n& Kış Bahçesi', subtitle: 'Pergola, giyotin cam, peyzaj.',      icon: 'tree-outline',    lib: 'MaterialCommunityIcons' },
@@ -61,11 +62,11 @@ const SERVICES = [
 // Standard Gold Card (Premium Button)
 const GoldCard = ({ children, style, onPress }) => (
     <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={[styles.goldCardContainer, style]}>
-        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+        <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
         <LinearGradient
-            colors={[GOLD_MAIN, 'rgba(197, 160, 89, 0.1)', GOLD_MAIN]}
+            colors={['rgba(255, 215, 0, 0.15)', 'transparent', 'rgba(255, 255, 255, 0.05)']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={styles.goldBorderGradient}
+            style={StyleSheet.absoluteFill}
         />
         <View style={styles.cardContent}>
             {children}
@@ -89,18 +90,17 @@ export default function RenovationScreen({ navigation }) {
         checkUserStatus();
     }, []);
 
+    const [hasRenovationAccess, setHasRenovationAccess] = useState(false);
+
     const checkUserStatus = async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                const { data } = await supabase
-                    .from('profiles')
-                    .select('is_admin, is_architect, is_contractor')
-                    .eq('id', user.id)
-                    .single();
-                setIsAdmin(data?.is_admin || false);
-                setIsArchitect(data?.is_architect || false);
-                setIsContractor(data?.is_contractor || false);
+                const roles = await PermissionService.getUserRoles();
+                setIsAdmin(roles.isAdmin);
+
+                const hasAccess = await PermissionService.checkAccess('renovation_office');
+                setHasRenovationAccess(hasAccess);
             }
         } catch (e) {
             console.warn('User status check failed', e);
@@ -147,17 +147,17 @@ export default function RenovationScreen({ navigation }) {
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                         <TouchableOpacity
-                            style={[styles.headerIconBtn, !isArchitect && !isContractor && !isAdmin && { opacity: 0.5 }]}
+                            style={[styles.headerIconBtn, !hasRenovationAccess && !isAdmin && { opacity: 0.5 }]}
                             onPress={() => {
-                                if (isAdmin || isArchitect || isContractor) {
+                                if (isAdmin || hasRenovationAccess) {
                                     navigation.navigate('RenovationProvider');
                                 } else {
-                                    Alert.alert("Yetkisiz Erişim", "Bu panele sadece 'Mimar' veya 'Müteahhit' yetkisi olan hesaplar erişebilir.");
+                                    Alert.alert("Yetkisiz Erişim", "Tadilat yönetim paneline sadece yetkili firmalar erişebilir.");
                                 }
                             }}
-                            activeOpacity={isAdmin || isArchitect || isContractor ? 0.7 : 1}
+                            activeOpacity={isAdmin || hasRenovationAccess ? 0.7 : 1}
                         >
-                            <MaterialCommunityIcons name="hammer-wrench" size={24} color={isAdmin || isArchitect || isContractor ? "#D4AF37" : "#666"} />
+                            <MaterialCommunityIcons name="hammer-wrench" size={24} color={isAdmin || hasRenovationAccess ? "#D4AF37" : "#666"} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -465,23 +465,29 @@ const styles = StyleSheet.create({
         shadowRadius: 5,
         elevation: 3,
     },
-    sectionTitle: { color: '#666', fontSize: 12, fontWeight: 'bold', letterSpacing: 1, marginLeft: 0, marginBottom: 15 },
+    sectionTitle: { color: '#999', fontSize: 12, fontWeight: 'bold', letterSpacing: 1, marginLeft: 0, marginBottom: 15 },
     gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
     gridItem: { width: '48%', height: 160, borderRadius: 20, marginBottom: 16 },
 
     // Premium Card Styles
     goldCardContainer: {
-        borderRadius: 20,
+        borderRadius: 24,
         overflow: 'hidden',
-        backgroundColor: '#111',
-        borderWidth: 1, borderColor: '#333'
+        backgroundColor: 'rgba(30, 30, 30, 0.65)',
+        borderWidth: 1.5,
+        borderColor: 'rgba(255, 215, 0, 0.25)',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+        elevation: 10,
     },
     goldBorderGradient: { position: 'absolute', top: 0, left: 0, right: 0, height: 2, opacity: 0.8 },
-    cardContent: { flex: 1, justifyContent: 'space-between', alignItems: 'center', padding: 15 },
+    cardContent: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 12 },
 
     iconCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255, 215, 0, 0.1)', alignItems: 'center', justifyContent: 'center' },
-    gridItemTitle: { color: '#ddd', fontSize: 13, fontWeight: 'bold', textAlign: 'center', marginTop: 12 },
-    gridItemSubtitle: { color: '#666', fontSize: 10, textAlign: 'center', marginTop: 4, paddingHorizontal: 4, lineHeight: 14 },
+    gridItemTitle: { color: '#FFF', fontSize: 14.5, fontWeight: '900', textAlign: 'center', marginTop: 12, letterSpacing: 0.5 },
+    gridItemSubtitle: { color: '#aaa', fontSize: 11, textAlign: 'center', marginTop: 4, paddingHorizontal: 4, lineHeight: 15 },
 
 
     // Smart Section

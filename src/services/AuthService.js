@@ -18,13 +18,14 @@ export const AuthService = {
     },
 
     // 2. Sign Up
-    async signUp(email, password, fullName) {
+    async signUp(email, password, fullName, phone) {
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
             options: {
                 data: {
                     full_name: fullName,
+                    phone: phone, // Save phone to metadata
                     avatar_url: '',
                     user_type: 'individual' // Explicitly set meta
                 },
@@ -81,6 +82,7 @@ export const AuthService = {
                         id: user.id,
                         email: user.email,
                         full_name: user.user_metadata?.full_name || '',
+                        phone: user.user_metadata?.phone || null,
                         user_type: 'individual', // Default fallback
                         approval_status: 'approved', // Individuals are auto-approved
                         avatar_url: ''

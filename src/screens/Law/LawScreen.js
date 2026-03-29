@@ -29,6 +29,7 @@ import { analyzeLegalCase } from '../../services/legalAiService';
 import AiOraclePulse from './components/AiOraclePulse';
 import InsightPanel from './components/InsightPanel';
 import SOSBanner from './components/SOSBanner';
+import { PermissionService } from '../../services/PermissionService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -137,15 +138,21 @@ export default function LawScreen() {
         ]).start();
     }, [isInputFocused, inputText]);
 
+    const [hasLawAccess, setHasLawAccess] = useState(false);
+
     const checkUserStatus = async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                const { data } = await supabase.from('profiles').select('is_admin, is_lawyer').eq('id', user.id).single();
-                setIsAdmin(data?.is_admin || false);
-                setIsLawyer(data?.is_lawyer || false);
+                const roles = await PermissionService.getUserRoles();
+                setIsAdmin(roles.isAdmin);
+
+                const hasAccess = await PermissionService.checkAccess('lawyer');
+                setHasLawAccess(hasAccess);
             }
-        } catch { /* silent */ }
+        } catch (e) {
+            console.warn('User status check failed', e);
+        }
     };
 
     const handlePickFile = async () => {
@@ -231,13 +238,13 @@ export default function LawScreen() {
                                 <Text allowFontScaling={false} style={s.headerSub}>Hukuki Çözüm Merkezi</Text>
                             </View>
                             <TouchableOpacity
-                                style={[s.headerBtn, (isLawyer || isAdmin) && s.headerBtnActive]}
+                                style={[s.headerBtn, (hasLawAccess || isAdmin) && s.headerBtnActive]}
                                 onPress={() => {
-                                    if (isAdmin || isLawyer) navigation.navigate('LawProvider');
-                                    else Alert.alert('Yetkisiz', 'Sadece kayıtlı avukatlar erişebilir.');
+                                    if (isAdmin || hasLawAccess) navigation.navigate('LawProvider');
+                                    else Alert.alert('Yetkisiz Erişim', 'Yalnızca onaylı avukat hesapları bu panele erişebilir.');
                                 }}
                             >
-                                <MaterialCommunityIcons name="scale-balance" size={18} color={isAdmin || isLawyer ? GOLD : '#555'} />
+                                <MaterialCommunityIcons name="scale-balance" size={18} color={isAdmin || hasLawAccess ? GOLD : '#555'} />
                             </TouchableOpacity>
                         </View>
 

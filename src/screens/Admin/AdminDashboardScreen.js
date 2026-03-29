@@ -330,19 +330,26 @@ const AdminDashboardScreen = () => {
             const { data: profiles, error } = await query;
             if (error) throw error;
 
-            // Fetch Companies to map phones for corporate users
-            const { data: companies } = await supabase.from('companies').select('owner_id, phone');
+            // Fetch Companies to map phones and get company_id
+            const { data: companies } = await supabase.from('companies').select('id, owner_id, phone');
 
-            // Map phones to profiles
-            const paramsWithPhone = profiles.map(p => {
+            // Fetch Company Services to map active roles
+            const { data: services } = await supabase.from('company_services').select('*');
+
+            // Map phones and services to profiles
+            const usersWithServices = profiles.map(p => {
                 const company = companies?.find(c => c.owner_id === p.id);
+                const companyServices = services?.filter(s => s.company_id === company?.id && s.status === 'active') || [];
+                
                 return {
                     ...p,
-                    phone: company ? company.phone : p.phone // Use company phone or profile phone
+                    company_id: company?.id,
+                    phone: company ? company.phone : p.phone,
+                    active_services: companyServices.map(s => s.service_type)
                 };
             });
 
-            setUsers(paramsWithPhone || []);
+            setUsers(usersWithServices || []);
         } catch (err) {
             console.error('Error fetching users:', err);
             Alert.alert('Hata', 'Kullanıcılar çekilemedi.');
@@ -426,40 +433,52 @@ const AdminDashboardScreen = () => {
         setRejectModalVisible(true);
     };
 
-    const handleSubmitAction = async () => {
-        if (!rejectionReason.trim()) {
-            Alert.alert('Uyarı', 'Lütfen bir sebep/açıklama giriniz.');
+    const handleToggleCompanyService = async (user, serviceType, newValue) => {
+        if (!user.company_id) {
+            Alert.alert("Hata", "Bu kullanıcının bir firma kaydı bulunamadı.");
             return;
         }
 
-        const status = actionType === 'reject' ? 'rejected' : 'incomplete';
-        const successTitle = actionType === 'reject' ? 'Reddedildi' : 'Bilgi Talep Edildi';
+        const status = newValue ? 'active' : 'inactive';
 
         try {
-            const { error } = await supabase
-                .from('profiles')
-                .update({
-                    approval_status: status,
-                    rejection_reason: rejectionReason
-                })
-                .eq('id', targetUser.id);
+            // Update company_services table
+            const { error: serviceError } = await supabase
+                .from('company_services')
+                .upsert({ 
+                    company_id: user.company_id, 
+                    service_type: serviceType, 
+                    status: status 
+                }, { onConflict: 'company_id, service_type' });
 
-            if (error) throw error;
+            if (serviceError) throw serviceError;
 
-            Alert.alert('Başarılı', `${targetUser.full_name || targetUser.email} durumu güncellendi: ${successTitle}`);
+            // Also update the legacy profile flags to maintain compatibility if necessary
+            // Mapping new service types to legacy profile columns if they exist
+            let profileUpdate = {};
+            if (serviceType === 'urban_transformation') profileUpdate.is_contractor = newValue; // Closest match
+            if (serviceType === 'renovation_office') profileUpdate.is_architect = newValue; // Closest match
+            if (serviceType === 'market_seller') profileUpdate.is_seller = newValue;
+            if (serviceType === 'logistics_company') profileUpdate.is_transporter = newValue;
+            if (serviceType === 'lawyer') profileUpdate.is_lawyer = newValue;
+            if (serviceType === 'technical_office') profileUpdate.is_engineer = newValue;
 
-            // Optimistic Update
-            setUsers(prev => prev.map(u => u.id === targetUser.id ? {
-                ...u,
-                approval_status: status,
-                rejection_reason: rejectionReason
-            } : u));
+            if (Object.keys(profileUpdate).length > 0) {
+                await supabase.from('profiles').update(profileUpdate).eq('id', user.id);
+            }
 
-            setRejectModalVisible(false);
-            setTargetUser(null);
+            // Update UI State optimistically
+            const updatedServices = newValue 
+                ? [...(user.active_services || []), serviceType]
+                : (user.active_services || []).filter(s => s !== serviceType);
+
+            const updatedUser = { ...user, active_services: updatedServices, ...profileUpdate };
+            setSelectedUserDetail(updatedUser);
+            setUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
+
         } catch (err) {
             console.error(err);
-            Alert.alert('Hata', 'İşlem başarısız (Sütun eksik olabilir): ' + err.message);
+            Alert.alert("Hata", "Hizmet yetkisi güncellenemedi.");
         }
     };
 
@@ -474,7 +493,8 @@ const AdminDashboardScreen = () => {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            const { error } = await supabase
+                            // 1. Update Profile (Legacy Flags)
+                            const { error: profileError } = await supabase
                                 .from('profiles')
                                 .update({
                                     user_type: 'individual',
@@ -489,27 +509,37 @@ const AdminDashboardScreen = () => {
                                 })
                                 .eq('id', user.id);
 
-                            if (error) throw error;
+                            if (profileError) throw profileError;
+
+                            // 2. Clear Company Services (New System)
+                            if (user.company_id) {
+                                await supabase
+                                    .from('company_services')
+                                    .delete()
+                                    .eq('company_id', user.company_id);
+                            }
 
                             // Optimistic Update
+                            const updatedUser = {
+                                ...user,
+                                user_type: 'individual',
+                                approval_status: 'approved',
+                                is_contractor: false,
+                                is_seller: false,
+                                is_transporter: false,
+                                is_architect: false,
+                                is_engineer: false,
+                                is_real_estate_agent: false,
+                                active_services: [],
+                                rejection_reason: null
+                            };
+
                             if (userTypeFilter === 'corporate') {
                                 // Remove from list if viewing corporate only
                                 setUsers(prev => prev.filter(u => u.id !== user.id));
                                 setSelectedUserDetail(null); // Close modal
                             } else {
                                 // Just update details
-                                const updatedUser = {
-                                    ...user,
-                                    user_type: 'individual',
-                                    approval_status: 'approved',
-                                    is_contractor: false,
-                                    is_seller: false,
-                                    is_transporter: false,
-                                    is_architect: false,
-                                    is_engineer: false,
-                                    is_real_estate_agent: false,
-                                    rejection_reason: null
-                                };
                                 setUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
                                 setSelectedUserDetail(updatedUser);
                             }
@@ -704,45 +734,27 @@ const AdminDashboardScreen = () => {
                                         <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 14, fontWeight: 'bold', marginBottom: 10 }}>FİRMA YETKİLERİ / ROLLERİ</Text>
 
                                         {[
-                                            { key: 'is_contractor', label: 'Müteahhitlik / Proje' },
-                                            { key: 'is_seller', label: 'Yapı Market / Satıcı' },
-                                            { key: 'is_transporter', label: 'İş Makinesi / Nakliye' },
-                                            { key: 'is_architect', label: 'Mimar' },
-                                            { key: 'is_engineer', label: 'Mühendis' },
-                                            { key: 'is_real_estate_agent', label: 'Emlakçı' },
-                                            { key: 'is_lawyer', label: 'Avukat / Hukuk' },
-                                        ].map((role) => (
-                                            <View key={role.key} style={styles.roleRow}>
-                                                <Text allowFontScaling={false} style={{ color: '#ccc', flex: 1 }}>{role.label}</Text>
-                                                <Switch
-                                                    value={selectedUserDetail[role.key] || false}
-                                                    trackColor={{ false: '#333', true: '#4ADE80' }}
-                                                    thumbColor={selectedUserDetail[role.key] ? '#fff' : '#f4f3f4'}
-                                                    onValueChange={async (newValue) => {
-                                                        // Optimistic Update
-                                                        const updatedUser = { ...selectedUserDetail, [role.key]: newValue };
-                                                        setSelectedUserDetail(updatedUser);
-
-                                                        // Database Update
-                                                        try {
-                                                            const { error } = await supabase
-                                                                .from('profiles')
-                                                                .update({ [role.key]: newValue })
-                                                                .eq('id', selectedUserDetail.id);
-
-                                                            if (error) throw error;
-
-                                                            // Also update the main users list to reflect changes if we close modal
-                                                            setUsers(prev => prev.map(u => u.id === selectedUserDetail.id ? updatedUser : u));
-                                                        } catch (err) {
-                                                            Alert.alert("Hata", "Rol güncellenemedi.");
-                                                            // Revert
-                                                            setSelectedUserDetail({ ...selectedUserDetail, [role.key]: !newValue });
-                                                        }
-                                                    }}
-                                                />
-                                            </View>
-                                        ))}
+                                            { key: 'urban_transformation', label: 'Kentsel Dönüşüm' },
+                                            { key: 'renovation_office', label: 'Tadilat Ofisi' },
+                                            { key: 'market_seller', label: 'Hizmet & Satış (Market)' },
+                                            { key: 'logistics_company', label: 'Lojistik / Nakliye' },
+                                            { key: 'machine_renter', label: 'İş Makinesi Kiralama' },
+                                            { key: 'lawyer', label: 'Avukatlık / Hukuk' },
+                                            { key: 'technical_office', label: 'Teknik Ofis' },
+                                        ].map((role) => {
+                                            const isActive = selectedUserDetail.active_services?.includes(role.key);
+                                            return (
+                                                <View key={role.key} style={styles.roleRow}>
+                                                    <Text allowFontScaling={false} style={{ color: '#ccc', flex: 1 }}>{role.label}</Text>
+                                                    <Switch
+                                                        value={isActive || false}
+                                                        trackColor={{ false: '#333', true: '#4ADE80' }}
+                                                        thumbColor={isActive ? '#fff' : '#f4f3f4'}
+                                                        onValueChange={(newValue) => handleToggleCompanyService(selectedUserDetail, role.key, newValue)}
+                                                    />
+                                                </View>
+                                            );
+                                        })}
                                     </View>
                                 )}
 

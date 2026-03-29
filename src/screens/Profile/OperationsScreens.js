@@ -466,10 +466,12 @@ export const InboxScreen = () => {
                         : (singleOffer.price_estimate ? singleOffer.price_estimate.toLocaleString('tr-TR') + ' ₺' : 'Fiyat Teklifi');
                 }
 
+                const isTadilat = group.request?.offer_type === 'anahtar_teslim_tadilat';
+
                 return {
                     ...group,
                     price: displayPrice,
-                    requestType: isTurnkey ? 'Kat Karşılığı' : 'Kentsel Dönüşüm',
+                    requestType: isTadilat ? 'Tadilat' : (isTurnkey ? 'Kat Karşılığı' : 'Kentsel Dönüşüm'),
                     companyName: group.profiles?.company_name || group.profiles?.full_name || 'Bilinmeyen Firma',
                     location: `${group.request?.city || 'İstanbul'} / ${group.request?.district || ''}`
                 };
@@ -580,7 +582,7 @@ export const InboxScreen = () => {
                     <View style={styles.premiumHeader}>
                         <View style={{ flex: 1 }}>
                             <Text allowFontScaling={false} style={styles.premiumCompanyName}>
-                                {item.type === 'market' ? 'İnşaat Marketi' : (item.request?.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat Merkezi' : 'Kentsel Dönüşüm Merkezi')}
+                                {item.type === 'market' ? 'İnşaat Marketi' : (item.request?.offer_type === 'anahtar_teslim_tadilat' || item.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat Merkezi' : 'Kentsel Dönüşüm Merkezi')}
                             </Text>
                             <View style={styles.locationContainer}>
                                 <MaterialCommunityIcons name="map-marker" size={12} color="#D4AF37" />
@@ -601,7 +603,7 @@ export const InboxScreen = () => {
                         <View style={{ flex: 1 }}>
                             <Text allowFontScaling={false} style={styles.premiumLabelText}>TALEP TÜRÜ</Text>
                             <Text allowFontScaling={false} style={styles.premiumValueText}>
-                                {item.type === 'market' ? 'Malzeme Talebi' : (item.requestType || 'Kentsel Dönüşüm Talebi')}
+                                {item.type === 'market' ? 'Malzeme Talebi' : (item.requestType || 'Detaylı Talep')}
                             </Text>
                         </View>
 

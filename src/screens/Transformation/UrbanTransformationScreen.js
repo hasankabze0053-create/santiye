@@ -1,9 +1,11 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
+import { ScreenConfigService } from '../../services/ScreenConfigService';
+import { PermissionService } from '../../services/PermissionService';
 
 const { width } = Dimensions.get('window');
 
@@ -80,9 +82,6 @@ const FaqItem = ({ item }) => {
     );
 };
 
-import { useEffect } from 'react';
-import { ScreenConfigService } from '../../services/ScreenConfigService';
-
 // Default configuration in case DB is unreachable
 const DEFAULT_SECTIONS = [
     { id: 'urban_construction_quotes', title: 'İnşaat Teklifleri', sort_order: 10, is_visible: true },
@@ -130,24 +129,19 @@ export default function UrbanTransformationScreen({ navigation }) {
     const [isContractor, setIsContractor] = useState(false);
     const [isProvider, setIsProvider] = useState(false); // New state for general providers
 
+    const [hasTransformationAccess, setHasTransformationAccess] = useState(false);
+
     const checkAdminStatus = async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                const { data } = await supabase
-                    .from('profiles')
-                    .select('is_admin, is_contractor, user_type, approval_status')
-                    .eq('id', user.id)
-                    .single();
+                // Check detailed roles via Service
+                const roles = await PermissionService.getUserRoles();
+                setIsAdmin(roles.isAdmin);
 
-                const adminStatus = data?.is_admin || false;
-                const contractorStatus = data?.is_contractor || false;
-                // Allow access if explicitly contractor OR if corporate and approved
-                const providerStatus = contractorStatus || (data?.user_type === 'corporate' && data?.approval_status === 'approved');
-
-                setIsAdmin(adminStatus);
-                setIsContractor(contractorStatus);
-                setIsProvider(providerStatus);
+                // Check specific module permission (Urban Transformation)
+                const hasAccess = await PermissionService.checkAccess('urban_transformation');
+                setHasTransformationAccess(hasAccess);
             }
         } catch (e) {
             console.warn('Admin check failed', e);
@@ -314,17 +308,17 @@ export default function UrbanTransformationScreen({ navigation }) {
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                         <TouchableOpacity
-                            style={[styles.headerIconBtn, !isContractor && !isAdmin && { opacity: 0.5 }]} // Use isContractor
+                            style={[styles.headerIconBtn, !hasTransformationAccess && !isAdmin && { opacity: 0.5 }]}
                             onPress={() => {
-                                if (isAdmin || isContractor) {
+                                if (isAdmin || hasTransformationAccess) {
                                     navigation.navigate('ContractorProvider');
                                 } else {
-                                    Alert.alert("Yetkisiz Erişim", "Bu panele sadece 'Müteahhit / Proje' yetkisi olan hesaplar erişebilir.");
+                                    Alert.alert("Yetkisiz Erişim", "Kentsel dönüşüm paneline sadece yetkili firmalar erişebilir.");
                                 }
                             }}
-                            activeOpacity={isAdmin || isProvider ? 0.7 : 1}
+                            activeOpacity={isAdmin || hasTransformationAccess ? 0.7 : 1}
                         >
-                            <MaterialCommunityIcons name="home-city" size={24} color={isAdmin || isProvider ? "#D4AF37" : "#666"} />
+                            <MaterialCommunityIcons name="home-city" size={24} color={isAdmin || hasTransformationAccess ? "#D4AF37" : "#666"} />
                         </TouchableOpacity>
                     </View>
                 </View>

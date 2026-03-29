@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Animated, Dimensions, FlatList, Keyboard, Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
+import { PermissionService } from '../../services/PermissionService';
 
 const { width } = Dimensions.get('window');
 
@@ -211,17 +212,17 @@ export default function RentalScreen() {
         checkUserStatus();
     }, []);
 
+    const [hasRentalAccess, setHasRentalAccess] = useState(false);
+
     const checkUserStatus = async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                const { data } = await supabase
-                    .from('profiles')
-                    .select('is_admin, is_transporter')
-                    .eq('id', user.id)
-                    .single();
-                setIsAdmin(data?.is_admin || false);
-                setIsTransporter(data?.is_transporter || false);
+                const roles = await PermissionService.getUserRoles();
+                setIsAdmin(roles.isAdmin);
+
+                const hasAccess = await PermissionService.checkAccess('machine_renter');
+                setHasRentalAccess(hasAccess);
             }
         } catch (e) {
             console.warn('User status check failed', e);
@@ -248,17 +249,17 @@ export default function RentalScreen() {
                         <Text allowFontScaling={false} style={styles.headerSubtitle}>Projeniz İçin Güçlü Çözümler</Text>
                     </View>
                     <TouchableOpacity
-                        style={[styles.headerIconBtn, !isTransporter && !isAdmin && { opacity: 0.5 }]}
+                        style={[styles.headerIconBtn, !hasRentalAccess && !isAdmin && { opacity: 0.5 }]}
                         onPress={() => {
-                            if (isAdmin || isTransporter) {
+                            if (isAdmin || hasRentalAccess) {
                                 navigation.navigate('MachineryProvider');
                             } else {
-                                Alert.alert("Yetkisiz Erişim", "Bu panele sadece 'İş Makinesi / Nakliye' yetkisi olan hesaplar erişebilir.");
+                                Alert.alert("Yetkisiz Erişim", "Yalnızca onaylı 'İş Makinesi / Kiralama' hesapları bu panele erişebilir.");
                             }
                         }}
-                        activeOpacity={isAdmin || isTransporter ? 0.7 : 1}
+                        activeOpacity={isAdmin || hasRentalAccess ? 0.7 : 1}
                     >
-                        <MaterialCommunityIcons name="excavator" size={24} color={isAdmin || isTransporter ? "#D4AF37" : "#666"} />
+                        <MaterialCommunityIcons name="excavator" size={24} color={isAdmin || hasRentalAccess ? "#D4AF37" : "#666"} />
                     </TouchableOpacity>
                 </View>
 
