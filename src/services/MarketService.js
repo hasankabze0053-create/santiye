@@ -244,7 +244,7 @@ export const MarketService = {
                 .select(`
                     *,
                     provider:profiles(full_name, avatar_url, company_name),
-                    request:market_requests(title)
+                    request:market_requests(*, items:market_request_items(*))
                 `)
                 .in('request_id', requestIds)
                 .order('created_at', { ascending: false });
@@ -307,12 +307,147 @@ export const MarketService = {
         }
     },
 
+    // 11. Kategori Yönetimi (Admin)
+    toggleCategoryVisibility: async (id, currentStatus) => {
+        try {
+            const { error } = await supabase
+                .from('market_categories')
+                .update({ is_active: !currentStatus })
+                .eq('id', id);
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('toggleCategoryVisibility error:', error);
+            return { success: false, error };
+        }
+    },
+
+    updateCategorySortOrder: async (id, newSortOrder) => {
+        try {
+            const { error } = await supabase
+                .from('market_categories')
+                .update({ sort_order: newSortOrder })
+                .eq('id', id);
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('updateCategorySortOrder error:', error);
+            return { success: false, error };
+        }
+    },
+
+    // 12. Alt Kategori Yönetimi (Admin)
+    toggleSubCategoryVisibility: async (id, currentStatus) => {
+        try {
+            const { error } = await supabase
+                .from('market_subcategories')
+                .update({ is_active: !currentStatus })
+                .eq('id', id);
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('toggleSubCategoryVisibility error:', error);
+            return { success: false, error };
+        }
+    },
+
+    updateSubCategorySortOrder: async (id, newSortOrder) => {
+        try {
+            const { error } = await supabase
+                .from('market_subcategories')
+                .update({ sort_order: newSortOrder })
+                .eq('id', id);
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('updateSubCategorySortOrder error:', error);
+            return { success: false, error };
+        }
+    },
+
+    updateCategoryName: async (id, newTitle) => {
+        try {
+            const { error } = await supabase
+                .from('market_categories')
+                .update({ title: newTitle })
+                .eq('id', id);
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('updateCategoryName error:', error);
+            return { success: false, error };
+        }
+    },
+
+    updateSubCategoryName: async (id, newName) => {
+        try {
+            const { error } = await supabase
+                .from('market_subcategories')
+                .update({ name: newName })
+                .eq('id', id);
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('updateSubCategoryName error:', error);
+            return { success: false, error };
+        }
+    },
+
     getShowcaseItems: async () => {
-        // Şu anlık statik, istenirse bunu da 'market_showcase' tablosuna taşıyabiliriz.
-        return [
-            { id: '1', title: '', subtitle: '', image_ref: 'showcase_concrete', tag: 'EN İYİ FİYAT', is_local: true },
-            { id: '2', title: 'EN UYGUN DUVAR ELEMANI', subtitle: '', image_ref: 'showcase_brick', tag: 'ÜCRETSİZ TESLİMAT', is_local: true },
-            { id: '3', title: 'SERAMİKTE %30 NET İNDİRİM', subtitle: '', image_ref: 'showcase_ceramic', tag: 'BÜYÜK FIRSAT', is_local: true },
-        ];
+        try {
+            const { data, error } = await supabase
+                .from('market_showcase')
+                .select('*')
+                .order('sort_order', { ascending: true });
+            
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            console.error('getShowcaseItems error:', error);
+            return [];
+        }
+    },
+
+    addShowcaseItem: async (item) => {
+        try {
+            const { data, error } = await supabase
+                .from('market_showcase')
+                .insert([item])
+                .select()
+                .single();
+            if (error) throw error;
+            return { success: true, data };
+        } catch (error) {
+            console.error('addShowcaseItem error:', error);
+            return { success: false, error };
+        }
+    },
+
+    updateShowcaseItem: async (id, data) => {
+        try {
+            const { error } = await supabase
+                .from('market_showcase')
+                .update(data)
+                .eq('id', id);
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('updateShowcaseItem error:', error);
+            return { success: false, error };
+        }
+    },
+
+    deleteShowcaseItem: async (id) => {
+        try {
+            const { error } = await supabase
+                .from('market_showcase')
+                .delete()
+                .eq('id', id);
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('deleteShowcaseItem error:', error);
+            return { success: false, error };
+        }
     }
 };

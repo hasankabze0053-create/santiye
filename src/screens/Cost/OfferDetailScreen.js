@@ -176,7 +176,22 @@ export default function OfferDetailScreen() {
 
     const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
 
+    // --- PROFOSYONEL PARSING MANTIĞI ---
+    const getField = (tag) => {
+        if (!request?.description) return null;
+        const regexNew = new RegExp(`\\[${tag}\\]\\s*(.*)`, 'i');
+        const matchNew = request.description.match(regexNew);
+        if (matchNew) return matchNew[1].trim();
+
+        const regexOld = new RegExp(`${tag}:\\s*(.*)`, 'i');
+        const matchOld = request.description.match(regexOld);
+        if (matchOld) return matchOld[1].trim();
+        return null;
+    };
+
     const renderOfferContent = ({ item: offer, index }) => {
+        const isTadilat = request?.offer_type === 'anahtar_teslim_tadilat' || offer.offer_type === 'anahtar_teslim_tadilat';
+        
         // Parse JSON data safely
         const floorDetails = offer.floor_details_json?.floors || {};
         const groundFloorType = offer.floor_details_json?.groundFloor || 'apartment';
@@ -191,24 +206,6 @@ export default function OfferDetailScreen() {
             const hasDirectMatch = allUnits.some(u => selectedUnits.includes(u.id));
 
             if (hasDirectMatch) return selectedUnits;
-
-            // Fallback 1: Match by Unit Name (Rescues legacy offers with random IDs)
-            const matchedByIds = [];
-            if (selectedUnits.length > 0) {
-                // Try to find what those IDs were named in the original submission
-                // Since IDs were random, we can't reliably know the names unless we assume
-                // the contractor selected specific names.
-                // Actually, the selectedUnits array in the DB contains the IDs at the time of submission.
-                // During load, generateDefaultFloorMap creates NEW random IDs.
-                // 
-                // Better approach: If IDs don't match, check if we can infer selection from name.
-                // This is hard because we don't have the original ID->Name mapping.
-                // HOWEVER, in the "Teklif Özeti" static text before, we might have had clues.
-                // Let's use a simpler heuristic: If no matches, and it's a turnkey offer
-                // where the user selected units, let's try to match by standard names if they exist.
-
-                console.warn("Unit ID mismatch detected. Attempting ID-less recovery...");
-            }
 
             // Fallback 2: Representative selection (keep for robustness)
             if (selectedUnits.length > 0) {
@@ -225,27 +222,31 @@ export default function OfferDetailScreen() {
 
         const effectiveSelectedUnits = normalizeSelectedUnits();
 
-        console.log('DEBUG: OfferDetail', {
-            offerId: offer.id,
-            selectedUnitsCount: selectedUnits.length,
-            effectiveSelectedUnitsCount: effectiveSelectedUnits.length
-        });
-
         const isFlatForLand = !(offer.price_estimate > 0);
+
+        // Tadilat Fields
+        const projeTipi = getField('PROJE TİPİ') || 'Anahtar Teslim Tadilat';
+        const kapsam = getField('KAPSAM') || getField('HİZMETLER') || '-';
+        const durum = getField('DURUM') || getField('YENİLEME') || '-';
+        const teknik = getField('TEKNİK') || getField('MEKAN') || '-';
+        const tarz = getField('TASARIM') || getField('TARZ') || 'Belirtilmedi';
+        const butce = getField('BÜTÇE') || '-';
+        const lokasyon = getField('LOKASYON') || (request?.district ? `${request.district}, ${request.city}` : (request?.city || 'Belirtilmedi'));
+        const teknikItems = teknik.split('|').map(s => s.trim()).filter(Boolean);
 
         return (
             <ScrollView
                 style={{ width: width, paddingHorizontal: 20 }}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 150 }}
                 showsVerticalScrollIndicator={false}
             >
                 {/* 1. Price & Duration Summary */}
-                <GlassCard style={styles.card}>
+                <GlassCard style={[styles.card, isTadilat && { borderColor: '#4CAF50', borderLeftWidth: 4 }]}>
                     <View style={styles.cardHeader}>
-                        <MaterialCommunityIcons name="star-circle" size={24} color="#D4AF37" />
+                        <MaterialCommunityIcons name={isTadilat ? "home-edit" : "star-circle"} size={24} color={isTadilat ? "#4CAF50" : "#D4AF37"} />
                         <Text allowFontScaling={false} style={styles.cardTitle}>TEKLİF #{index + 1}</Text>
                         <View style={{ flex: 1 }} />
-                        <View style={styles.badge}>
+                        <View style={[styles.badge, isTadilat && { backgroundColor: '#4CAF50' }]}>
                             <Text allowFontScaling={false} style={styles.badgeText}>YENİ TEKLİF</Text>
                         </View>
                     </View>
@@ -256,26 +257,8 @@ export default function OfferDetailScreen() {
                     {offer.price_estimate > 0 ? (
                         <View>
                             <Text allowFontScaling={false} style={styles.label}>TAHMİNİ FİYAT</Text>
-                            <Text allowFontScaling={false} style={styles.priceValue}>{formatCurrency(offer.price_estimate)} TL</Text>
+                            <Text allowFontScaling={false} style={[styles.priceValue, isTadilat && { color: '#4CAF50' }]}>{formatCurrency(offer.price_estimate)} TL</Text>
                             <Text allowFontScaling={false} style={styles.priceWords}>{numberToTurkishWords(offer.price_estimate)}</Text>
-                            
-                            {/* Added Total Area and Unit Price details if available */}
-                            {(offer.total_area > 0 || offer.unit_price > 0) && (
-                                <View style={{ flexDirection: 'row', marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.05)', gap: 20 }}>
-                                    {offer.total_area > 0 && (
-                                        <View style={{ flex: 1 }}>
-                                            <Text allowFontScaling={false} style={styles.label}>TOPLAM ALAN</Text>
-                                            <Text allowFontScaling={false} style={styles.subValue}>{offer.total_area} m²</Text>
-                                        </View>
-                                    )}
-                                    {offer.unit_price > 0 && (
-                                        <View style={{ flex: 1 }}>
-                                            <Text allowFontScaling={false} style={styles.label}>BİRİM FİYAT</Text>
-                                            <Text allowFontScaling={false} style={styles.subValue}>{formatCurrency(offer.unit_price)} TL/m²</Text>
-                                        </View>
-                                    )}
-                                </View>
-                            )}
                         </View>
                     ) : (
                         <View>
@@ -284,37 +267,41 @@ export default function OfferDetailScreen() {
                     )}
                 </GlassCard>
 
-                {/* 2. Visual Building Schema */}
-                <Text allowFontScaling={false} style={styles.sectionTitle}>MİMARİ GÖRSELLEŞTİRME</Text>
-                <View style={styles.schemaContainer}>
-                    <BuildingSchema
-                        floorCount={offer.floor_count}
-                        floorDetails={floorDetails}
-                        groundFloorType={groundFloorType}
-                        isBasementResidential={offer.is_basement_residential}
-                        basementCount={offer.basement_count || 0}
-                        selectable={false} // Read only
-                        selectedUnits={effectiveSelectedUnits} // Highlights contractor units
-                        campaignData={{
-                            unitCount: request?.campaign_unit_count || 0,
-                            commercialCount: request?.campaign_commercial_count || 0
-                        }}
-                        cashAdjustment={{
-                            type: cashAdj.type || 'none',
-                            amount: cashAdj.amount || 0
-                        }}
-                        showColors={true}
-                        hideDetails={false} // Match naming in component (show details)
-                        legendLabel={contractor?.id === user?.id ? 'Müteahhit (Siz)' : 'Müteahhit Firma'}
-                        isFlatForLand={isFlatForLand}
-                        turnkeyData={{
-                            totalPrice: offer.price_estimate || 0,
-                            campaignPolicy: offer.campaign_policy || 'standard'
-                        }}
-                    />
-                </View>
+                {/* 2. Visual Building Schema (Only for Construction) */}
+                {!isTadilat && (
+                    <>
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>MİMARİ GÖRSELLEŞTİRME</Text>
+                        <View style={styles.schemaContainer}>
+                            <BuildingSchema
+                                floorCount={offer.floor_count}
+                                floorDetails={floorDetails}
+                                groundFloorType={groundFloorType}
+                                isBasementResidential={offer.is_basement_residential}
+                                basementCount={offer.basement_count || 0}
+                                selectable={false}
+                                selectedUnits={effectiveSelectedUnits}
+                                campaignData={{
+                                    unitCount: request?.campaign_unit_count || 0,
+                                    commercialCount: request?.campaign_commercial_count || 0
+                                }}
+                                cashAdjustment={{
+                                    type: cashAdj.type || 'none',
+                                    amount: cashAdj.amount || 0
+                                }}
+                                showColors={true}
+                                hideDetails={false}
+                                legendLabel={contractor?.id === user?.id ? 'Müteahhit (Siz)' : 'Müteahhit Firma'}
+                                isFlatForLand={isFlatForLand}
+                                turnkeyData={{
+                                    totalPrice: offer.price_estimate || 0,
+                                    campaignPolicy: offer.campaign_policy || 'standard'
+                                }}
+                            />
+                        </View>
+                    </>
+                )}
 
-                {/* 3. Offer Summary Text - Updated with new props */}
+                {/* 3. Offer Summary Text */}
                 <OfferSummaryCard
                     selectedUnits={effectiveSelectedUnits}
                     floorDetails={floorDetails}
@@ -329,6 +316,36 @@ export default function OfferDetailScreen() {
                     viewerMode={viewerMode}
                     offerType={request?.offer_type || offer.offer_type}
                 />
+
+                {/* 4. Tadilat Talep Detayları (Added for Professionalism) */}
+                {isTadilat && (
+                    <View style={{ marginTop: 24 }}>
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>TALEBİMİN ÖZETİ</Text>
+                        <GlassCard style={{ padding: 20, borderRadius: 16, borderLeftWidth: 4, borderColor: '#FFD700', backgroundColor: 'rgba(255,215,0,0.02)' }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 }}>
+                                <View>
+                                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: 'bold' }}>PROJE TİPİ</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 14, fontWeight: 'bold' }}>{projeTipi}</Text>
+                                </View>
+                                <View style={{ alignItems: 'flex-end' }}>
+                                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: 'bold' }}>KONUM</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 14, fontWeight: 'bold' }}>{lokasyon}</Text>
+                                </View>
+                            </View>
+                            
+                            <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginBottom: 15 }} />
+                            
+                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: 'bold', marginBottom: 8 }}>İSTENEN İŞLEMLER</Text>
+                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                                {teknikItems.map((item, idx) => (
+                                    <View key={idx} style={{ backgroundColor: 'rgba(255,215,0,0.1)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,215,0,0.2)' }}>
+                                        <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 11, fontWeight: 'bold' }}>{item}</Text>
+                                    </View>
+                                ))}
+                            </View>
+                        </GlassCard>
+                    </View>
+                )}
 
                 {/* 3. Description & Notes */}
                 {offer.offer_details && (

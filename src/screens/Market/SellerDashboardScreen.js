@@ -572,7 +572,7 @@ export default function SellerDashboardScreen() {
                                                         {/* VAT Toggles */}
                                                         <View style={{ flexDirection: 'row', gap: 8 }}>
                                                             <TouchableOpacity onPress={() => setVatIncluded(false)} style={{ paddingVertical: 6, paddingHorizontal: 10, borderRadius: 6, backgroundColor: !vatIncluded ? 'rgba(255, 215, 0, 0.15)' : '#1a1a1a', borderWidth: 1, borderColor: !vatIncluded ? '#FFD700' : '#404040' }}>
-                                                                <Text allowFontScaling={false} style={{ color: !vatIncluded ? '#FFD700' : '#737373', fontSize: 13, fontWeight: '700' }}>+ KDV</Text>
+                                                                <Text allowFontScaling={false} style={{ color: !vatIncluded ? '#FFD700' : '#737373', fontSize: 13, fontWeight: '700' }}>KDV</Text>
                                                             </TouchableOpacity>
                                                             <TouchableOpacity onPress={() => setVatIncluded(true)} style={{ paddingVertical: 6, paddingHorizontal: 10, borderRadius: 6, backgroundColor: vatIncluded ? 'rgba(255, 215, 0, 0.15)' : '#1a1a1a', borderWidth: 1, borderColor: vatIncluded ? '#FFD700' : '#404040' }}>
                                                                 <Text allowFontScaling={false} style={{ color: vatIncluded ? '#FFD700' : '#737373', fontSize: 13, fontWeight: '700' }}>KDV Dahil</Text>
@@ -594,7 +594,7 @@ export default function SellerDashboardScreen() {
                                                                     
                                                                     return (
                                                                         <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 24, fontWeight: '900', textAlign: 'right' }} numberOfLines={1} adjustsFontSizeToFit>
-                                                                            ≈ {((parseFloat(bidPrice) || 0) * parsedQ).toLocaleString('tr-TR')} TL{vatIncluded ? '' : <Text allowFontScaling={false} style={{ fontSize: 14, color: '#94a3b8' }}> + KDV</Text>}
+                                                                            ≈ {((parseFloat(bidPrice) || 0) * parsedQ).toLocaleString('tr-TR')} TL{vatIncluded ? '' : <Text allowFontScaling={false} style={{ fontSize: 14, color: '#94a3b8' }}> KDV</Text>}
                                                                         </Text>
                                                                     );
                                                                 })()}
@@ -742,7 +742,7 @@ export default function SellerDashboardScreen() {
                                                 <View>
                                                     <Text allowFontScaling={false} style={styles.label}>KDV Durumu</Text>
                                                     <View style={{ flexDirection: 'row', gap: 8 }}>
-                                                        <View style={[styles.chip, !parsedOptions.vatIncluded && styles.chipActive]}><Text allowFontScaling={false} style={[styles.chipText, !parsedOptions.vatIncluded && styles.chipTextActive]}>+ KDV</Text></View>
+                                                        <View style={[styles.chip, !parsedOptions.vatIncluded && styles.chipActive]}><Text allowFontScaling={false} style={[styles.chipText, !parsedOptions.vatIncluded && styles.chipTextActive]}>KDV</Text></View>
                                                         <View style={[styles.chip, parsedOptions.vatIncluded && styles.chipActive]}><Text allowFontScaling={false} style={[styles.chipText, parsedOptions.vatIncluded && styles.chipTextActive]}>KDV Dahil</Text></View>
                                                     </View>
                                                 </View>
@@ -752,7 +752,7 @@ export default function SellerDashboardScreen() {
                                                 <Text allowFontScaling={false} style={styles.totalLabel}>TOPLAM TUTAR</Text>
                                                 <View style={{ alignItems: 'flex-end' }}>
                                                     <Text allowFontScaling={false} style={styles.totalValue} numberOfLines={1} adjustsFontSizeToFit>≈ {totalAmnt.toLocaleString('tr-TR')} TL</Text>
-                                                    {!parsedOptions.vatIncluded && <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 13 }}>+ KDV</Text>}
+                                                    {!parsedOptions.vatIncluded && <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 13 }}>KDV</Text>}
                                                 </View>
                                             </View>
 

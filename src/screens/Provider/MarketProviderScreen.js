@@ -968,7 +968,7 @@ export default function MarketProviderScreen() {
                                                                     style={{ color: '#4ADE80', fontSize: 24, fontWeight: '900', textAlign: 'right' }}
                                                                     numberOfLines={1} 
                                                                     adjustsFontSizeToFit>
-                                                                    ≈ {((parseFloat(bidPrice) || 0) * getSafeQuantity()).toLocaleString('tr-TR')} TL{vatIncluded ? '' : <Text allowFontScaling={false} style={{ fontSize: 14, color: '#94a3b8' }}> + KDV</Text>}
+                                                                    ≈ {((parseFloat(bidPrice) || 0) * getSafeQuantity()).toLocaleString('tr-TR')} TL{vatIncluded ? '' : <Text allowFontScaling={false} style={{ fontSize: 14, color: '#94a3b8' }}> KDV</Text>}
                                                                 </Text>
                                                             </View>
                                                         ) : <View style={{ flex: 1 }} />}
@@ -987,7 +987,7 @@ export default function MarketProviderScreen() {
                                                             {/* VAT Toggles */}
                                                             <View style={{ flexDirection: 'row', gap: 8 }}>
                                                                 <TouchableOpacity onPress={() => setVatIncluded(false)} style={{ paddingVertical: 6, paddingHorizontal: 10, borderRadius: 6, backgroundColor: !vatIncluded ? 'rgba(255, 215, 0, 0.15)' : '#1a1a1a', borderWidth: 1, borderColor: !vatIncluded ? '#FFD700' : '#404040' }}>
-                                                                    <Text allowFontScaling={false} style={{ color: !vatIncluded ? '#FFD700' : '#737373', fontSize: 13, fontWeight: '700' }}>+ KDV</Text>
+                                                                    <Text allowFontScaling={false} style={{ color: !vatIncluded ? '#FFD700' : '#737373', fontSize: 13, fontWeight: '700' }}>KDV</Text>
                                                                 </TouchableOpacity>
                                                                 <TouchableOpacity onPress={() => setVatIncluded(true)} style={{ paddingVertical: 6, paddingHorizontal: 10, borderRadius: 6, backgroundColor: vatIncluded ? 'rgba(255, 215, 0, 0.15)' : '#1a1a1a', borderWidth: 1, borderColor: vatIncluded ? '#FFD700' : '#404040' }}>
                                                                     <Text allowFontScaling={false} style={{ color: vatIncluded ? '#FFD700' : '#737373', fontSize: 13, fontWeight: '700' }}>KDV Dahil</Text>
@@ -1002,7 +1002,7 @@ export default function MarketProviderScreen() {
                                                                         style={{ color: '#4ADE80', fontSize: 24, fontWeight: '900', textAlign: 'right' }}
                                                                         numberOfLines={1} 
                                                                         adjustsFontSizeToFit>
-                                                                        ≈ {((parseFloat(bidPrice) || 0) * getSafeQuantity()).toLocaleString('tr-TR')} TL{vatIncluded ? '' : <Text allowFontScaling={false} style={{ fontSize: 14, color: '#94a3b8' }}> + KDV</Text>}
+                                                                        ≈ {((parseFloat(bidPrice) || 0) * getSafeQuantity()).toLocaleString('tr-TR')} TL{vatIncluded ? '' : <Text allowFontScaling={false} style={{ fontSize: 14, color: '#94a3b8' }}> KDV</Text>}
                                                                     </Text>
                                                                 </View>
                                                             ) : <View style={{ flex: 1 }} />}
@@ -1168,7 +1168,7 @@ export default function MarketProviderScreen() {
                                         <View>
                                             <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>BİRİM FİYAT</Text>
                                             <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 26, fontWeight: '900', marginTop: 2 }}>{parseFloat(selectedBid.price).toLocaleString('tr-TR')} ₺</Text>
-                                            <Text allowFontScaling={false} style={{ color: p.vatIncluded ? '#FFD700' : '#64748b', fontSize: 11, marginTop: 4 }}>{p.vatIncluded ? 'KDV Dahil' : '+ KDV Hariç'}</Text>
+                                            <Text allowFontScaling={false} style={{ color: p.vatIncluded ? '#FFD700' : '#64748b', fontSize: 11, marginTop: 4 }}>{p.vatIncluded ? 'KDV Dahil' : 'KDV Hariç'}</Text>
                                         </View>
                                         {totalAmnt > 0 && (
                                             <View style={{ alignItems: 'flex-end' }}>

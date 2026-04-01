@@ -3,10 +3,14 @@ import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
+import * as ImagePicker from 'expo-image-picker';
+import Slider from '@react-native-community/slider';
 import {
+    ActivityIndicator,
     Alert,
     Animated,
     Dimensions,
+    Modal,
     ScrollView,
     StatusBar,
     StyleSheet,
@@ -48,17 +52,6 @@ const HERO_SLIDES = [
     }
 ];
 
-const SERVICES = [
-    { id: 'turnkey',    title: 'Anahtar Teslim\nTadilat',        subtitle: 'Yıkım, proje ve uygulama.',           icon: 'key',             lib: 'Ionicons' },
-    { id: 'elevator_maintenance', title: 'Asansör\nBakımı', subtitle: 'Periyodik kontrol ve modernizasyon.', icon: 'elevator-passenger', lib: 'MaterialCommunityIcons' },
-    { id: 'paint',      title: 'Boya & Dekorasyon',             subtitle: 'Duvar kağıdı, boya ve alçıpan.',     icon: 'format-paint',    lib: 'MaterialCommunityIcons' },
-    { id: 'kitchen',    title: 'Mutfak & Banyo\nYenileme',      subtitle: 'Modern ve fonksiyonel alanlar.',     icon: 'water-pump',      lib: 'MaterialCommunityIcons' },
-    { id: 'outdoor',    title: 'Açık Alan, Teras\n& Kış Bahçesi', subtitle: 'Pergola, giyotin cam, peyzaj.',      icon: 'tree-outline',    lib: 'MaterialCommunityIcons' },
-    { id: 'furniture',  title: 'Özel İmalat\nMobilya & Zemin',  subtitle: 'Giyinme odası, panel, masif parke.', icon: 'sofa-outline',    lib: 'MaterialCommunityIcons' },
-    { id: 'smart',      title: 'Akıllı Ev &\nTesisat Dönüşümü', subtitle: 'Smart Home, VRF, yerden ısıtma.',    icon: 'home-automation', lib: 'MaterialCommunityIcons' },
-    { id: 'arch',       title: 'Mimari Proje\n& Çizim',          subtitle: 'Ruhsat, tatbikat ve 3D tasarım.',    icon: 'pencil-ruler',    lib: 'MaterialCommunityIcons' },
-];
-
 // Standard Gold Card (Premium Button)
 const GoldCard = ({ children, style, onPress }) => (
     <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={[styles.goldCardContainer, style]}>
@@ -75,6 +68,17 @@ const GoldCard = ({ children, style, onPress }) => (
 );
 
 import { supabase } from '../../lib/supabase';
+import { RenovationService } from '../../services/RenovationService';
+
+const COLOR_PALETTE = [
+    { name: 'Altın', code: '#D4AF37' },
+    { name: 'Beyaz', code: '#FFFFFF' },
+    { name: 'Gümüş', code: '#C0C0C0' },
+    { name: 'Kömür', code: '#333333' },
+    { name: 'Turuncu', code: '#F97316' },
+    { name: 'Mavi', code: '#06B6D4' },
+    { name: 'Kırmızı', code: '#EF4444' },
+];
 
 export default function RenovationScreen({ navigation }) {
     const [requestInput, setRequestInput] = useState('');
@@ -85,10 +89,148 @@ export default function RenovationScreen({ navigation }) {
     const [isArchitect, setIsArchitect] = useState(false);
     const [isContractor, setIsContractor] = useState(false);
     const [servicePage, setServicePage] = useState(0);
+    const [services, setServices] = useState([]);
+    const [isLoadingServices, setIsLoadingServices] = useState(true);
+    const [isEditMode, setIsEditMode] = useState(false);
 
     useEffect(() => {
         checkUserStatus();
+        fetchServices();
+        fetchShowcase();
     }, []);
+
+    // Showcase State
+    const [showcaseItems, setShowcaseItems] = useState([]);
+    const [isShowcaseManagerVisible, setIsShowcaseManagerVisible] = useState(false);
+    const [editingShowcaseItem, setEditingShowcaseItem] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
+
+    const fetchShowcase = async () => {
+        const items = await RenovationService.getShowcaseItems();
+        setShowcaseItems(items || []);
+    };
+
+    const handlePickShowcaseImage = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [16, 9],
+            quality: 0.8,
+        });
+
+        if (!result.canceled) {
+            setIsUploading(true);
+            const publicUrl = await RenovationService.uploadImage(result.assets[0].uri);
+            if (publicUrl) {
+                setEditingShowcaseItem(prev => ({ ...prev, image_url: publicUrl, image_ref: null, is_local: false }));
+            } else {
+                Alert.alert("Hata", "Resim yüklenemedi. 'renovation-images' bucket'ı oluşturulduğundan emin olun.");
+            }
+            setIsUploading(false);
+        }
+    };
+
+    const handleSaveShowcase = async () => {
+        if (!editingShowcaseItem) return;
+        
+        const isNew = !editingShowcaseItem.id;
+        let success = false;
+
+        if (isNew) {
+            const res = await RenovationService.addShowcaseItem(editingShowcaseItem);
+            success = res.success;
+        } else {
+            const res = await RenovationService.updateShowcaseItem(editingShowcaseItem.id, editingShowcaseItem);
+            success = res.success;
+        }
+
+        if (success) {
+            fetchShowcase();
+            setEditingShowcaseItem(null);
+            Alert.alert("Başarılı", "Tadilat kampanyası kaydedildi.");
+        } else {
+            Alert.alert("Hata", "Kampanya kaydedilemedi.");
+        }
+    };
+
+    const handleDeleteShowcase = async (id) => {
+        Alert.alert("Sil", "Bu kampanyayı silmek istediğinize emin misiniz?", [
+            { text: "Vazgeç", style: "cancel" },
+            {
+                text: "Sil", style: "destructive", onPress: async () => {
+                    const { success } = await RenovationService.deleteShowcaseItem(id);
+                    if (success) {
+                        setShowcaseItems(prev => prev.filter(item => item.id !== id));
+                    }
+                }
+            }
+        ]);
+    };
+
+    const fetchServices = async () => {
+        setIsLoadingServices(true);
+        const { data, error } = await supabase
+            .from('renovation_services')
+            .select('*')
+            .order('display_order', { ascending: true });
+        
+        if (error) {
+            console.error('Error fetching services:', error.message);
+        } else {
+            setServices(data || []);
+        }
+        setIsLoadingServices(false);
+    };
+
+    const moveService = async (index, direction) => {
+        const newServices = [...services];
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+        
+        if (targetIndex < 0 || targetIndex >= newServices.length) return;
+
+        // Swap locally
+        const temp = newServices[index];
+        newServices[index] = newServices[targetIndex];
+        newServices[targetIndex] = temp;
+
+        setServices(newServices); // Optimistic update
+
+        try {
+            // Update only the two swapped rows to be safer with RLS/Constraints
+            const { error: err1 } = await supabase
+                .from('renovation_services')
+                .update({ display_order: index + 1 })
+                .eq('id', newServices[index].id);
+
+            const { error: err2 } = await supabase
+                .from('renovation_services')
+                .update({ display_order: targetIndex + 1 })
+                .eq('id', newServices[targetIndex].id);
+
+            if (err1 || err2) throw new Error(err1?.message || err2?.message);
+        } catch (error) {
+            console.error('Sorting update failed:', error.message);
+            Alert.alert('Hata', `Sıralama güncellenemedi: ${error.message}`);
+            fetchServices(); // Revert on fail
+        }
+    };
+
+    const toggleServiceVisibility = async (service) => {
+        const newStatus = !service.is_active;
+        
+        // Optimistic update
+        setServices(services.map(s => s.id === service.id ? { ...s, is_active: newStatus } : s));
+
+        const { error } = await supabase
+            .from('renovation_services')
+            .update({ is_active: newStatus })
+            .eq('id', service.id);
+
+        if (error) {
+            Alert.alert('Hata', 'Görünürlük güncellenemedi.');
+            fetchServices();
+        }
+    };
 
     const [hasRenovationAccess, setHasRenovationAccess] = useState(false);
 
@@ -108,17 +250,20 @@ export default function RenovationScreen({ navigation }) {
     };
 
     const handleServicePress = (service) => {
-        if (service.id === 'turnkey') {
+        // Use service_id from DB for navigation logic
+        const sId = service.service_id || service.id;
+
+        if (sId === 'turnkey') {
             navigation.navigate('RenovationProjectSelection');
             return;
-        } else if (service.id === 'kitchen') {
+        } else if (sId === 'kitchen') {
             navigation.navigate('KitchenBathWizard');
             return;
-        } else if (service.id === 'paint') {
+        } else if (sId === 'paint') {
             navigation.navigate('PaintDecorWizard');
             return;
         }
-        Alert.alert(service.title, `${service.subtitle}\n\nBu modül yakında aktif olacak.`);
+        Alert.alert(service.title.replace(/\\n/g, ' '), `${service.subtitle}\n\nBu modül yakında aktif olacak.`);
     };
 
     const handleAction = (action) => {
@@ -146,6 +291,14 @@ export default function RenovationScreen({ navigation }) {
                         <Text allowFontScaling={false} style={styles.headerSubtitle}>Yaşam Alanınızı Yeniden Keşfedin</Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                        {isAdmin && (
+                            <TouchableOpacity 
+                                style={[styles.headerIconBtn, isEditMode && { borderColor: GOLD_MAIN, backgroundColor: 'rgba(255, 215, 0, 0.1)' }]}
+                                onPress={() => setIsEditMode(!isEditMode)}
+                            >
+                                <MaterialCommunityIcons name={isEditMode ? "check-circle" : "cog-outline"} size={22} color={GOLD_MAIN} />
+                            </TouchableOpacity>
+                        )}
                         <TouchableOpacity
                             style={[styles.headerIconBtn, !hasRenovationAccess && !isAdmin && { opacity: 0.5 }]}
                             onPress={() => {
@@ -174,24 +327,53 @@ export default function RenovationScreen({ navigation }) {
                             onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: false })}
                             scrollEventThrottle={16}
                         >
-                            {HERO_SLIDES.map((slide) => (
+                            {showcaseItems.map((slide) => (
                                 <View key={slide.id} style={styles.slide}>
-                                    <Image source={slide.image} style={styles.slideImage} contentFit="cover" transition={500} />
+                                    <Image 
+                                        source={slide.is_local ? slide.image : { uri: slide.image_url }} 
+                                        style={[
+                                            styles.slideImage,
+                                            { transform: [{ scale: slide.image_scale || 1 }] }
+                                        ]} 
+                                        contentFit="cover" 
+                                        transition={500} 
+                                    />
                                     <View style={styles.slideOverlay}>
                                         <LinearGradient
                                             colors={['transparent', 'rgba(0,0,0,0.9)']}
                                             style={StyleSheet.absoluteFillObject}
                                         />
-                                        <View style={styles.slideContent}>
-                                            <View style={styles.tagContainer}>
+                                        <View style={[
+                                            styles.slideContent,
+                                            {
+                                                transform: [
+                                                    { translateX: slide.text_offset_x || 0 },
+                                                    { translateY: slide.text_offset_y || 0 }
+                                                ]
+                                            }
+                                        ]}>
+                                            <View style={[
+                                                styles.tagContainer,
+                                                { backgroundColor: slide.tag_color || GOLD_ACCENT, alignSelf: 'flex-start' }
+                                            ]}>
                                                 <Text allowFontScaling={false} style={styles.tagText}>{slide.tag}</Text>
                                             </View>
-                                            <Text allowFontScaling={false} style={styles.slideTitle}>{slide.title}</Text>
-                                            <TouchableOpacity style={styles.offerBtn} onPress={() => handleAction('Teklif Al')}>
-                                                <Text allowFontScaling={false} style={styles.offerBtnText}>TEKLİF AL</Text>
+                                            <Text allowFontScaling={false} style={[styles.slideTitle, { color: slide.title_color || '#FFF' }]}>{slide.title}</Text>
+                                            <TouchableOpacity style={styles.offerBtn} onPress={() => navigation.navigate('RenovationProjectSelection')}>
+                                                <Text allowFontScaling={false} style={styles.offerBtnText}>{slide.button_text || 'TEKLİF AL'}</Text>
                                                 <MaterialCommunityIcons name="arrow-right" size={16} color="#000" />
                                             </TouchableOpacity>
                                         </View>
+
+                                        {/* Admin Slider Edit Shortcut */}
+                                        {isAdmin && (
+                                            <TouchableOpacity 
+                                                style={styles.heroEditShortcut} 
+                                                onPress={() => setEditingShowcaseItem(slide)}
+                                            >
+                                                <MaterialCommunityIcons name="pencil" size={20} color="#000" />
+                                            </TouchableOpacity>
+                                        )}
                                     </View>
                                 </View>
                             ))}
@@ -199,7 +381,7 @@ export default function RenovationScreen({ navigation }) {
 
                         {/* Pagination Dots */}
                         <View style={styles.pagination}>
-                            {HERO_SLIDES.map((_, i) => {
+                            {showcaseItems.map((_, i) => {
                                 const opacity = scrollX.interpolate({
                                     inputRange: [(i - 1) * width, i * width, (i + 1) * width],
                                     outputRange: [0.3, 1, 0.3],
@@ -210,9 +392,28 @@ export default function RenovationScreen({ navigation }) {
                         </View>
                     </View>
 
+                    {/* Slider Settings Button (Admin Only) */}
+                    {isAdmin && (
+                        <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+                            <TouchableOpacity 
+                                style={styles.adminSliderBtn}
+                                onPress={() => setIsShowcaseManagerVisible(true)}
+                            >
+                                <LinearGradient colors={['#1A1A1A', '#111']} style={StyleSheet.absoluteFillObject} />
+                                <MaterialCommunityIcons name="view-carousel-outline" size={20} color={GOLD_MAIN} />
+                                <Text allowFontScaling={false} style={styles.adminSliderBtnText}>SLIDER AYARLARI</Text>
+                                <MaterialCommunityIcons name="cog-outline" size={16} color="#666" />
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
                     {/* SERVICE GRID — Sayfalı slider */}
                     <View style={styles.sectionContainer}>
-                        <Text allowFontScaling={false} style={styles.sectionTitle}>HİZMETLERİMİZ</Text>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+                            <Text allowFontScaling={false} style={[styles.sectionTitle, { marginBottom: 0 }]}>HİZMETLERİMİZ</Text>
+                            {isEditMode && <Text allowFontScaling={false} style={{ color: GOLD_MAIN, fontSize: 10, fontWeight: 'bold' }}>DÜZENLEME MODU AKTİF</Text>}
+                        </View>
+                        
                         <ScrollView
                             horizontal
                             pagingEnabled
@@ -222,54 +423,64 @@ export default function RenovationScreen({ navigation }) {
                                 setServicePage(idx);
                             }}
                         >
-                            {/* Sayfa 1 — İlk 4 servis */}
-                            <View style={styles.gridPage}>
-                                {SERVICES.slice(0, 4).map((item) => (
-                                    <GoldCard
-                                        key={item.id}
-                                        style={styles.gridItem}
-                                        onPress={() => handleServicePress(item)}
-                                    >
-                                        <View style={styles.iconCircle}>
-                                            {item.lib === 'Ionicons' ? (
-                                                <Ionicons name={item.icon} size={26} color={GOLD_MAIN} />
-                                            ) : (
-                                                <MaterialCommunityIcons name={item.icon} size={28} color={GOLD_MAIN} />
-                                            )}
-                                        </View>
-                                        <View style={{ alignItems: 'center' }}>
-                                            <Text allowFontScaling={false} style={styles.gridItemTitle}>{item.title}</Text>
-                                            <Text allowFontScaling={false} style={styles.gridItemSubtitle}>{item.subtitle}</Text>
-                                        </View>
-                                    </GoldCard>
-                                ))}
-                            </View>
+                            {(() => {
+                                const filteredServices = isEditMode ? services : services.filter(s => s.is_active);
+                                const pagesCount = Math.ceil(filteredServices.length / 4);
 
-                            {/* Sayfa 2 — Yeni premium modüller */}
-                            <View style={[styles.gridPage, { paddingRight: 0 }]}>
-                                {SERVICES.slice(4).map((item) => (
-                                    <GoldCard
-                                        key={item.id}
-                                        style={styles.gridItem}
-                                        onPress={() => handleServicePress(item)}
-                                    >
-                                        <View style={styles.iconCircle}>
-                                            <MaterialCommunityIcons name={item.icon} size={28} color={GOLD_MAIN} />
-                                        </View>
-                                        <View style={{ alignItems: 'center' }}>
-                                            <Text allowFontScaling={false} style={styles.gridItemTitle}>{item.title}</Text>
-                                            <Text allowFontScaling={false} style={styles.gridItemSubtitle}>{item.subtitle}</Text>
-                                        </View>
-                                    </GoldCard>
-                                ))}
-                            </View>
+                                return Array.from({ length: pagesCount }).map((_, pageIdx) => (
+                                    <View key={pageIdx} style={[styles.gridPage, pageIdx === pagesCount - 1 && { paddingRight: 0 }]}>
+                                        {filteredServices.slice(pageIdx * 4, (pageIdx + 1) * 4).map((item, idxInPage) => {
+                                            const globalIdx = pageIdx * 4 + idxInPage;
+                                            return (
+                                                <GoldCard
+                                                    key={item.id}
+                                                    style={[styles.gridItem, !item.is_active && { opacity: 0.5 }]}
+                                                    onPress={() => !isEditMode && handleServicePress(item)}
+                                                >
+                                                    {isEditMode && (
+                                                        <View style={styles.adminControlsOverlay}>
+                                                            <View style={styles.adminActionRow}>
+                                                                <TouchableOpacity onPress={() => moveService(globalIdx, 'up')} disabled={globalIdx === 0}>
+                                                                    <MaterialCommunityIcons name="chevron-up" size={22} color={globalIdx === 0 ? "#444" : GOLD_MAIN} />
+                                                                </TouchableOpacity>
+                                                                <TouchableOpacity onPress={() => moveService(globalIdx, 'down')} disabled={globalIdx === filteredServices.length - 1}>
+                                                                    <MaterialCommunityIcons name="chevron-down" size={22} color={globalIdx === filteredServices.length - 1 ? "#444" : GOLD_MAIN} />
+                                                                </TouchableOpacity>
+                                                            </View>
+                                                            <TouchableOpacity style={styles.eyeBtn} onPress={() => toggleServiceVisibility(item)}>
+                                                                <MaterialCommunityIcons name={item.is_active ? "eye" : "eye-off"} size={20} color={item.is_active ? GOLD_MAIN : "#ef4444"} />
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                    )}
+
+                                                    <View style={styles.iconCircle}>
+                                                        {item.lib === 'Ionicons' ? (
+                                                            <Ionicons name={item.icon} size={26} color={GOLD_MAIN} />
+                                                        ) : (
+                                                            <MaterialCommunityIcons name={item.icon} size={28} color={GOLD_MAIN} />
+                                                        )}
+                                                    </View>
+                                                    <View style={{ alignItems: 'center' }}>
+                                                        <Text allowFontScaling={false} style={styles.gridItemTitle}>{item.title.replace(/\\n/g, '\n')}</Text>
+                                                        <Text allowFontScaling={false} style={styles.gridItemSubtitle} numberOfLines={2}>{item.subtitle}</Text>
+                                                    </View>
+                                                </GoldCard>
+                                            );
+                                        })}
+                                    </View>
+                                ));
+                            })()}
                         </ScrollView>
 
                         {/* Sayfa Göstergesi */}
                         <View style={styles.servicePagination}>
-                            {[0, 1].map(i => (
-                                <View key={i} style={[styles.serviceDot, servicePage === i && styles.serviceDotActive]} />
-                            ))}
+                            {(() => {
+                                const filteredServices = isEditMode ? services : services.filter(s => s.is_active);
+                                const pagesCount = Math.ceil(filteredServices.length / 4);
+                                return Array.from({ length: pagesCount }).map((_, i) => (
+                                    <View key={i} style={[styles.serviceDot, servicePage === i && styles.serviceDotActive]} />
+                                ));
+                            })()}
                         </View>
                     </View>
 
@@ -412,6 +623,204 @@ export default function RenovationScreen({ navigation }) {
                     </TouchableOpacity>
 
                 </ScrollView>
+
+                {/* SHOWCASE MANAGER MODAL */}
+                <Modal visible={isShowcaseManagerVisible} animationType="slide" transparent>
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.managerModalContent}>
+                            <View style={styles.modalHeader}>
+                                <Text allowFontScaling={false} style={styles.modalTitle}>Slider Yönetimi</Text>
+                                <TouchableOpacity onPress={() => setIsShowcaseManagerVisible(false)}>
+                                    <MaterialCommunityIcons name="close" size={24} color="#FFF" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <ScrollView style={{ flex: 1, padding: 16 }}>
+                                {showcaseItems.map((item, idx) => (
+                                    <View key={item.id || idx} style={styles.managerItem}>
+                                        <Image 
+                                            source={item.is_local ? item.image : { uri: item.image_url }} 
+                                            style={styles.managerItemThumb} 
+                                        />
+                                        <View style={{ flex: 1, marginLeft: 12 }}>
+                                            <Text allowFontScaling={false} style={styles.managerItemTitle} numberOfLines={1}>
+                                                {item.tag || 'Resimsiz'} - {item.title || 'Başlıksız'}
+                                            </Text>
+                                        </View>
+                                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                                            <TouchableOpacity onPress={() => setEditingShowcaseItem(item)} style={styles.managerActionBtn}>
+                                                <MaterialCommunityIcons name="pencil" size={18} color={GOLD_MAIN} />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity onPress={() => handleDeleteShowcase(item.id)} style={styles.managerActionBtn}>
+                                                <MaterialCommunityIcons name="trash-can-outline" size={18} color="#FF4D4D" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                ))}
+
+                                <TouchableOpacity 
+                                    style={styles.addSliderBtn}
+                                    onPress={() => setEditingShowcaseItem({
+                                        tag: 'YENİ', title: '', subtitle: '', 
+                                        image_url: 'https://placehold.co/800x450/png',
+                                        text_offset_x: 0, text_offset_y: 0, image_scale: 1.0,
+                                        sort_order: (showcaseItems.length + 1) * 10
+                                    })}
+                                >
+                                    <MaterialCommunityIcons name="plus" size={24} color="#000" />
+                                    <Text allowFontScaling={false} style={styles.addSliderBtnText}>YENİ SLIDER EKLE</Text>
+                                </TouchableOpacity>
+                            </ScrollView>
+                        </View>
+                    </View>
+                </Modal>
+
+                {/* SHOWCASE EDIT MODAL */}
+                <Modal visible={!!editingShowcaseItem} animationType="fade" transparent>
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.editModalContent}>
+                            <View style={styles.modalHeader}>
+                                <Text allowFontScaling={false} style={styles.modalTitle}>Slider Düzenle</Text>
+                                <TouchableOpacity onPress={() => setEditingShowcaseItem(null)}>
+                                    <MaterialCommunityIcons name="close" size={24} color="#FFF" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <ScrollView style={{ flex: 1, padding: 16 }}>
+                                {/* Image Preview & Picker */}
+                                <TouchableOpacity style={styles.imagePickerArea} onPress={handlePickShowcaseImage}>
+                                    {isUploading ? (
+                                        <ActivityIndicator color={GOLD_MAIN} />
+                                    ) : (
+                                        <>
+                                            <Image 
+                                                source={editingShowcaseItem?.is_local ? editingShowcaseItem.image : { uri: editingShowcaseItem?.image_url }} 
+                                                style={[StyleSheet.absoluteFill, { opacity: 0.6 }]} 
+                                            />
+                                            <MaterialCommunityIcons name="camera-plus" size={32} color="#FFF" />
+                                            <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, marginTop: 4 }}>Resmi Değiştir</Text>
+                                        </>
+                                    )}
+                                </TouchableOpacity>
+
+                                {/* Inputs */}
+                                <Text allowFontScaling={false} style={styles.inputLabel}>BANNER ETİKETİ (SARI ALAN)</Text>
+                                <TextInput
+                                    style={styles.modalInput}
+                                    value={editingShowcaseItem?.tag}
+                                    onChangeText={t => setEditingShowcaseItem(prev => ({ ...prev, tag: t }))}
+                                    placeholder="Örn: FIRSAT"
+                                    placeholderTextColor="#666"
+                                />
+
+                                <Text allowFontScaling={false} style={styles.inputLabel}>ANA BAŞLIK</Text>
+                                <TextInput
+                                    style={styles.modalInput}
+                                    value={editingShowcaseItem?.title}
+                                    onChangeText={t => setEditingShowcaseItem(prev => ({ ...prev, title: t }))}
+                                    placeholder="Örn: DEV İNDİRİM"
+                                    placeholderTextColor="#666"
+                                />
+
+                                <Text allowFontScaling={false} style={styles.inputLabel}>ALT BAŞLIK</Text>
+                                <TextInput
+                                    style={styles.modalInput}
+                                    value={editingShowcaseItem?.subtitle}
+                                    onChangeText={t => setEditingShowcaseItem(prev => ({ ...prev, subtitle: t }))}
+                                    placeholder="Detaylı açıklama..."
+                                    placeholderTextColor="#666"
+                                />
+
+                                {/* Color Selectors */}
+                                <Text allowFontScaling={false} style={styles.inputLabel}>ETİKET ZEMİN RENGİ</Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.colorPalette}>
+                                    {COLOR_PALETTE.map(c => (
+                                        <TouchableOpacity 
+                                            key={c.code} 
+                                            style={[styles.colorChip, { backgroundColor: c.code, borderColor: editingShowcaseItem?.tag_color === c.code ? '#FFF' : 'transparent', borderWidth: 2 }]} 
+                                            onPress={() => setEditingShowcaseItem(prev => ({ ...prev, tag_color: c.code }))}
+                                        />
+                                    ))}
+                                </ScrollView>
+
+                                <Text allowFontScaling={false} style={styles.inputLabel}>ANA BAŞLIK RENGİ</Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.colorPalette}>
+                                    {COLOR_PALETTE.map(c => (
+                                        <TouchableOpacity 
+                                            key={c.code} 
+                                            style={[styles.colorChip, { backgroundColor: c.code, borderColor: editingShowcaseItem?.title_color === c.code ? '#FFF' : 'transparent', borderWidth: 2 }]} 
+                                            onPress={() => setEditingShowcaseItem(prev => ({ ...prev, title_color: c.code }))}
+                                        />
+                                    ))}
+                                </ScrollView>
+
+                                <Text allowFontScaling={false} style={styles.inputLabel}>ALT BAŞLIK RENGİ</Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.colorPalette}>
+                                    {COLOR_PALETTE.map(c => (
+                                        <TouchableOpacity 
+                                            key={c.code} 
+                                            style={[styles.colorChip, { backgroundColor: c.code, borderColor: editingShowcaseItem?.subtitle_color === c.code ? '#FFF' : 'transparent', borderWidth: 2 }]} 
+                                            onPress={() => setEditingShowcaseItem(prev => ({ ...prev, subtitle_color: c.code }))}
+                                        />
+                                    ))}
+                                </ScrollView>
+
+                                {/* Visual Adjustments (Sliders) */}
+                                <View style={styles.adjustmentGroup}>
+                                    <View style={styles.adjHeader}>
+                                        <Text allowFontScaling={false} style={styles.inputLabel}>GÖRSEL ÖLÇEĞİ (ZOOM)</Text>
+                                        <Text style={styles.adjVal}>{(editingShowcaseItem?.image_scale || 1).toFixed(2)}x</Text>
+                                    </View>
+                                    <Slider
+                                        style={{ width: '100%', height: 40 }}
+                                        minimumValue={0.5}
+                                        maximumValue={3.0}
+                                        value={editingShowcaseItem?.image_scale || 1}
+                                        onValueChange={v => setEditingShowcaseItem(prev => ({ ...prev, image_scale: v }))}
+                                        minimumTrackTintColor={GOLD_MAIN}
+                                        maximumTrackTintColor="#333"
+                                        thumbTintColor={GOLD_MAIN}
+                                    />
+
+                                    <View style={styles.adjHeader}>
+                                        <Text allowFontScaling={false} style={styles.inputLabel}>YAZI DİKEY KONUM (Y)</Text>
+                                        <Text style={styles.adjVal}>{Math.round(editingShowcaseItem?.text_offset_y || 0)}</Text>
+                                    </View>
+                                    <Slider
+                                        style={{ width: '100%', height: 40 }}
+                                        minimumValue={-150}
+                                        maximumValue={150}
+                                        value={editingShowcaseItem?.text_offset_y || 0}
+                                        onValueChange={v => setEditingShowcaseItem(prev => ({ ...prev, text_offset_y: v }))}
+                                        minimumTrackTintColor={GOLD_MAIN}
+                                        maximumTrackTintColor="#333"
+                                        thumbTintColor={GOLD_MAIN}
+                                    />
+
+                                    <View style={styles.adjHeader}>
+                                        <Text allowFontScaling={false} style={styles.inputLabel}>YAZI YATAY KONUM (X)</Text>
+                                        <Text style={styles.adjVal}>{Math.round(editingShowcaseItem?.text_offset_x || 0)}</Text>
+                                    </View>
+                                    <Slider
+                                        style={{ width: '100%', height: 40 }}
+                                        minimumValue={-150}
+                                        maximumValue={150}
+                                        value={editingShowcaseItem?.text_offset_x || 0}
+                                        onValueChange={v => setEditingShowcaseItem(prev => ({ ...prev, text_offset_x: v }))}
+                                        minimumTrackTintColor={GOLD_MAIN}
+                                        maximumTrackTintColor="#333"
+                                        thumbTintColor={GOLD_MAIN}
+                                    />
+                                </View>
+
+                                <TouchableOpacity style={styles.modalSaveBtn} onPress={handleSaveShowcase}>
+                                    <Text allowFontScaling={false} style={styles.modalSaveBtnText}>DEĞİŞİKLİKLERİ KAYDET</Text>
+                                </TouchableOpacity>
+                                <View style={{ height: 40 }} />
+                            </ScrollView>
+                        </View>
+                    </View>
+                </Modal>
             </SafeAreaView>
         </View>
     );
@@ -429,7 +838,7 @@ const styles = StyleSheet.create({
 
     // Carousel
     carouselContainer: { marginBottom: 30 },
-    slide: { width: width - 40, height: 220, marginHorizontal: 20, borderRadius: 20, overflow: 'hidden' },
+    slide: { width: width, height: 220, overflow: 'hidden' },
     slideImage: { width: '100%', height: '100%', resizeMode: 'cover' },
     slideOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '100%', justifyContent: 'flex-end', padding: 20 },
     tagContainer: { backgroundColor: GOLD_MAIN, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, alignSelf: 'flex-start', marginBottom: 10 },
@@ -438,7 +847,7 @@ const styles = StyleSheet.create({
     offerBtn: { backgroundColor: GOLD_MAIN, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 5 },
     offerBtnText: { color: '#000', fontSize: 12, fontWeight: '900' },
 
-    pagination: { flexDirection: 'row', justifyContent: 'center', marginTop: 15, gap: 8 },
+    pagination: { flexDirection: 'row', justifyContent: 'center', marginTop: -15, gap: 8, marginBottom: 15 },
     dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: GOLD_MAIN },
 
     // Grid
@@ -557,4 +966,213 @@ const styles = StyleSheet.create({
     aiRingMid: { width: 62, height: 62, borderRadius: 31, borderWidth: 1, borderColor: 'rgba(212,175,55,0.35)', alignItems: 'center', justifyContent: 'center' },
     aiRingInner: { width: 46, height: 46, borderRadius: 23, backgroundColor: 'rgba(212,175,55,0.12)', borderWidth: 1, borderColor: GOLD_MAIN, alignItems: 'center', justifyContent: 'center' },
 
+    // Admin Controls
+    adminControlsOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        zIndex: 10,
+        padding: 8,
+        justifyContent: 'space-between'
+    },
+    adminActionRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%'
+    },
+    eyeBtn: {
+        alignSelf: 'center',
+        padding: 10,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 20
+    },
+
+    // New Showcase Styles
+    heroEditShortcut: {
+        position: 'absolute',
+        top: 20,
+        right: 20,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: GOLD_MAIN,
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 100,
+        elevation: 5
+    },
+    adminSliderBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 16,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#333',
+        overflow: 'hidden'
+    },
+    adminSliderBtnText: {
+        color: GOLD_MAIN,
+        fontSize: 13,
+        fontWeight: '900',
+        letterSpacing: 2
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.92)',
+        justifyContent: 'flex-end'
+    },
+    managerModalContent: {
+        backgroundColor: '#111',
+        height: '80%',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        borderWidth: 1,
+        borderColor: '#333'
+    },
+    editModalContent: {
+        backgroundColor: '#111',
+        height: '90%',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        borderWidth: 1,
+        borderColor: '#333'
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#222'
+    },
+    modalTitle: {
+        color: '#FFF',
+        fontSize: 18,
+        fontWeight: 'bold'
+    },
+    managerItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1A1A1A',
+        borderRadius: 12,
+        padding: 10,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: '#333'
+    },
+    managerItemThumb: {
+        width: 60,
+        height: 40,
+        borderRadius: 6,
+        backgroundColor: '#333'
+    },
+    managerItemTitle: {
+        color: '#FFF',
+        fontSize: 14,
+        fontWeight: '500'
+    },
+    managerActionBtn: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#222',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    addSliderBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: GOLD_MAIN,
+        padding: 16,
+        borderRadius: 16,
+        marginTop: 10,
+        marginBottom: 30,
+        gap: 8
+    },
+    addSliderBtnText: {
+        color: '#000',
+        fontSize: 14,
+        fontWeight: 'bold'
+    },
+    imagePickerArea: {
+        width: '100%',
+        height: 180,
+        borderRadius: 16,
+        backgroundColor: '#1A1A1A',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: '#333',
+        borderStyle: 'dashed'
+    },
+    inputLabel: {
+        color: '#999',
+        fontSize: 10,
+        fontWeight: '900',
+        letterSpacing: 1,
+        marginBottom: 8
+    },
+    modalInput: {
+        backgroundColor: '#000',
+        color: '#FFF',
+        borderRadius: 12,
+        padding: 14,
+        fontSize: 14,
+        borderWidth: 1,
+        borderColor: '#333',
+        marginBottom: 20
+    },
+    adjustmentGroup: {
+        backgroundColor: '#1A1A1A',
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: '#333'
+    },
+    adjHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 10
+    },
+    adjVal: {
+        color: GOLD_MAIN,
+        fontSize: 12,
+        fontWeight: 'bold'
+    },
+    modalSaveBtn: {
+        backgroundColor: GOLD_MAIN,
+        padding: 18,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 20
+    },
+    modalSaveBtnText: {
+        color: '#000',
+        fontSize: 15,
+        fontWeight: '900',
+        letterSpacing: 1
+    },
+    colorPalette: {
+        flexDirection: 'row',
+        marginBottom: 20,
+        paddingVertical: 5
+    },
+    colorChip: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        marginRight: 12,
+        borderWidth: 1,
+        borderColor: '#444'
+    }
 });

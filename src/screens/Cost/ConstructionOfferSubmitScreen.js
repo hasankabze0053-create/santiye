@@ -1282,8 +1282,6 @@ export default function ConstructionOfferSubmitScreen() {
 
                             {request?.offer_type === 'anahtar_teslim_tadilat' ? renderRenovationOffer() : (
                                 <>
-                                    {isFlatForLand ? renderFlatForLandDetails() : renderFinancialDetails()}
-
                                     <Text allowFontScaling={false} style={styles.sectionHeader}>MİMARİ YAPILANDIRMA</Text>
                                     <GlassCard style={styles.card}>
                                         <View style={styles.inputRow}>
@@ -1356,7 +1354,6 @@ export default function ConstructionOfferSubmitScreen() {
                                     </GlassCard>
 
                                     {/* Visualization */}
-
                                     <View style={styles.schemaContainer}>
                                         <BuildingSchema
                                             floorCount={floorCount}
@@ -1382,6 +1379,8 @@ export default function ConstructionOfferSubmitScreen() {
                                             }}
                                         />
                                     </View>
+
+                                    {isFlatForLand ? renderFlatForLandDetails() : renderFinancialDetails()}
 
                                     {/* Dynamic Offer Summary */}
                                     <OfferSummaryCard

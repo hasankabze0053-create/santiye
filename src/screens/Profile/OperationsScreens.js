@@ -181,16 +181,27 @@ export const RequestsScreen = () => {
             ]);
 
             // Transform construction data to match request interface if needed
-            const formattedConstructionData = constructionData.map(item => ({
-                ...item,
-                type: 'construction', // Tag to distinguish
-                title: item.offer_type === 'anahtar_teslim_tadilat' ? 'Anahtar Teslim Tadilat' : 'Kentsel Dönüşüm Talebi',
-                subtitle: item.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat & Yenileme' : `${item.district} / ${item.neighborhood}`,
-                created_at: item.created_at,
-                status: item.status === 'pending' ? 'OPEN' : item.status, // Map status
-                category: item.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat Talepleri' : 'Kentsel Dönüşüm',
-                // Add other fields as needed
-            }));
+            const formattedConstructionData = constructionData.map(item => {
+                let title = item.offer_type === 'anahtar_teslim_tadilat' ? 'Anahtar Teslim Tadilat' : 'Kentsel Dönüşüm Talebi';
+                
+                // Parse specific service type from description for Tadilat
+                if (item.offer_type === 'anahtar_teslim_tadilat' && item.description) {
+                    const projMatch = item.description.match(/PROJE TİPİ:\s*(.+)/);
+                    if (projMatch) {
+                        title = projMatch[1].split('\n')[0].trim();
+                    }
+                }
+
+                return {
+                    ...item,
+                    type: 'construction', // Tag to distinguish
+                    title: title,
+                    subtitle: item.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat & Yenileme' : `${item.district} / ${item.neighborhood}`,
+                    created_at: item.created_at,
+                    status: item.status === 'pending' ? 'OPEN' : item.status, // Map status
+                    category: item.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat Talepleri' : 'Kentsel Dönüşüm',
+                };
+            });
 
             const formattedMarketData = (marketData || []).map(item => {
                 let displayTitle = item.title;
@@ -237,58 +248,94 @@ export const RequestsScreen = () => {
     });
 
     const renderItem = ({ item }) => {
-        if (item.offer_type === 'anahtar_teslim_tadilat') {
-            const isWaiting = !item.bids || item.bids.length === 0;
-            return (
-                <TouchableOpacity 
-                    style={[styles.card, { backgroundColor: '#1A1A1A', borderColor: '#2A2A2A', borderWidth: 1, padding: 16 }]}
-                    activeOpacity={0.7} 
-                    onPress={() => navigation.navigate('RequestDetail', { request: item })}
-                >
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255, 215, 0, 0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-                            <MaterialCommunityIcons name="home-edit" size={24} color="#FFD700" />
-                        </View>
-                        <View style={{ flex: 1, justifyContent: 'center', gap: 4 }}>
-                            <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' }} numberOfLines={1}>{item.title}</Text>
-                            <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 12 }}>
+        const isTadilat = item.offer_type === 'anahtar_teslim_tadilat';
+        const isWaiting = !item.bids || item.bids.length === 0;
+        
+        return (
+            <TouchableOpacity 
+                style={[
+                    styles.card, 
+                    { 
+                        backgroundColor: '#1A1A1A', 
+                        borderColor: '#2A2A2A', 
+                        borderWidth: 1, 
+                        flexDirection: 'column',
+                        padding: 16,
+                        borderRadius: 16,
+                        marginBottom: 12,
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 8,
+                        elevation: 5,
+                        overflow: 'hidden'
+                    }
+                ]}
+                activeOpacity={0.8} 
+                onPress={() => navigation.navigate('RequestDetail', { request: item })}
+            >
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={{ 
+                        width: 48, 
+                        height: 48, 
+                        borderRadius: 14, 
+                        backgroundColor: isTadilat ? 'rgba(255, 215, 0, 0.1)' : 'rgba(100, 181, 246, 0.1)', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        marginRight: 14,
+                        borderWidth: 1,
+                        borderColor: isTadilat ? 'rgba(255, 215, 0, 0.2)' : 'rgba(100, 181, 246, 0.2)'
+                    }}>
+                        <MaterialCommunityIcons 
+                            name={isTadilat ? "home-edit" : (item.type === 'construction' ? "office-building-cog" : "package-variant-closed")} 
+                            size={26} 
+                            color={isTadilat ? "#FFD700" : "#64B5F6"} 
+                        />
+                    </View>
+                    
+                    <View style={{ flex: 1, justifyContent: 'center', gap: 2 }}>
+                        <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800' }} numberOfLines={1}>
+                            {item.title}
+                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12 }}>
                                 {new Date(item.created_at).toLocaleDateString('tr-TR')}
                             </Text>
-                        </View>
-                        <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, justifyContent: 'center', alignItems: 'center', backgroundColor: isWaiting ? 'rgba(255, 255, 255, 0.1)' : '#FFD700' }}>
-                            <Text allowFontScaling={false} style={{ fontSize: 12, fontWeight: 'bold', color: isWaiting ? '#A0A0A0' : '#121212' }}>
-                                {isWaiting ? "Bekleniyor" : `${item.bids.length} Teklif`}
+                            <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#444' }} />
+                            <Text allowFontScaling={false} style={{ color: '#666', fontSize: 11, fontWeight: '500' }}>
+                                {item.category}
                             </Text>
                         </View>
                     </View>
-                </TouchableOpacity>
-            );
-        }
 
-        return (
-            <TouchableOpacity
-                style={[styles.card, { backgroundColor: theme.card }]}
-                activeOpacity={0.7}
-                onPress={() => navigation.navigate('RequestDetail', { request: item })}
-            >
-                <View style={[styles.iconContainer, { backgroundColor: theme.iconBg }]}>
-                    {item.type === 'construction' ? (
-                        <MaterialCommunityIcons name="office-building-cog" size={24} color={theme.accent} />
-                    ) : (
-                        <MaterialCommunityIcons name="package-variant-closed" size={24} color={theme.accent} />
-                    )}
+                    <View style={{ 
+                        paddingHorizontal: 12, 
+                        paddingVertical: 6, 
+                        borderRadius: 12, 
+                        justifyContent: 'center', 
+                        alignItems: 'center', 
+                        backgroundColor: isWaiting ? 'rgba(255, 255, 255, 0.05)' : '#FFD700',
+                        borderWidth: isWaiting ? 1 : 0,
+                        borderColor: 'rgba(255, 255, 255, 0.1)'
+                    }}>
+                        <Text allowFontScaling={false} style={{ 
+                            fontSize: 11, 
+                            fontWeight: '900', 
+                            color: isWaiting ? '#888' : '#121212' 
+                        }}>
+                            {isWaiting ? "BEKLENİYOR" : `${item.bids.length} TEKLİF`}
+                        </Text>
+                    </View>
                 </View>
-                <View style={styles.cardContent}>
-                    <Text allowFontScaling={false} style={[styles.cardTitle, { color: theme.text }]}>{item.title}</Text>
-                    <Text allowFontScaling={false} style={[styles.cardSubtitle, { color: theme.subText }]}>
-                        {new Date(item.created_at).toLocaleDateString('tr-TR')}
-                    </Text>
-                </View>
-                <View style={[styles.statusBadge, { backgroundColor: item.bids && item.bids.length > 0 ? theme.accent : theme.iconBg }]}>
-                    <Text allowFontScaling={false} style={[styles.statusText, { color: item.bids && item.bids.length > 0 ? '#000' : theme.subText }]}>
-                        {item.bids && item.bids.length > 0 ? `${item.bids.length} Teklif` : 'Bekleniyor'}
-                    </Text>
-                </View>
+
+                {/* Subtitle / Description context */}
+                {item.subtitle && (
+                    <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.05)' }}>
+                        <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 12 }} numberOfLines={1}>
+                            {item.subtitle}
+                        </Text>
+                    </View>
+                )}
             </TouchableOpacity>
         );
     };
@@ -448,8 +495,39 @@ export const InboxScreen = () => {
                 groupedConstruction[key].offers.push(offer);
             });
 
-            // Normalize Market Offers
-            const normMarket = (marketOffers || []).map(o => ({ ...o, type: 'market' }));
+            // Group Market Offers by Request
+            const groupedMarket = {};
+            (marketOffers || []).forEach(offer => {
+                const rid = offer.request_id;
+                if (!groupedMarket[rid]) {
+                    groupedMarket[rid] = {
+                        ...offer,
+                        type: 'market',
+                        bids: [],
+                        request: offer.request
+                    };
+                }
+                groupedMarket[rid].bids.push(offer);
+            });
+
+            // Normalize Market Groups
+            const normMarket = Object.values(groupedMarket).map(group => {
+                let displayPrice;
+                if (group.bids.length > 1) {
+                    displayPrice = `${group.bids.length} Farklı Teklif`;
+                } else {
+                    const singleBid = group.bids[0];
+                    displayPrice = singleBid.price ? singleBid.price.toLocaleString('tr-TR') + ' ₺' : 'Fiyat Teklifi';
+                }
+
+                return {
+                    ...group,
+                    title: group.request?.title || 'Malzeme Talebi',
+                    price: displayPrice,
+                    companyName: group.bids.length > 1 ? 'Çoklu Teklif' : (group.provider?.company_name || group.provider?.full_name || 'Tedarikçi Firma'),
+                    location: group.request?.location || 'Konum Belirtilmedi'
+                };
+            });
 
             // Normalize Construction Groups
             const normConstruction = Object.values(groupedConstruction).map(group => {
@@ -568,8 +646,11 @@ export const InboxScreen = () => {
                             request_id: item.request_id
                         });
                     } else if (item.type === 'market') {
-                        // Market verisi direkt item'in kendisi
-                        navigation.navigate('RequestDetail', { request: item });
+                        // Navigate to premium comparison screen
+                        navigation.navigate('MarketOffers', { 
+                            request: item.request, 
+                            bids: item.bids 
+                        });
                     } else if (item.request) {
                         navigation.navigate('RequestDetail', { request: item.request });
                     }

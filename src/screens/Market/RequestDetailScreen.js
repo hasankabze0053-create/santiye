@@ -169,526 +169,287 @@ export default function RequestDetailScreen() {
     );
 
     // --- CONSTRUCTION DETAIL VIEW ---
+    // --- PROFOSYONEL PARSING MANTIĞI ---
+    const getField = (tag) => {
+        if (!request.description) return null;
+        const regexNew = new RegExp(`\\[${tag}\\]\\s*(.*)`, 'i');
+        const matchNew = request.description.match(regexNew);
+        if (matchNew) return matchNew[1].trim();
+
+        const regexOld = new RegExp(`${tag}:\\s*(.*)`, 'i');
+        const matchOld = request.description.match(regexOld);
+        if (matchOld) return matchOld[1].trim();
+        return null;
+    };
+
+    // --- CONSTRUCTION DETAIL VIEW ---
     if (type === 'construction') {
-        const isFlatForLand =
-            request?.offer_type === 'kat_karsiligi' ||
-            request?.offer_type === 'Kat Karşılığı' ||
-            request?.offer_model === 'kat_karsiligi' ||
-            request?.offer_model === 'Kat Karşılığı';
+        const projeTipi = getField('PROJE TİPİ') || (request.offer_type === 'anahtar_teslim_tadilat' ? 'Anahtar Teslim Tadilat' : 'İnşaat Projesi');
+        const kapsam = getField('KAPSAM') || getField('HİZMETLER') || '-';
+        const durum = getField('DURUM') || getField('YENİLEME') || '-';
+        const teknik = getField('TEKNİK') || getField('MEKAN') || '-';
+        const tarz = getField('TASARIM') || getField('TARZ') || 'Belirtilmedi';
+        const butce = getField('BÜTÇE') || '-';
+        const lokasyon = getField('LOKASYON') || (request.district ? `${request.district}, ${request.city}` : (request.city || 'Belirtilmedi'));
 
-        const offerLabel = request?.offer_type === 'anahtar_teslim_tadilat' ? 'Anahtar Teslim Tadilat' :
-                           isFlatForLand ? 'Kat Karşılığı' : 'Komple Yapım (Anahtar Teslim)';
-
-        let tadilatDetails = { propertyType: '-', areaSize: '-', style: '-' };
-        let budget = '-';
-        let urgency = 'Detaylarda Gizli';
-        let notes = '-';
-        let operations = [];
-
-        let projeTipi = 'Anahtar Teslim Tadilat';
-        let iconName = 'home-edit';
-
-        if (request?.description) {
-            const lines = request.description.split('\n');
-            const tipLine = lines.find(l => l.startsWith('PROJE TİPİ:'));
-            if (tipLine) {
-                projeTipi = tipLine.replace('PROJE TİPİ:', '').trim();
-                if (projeTipi.includes('Boya')) iconName = 'format-paint';
-                else if (projeTipi.includes('Mutfak') || projeTipi.includes('Banyo')) iconName = 'water-pump';
-            }
-            const budgetLine = lines.find(l => l.startsWith('BÜTÇE:'));
-            if (budgetLine) budget = budgetLine.replace('BÜTÇE:', '').trim();
-
-            const yenilemeLine = lines.find(l => l.startsWith('YENİLEME:'));
-            if (yenilemeLine) urgency = yenilemeLine.replace('YENİLEME:', '').trim();
-
-            const mekanLine = lines.find(l => l.startsWith('MEKAN:'));
-            if (mekanLine) {
-                const mekanPart = mekanLine.replace('MEKAN:', '').trim();
-                tadilatDetails.propertyType = mekanPart;
-                const matchSq = mekanPart.match(/(\d+)\s*m²/g);
-                if (matchSq && matchSq.length > 0) {
-                    let sum = 0;
-                    matchSq.forEach(m => {
-                        const num = parseInt(m.replace(/[^0-9]/g, ''));
-                        if (!isNaN(num)) sum += num;
-                    });
-                    tadilatDetails.areaSize = `${sum} m²`;
-                } else {
-                    tadilatDetails.areaSize = '-';
-                }
-            }
-
-            const tarzLine = lines.find(l => l.startsWith('TARZ:'));
-            if (tarzLine) tadilatDetails.style = tarzLine.replace('TARZ:', '').trim();
-
-            const notIndex = lines.findIndex(l => l.startsWith('NOT:'));
-            if (notIndex !== -1) notes = lines.slice(notIndex + 1).join('\n').trim();
-            else notes = 'Ek not bulunmuyor.';
-
-            const scopeLine = lines.find(l => l.startsWith('KAPSAM:'));
-            const scopeText = scopeLine ? scopeLine.toLowerCase() : '';
-            const yenilemeText = yenilemeLine ? yenilemeLine.toLowerCase() : '';
-
-            if (scopeText.includes('mutfak')) {
-                operations.push('Mutfak Dolabı & Tezgah');
-                if (yenilemeText.includes('kapsamlı') || yenilemeText.includes('premium')) operations.push('Mutfak Tesisat Yenileme');
-            }
-            if (scopeText.includes('banyo')) {
-                operations.push('Banyo Dolabı & Vitrifiye');
-                operations.push('Duşakabin / Küvet Değişimi');
-                if (yenilemeText.includes('kapsamlı') || yenilemeText.includes('premium')) operations.push('Banyo Tesisat & Gider Yenileme');
-            }
-            if (yenilemeText.includes('kapsamlı') || yenilemeText.includes('premium')) {
-                operations.push('Zemin Seramiği / Parke Yenileme');
-                operations.push('Kırım & Hafriyat İşleri');
-            }
-            if (projeTipi.includes('Boya')) {
-                operations.push('İç Cephe Boya Badana');
-                operations.push('Alçı / Sıva Tamiratı');
-            }
-            if (operations.length === 0) operations.push('Genel Tadilat / Dekorasyon');
+        let notes = 'Ek not bulunmuyor.';
+        if (request.description?.includes('[NOT]')) {
+            notes = request.description.split('[NOT]')[1]?.trim() || notes;
+        } else if (request.description?.includes('NOT:')) {
+            notes = request.description.split('NOT:')[1]?.trim() || notes;
         }
 
+        const teknikItems = teknik.split('|').map(s => s.trim()).filter(Boolean);
         const hasPhotos = request.document_urls && request.document_urls.length > 0;
-        const locationText = request.district && request.district !== 'Tümü' ? `${request.district}, ${request.city}` : (request.city || 'Türkiye Geneli');
-
-        let styleIcons = [];
-        const styleString = tadilatDetails.style.toLowerCase();
-        if (styleString.includes('modern')) styleIcons.push({ icon: 'sofa-outline', label: 'Modern' });
-        if (styleString.includes('rustik') || styleString.includes('doğal')) styleIcons.push({ icon: 'leaf', label: 'Rustik/Doğal' });
-        if (styleString.includes('klasik')) styleIcons.push({ icon: 'chandelier', label: 'Klasik' });
-        if (styleString.includes('endüstriyel') || styleString.includes('loft')) styleIcons.push({ icon: 'factory', label: 'Endüstriyel' });
-        if (styleIcons.length === 0) styleIcons.push({ icon: 'palette-outline', label: 'Özel' });
-        if (styleIcons.length > 2) styleIcons = styleIcons.slice(0, 2);
 
         return (
             <View style={styles.container}>
                 <StatusBar barStyle="light-content" />
-                <LinearGradient colors={['#000000', '#121212']} style={StyleSheet.absoluteFillObject} />
+                <LinearGradient colors={['#000000', '#0D0D0D']} style={StyleSheet.absoluteFillObject} />
                 <SafeAreaView style={{ flex: 1 }}>
+                    
                     {/* Header */}
                     <View style={styles.header}>
                         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                             <Ionicons name="arrow-back" size={24} color="#FFF" />
                         </TouchableOpacity>
-                        <Text allowFontScaling={false} style={styles.headerTitle}>PROJE DETAYI</Text>
-                        <View style={{ width: 40 }} />
+                        <View style={{ alignItems: 'center' }}>
+                            <Text allowFontScaling={false} style={styles.headerTitle}>TALEBİMİN DETAYI</Text>
+                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: 'bold', marginTop: 2 }}>#{request.id?.slice(0, 8).toUpperCase()}</Text>
+                        </View>
+                        <TouchableOpacity style={styles.backBtn}>
+                            <Ionicons name="share-outline" size={22} color="#FFF" />
+                        </TouchableOpacity>
                     </View>
 
-                    <ScrollView contentContainerStyle={styles.content}>
-                        {request.offer_type === 'anahtar_teslim_tadilat' ? (
-                            <View style={{ marginBottom: 40, marginTop: 16 }}>
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24, paddingVertical: 16, borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#2A2A2A' }}>
-                                    <View style={{ alignItems: 'center', flex: 1, paddingHorizontal: 4 }}>
-                                        <Ionicons name="location-outline" size={24} color="#FFD700" />
-                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, marginTop: 8, textAlign: 'center', fontWeight: 'bold' }} numberOfLines={2}>{locationText}</Text>
-                                    </View>
-                                    <View style={{ width: 1, backgroundColor: '#2A2A2A' }} />
-                                    <View style={{ alignItems: 'center', flex: 1, paddingHorizontal: 4 }}>
-                                        <MaterialCommunityIcons name="wallet-outline" size={24} color="#FFD700" />
-                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, marginTop: 8, textAlign: 'center', fontWeight: 'bold' }}>Bütçe:{'\n'}{budget}</Text>
-                                    </View>
-                                    <View style={{ width: 1, backgroundColor: '#2A2A2A' }} />
-                                    <View style={{ alignItems: 'center', flex: 1, paddingHorizontal: 4 }}>
-                                        <MaterialCommunityIcons name="home-search-outline" size={24} color="#FFD700" />
-                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 11, marginTop: 8, textAlign: 'center', fontWeight: 'bold' }} numberOfLines={3}>{urgency}</Text>
-                                    </View>
+                    <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+                        
+                        {/* 1. ÖZET KART */}
+                        <LinearGradient colors={['#1F1F1F', '#111']} style={styles.mainSummaryCard}>
+                            <View style={styles.summaryRow}>
+                                <View style={styles.summaryItem}>
+                                    <MaterialCommunityIcons name="map-marker-radius" size={22} color="#FFD700" />
+                                    <Text allowFontScaling={false} style={styles.summaryLabel}>KONUM</Text>
+                                    <Text allowFontScaling={false} style={styles.summaryValue} numberOfLines={1}>{lokasyon}</Text>
                                 </View>
-
-                                <View style={{ marginBottom: 24 }}>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>Eklediğim Medyalar</Text>
-                                    {hasPhotos ? (
-                                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-                                            {request.document_urls.map((url, idx) => (
-                                                <View key={idx} style={{ width: 120 }}>
-                                                    <TouchableOpacity onPress={() => setSelectedImage(url)}>
-                                                        <Image source={{ uri: url }} style={{ width: 120, height: 120, borderRadius: 12, borderWidth: 1, borderColor: '#333' }} />
-                                                    </TouchableOpacity>
-                                                    <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 12, marginTop: 6, textAlign: 'center', fontWeight: '600' }}>Görsel {idx + 1}</Text>
-                                                </View>
-                                            ))}
-                                        </ScrollView>
-                                    ) : (
-                                        <View style={styles.emptyPhotoContainer}>
-                                            <View style={styles.emptyPhotoBox}>
-                                                <MaterialCommunityIcons name="image-off-outline" size={28} color="#555" />
-                                                <Text allowFontScaling={false} style={styles.emptyPhotoText}>Görsel eklemediniz.</Text>
-                                            </View>
-                                        </View>
-                                    )}
+                                <View style={styles.summaryDivider} />
+                                <View style={styles.summaryItem}>
+                                    <MaterialCommunityIcons name="chart-line" size={22} color="#FFD700" />
+                                    <Text allowFontScaling={false} style={styles.summaryLabel}>BÜTÇE</Text>
+                                    <Text allowFontScaling={false} style={styles.summaryValue}>{butce}</Text>
                                 </View>
-
-                                <View style={{ backgroundColor: '#111', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#2A2A2A', marginBottom: 24 }}>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>Teknik Detaylarım</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 24, fontWeight: '900', marginBottom: 16, textAlign: 'center' }}>ALAN: {tadilatDetails.areaSize}</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 14, marginBottom: 24, textAlign: 'center' }}>{tadilatDetails.propertyType}</Text>
-
-                                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 13, fontWeight: 'bold', marginBottom: 12, letterSpacing: 1 }}>İSTENEN İŞLEMLER</Text>
-                                    <View style={{ gap: 14, marginBottom: 24 }}>
-                                        {operations.map((item, idx) => (
-                                            <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                                                <Ionicons name="checkmark-circle" size={26} color="#FFD700" />
-                                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 14, fontWeight: '500', flex: 1 }} numberOfLines={2}>{item}</Text>
-                                            </View>
-                                        ))}
-                                    </View>
-
-                                    {tadilatDetails.style !== '-' && (
-                                        <>
-                                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 13, fontWeight: 'bold', marginBottom: 12, letterSpacing: 1 }}>TARZ TERCİHİM: {tadilatDetails.style.toUpperCase()}</Text>
-                                            <View style={{ flexDirection: 'row', gap: 16 }}>
-                                                {styleIcons.map((styleObj, idx) => (
-                                                    <View key={idx} style={{ flex: 1, backgroundColor: 'rgba(255, 215, 0, 0.1)', borderWidth: 1, borderColor: '#FFD700', borderRadius: 12, padding: 16, alignItems: 'center' }}>
-                                                        <MaterialCommunityIcons name={styleObj.icon} size={36} color="#FFD700" />
-                                                        <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 14, fontWeight: 'bold', marginTop: 8 }}>{styleObj.label}</Text>
-                                                    </View>
-                                                ))}
-                                            </View>
-                                        </>
-                                    )}
+                                <View style={styles.summaryDivider} />
+                                <View style={styles.summaryItem}>
+                                    <MaterialCommunityIcons name="clock-outline" size={22} color="#FFD700" />
+                                    <Text allowFontScaling={false} style={styles.summaryLabel}>DURUM</Text>
+                                    <Text allowFontScaling={false} style={styles.summaryValue}>{request.status === 'pending' || request.status === 'OPEN' ? 'TEKLİF BEKLENİYOR' : 'İŞLEMDE'}</Text>
                                 </View>
-
-                                <View style={{ backgroundColor: '#111', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#2A2A2A', marginBottom: 40 }}>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold', marginBottom: 12 }}>Eklediğim Notlar</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 15, lineHeight: 24, marginBottom: 20, fontStyle: 'italic' }}>
-                                        "{notes}"
-                                    </Text>
-                                    {request.audio_url ? (
-                                        <View style={{ backgroundColor: '#1C1C1E', borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#333' }}>
-                                            <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: '#FFD700', alignItems: 'center', justifyContent: 'center', marginRight: 14 }}>
-                                                <Ionicons name="play" size={24} color="#000" style={{ marginLeft: 3 }} />
-                                            </TouchableOpacity>
-                                            <View style={{ flex: 1, height: 30, flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                                                {[0.3, 0.6, 1, 0.8, 0.4, 0.9, 0.6, 0.5, 0.2, 0.7].map((height, i) => (
-                                                    <View key={i} style={{ flex: 1, height: 30 * height, backgroundColor: i < 6 ? '#FFD700' : '#444', borderRadius: 4 }} />
-                                                ))}
-                                            </View>
-                                            <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 12, marginLeft: 12, fontWeight: 'bold' }}>0:15</Text>
-                                        </View>
-                                    ) : null}
-                                </View>
-
-                                {request?.status === 'COMPLETED' ? (
-                                    <View style={{ marginBottom: 40 }}>
-                                        <Text allowFontScaling={false} style={[styles.sectionTitle, { color: '#FFF', marginBottom: 16 }]}>GELEN TEKLİFLER</Text>
-                                        <View style={[styles.emptyBids, { backgroundColor: '#111', borderWidth: 1, borderColor: '#333' }]}>
-                                            <Text allowFontScaling={false} style={styles.emptyText}>Bu talep için alım tamamlanmış.</Text>
-                                        </View>
-                                    </View>
-                                ) : bids.length === 0 ? (
-                                    <View style={{ marginBottom: 40 }}>
-                                        <Text allowFontScaling={false} style={[styles.sectionTitle, { color: '#FFF', marginBottom: 16 }]}>GELEN TEKLİFLER</Text>
-                                        <View style={[styles.emptyBids, { backgroundColor: '#111', borderWidth: 1, borderColor: '#333' }]}>
-                                            <MaterialCommunityIcons name="timer-sand" size={32} color="#666" />
-                                            <Text allowFontScaling={false} style={styles.emptyText}>Henüz teklif gelmedi.</Text>
-                                        </View>
-                                    </View>
-                                ) : (
-                                    <View style={{ marginBottom: 60 }}>
-                                        <Text allowFontScaling={false} style={[styles.sectionTitle, { color: '#FFF', marginBottom: 16 }]}>GELEN TEKLİFLER</Text>
-                                        <View style={{ borderRadius: 24, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.4)', overflow: 'hidden', shadowColor: '#FFD700', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10 }}>
-                                            <LinearGradient colors={['#1A1A1A', '#0A0A0A']} style={{ ...StyleSheet.absoluteFillObject }} />
-                                            <View style={{ alignItems: 'center', paddingVertical: 40, paddingHorizontal: 20 }}>
-                                                <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(212, 175, 55, 0.1)', borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.4)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-                                                    <MaterialCommunityIcons name="email-multiple-outline" size={38} color="#FFD700" />
-                                                </View>
-                                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 22, fontWeight: '900', letterSpacing: 0.5, marginBottom: 24, textAlign: 'center' }}>
-                                                    <Text style={{ color: '#FFD700', fontSize: 26 }}>{bids.length}</Text> MİMAR TEKLİF VERDİ
-                                                </Text>
-                                                <TouchableOpacity activeOpacity={0.8} style={{ width: '100%', borderRadius: 16, overflow: 'hidden' }} onPress={() => navigation.navigate('MarketOffers', { request, bids })}>
-                                                    <LinearGradient colors={['#FFD700', '#D4AF37']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ paddingVertical: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-                                                        <Text allowFontScaling={false} style={{ color: '#000', fontSize: 16, fontWeight: '900', letterSpacing: 1.5 }}>TEKLİFLERİ GÖRÜNTÜLE</Text>
-                                                    </LinearGradient>
-                                                </TouchableOpacity>
-                                            </View>
-                                        </View>
-                                    </View>
-                                )}
                             </View>
-                        ) : (
-                            <>
+                        </LinearGradient>
 
-                        {/* 1. PROJECT CARD */}
+                        {/* 2. TEKNİK BİLGİLER */}
+                        <View style={styles.sectionHeader}>
+                            <View style={styles.sectionTitleWrap}>
+                                <MaterialCommunityIcons name="hammer-wrench" size={20} color="#FFD700" />
+                                <Text allowFontScaling={false} style={styles.sectionTitle}>TEKNİK DETAYLAR</Text>
+                            </View>
+                        </View>
+
                         <View style={styles.card}>
-                            <View style={styles.cardHeader}>
-                                <MaterialCommunityIcons 
-                                    name={request.offer_type === 'anahtar_teslim_tadilat' ? "home-edit" : "office-building-cog"} 
-                                    size={32} color="#D4AF37" 
-                                />
-                                <View style={{ flex: 1, marginLeft: 12 }}>
-                                    <Text allowFontScaling={false} style={styles.title}>{request.offer_type === 'anahtar_teslim_tadilat' ? 'Mimari Dönüşüm Merkezi' : 'Kentsel Dönüşüm Projesi'}</Text>
-                                    <Text allowFontScaling={false} style={styles.date}>{request.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat & Yenileme' : `${request.district}, ${request.neighborhood}`}</Text>
-                                </View>
-                            </View>
-
-                            <View style={styles.divider} />
-
                             <View style={styles.infoRow}>
-                                <View>
-                                    <Text allowFontScaling={false} style={styles.label}>PROJE NO</Text>
-                                    <Text allowFontScaling={false} style={styles.value}>#{request.id?.slice(0, 8).toUpperCase()}</Text>
-                                </View>
-                                <StatusBadge status={request.status || 'pending'} />
+                                <Text allowFontScaling={false} style={styles.infoLabel}>Proje Tipi</Text>
+                                <Text allowFontScaling={false} style={styles.infoValue}>{projeTipi}</Text>
                             </View>
-
-                            {/* Yarısı Bizden Status (Hide for Tadilat) */}
-                            {request.offer_type !== 'anahtar_teslim_tadilat' && (
-                                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16, backgroundColor: 'rgba(255,255,255,0.05)', padding: 12, borderRadius: 8 }}>
-                                    <MaterialCommunityIcons
-                                        name={request.is_campaign_active ? "check-circle" : "close-circle"}
-                                        size={20}
-                                        color={request.is_campaign_active ? "#34C759" : "#EF4444"}
-                                    />
-                                    <Text allowFontScaling={false} style={{ color: '#DDD', marginLeft: 8, fontWeight: 'bold' }}>
-                                        {request.is_campaign_active ? 'Yarısı Bizden Kampanyasından Faydalanılacağı Belirtildi' : 'Yarısı Bizden Kampanyası Yok'}
-                                    </Text>
+                            <View style={styles.infoRow}>
+                                <Text allowFontScaling={false} style={styles.infoLabel}>Mevcut Durum</Text>
+                                <Text allowFontScaling={false} style={[styles.infoValue, { color: '#FFD700' }]}>{durum}</Text>
+                            </View>
+                            
+                            <View style={styles.separator} />
+                            
+                            <Text allowFontScaling={false} style={styles.subHeader}>YENİLENECEK ALANLAR</Text>
+                            {teknikItems.length > 0 ? teknikItems.map((item, idx) => (
+                                <View key={idx} style={styles.techItem}>
+                                    <MaterialCommunityIcons name="check-circle-outline" size={20} color="#FFD700" />
+                                    <Text allowFontScaling={false} style={styles.techItemText}>{item}</Text>
                                 </View>
+                            )) : (
+                                <Text allowFontScaling={false} style={{ color: '#666', fontStyle: 'italic' }}>Kapsam belirtilmedi</Text>
                             )}
                         </View>
 
-                        {/* 2. SPECS & UNITS (Conditionally Rendered) */}
-                        {request.is_campaign_active && (
-                            <View style={{ marginBottom: 20 }}>
-                                <Text allowFontScaling={false} style={styles.sectionTitle}>YARISI DEVLETTEN DESTEĞİNDEN FAYDALANILACAK KONUT / TİCARİ SAYISI</Text>
-                                <View style={{ flexDirection: 'row', gap: 12 }}>
-                                    <View style={[styles.card, { flex: 1, marginBottom: 0, padding: 15 }]}>
-                                        <Text allowFontScaling={false} style={[styles.label, { fontSize: 14 }]}>KONUT</Text>
-                                        <Text allowFontScaling={false} style={[styles.value, { fontSize: 24, color: '#FDCB58' }]}>{request.campaign_unit_count || 0}</Text>
-                                    </View>
-                                    <View style={[styles.card, { flex: 1, marginBottom: 0, padding: 15 }]}>
-                                        <Text allowFontScaling={false} style={[styles.label, { fontSize: 14 }]}>TİCARİ</Text>
-                                        <Text allowFontScaling={false} style={[styles.value, { fontSize: 24, color: '#FDCB58' }]}>{request.campaign_commercial_count || 0}</Text>
-                                    </View>
+                        {/* 3. TASARIM */}
+                        <View style={styles.sectionHeader}>
+                            <View style={styles.sectionTitleWrap}>
+                                <MaterialCommunityIcons name="palette-swatch" size={20} color="#FFD700" />
+                                <Text allowFontScaling={false} style={styles.sectionTitle}>MİMARİ TARZ TERCİHİ</Text>
+                            </View>
+                        </View>
+                        <View style={styles.card}>
+                            <View style={styles.styleBox}>
+                                <MaterialCommunityIcons name="pillar" size={32} color="#FFD700" />
+                                <View style={{ flex: 1, marginLeft: 16 }}>
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 16, fontWeight: '800' }}>{tarz}</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, marginTop: 4 }}>Tadilat sonrası hedeflenen görünüm.</Text>
                                 </View>
                             </View>
-                        )}
-
-                        {/* 3. OFFER TYPE */}
-                        <View style={styles.card}>
-                            <Text allowFontScaling={false} style={styles.sectionTitle}>TEKLİF MODELİ</Text>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                                <MaterialCommunityIcons name="handshake" size={24} color="#D4AF37" />
-                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 16, fontWeight: 'bold', marginLeft: 10 }}>{offerLabel}</Text>
-                            </View>
-                            {request.offer_type === 'kat_karsiligi' && (
-                                <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, marginTop: 4, marginLeft: 34 }}>
-                                    Müteahhit firma arsa payı/daire karşılığında projeyi üstlenir.
-                                </Text>
-                            )}
                         </View>
 
-                        {/* 4. DETAILS - DESCRIPTION */}
-                        {request.description && (
-                            <View style={styles.card}>
-                                <Text allowFontScaling={false} style={styles.sectionTitle}>PROJE NOTLARI & DETAYLAR</Text>
-                                <Text allowFontScaling={false} style={styles.noteText}>{request.description}</Text>
-                            </View>
-                        )}
-
-                        {/* 5. LOCATION & LAND INFO */}
-                        <View style={styles.card}>
-                            <Text allowFontScaling={false} style={styles.sectionTitle}>TAPU VE KONUM BİLGİLERİ</Text>
-                            <View style={{ marginTop: 10, gap: 12 }}>
-                                <View style={styles.infoRow}>
-                                    <Text allowFontScaling={false} style={{ color: '#888' }}>İl / İlçe:</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontWeight: 'bold' }}>{request.city} / {request.district}</Text>
-                                </View>
-                                <View style={styles.infoRow}>
-                                    <Text allowFontScaling={false} style={{ color: '#888' }}>Mahalle:</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontWeight: 'bold' }}>{request.neighborhood}</Text>
-                                </View>
-                                {request.offer_type !== 'anahtar_teslim_tadilat' && (
+                        {/* 4. MEDYA */}
+                        {request.current_situation_urls?.length > 0 || request.inspiration_urls?.length > 0 ? (
+                            <>
+                                {request.current_situation_urls?.length > 0 && (
                                     <>
-                                        <View style={[styles.divider, { marginVertical: 8, height: 1, backgroundColor: '#333' }]} />
-                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                            <View>
-                                                <Text allowFontScaling={false} style={styles.label}>ADA</Text>
-                                                <Text allowFontScaling={false} style={styles.value}>{request.ada}</Text>
+                                        <View style={styles.sectionHeader}>
+                                            <View style={styles.sectionTitleWrap}>
+                                                <MaterialCommunityIcons name="camera-outline" size={20} color="#FFD700" />
+                                                <Text allowFontScaling={false} style={styles.sectionTitle}>MEVCUT DURUM FOTOĞRAFLARI</Text>
                                             </View>
-                                            <View>
-                                                <Text allowFontScaling={false} style={styles.label}>PARSEL</Text>
-                                                <Text allowFontScaling={false} style={styles.value}>{request.parsel}</Text>
-                                            </View>
-                                            <View>
-                                                <Text allowFontScaling={false} style={styles.label}>PAFTA</Text>
-                                                <Text allowFontScaling={false} style={styles.value}>{request.pafta || '-'}</Text>
-                                            </View>
+                                        </View>
+                                        <View style={{ paddingHorizontal: 20, marginBottom: 15 }}>
+                                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                                                {request.current_situation_urls.map((url, idx) => (
+                                                    <TouchableOpacity key={`current-${idx}`} onPress={() => setSelectedImage(url)} activeOpacity={0.9}>
+                                                        <Image source={{ uri: url }} style={styles.galleryImg} />
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </ScrollView>
                                         </View>
                                     </>
                                 )}
-                                {request.full_address && (
-                                    <View style={{ marginTop: 12 }}>
-                                        <Text allowFontScaling={false} style={styles.label}>AÇIK ADRES</Text>
-                                        <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 13 }}>{request.full_address}</Text>
-                                    </View>
-                                )}
-                            </View>
-                        </View>
 
-                        {/* 6. DOCUMENTS & IMAGES */}
-                        <Text allowFontScaling={false} style={styles.sectionTitle}>BELGELER VE GÖRSELLER</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingBottom: 30 }}>
-                            {request.deed_image_url && (
-                                <TouchableOpacity onPress={() => setSelectedImage(request.deed_image_url)} activeOpacity={0.8}>
-                                    <Image
-                                        source={{ uri: request.deed_image_url }}
-                                        style={{ width: 140, height: 140, borderRadius: 12, borderWidth: 1, borderColor: '#333' }}
-                                    />
-                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 10, textAlign: 'center', marginTop: 4 }}>Tapu Görseli</Text>
-                                </TouchableOpacity>
-                            )}
-
-                            {request.document_urls && request.document_urls.length > 0 && request.document_urls.map((url, idx) => (
-                                <TouchableOpacity key={idx} onPress={() => setSelectedImage(url)} activeOpacity={0.8}>
-                                    <Image
-                                        source={{ uri: url }}
-                                        style={{ width: 140, height: 140, borderRadius: 12, borderWidth: 1, borderColor: '#333' }}
-                                    />
-                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 10, textAlign: 'center', marginTop: 4 }}>Belge #{idx + 1}</Text>
-                                </TouchableOpacity>
-                            ))}
-
-                            {(!request.deed_image_url && (!request.document_urls || request.document_urls.length === 0)) && (
-                                <View style={{ width: '100%', padding: 20, alignItems: 'center', justifyContent: 'center', borderStyle: 'dashed', borderWidth: 1, borderColor: '#333', borderRadius: 12 }}>
-                                    <MaterialCommunityIcons name="image-off-outline" size={32} color="#444" />
-                                    <Text allowFontScaling={false} style={{ color: '#666', marginTop: 8 }}>Belge yüklenmemiş</Text>
-                                </View>
-                            )}
-                        </ScrollView>
-
-                        {/* 7. OFFERS SUMMARY */}
-                        {isOwner && (
-                            <View style={{ marginBottom: 30 }}>
-                                <Text allowFontScaling={false} style={styles.sectionTitle}>GELEN TEKLİFLER</Text>
-                                {constructionOffers.length === 0 ? (
-                                    <View style={styles.emptyBids}>
-                                        <MaterialCommunityIcons name="timer-sand" size={32} color="#666" />
-                                        <Text allowFontScaling={false} style={styles.emptyText}>Henüz teklif gelmedi. Müteahhitler projenizi inceliyor.</Text>
-                                    </View>
-                                ) : (
-                                    <View style={styles.card}>
-                                        <View style={{ alignItems: 'center', paddingVertical: 20 }}>
-                                            <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(212, 175, 55, 0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-                                                <MaterialCommunityIcons name="email-multiple-outline" size={30} color="#D4AF37" />
+                                {request.inspiration_urls?.length > 0 && (
+                                    <>
+                                        <View style={styles.sectionHeader}>
+                                            <View style={styles.sectionTitleWrap}>
+                                                <MaterialCommunityIcons name="lightbulb-outline" size={20} color="#FFD700" />
+                                                <Text allowFontScaling={false} style={styles.sectionTitle}>İLHAM ALINAN FOTOĞRAFLAR</Text>
                                             </View>
-                                            <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold' }}>
-                                                {constructionOffers.length} Adet Teklifiniz Var
-                                            </Text>
-                                            <Text allowFontScaling={false} style={{ color: '#888', textAlign: 'center', marginTop: 8, paddingHorizontal: 20 }}>
-                                                Gelen tekliflerin detaylarını incelemek için Gelen Kutusu'na gidiniz.
-                                            </Text>
-
-                                            <TouchableOpacity
-                                                style={{
-                                                    marginTop: 20,
-                                                    backgroundColor: '#D4AF37',
-                                                    paddingVertical: 12,
-                                                    paddingHorizontal: 24,
-                                                    borderRadius: 24,
-                                                    flexDirection: 'row',
-                                                    alignItems: 'center',
-                                                    gap: 8
-                                                }}
-                                                onPress={() => {
-                                                    const grouped = {};
-                                                    constructionOffers.forEach(o => {
-                                                        if (!grouped[o.contractor_id]) grouped[o.contractor_id] = [];
-                                                        grouped[o.contractor_id].push(o);
-                                                    });
-                                                    const contractorIds = Object.keys(grouped);
-                                                    if (contractorIds.length === 1) {
-                                                        navigation.navigate('OfferDetail', {
-                                                            request: request,
-                                                            offers: grouped[contractorIds[0]],
-                                                            contractor_id: contractorIds[0],
-                                                            request_id: request.id
-                                                        });
-                                                    } else {
-                                                        navigation.navigate('MainTabs', { screen: 'Inbox' });
-                                                    }
-                                                }}
-                                            >
-                                                <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold' }}>TEKLİFLERİ İNCELE</Text>
-                                                <MaterialCommunityIcons name="arrow-right" size={20} color="#000" />
-                                            </TouchableOpacity>
                                         </View>
-                                    </View>
+                                        <View style={{ paddingHorizontal: 20, marginBottom: 15 }}>
+                                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                                                {request.inspiration_urls.map((url, idx) => (
+                                                    <TouchableOpacity key={`inspiration-${idx}`} onPress={() => setSelectedImage(url)} activeOpacity={0.9}>
+                                                        <Image source={{ uri: url }} style={styles.galleryImg} />
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </ScrollView>
+                                        </View>
+                                    </>
                                 )}
-                            </View>
-                        )}
-
-
+                            </>
+                        ) : (
+                            <>
+                                <View style={styles.sectionHeader}>
+                                    <View style={styles.sectionTitleWrap}>
+                                        <MaterialCommunityIcons name="camera-burst" size={20} color="#FFD700" />
+                                        <Text allowFontScaling={false} style={styles.sectionTitle}>YÜKLENEN MEDYALAR</Text>
+                                    </View>
+                                </View>
+                                <View style={{ paddingHorizontal: 20, marginBottom: 15 }}>
+                                    {hasPhotos ? (
+                                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingBottom: 10 }}>
+                                            {request.document_urls.map((url, idx) => (
+                                                <TouchableOpacity key={idx} onPress={() => setSelectedImage(url)} activeOpacity={0.9}>
+                                                    <Image source={{ uri: url }} style={styles.galleryImg} />
+                                                    <View style={styles.imgLabel}>
+                                                        <Text allowFontScaling={false} style={styles.imgLabelText}>Görsel {idx + 1}</Text>
+                                                    </View>
+                                                </TouchableOpacity>
+                                            ))}
+                                        </ScrollView>
+                                    ) : (
+                                        <View style={styles.emptyPhotos}>
+                                            <MaterialCommunityIcons name="image-off-outline" size={32} color="#333" />
+                                            <Text allowFontScaling={false} style={{ color: '#555', fontSize: 12, marginTop: 8 }}>Görsel yüklenmemiş</Text>
+                                        </View>
+                                    )}
+                                </View>
                             </>
                         )}
-                        {/* OWNER ACTIONS - DELETE */}
+
+                        {/* 5. NOTLAR */}
+                        <View style={styles.sectionHeader}>
+                            <View style={styles.sectionTitleWrap}>
+                                <MaterialCommunityIcons name="message-text-outline" size={20} color="#FFD700" />
+                                <Text allowFontScaling={false} style={styles.sectionTitle}>ÖZEL NOTLARIM</Text>
+                            </View>
+                        </View>
+                        <View style={[styles.card, { marginBottom: 20 }]}>
+                            <Text allowFontScaling={false} style={styles.notesText}>
+                                "{notes}"
+                            </Text>
+                        </View>
+
+                        {/* 6. GELEN TEKLİFLER BÖLÜMÜ */}
+                        <View style={styles.sectionHeader}>
+                            <View style={styles.sectionTitleWrap}>
+                                <MaterialCommunityIcons name="email-multiple-outline" size={20} color="#FFD700" />
+                                <Text allowFontScaling={false} style={styles.sectionTitle}>GELEN TEKLİFLER</Text>
+                            </View>
+                        </View>
+
+                        {constructionOffers.length === 0 ? (
+                            <View style={styles.emptyBidsBox}>
+                                <MaterialCommunityIcons name="timer-sand" size={32} color="#666" />
+                                <Text allowFontScaling={false} style={styles.emptyText}>Henüz teklif gelmedi. Müteahhitler incelemeye devam ediyor.</Text>
+                            </View>
+                        ) : (
+                            <View style={styles.offersContainer}>
+                                <LinearGradient colors={['#1A1A1A', '#0A0A0A']} style={styles.offersHighlight}>
+                                    <Text allowFontScaling={false} style={styles.offersCountText}>
+                                        <Text style={{ color: '#FFD700', fontSize: 24 }}>{constructionOffers.length}</Text> ADET TEKLİF ALINDI
+                                    </Text>
+                                    <TouchableOpacity 
+                                        style={styles.viewOffersBtn}
+                                        onPress={() => {
+                                            const grouped = {};
+                                            constructionOffers.forEach(o => {
+                                                if (!grouped[o.contractor_id]) grouped[o.contractor_id] = [];
+                                                grouped[o.contractor_id].push(o);
+                                            });
+                                            const contractorIds = Object.keys(grouped);
+                                            if (contractorIds.length === 1) {
+                                                navigation.navigate('OfferDetail', {
+                                                    request: request,
+                                                    offers: grouped[contractorIds[0]],
+                                                    contractor_id: contractorIds[0],
+                                                    request_id: request.id
+                                                });
+                                            } else {
+                                                navigation.navigate('MainTabs', { screen: 'Inbox' });
+                                            }
+                                        }}
+                                    >
+                                        <LinearGradient colors={['#FFD700', '#D4AF37']} style={styles.viewOffersGradient}>
+                                            <Text allowFontScaling={false} style={styles.viewOffersBtnText}>TEKLİFLERİ İNCELE</Text>
+                                            <Ionicons name="arrow-forward" size={18} color="#000" />
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+                                </LinearGradient>
+                            </View>
+                        )}
+
+                        {/* 7. İŞLEMLER */}
                         {isOwner && (
-                            <View style={{ gap: 12, marginTop: 20, marginBottom: 40 }}>
-                                <TouchableOpacity
-                                    style={{
-                                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                        borderWidth: 1,
-                                        borderColor: '#EF4444',
-                                        borderRadius: 12,
-                                        paddingVertical: 16,
-                                        alignItems: 'center',
-                                    }}
-                                    onPress={handleDeleteRequest}
-                                >
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                        <MaterialCommunityIcons name="trash-can-outline" size={20} color="#EF4444" />
-                                        <Text allowFontScaling={false} style={{ color: '#EF4444', fontWeight: 'bold', fontSize: 16 }}>TALEBİ SİL</Text>
-                                    </View>
-                                </TouchableOpacity>
-                            </View>
+                            <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteRequest}>
+                                <MaterialCommunityIcons name="trash-can-outline" size={20} color="#EF4444" />
+                                <Text allowFontScaling={false} style={styles.deleteBtnText}>TALEBİ İPTAL ET / SİL</Text>
+                            </TouchableOpacity>
                         )}
 
-                        {/* OFFER BUTTON */}
-                        {(!isOwner || isAdmin) && (
-                            <View>
-                                <TouchableOpacity
-                                    style={{
-                                        backgroundColor: '#D4AF37',
-                                        borderRadius: 12,
-                                        paddingVertical: 16,
-                                        alignItems: 'center',
-                                        marginTop: isOwner ? 0 : 20,
-                                        marginBottom: 40,
-                                    }}
-                                    onPress={() => navigation.navigate('ConstructionOfferSubmit', { request })}
-                                >
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                        <MaterialCommunityIcons name="file-document-edit-outline" size={20} color="#000" />
-                                        <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>TEKLİF VER</Text>
-                                    </View>
-                                </TouchableOpacity>
-
-                                {isOwner && isAdmin && (
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: -20, marginBottom: 20, justifyContent: 'center', opacity: 0.7 }}>
-                                        <MaterialCommunityIcons name="shield-account" size={14} color="#666" />
-                                        <Text allowFontScaling={false} style={{ color: '#666', fontSize: 11 }}>Admin Test Modu Aktif</Text>
-                                    </View>
-                                )}
-                            </View>
-                        )}
                     </ScrollView>
 
-                    <Modal visible={!!selectedImage} transparent={true} animationType="fade" onRequestClose={() => setSelectedImage(null)}>
-                        <View style={{ flex: 1, backgroundColor: 'black', justifyContent: 'center', alignItems: 'center' }}>
-                            <TouchableOpacity
-                                style={{ position: 'absolute', top: 50, right: 20, zIndex: 10, padding: 10 }}
-                                onPress={() => setSelectedImage(null)}
-                            >
-                                <Ionicons name="close-circle" size={40} color="white" />
+                    {/* Modal for images */}
+                    <Modal visible={!!selectedImage} transparent={true} animationType="fade">
+                        <View style={styles.modalBg}>
+                            <TouchableOpacity style={styles.modalClose} onPress={() => setSelectedImage(null)}>
+                                <Ionicons name="close-circle" size={42} color="white" />
                             </TouchableOpacity>
-                            {selectedImage && (
-                                <Image
-                                    source={{ uri: selectedImage }}
-                                    style={{ width: '100%', height: '80%', resizeMode: 'contain' }}
-                                />
-                            )}
+                            <Image source={{ uri: selectedImage }} style={styles.modalImg} resizeMode="contain" />
                         </View>
                     </Modal>
+
                 </SafeAreaView>
             </View>
         );
@@ -978,30 +739,75 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#000' },
     content: { padding: 20, paddingBottom: 50 },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 10, marginBottom: 10 },
-    headerTitle: { color: '#D4AF37', fontSize: 16, fontWeight: 'bold', letterSpacing: 1 },
+    headerTitle: { color: '#FFD700', fontSize: 16, fontWeight: '900', letterSpacing: 1.5, textTransform: 'uppercase' },
     backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#333' },
-    card: { backgroundColor: '#1A1A1A', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#333', marginBottom: 24 },
+    
+    // Legacy/Market Card Styles
+    card: { backgroundColor: '#111', marginHorizontal: 20, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#222', marginBottom: 25 },
     cardHeader: { flexDirection: 'row', alignItems: 'center' },
     title: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
     date: { color: '#888', fontSize: 12, marginTop: 4 },
     divider: { height: 1, backgroundColor: '#333', marginVertical: 16 },
-    infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, gap: 12 },
+    infoLabel: { color: '#888', fontSize: 13, fontWeight: '600', width: 130 },
+    infoValue: { color: '#FFF', fontSize: 14, fontWeight: '700', flex: 1, textAlign: 'right' },
     label: { color: '#888', fontSize: 12, fontWeight: 'bold', letterSpacing: 0.5, marginBottom: 6 },
-    value: { color: '#FFFFFF', fontSize: 16, fontWeight: '600', fontFamily: 'System' },
+    value: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
     noteText: { color: '#FFFFFF', fontSize: 15, lineHeight: 22 },
+    
+    // Professional Summary Card
+    mainSummaryCard: { margin: 20, borderRadius: 24, paddingVertical: 20, borderWidth: 1, borderColor: '#333', overflow: 'hidden' },
+    summaryRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
+    summaryItem: { alignItems: 'center', flex: 1, paddingHorizontal: 5 },
+    summaryLabel: { color: '#888', fontSize: 9, fontWeight: '900', marginTop: 8, letterSpacing: 1 },
+    summaryValue: { color: '#FFF', fontSize: 12, fontWeight: '800', marginTop: 4, textAlign: 'center' },
+    summaryDivider: { width: 1, height: 40, backgroundColor: '#333' },
+
+    // Sections
+    sectionHeader: { paddingHorizontal: 20, marginBottom: 15, marginTop: 10 },
+    sectionTitleWrap: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    sectionTitle: { color: '#FFF', fontSize: 13, fontWeight: '900', letterSpacing: 1.5 },
+    separator: { height: 1, backgroundColor: '#222', marginVertical: 15 },
+    subHeader: { color: '#666', fontSize: 11, fontWeight: '900', letterSpacing: 1, marginBottom: 15 },
+    
+    // Items
+    techItem: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
+    techItemText: { color: '#DDD', fontSize: 14, fontWeight: '600', flex: 1 },
+    styleBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1A1A1A', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#333' },
+    
+    // Gallery
+    galleryImg: { width: 140, height: 140, borderRadius: 18, borderWidth: 1, borderColor: '#222' },
+    imgLabel: { position: 'absolute', bottom: 10, left: 10, backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+    imgLabelText: { color: '#FFF', fontSize: 10, fontWeight: 'bold' },
+    emptyPhotos: { height: 120, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111', borderRadius: 20, borderStyle: 'dashed', borderWidth: 1, borderColor: '#222' },
+    
+    // Notes
+    notesText: { color: '#CCC', fontSize: 14, lineHeight: 22, fontStyle: 'italic' },
+    
+    // Offers/Bids
+    offersContainer: { paddingHorizontal: 20, marginBottom: 30 },
+    offersHighlight: { borderRadius: 24, padding: 24, borderWidth: 1, borderColor: 'rgba(212,175,55,0.3)', alignItems: 'center' },
+    offersCountText: { color: '#FFF', fontSize: 16, fontWeight: '900', letterSpacing: 1, marginBottom: 20 },
+    viewOffersBtn: { width: '100%', height: 54, borderRadius: 16, overflow: 'hidden' },
+    viewOffersGradient: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+    viewOffersBtnText: { color: '#000', fontSize: 14, fontWeight: '900', letterSpacing: 1 },
+    
+    emptyBidsBox: { marginHorizontal: 20, padding: 30, backgroundColor: '#0A0A0A', borderRadius: 20, borderWidth: 1, borderColor: '#222', alignItems: 'center', borderStyle: 'dashed' },
+    emptyText: { color: '#666', fontSize: 13, marginTop: 12, textAlign: 'center', lineHeight: 20 },
+
+    // Actions
+    deleteBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: 20, paddingVertical: 16, borderRadius: 16, backgroundColor: 'rgba(239, 68, 68, 0.05)', borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.2)', marginTop: 20 },
+    deleteBtnText: { color: '#EF4444', fontWeight: 'bold', fontSize: 14, letterSpacing: 1 },
+
+    // Modal
+    modalBg: { flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' },
+    modalClose: { position: 'absolute', top: 50, right: 20, zIndex: 10 },
+    modalImg: { width: '100%', height: '80%' },
+
+    // Market Legacy (kept for safety)
     statusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1 },
     statusDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
     statusText: { fontSize: 10, fontWeight: 'bold' },
-    sectionTitle: { color: '#D4AF37', fontSize: 14, fontWeight: 'bold', marginBottom: 12, marginLeft: 4, letterSpacing: 1, textTransform: 'uppercase' },
     itemsContainer: { backgroundColor: '#1A1A1A', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#333', marginBottom: 24 },
-    itemRow: { flexDirection: 'row', alignItems: 'center', padding: 16 },
-    itemBorder: { borderBottomWidth: 1, borderBottomColor: '#252525' },
-    itemIndex: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#111', alignItems: 'center', justifyContent: 'center', marginRight: 12, borderWidth: 1, borderColor: '#333' },
-    indexText: { color: '#666', fontSize: 10, fontWeight: 'bold' },
-    itemName: { color: '#FFF', fontSize: 15, fontWeight: '500' },
-    itemDetail: { color: '#666', fontSize: 12, marginTop: 2 },
-    itemQty: { color: '#D4AF37', fontSize: 15, fontWeight: 'bold' },
-    emptyBids: { alignItems: 'center', padding: 30, backgroundColor: '#111', borderRadius: 16, borderStyle: 'dashed', borderWidth: 1, borderColor: '#333' },
-    emptyText: { color: '#666', fontSize: 13, marginTop: 10, textAlign: 'center' },
-    bidCard: { padding: 16, backgroundColor: '#1A1A1A', marginBottom: 10, borderRadius: 12 }
+    itemRow: { flexDirection: 'row', alignItems: 'center', padding: 16 }
 });

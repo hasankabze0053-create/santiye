@@ -23,6 +23,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { uploadImageToSupabase } from '../../services/PhotoUploadService';
+import TurkeyLocationPicker from '../../components/TurkeyLocationPicker';
+import BudgetSelector from '../../components/BudgetSelector';
 
 const { width } = Dimensions.get('window');
 
@@ -88,12 +90,7 @@ const STYLE_CATALOG = {
     ],
 };
 
-const BUDGET_OPTIONS = [
-    { id: 'eco', label: 'Ekonomik', sub: '50.000 ₺ ve altı' },
-    { id: 'std', label: 'Standart', sub: '50.000 – 150.000 ₺' },
-    { id: 'prem', label: 'Premium', sub: '150.000 – 400.000 ₺' },
-    { id: 'lux', label: 'Lüks', sub: '400.000 ₺ ve üzeri' },
-];
+// BUDGET_OPTIONS removed - using BudgetSelector component
 
 // ─── SHARED COMPONENTS ───────────────────────────────────────
 
@@ -209,7 +206,7 @@ export default function KitchenBathWizardScreen() {
     const [bathStyle, setBathStyle] = useState(null);
 
     // Step 5 State
-    const [budget, setBudget] = useState(null);
+    const [budget, setBudget] = useState('Standart');
     const [currentPhotos, setCurrentPhotos] = useState([]);
     const [inspirationPhotos, setInspirationPhotos] = useState([]);
     const [details, setDetails] = useState('');
@@ -217,6 +214,7 @@ export default function KitchenBathWizardScreen() {
     const [loading, setLoading] = useState(false);
     const [city, setCity] = useState('');
     const [district, setDistrict] = useState('');
+    const [isLocationPickerVisible, setIsLocationPickerVisible] = useState(false);
 
     const TITLES = {
         1: "Yenilenme Neresi\nİçin Yapılacak?",
@@ -259,28 +257,30 @@ export default function KitchenBathWizardScreen() {
             const kStyle = kitchenStyle ? STYLE_CATALOG.kitchen.find(s => s.id === kitchenStyle)?.title || kitchenStyle : null;
             const bStyle = bathStyle ? STYLE_CATALOG.bath.find(s => s.id === bathStyle)?.title || bathStyle : null;
 
-            let fullDescription = `PROJE TİPİ: Mutfak & Banyo Yenileme\n`;
-            fullDescription += `KAPSAM: ${getScopeTitle()}\n`;
+            let fullDescription = `[PROJE TİPİ] Mutfak & Banyo Yenileme\n`;
+            fullDescription += `[KAPSAM] ${getScopeTitle()}\n`;
+            fullDescription += `[DURUM] ${occupancy === 'occupied' ? 'Eşyalı' : 'Boş'} Konut • Bina Yaşı: ${getAge()}\n`;
 
             let areaDet = [];
             if (showKitchen) {
-                const kAreasStr = Array.from({ length: kitchenCount }).map((_, i) => `${kitchenAreas[i] || 15}m² ${kitchenTypes[i] || 'Kapalı'}`).join(' + ');
-                areaDet.push(`${kitchenCount} Mutfak (${kAreasStr})`);
+                const kAreasStr = Array.from({ length: kitchenCount }).map((_, i) => `${kitchenAreas[i] || 15}m² (${kitchenTypes[i] || 'Kapalı'})`).join(' + ');
+                areaDet.push(`${kitchenCount} Mutfak: ${kAreasStr}`);
             }
             if (showBath) {
-                const bAreasStr = Array.from({ length: bathCount }).map((_, i) => bathAreas[i] || 5).join('m², ') + 'm²';
-                areaDet.push(`${bathCount} Banyo (${bAreasStr})`);
+                const bAreasStr = Array.from({ length: bathCount }).map((_, i) => `${bathAreas[i] || 5}m²`).join(' + ');
+                areaDet.push(`${bathCount} Banyo: ${bAreasStr}`);
             }
-            fullDescription += `MEKAN: ${areaDet.join(' | ')}\n`;
+            fullDescription += `[TEKNİK] ${areaDet.join(' | ')}\n`;
             
             let styleDet = [];
             if (showKitchen && kStyle) styleDet.push(`Mutfak: ${kStyle}`);
             if (showBath && bStyle) styleDet.push(`Banyo: ${bStyle}`);
-            fullDescription += `TARZ: ${styleDet.join(' | ') || 'Belirtilmedi'}\n`;
+            fullDescription += `[TASARIM] ${styleDet.join(' | ') || 'Belirtilmedi'}\n`;
 
-            fullDescription += `YENİLEME: ${getWorkLevel()} (${occupancy === 'occupied' ? 'Eşyalı' : 'Boş'} Ev, Bina: ${getAge()})\n`;
-            fullDescription += `BÜTÇE: ${getBudget()}\n\n`;
-            if (details) fullDescription += `NOT:\n${details}\n`;
+            fullDescription += `[İŞ ÖLÇEĞİ] ${getWorkLevel()}\n`;
+            fullDescription += `[BÜTÇE] ${budget}\n`;
+            fullDescription += `[LOKASYON] ${city} / ${district}\n\n`;
+            if (details) fullDescription += `[NOTLARI]\n${details}\n`;
 
             const currentUrls = await Promise.all(currentPhotos.map(img => uploadImageToSupabase(img.uri)));
             const inspirationUrls = await Promise.all(inspirationPhotos.map(img => uploadImageToSupabase(img.uri)));
@@ -290,7 +290,9 @@ export default function KitchenBathWizardScreen() {
                 user_id: user.id, city: city || 'Türkiye Geneli', district: district || 'Tümü', neighborhood: 'Tümü',
                 ada: '', parsel: '', pafta: '', full_address: 'Mutfak & Banyo Talebi',
                 offer_type: 'anahtar_teslim_tadilat', description: fullDescription, status: 'pending',
-                document_urls: allDocumentUrls, deed_image_url: allDocumentUrls.length > 0 ? allDocumentUrls[0] : null
+                document_urls: allDocumentUrls, deed_image_url: allDocumentUrls.length > 0 ? allDocumentUrls[0] : null,
+                current_situation_urls: currentUrls,
+                inspiration_urls: inspirationUrls
             });
 
             if (error) throw error;
@@ -550,56 +552,44 @@ export default function KitchenBathWizardScreen() {
 
     const renderStep5 = () => (
         <View style={s.stepBlock}>
-            {/* Location Inputs */}
+            {/* Location Picker */}
             <View style={{ marginBottom: 24 }}>
                 <SLabel text="Proje Konumu" sub="Mimara doğru bölge bilgisi sunmak için önemlidir." />
-                <View style={{ flexDirection: 'row', gap: 12 }}>
-                    <View style={{ flex: 1 }}>
-                        <Text allowFontScaling={false} style={{ color: TH.textMuted, fontSize: 11, fontWeight: 'bold', marginBottom: 6, marginLeft: 4 }}>İL</Text>
-                        <TextInput allowFontScaling={false}
-                            style={{ backgroundColor: TH.cardLight, color: TH.textPrimary, fontSize: 16, fontWeight: 'bold', padding: 14, borderRadius: 12, borderWidth: 1, borderColor: TH.border }}
-                            placeholder="Örn: İstanbul"
-                            placeholderTextColor={TH.textMuted}
-                            value={city}
-                            onChangeText={setCity}
-                            inputAccessoryViewID="KBDecor"
-                        />
+                <TouchableOpacity 
+                    style={s5.locationBtn}
+                    onPress={() => setIsLocationPickerVisible(true)}
+                    activeOpacity={0.7}
+                >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                        <Ionicons name="location" size={22} color={TH.gold} />
+                        <Text allowFontScaling={false} style={{ color: city ? '#FFF' : TH.textMuted, fontSize: 16, fontWeight: 'bold' }}>
+                            {city ? `${city} / ${district}` : 'İl ve İlçe Seçin'}
+                        </Text>
                     </View>
-                    <View style={{ flex: 1 }}>
-                        <Text allowFontScaling={false} style={{ color: TH.textMuted, fontSize: 11, fontWeight: 'bold', marginBottom: 6, marginLeft: 4 }}>İLÇE</Text>
-                        <TextInput allowFontScaling={false}
-                            style={{ backgroundColor: TH.cardLight, color: TH.textPrimary, fontSize: 16, fontWeight: 'bold', padding: 14, borderRadius: 12, borderWidth: 1, borderColor: TH.border }}
-                            placeholder="Örn: Kadıköy"
-                            placeholderTextColor={TH.textMuted}
-                            value={district}
-                            onChangeText={setDistrict}
-                            inputAccessoryViewID="KBDecor"
-                        />
-                    </View>
-                </View>
+                    <Ionicons name="chevron-down" size={20} color={TH.textMuted} />
+                </TouchableOpacity>
             </View>
+
+            <TurkeyLocationPicker 
+                visible={isLocationPickerVisible}
+                onClose={() => setIsLocationPickerVisible(false)}
+                onSelect={(c, d) => {
+                    setCity(c);
+                    setDistrict(d);
+                }}
+                currentCity={city}
+                currentDistrict={district}
+            />
 
             <UploadZone iconName="camera-plus-outline" label="Mevcut Durum Görselleri" images={currentPhotos} onPick={() => pickImages(setCurrentPhotos)} onRemove={i => setCurrentPhotos(p => p.filter((_, idx) => idx !== i))} />
             <UploadZone iconName="image-multiple-outline" label="Referans Görselleri" images={inspirationPhotos} onPick={() => pickImages(setInspirationPhotos)} onRemove={i => setInspirationPhotos(p => p.filter((_, idx) => idx !== i))} />
 
             <View style={{ marginBottom: 24 }}>
                 <SLabel text="Planlanan Bütçe Segmenti" sub="Mimar kalite sınıfını buna göre projelendirir." />
-                <View style={s5.grid}>
-                    {BUDGET_OPTIONS.map(opt => {
-                        const isSel = budget === opt.id;
-                        return (
-                            <TouchableOpacity key={opt.id} style={[s5.budgCard, isSel && s5.budgCardActive]} onPress={() => setBudget(opt.id)} activeOpacity={0.8}>
-                                <View style={[s1.radio, { width: 22, height: 22 }, isSel && s1.radioActive]}>
-                                    {isSel && <View style={[s1.radioInner, { width: 10, height: 10 }]} />}
-                                </View>
-                                <View style={{ marginLeft: 10 }}>
-                                    <Text allowFontScaling={false} style={[s5.budgTitle, isSel && { color: TH.gold }]}>{opt.label}</Text>
-                                    <Text allowFontScaling={false} style={s5.budgSub}>{opt.sub}</Text>
-                                </View>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
+                <BudgetSelector 
+                    selectedSegment={budget} 
+                    onSelect={setBudget} 
+                />
             </View>
 
             <View style={{ marginBottom: 10 }}>
@@ -776,6 +766,16 @@ const s4 = StyleSheet.create({
 // Step 5
 const s5 = StyleSheet.create({
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+    locationBtn: {
+        backgroundColor: '#1A1A1C',
+        padding: 18,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: TH.border,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+    },
     budgCard: { width: (width - 40 - 12) / 2, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: TH.border, backgroundColor: TH.cardLight, flexDirection: 'row', alignItems: 'center' },
     budgCardActive: { borderColor: TH.gold },
     budgTitle: { color: TH.textPrimary, fontSize: 13, fontWeight: '700', marginBottom: 2 },

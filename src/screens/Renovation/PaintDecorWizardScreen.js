@@ -22,6 +22,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { uploadImageToSupabase } from '../../services/PhotoUploadService';
+import TurkeyLocationPicker from '../../components/TurkeyLocationPicker';
+import BudgetSelector from '../../components/BudgetSelector';
 
 const { width } = Dimensions.get('window');
 
@@ -151,6 +153,11 @@ export default function PaintDecorWizardScreen() {
     const [notes, setNotes] = useState('');
     const [isRecording, setIsRecording] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [city, setCity] = useState('');
+    const [district, setDistrict] = useState('');
+    const [budget, setBudget] = useState('Standart');
+    const [isLocationPickerVisible, setIsLocationPickerVisible] = useState(false);
+    const DANGER_RED = '#FF3B30';
 
     const TITLES = {
         1: "Mekanında Hangi\nDokunuşlara İhtiyacın Var?",
@@ -183,23 +190,27 @@ export default function PaintDecorWizardScreen() {
             const getAreaName = () => AREA_OPTIONS.find(a => a.id === areaType)?.label || areaType;
             const getColorStyle = () => COLOR_STYLES.find(c => c.id === colorStyle)?.title || colorStyle;
 
-            let fullDescription = `PROJE TİPİ: Boya & Dekorasyon\n`;
-            fullDescription += `HİZMETLER: ${getServiceNames() || '-'}\n`;
-            fullDescription += `MEKAN: ${getAreaName() || 'Belirtilmedi'}\n`;
-            fullDescription += `ZAMAN: ${timeline || 'Belirtilmedi'}\n`;
-            fullDescription += `TARZ: ${getColorStyle() || 'Belirtilmedi'}\n`;
-            fullDescription += `DURUM: ${occupancy === 'occupied' ? 'Eşyalı Ev' : 'Boş Ev'}, ${wallCondition === 'clean' ? 'Temiz Duvar' : wallCondition === 'heavy' ? 'Kapsamlı Tamirat' : 'Kısmi Tamirat'}\n\n`;
-            if (notes) fullDescription += `NOT:\n${notes}\n`;
+            let fullDescription = `[PROJE TİPİ] Boya & Dekorasyon\n`;
+            fullDescription += `[HİZMETLER] ${getServiceNames() || '-'}\n`;
+            fullDescription += `[MEKAN] ${getAreaName() || 'Belirtilmedi'}\n`;
+            fullDescription += `[ZAMAN] ${timeline || 'Belirtilmedi'}\n`;
+            fullDescription += `[TASARIM] ${getColorStyle() || 'Belirtilmedi'}\n`;
+            fullDescription += `[DURUM] ${occupancy === 'occupied' ? 'Eşyalı Ev' : 'Boş Ev'}, ${wallCondition === 'clean' ? 'Temiz Duvar' : wallCondition === 'heavy' ? 'Kapsamlı Tamirat' : 'Kısmi Tamirat'}\n`;
+            fullDescription += `[BÜTÇE] ${budget}\n`;
+            fullDescription += `[LOKASYON] ${city || 'Türkiye Geneli'} / ${district || 'Tümü'}\n\n`;
+            if (notes) fullDescription += `[NOTLARI]\n${notes}\n`;
 
             const currentUrls = await Promise.all(currentPhotos.map(img => uploadImageToSupabase(img.uri)));
             const inspirationUrls = await Promise.all(inspirationPhotos.map(img => uploadImageToSupabase(img.uri)));
             const allDocumentUrls = [...currentUrls, ...inspirationUrls];
 
             const { error } = await supabase.from('construction_requests').insert({
-                user_id: user.id, city: 'Türkiye Geneli', district: 'Tümü', neighborhood: 'Tümü',
+                user_id: user.id, city: city || 'Türkiye Geneli', district: district || 'Tümü', neighborhood: 'Tümü',
                 ada: '', parsel: '', pafta: '', full_address: 'Boya & Dekorasyon Talebi',
                 offer_type: 'anahtar_teslim_tadilat', description: fullDescription, status: 'pending',
-                document_urls: allDocumentUrls, deed_image_url: allDocumentUrls.length > 0 ? allDocumentUrls[0] : null
+                document_urls: allDocumentUrls, deed_image_url: allDocumentUrls.length > 0 ? allDocumentUrls[0] : null,
+                current_situation_urls: currentUrls,
+                inspiration_urls: inspirationUrls
             });
 
             if (error) throw error;
@@ -378,6 +389,44 @@ export default function PaintDecorWizardScreen() {
             <UploadZone iconName="camera-plus-outline" label="Mevcut Durum Görselleri" images={currentPhotos} onPick={() => pickImages(setCurrentPhotos)} onRemove={i => setCurrentPhotos(p => p.filter((_, idx) => idx !== i))} />
             <UploadZone iconName="image-multiple-outline" label="İlham & Referans Görselleri" images={inspirationPhotos} onPick={() => pickImages(setInspirationPhotos)} onRemove={i => setInspirationPhotos(p => p.filter((_, idx) => idx !== i))} />
 
+            {/* Location Picker */}
+            <View style={{ marginBottom: 24, marginTop: 10 }}>
+                <SLabel text="Proje Konumu" sub="Hizmet bölgesi teyidi için gereklidir." />
+                <TouchableOpacity 
+                    style={s5.locationBtn}
+                    onPress={() => setIsLocationPickerVisible(true)}
+                    activeOpacity={0.7}
+                >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                        <Ionicons name="location" size={22} color={TH.gold} />
+                        <Text allowFontScaling={false} style={{ color: city ? '#FFF' : TH.textMuted, fontSize: 16, fontWeight: 'bold' }}>
+                            {city ? `${city} / ${district}` : 'İl ve İlçe Seçin'}
+                        </Text>
+                    </View>
+                    <Ionicons name="chevron-down" size={20} color={TH.textMuted} />
+                </TouchableOpacity>
+            </View>
+
+            <TurkeyLocationPicker 
+                visible={isLocationPickerVisible}
+                onClose={() => setIsLocationPickerVisible(false)}
+                onSelect={(c, d) => {
+                    setCity(c);
+                    setDistrict(d);
+                }}
+                currentCity={city}
+                currentDistrict={district}
+            />
+
+            {/* Budget Selection */}
+            <View style={{ marginBottom: 24 }}>
+                <SLabel text="Tahmini Bütçe Segmenti" sub="Hizmet kalitesi ve malzeme seçimlerini belirler." />
+                <BudgetSelector 
+                    selectedSegment={budget} 
+                    onSelect={setBudget} 
+                />
+            </View>
+
             <View style={{ marginTop: 10 }}>
                 <SLabel text="Özel İstekleriniz" sub="Bilinmesi gereken diğer detayları buraya yazabilirsiniz." />
                 <View style={s5.textAreaWrap}>
@@ -544,6 +593,16 @@ const s4 = StyleSheet.create({
 // Step 5
 const s5 = StyleSheet.create({
     textAreaWrap: { position: 'relative' },
+    locationBtn: {
+        backgroundColor: '#1A1A1C',
+        padding: 18,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: TH.border,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+    },
     textArea: { height: 150, backgroundColor: TH.cardLight, borderRadius: 16, borderWidth: 1, borderColor: TH.border, color: TH.textPrimary, fontSize: 15, padding: 16, paddingRight: 50, textAlignVertical: 'top' },
     micBtn: { position: 'absolute', right: 12, bottom: 12, width: 44, height: 44, borderRadius: 22, backgroundColor: '#222', alignItems: 'center', justifyContent: 'center' },
     accessory: { backgroundColor: '#1A1A1C', padding: 12, alignItems: 'flex-end', borderTopWidth: 1, borderTopColor: TH.border },

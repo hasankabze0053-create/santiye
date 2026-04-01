@@ -3,7 +3,9 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Animated, Dimensions, Easing, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import Slider from '@react-native-community/slider';
+import { ActivityIndicator, Alert, Animated, Dimensions, Easing, Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMarketCart } from '../../context/MarketCartContext';
 import { supabase } from '../../lib/supabase';
@@ -12,6 +14,16 @@ import { getMarketImage } from '../../utils/marketAssets';
 import { PermissionService } from '../../services/PermissionService';
 
 const { width } = Dimensions.get('window');
+
+const COLOR_PALETTE = [
+    { name: 'Altın', code: '#D4AF37' },
+    { name: 'Beyaz', code: '#FFFFFF' },
+    { name: 'Gümüş', code: '#C0C0C0' },
+    { name: 'Kömür', code: '#333333' },
+    { name: 'Turuncu', code: '#F97316' },
+    { name: 'Mavi', code: '#06B6D4' },
+    { name: 'Kırmızı', code: '#EF4444' },
+];
 
 // ─── MARKET PRICE TICKER ──────────────────────────────────────────────────
 const MARKET_PRICES = [
@@ -74,6 +86,7 @@ export default function MarketScreen() {
 
     const [isAdmin, setIsAdmin] = useState(false);
     const [isSeller, setIsSeller] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
 
     useEffect(() => {
         checkUserStatus();
@@ -95,6 +108,188 @@ export default function MarketScreen() {
             console.warn('User status check failed', e);
         }
     };
+
+    // --- ADMIN CATEGORY MANAGEMENT ---
+    const toggleCatVisibility = async (cat) => {
+        const { success } = await MarketService.toggleCategoryVisibility(cat.id, cat.is_active);
+        if (success) {
+            setMarketCategories(prev => prev.map(c => c.id === cat.id ? { ...c, is_active: !c.is_active } : c));
+        } else {
+            Alert.alert("Hata", "Görünürlük güncellenemedi.");
+        }
+    };
+
+    const moveCat = async (index, direction) => {
+        const newCats = [...marketCategories];
+        const targetIndex = direction === 'left' ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= newCats.length) return;
+
+        [newCats[index], newCats[targetIndex]] = [newCats[targetIndex], newCats[index]];
+        setMarketCategories(newCats);
+
+        // Update DB
+        await MarketService.updateCategorySortOrder(newCats[index].id, index * 10);
+        await MarketService.updateCategorySortOrder(newCats[targetIndex].id, targetIndex * 10);
+    };
+
+    const toggleSubCatVisibility = async (sub) => {
+        const { success } = await MarketService.toggleSubCategoryVisibility(sub.id, sub.is_active);
+        if (success) {
+            // Update the nested state
+            setMarketCategories(prev => prev.map(c => {
+                if (c.id === selectedCategory.id) {
+                    return {
+                        ...c,
+                        subcategories: c.subcategories.map(s => s.id === sub.id ? { ...s, is_active: !s.is_active } : s)
+                    };
+                }
+                return c;
+            }));
+        } else {
+            Alert.alert("Hata", "Görünürlük güncellenemedi.");
+        }
+    };
+
+    const moveSubCat = async (sub, index, direction) => {
+        if (!selectedCategory) return;
+        const subcats = [...selectedCategory.subcategories];
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= subcats.length) return;
+
+        [subcats[index], subcats[targetIndex]] = [subcats[targetIndex], subcats[index]];
+        
+        // Update main state
+        setMarketCategories(prev => prev.map(c => {
+            if (c.id === selectedCategory.id) {
+                return { ...c, subcategories: subcats };
+            }
+            return c;
+        }));
+
+        // Update DB
+        await MarketService.updateSubCategorySortOrder(subcats[index].id, index * 10);
+        await MarketService.updateSubCategorySortOrder(subcats[targetIndex].id, targetIndex * 10);
+    };
+
+    const handleRenameCat = (cat) => {
+        Alert.prompt(
+            "Kategoriyi Yeniden Adlandır",
+            `"${cat.title}" için yeni bir isim girin:`,
+            [
+                { text: "Vazgeç", style: "cancel" },
+                {
+                    text: "Değiştir",
+                    onPress: async (newName) => {
+                        if (newName && newName.trim()) {
+                            const { success } = await MarketService.updateCategoryName(cat.id, newName.trim());
+                            if (success) {
+                                setMarketCategories(prev => prev.map(c => c.id === cat.id ? { ...c, title: newName.trim() } : c));
+                            } else {
+                                Alert.alert("Hata", "İsim güncellenemedi.");
+                            }
+                        }
+                    }
+                }
+            ],
+            "plain-text",
+            cat.title
+        );
+    };
+
+    const handleRenameSubCat = (sub) => {
+        Alert.prompt(
+            "Alt Kategoriyi Yeniden Adlandır",
+            `"${sub.name}" için yeni bir isim girin:`,
+            [
+                { text: "Vazgeç", style: "cancel" },
+                {
+                    text: "Değiştir",
+                    onPress: async (newName) => {
+                        if (newName && newName.trim()) {
+                            const { success } = await MarketService.updateSubCategoryName(sub.id, newName.trim());
+                            if (success) {
+                                setMarketCategories(prev => prev.map(c => {
+                                    if (c.id === selectedCategory.id) {
+                                        return {
+                                            ...c,
+                                            subcategories: c.subcategories.map(s => s.id === sub.id ? { ...s, name: newName.trim() } : s)
+                                        };
+                                    }
+                                    return c;
+                                }));
+                            } else {
+                                Alert.alert("Hata", "İsim güncellenemedi.");
+                            }
+                        }
+                    }
+                }
+            ],
+            "plain-text",
+            sub.name
+        );
+    };
+
+    // --- SHOWCASE MANAGEMENT ---
+    const handlePickShowcaseImage = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [16, 9],
+            quality: 0.8,
+        });
+
+        if (!result.canceled) {
+            setIsUploading(true);
+            const publicUrl = await MarketService.uploadImage(result.assets[0].uri);
+            if (publicUrl) {
+                setEditingShowcaseItem(prev => ({ ...prev, image_url: publicUrl, image_ref: null, is_local: false }));
+            } else {
+                Alert.alert("Hata", "Resim yüklenemedi.");
+            }
+            setIsUploading(false);
+        }
+    };
+
+    const handleSaveShowcase = async () => {
+        if (!editingShowcaseItem) return;
+        
+        const isNew = !editingShowcaseItem.id;
+        let success = false;
+
+        if (isNew) {
+            const res = await MarketService.addShowcaseItem(editingShowcaseItem);
+            success = res.success;
+        } else {
+            const res = await MarketService.updateShowcaseItem(editingShowcaseItem.id, editingShowcaseItem);
+            success = res.success;
+        }
+
+        if (success) {
+            const freshShowcase = await MarketService.getShowcaseItems();
+            setShowcaseItems(freshShowcase);
+            setEditingShowcaseItem(null);
+            Alert.alert("Başarılı", "Kampanya kaydedildi.");
+        } else {
+            Alert.alert("Hata", "Kampanya kaydedilemedi.");
+        }
+    };
+
+    const handleDeleteShowcase = async (id) => {
+        Alert.alert("Sil", "Bu kampanyayı silmek istediğinize emin misiniz?", [
+            { text: "Vazgeç", style: "cancel" },
+            {
+                text: "Sil", style: "destructive", onPress: async () => {
+                    const { success } = await MarketService.deleteShowcaseItem(id);
+                    if (success) {
+                        setShowcaseItems(prev => prev.filter(item => item.id !== id));
+                    }
+                }
+            }
+        ]);
+    };
+    const [isShowcaseManagerVisible, setIsShowcaseManagerVisible] = useState(false);
+    const [editingShowcaseItem, setEditingShowcaseItem] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
 
     // Data State
     const [marketCategories, setMarketCategories] = useState([]);
@@ -301,15 +496,44 @@ export default function MarketScreen() {
                                             <View style={styles.heroImage}>
                                                 <Image
                                                     source={item.is_local ? getMarketImage(item.image_ref) : { uri: item.image_url }}
-                                                    style={StyleSheet.absoluteFill}
+                                                    style={[
+                                                        StyleSheet.absoluteFill,
+                                                        { transform: [{ scale: item.image_scale || 1 }] }
+                                                    ]}
                                                     contentFit="cover"
                                                     transition={500}
                                                 />
-                                                <LinearGradient colors={['transparent', '#000000']} style={StyleSheet.absoluteFill} />
-                                                <View style={styles.heroTag}><Text allowFontScaling={false} style={styles.heroTagText}>{item.tag}</Text></View>
-                                                <View style={styles.heroContent}>
-                                                    {item.title ? <Text allowFontScaling={false} style={styles.heroTitle}>{item.title}</Text> : null}
-                                                    {item.subtitle ? <Text allowFontScaling={false} style={styles.heroSubtitle}>{item.subtitle}</Text> : null}
+                                                <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={StyleSheet.absoluteFill} />
+                                                
+                                                <View style={[
+                                                    styles.heroContent,
+                                                    { 
+                                                        transform: [
+                                                            { translateX: item.text_offset_x || 0 },
+                                                            { translateY: item.text_offset_y || 0 }
+                                                        ]
+                                                    }
+                                                ]}>
+                                                    <View style={[
+                                                        styles.heroTag, 
+                                                        { 
+                                                            position: 'relative', top: 0, left: 0, 
+                                                            alignSelf: 'flex-start', marginBottom: 8,
+                                                            backgroundColor: item.tag_color || '#D4AF37'
+                                                        }
+                                                    ]}>
+                                                        <Text allowFontScaling={false} style={styles.heroTagText}>{item.tag}</Text>
+                                                    </View>
+                                                    {item.title ? (
+                                                        <Text allowFontScaling={false} style={[styles.heroTitle, { color: item.title_color || '#FFFFFF' }]}>
+                                                            {item.title}
+                                                        </Text>
+                                                    ) : null}
+                                                    {item.subtitle ? (
+                                                        <Text allowFontScaling={false} style={[styles.heroSubtitle, { color: item.subtitle_color || '#FFFFFF' }]}>
+                                                            {item.subtitle}
+                                                        </Text>
+                                                    ) : null}
                                                     
                                                     {/* Premium Button */}
                                                     <TouchableOpacity 
@@ -323,10 +547,20 @@ export default function MarketScreen() {
                                                             start={{ x: 0, y: 0 }}
                                                             end={{ x: 1, y: 0 }}
                                                         />
-                                                        <Text allowFontScaling={false} style={styles.heroPremiumBtnText}>Şimdi En Uygun Fiyatı Öğren</Text>
+                                                        <Text allowFontScaling={false} style={styles.heroPremiumBtnText}>{item.button_text || 'Şimdi En Uygun Fiyatı Öğren'}</Text>
                                                         <MaterialCommunityIcons name="arrow-right" size={16} color="#000" style={{ marginLeft: 6 }} />
                                                     </TouchableOpacity>
                                                 </View>
+
+                                                {/* Admin Slider Edit Shortcut */}
+                                                {isAdmin && (
+                                                    <TouchableOpacity 
+                                                        style={styles.heroEditShortcut} 
+                                                        onPress={() => setEditingShowcaseItem(item)}
+                                                    >
+                                                        <MaterialCommunityIcons name="pencil" size={20} color="#000" />
+                                                    </TouchableOpacity>
+                                                )}
                                             </View>
                                         </View>
                                     ))}
@@ -344,6 +578,21 @@ export default function MarketScreen() {
                                     })}
                                 </View>
                             </View>
+
+                            {/* Slider Settings Button (Admin Only) */}
+                            {isAdmin && (
+                                <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
+                                    <TouchableOpacity 
+                                        style={styles.adminSliderBtn}
+                                        onPress={() => setIsShowcaseManagerVisible(true)}
+                                    >
+                                        <LinearGradient colors={['#1A1A1A', '#111']} style={StyleSheet.absoluteFillObject} />
+                                        <MaterialCommunityIcons name="view-carousel-outline" size={20} color="#D4AF37" />
+                                        <Text allowFontScaling={false} style={styles.adminSliderBtnText}>SLIDER AYARLARI</Text>
+                                        <MaterialCommunityIcons name="cog-outline" size={16} color="#666" />
+                                    </TouchableOpacity>
+                                </View>
+                            )}
 
                             {/* 3. BULK ACTION BAR (Redesigned - Dark Mode) */}
                             <TouchableOpacity style={styles.bulkActionBar} onPress={handleRfq} activeOpacity={0.9}>
@@ -394,16 +643,37 @@ export default function MarketScreen() {
                             </TouchableOpacity>
 
                             {/* 4. MAIN CATEGORY GRID */}
-                            <View style={styles.sectionHeader}>
+                            <View style={[styles.sectionHeader, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
                                 <Text allowFontScaling={false} style={styles.sectionTitle}>KATEGORİLER</Text>
+                                {isAdmin && (
+                                    <TouchableOpacity 
+                                        onPress={() => setIsEditMode(!isEditMode)}
+                                        style={[styles.editModeBtn, isEditMode && styles.editModeBtnActive]}
+                                    >
+                                        <MaterialCommunityIcons 
+                                            name={isEditMode ? "content-save" : "cog-outline"} 
+                                            size={20} 
+                                            color={isEditMode ? "#000" : "#D4AF37"} 
+                                        />
+                                        <Text allowFontScaling={false} style={[styles.editModeText, { color: isEditMode ? "#000" : "#D4AF37" }]}>
+                                            {isEditMode ? "KAYDET" : "DÜZENLE"}
+                                        </Text>
+                                    </TouchableOpacity>
+                                )}
                             </View>
 
                             <View style={styles.gridContainer}>
-                                {marketCategories.map((cat) => (
+                                {marketCategories
+                                    .filter(c => isEditMode || c.is_active !== false)
+                                    .map((cat, idx) => (
                                     <TouchableOpacity
                                         key={cat.id}
-                                        style={styles.gridCard}
+                                        style={[
+                                            styles.gridCard, 
+                                            isEditMode && cat.is_active === false && { opacity: 0.5 }
+                                        ]}
                                         onPress={() => {
+                                            if (isEditMode) return;
                                             navigation.push('MarketStack', {
                                                 viewMode: 'subcategory',
                                                 category: cat
@@ -411,6 +681,29 @@ export default function MarketScreen() {
                                         }}
                                         activeOpacity={0.9}
                                     >
+                                        {/* Admin Controls Overlay */}
+                                        {isEditMode && (
+                                            <View style={[styles.adminOverlay, { flexDirection: 'column' }]}>
+                                                <TouchableOpacity onPress={() => handleRenameCat(cat)} style={[styles.adminBtn, { backgroundColor: '#B8860B', marginBottom: 10, width: 44, height: 44, borderRadius: 22 }]}>
+                                                    <MaterialCommunityIcons name="pencil" size={24} color="#FFF" />
+                                                </TouchableOpacity>
+                                                <View style={{ flexDirection: 'row', gap: 10 }}>
+                                                    <TouchableOpacity onPress={() => moveCat(idx, 'left')} style={styles.adminBtn}>
+                                                        <MaterialCommunityIcons name="arrow-left" size={18} color="#FFF" />
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity onPress={() => toggleCatVisibility(cat)} style={styles.adminBtn}>
+                                                        <MaterialCommunityIcons 
+                                                            name={cat.is_active === false ? "eye-off" : "eye"} 
+                                                            size={18} 
+                                                            color={cat.is_active === false ? "#FF4D4D" : "#4ADE80"} 
+                                                        />
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity onPress={() => moveCat(idx, 'right')} style={styles.adminBtn}>
+                                                        <MaterialCommunityIcons name="arrow-right" size={18} color="#FFF" />
+                                                    </TouchableOpacity>
+                                                </View>
+                                            </View>
+                                        )}
                                         <View style={styles.gridImage}>
                                             <Image
                                                 source={getMarketImage(cat.image_ref)}
@@ -441,31 +734,77 @@ export default function MarketScreen() {
                     {/* NEW: SUBCATEGORY VIEW (List Mode) */}
                     {viewMode === 'subcategory' && selectedCategory && (
                         <View style={styles.detailContainer}>
-                            <View style={styles.categoryHeader}>
-                                <Text allowFontScaling={false} style={styles.categoryTitle}>{selectedCategory.title} Kategorileri</Text>
-                                <Text allowFontScaling={false} style={styles.categorySubtitle}>İlgilendiğiniz alt kategoriyi seçin</Text>
+                            <View style={[styles.categoryHeader, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+                                <View style={{ flex: 1 }}>
+                                    <Text allowFontScaling={false} style={styles.categoryTitle}>{selectedCategory.title} Kategorileri</Text>
+                                    <Text allowFontScaling={false} style={styles.categorySubtitle}>İlgilendiğiniz alt kategoriyi seçin</Text>
+                                </View>
+                                {isAdmin && (
+                                    <TouchableOpacity 
+                                        onPress={() => setIsEditMode(!isEditMode)}
+                                        style={[styles.editModeBtn, isEditMode && styles.editModeBtnActive, { marginTop: 0 }]}
+                                    >
+                                        <MaterialCommunityIcons 
+                                            name={isEditMode ? "content-save" : "cog-outline"} 
+                                            size={18} 
+                                            color={isEditMode ? "#000" : "#D4AF37"} 
+                                        />
+                                        <Text allowFontScaling={false} style={[styles.editModeText, { color: isEditMode ? "#000" : "#D4AF37", fontSize: 10 }]}>
+                                            {isEditMode ? "KAYDET" : "DÜZENLE"}
+                                        </Text>
+                                    </TouchableOpacity>
+                                )}
                             </View>
 
                             <View style={styles.listContainer}>
-                                {selectedCategory.subcategories.map((sub) => (
-                                    <TouchableOpacity
-                                        key={sub.id}
-                                        style={styles.listCard}
-                                        onPress={() => {
-                                            navigation.navigate('MarketDynamicForm', {
-                                                category: selectedCategory,
-                                                subCategory: sub.name
-                                            });
-                                        }}
-                                        activeOpacity={0.7}
-                                    >
+                                {selectedCategory.subcategories
+                                    .filter(s => isEditMode || s.is_active !== false)
+                                    .map((sub, idx) => (
+                                    <View key={sub.id} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        <TouchableOpacity
+                                            style={[
+                                                styles.listCard, 
+                                                { flex: 1 },
+                                                isEditMode && sub.is_active === false && { opacity: 0.5 }
+                                            ]}
+                                            onPress={() => {
+                                                if (isEditMode) return;
+                                                navigation.navigate('MarketDynamicForm', {
+                                                    category: selectedCategory,
+                                                    subCategory: sub.name
+                                                });
+                                            }}
+                                            activeOpacity={0.7}
+                                        >
+                                            <View style={styles.listContent}>
+                                                <Text allowFontScaling={false} style={styles.listTitle}>{sub.name}</Text>
+                                            </View>
+                                            {!isEditMode && <MaterialCommunityIcons name="chevron-right" size={24} color="#666" />}
+                                        </TouchableOpacity>
 
-                                        <View style={styles.listContent}>
-                                            <Text allowFontScaling={false} style={styles.listTitle}>{sub.name}</Text>
-
-                                        </View>
-                                        <MaterialCommunityIcons name="chevron-right" size={24} color="#666" />
-                                    </TouchableOpacity>
+                                        {isEditMode && (
+                                            <View style={[styles.listAdminControls, { flexDirection: 'column', gap: 4 }]}>
+                                                <TouchableOpacity onPress={() => handleRenameSubCat(sub)} style={[styles.listAdminBtn, { backgroundColor: 'rgba(184, 134, 11, 0.2)', borderColor: '#B8860B' }]}>
+                                                    <MaterialCommunityIcons name="pencil" size={16} color="#B8860B" />
+                                                </TouchableOpacity>
+                                                <View style={{ flexDirection: 'row', gap: 4 }}>
+                                                    <TouchableOpacity onPress={() => moveSubCat(sub, idx, 'up')} style={styles.listAdminBtn}>
+                                                        <MaterialCommunityIcons name="chevron-up" size={18} color="#D4AF37" />
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity onPress={() => toggleSubCatVisibility(sub)} style={styles.listAdminBtn}>
+                                                        <MaterialCommunityIcons 
+                                                            name={sub.is_active === false ? "eye-off" : "eye"} 
+                                                            size={18} 
+                                                            color={sub.is_active === false ? "#FF4D4D" : "#4ADE80"} 
+                                                        />
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity onPress={() => moveSubCat(sub, idx, 'down')} style={styles.listAdminBtn}>
+                                                        <MaterialCommunityIcons name="chevron-down" size={18} color="#D4AF37" />
+                                                    </TouchableOpacity>
+                                                </View>
+                                            </View>
+                                        )}
+                                    </View>
                                 ))}
                             </View>
                         </View>
@@ -621,6 +960,205 @@ export default function MarketScreen() {
                         </View>
                     </TouchableOpacity>
                 )}
+
+
+                {/* SHOWCASE MANAGER MODAL */}
+                <Modal visible={isShowcaseManagerVisible} animationType="slide" transparent>
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.managerModalContent}>
+                            <View style={styles.modalHeader}>
+                                <Text allowFontScaling={false} style={styles.modalTitle}>Slider Yönetimi</Text>
+                                <TouchableOpacity onPress={() => setIsShowcaseManagerVisible(false)}>
+                                    <MaterialCommunityIcons name="close" size={24} color="#FFF" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <ScrollView style={{ flex: 1, padding: 16 }}>
+                                {showcaseItems.map((item, idx) => (
+                                    <View key={item.id || idx} style={styles.managerItem}>
+                                        <Image 
+                                            source={item.is_local ? getMarketImage(item.image_ref) : { uri: item.image_url }} 
+                                            style={styles.managerItemThumb} 
+                                        />
+                                        <View style={{ flex: 1, marginLeft: 12 }}>
+                                            <Text allowFontScaling={false} style={styles.managerItemTitle} numberOfLines={1}>
+                                                {item.tag || 'Resimsiz'} - {item.title || 'Başlıksız'}
+                                            </Text>
+                                        </View>
+                                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                                            <TouchableOpacity onPress={() => setEditingShowcaseItem(item)} style={styles.managerActionBtn}>
+                                                <MaterialCommunityIcons name="pencil" size={18} color="#D4AF37" />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity onPress={() => handleDeleteShowcase(item.id)} style={styles.managerActionBtn}>
+                                                <MaterialCommunityIcons name="trash-can-outline" size={18} color="#FF4D4D" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                ))}
+
+                                <TouchableOpacity 
+                                    style={styles.addSliderBtn}
+                                    onPress={() => setEditingShowcaseItem({
+                                        tag: 'YENİ', title: '', subtitle: '', 
+                                        image_url: 'https://placehold.co/800x450/png',
+                                        text_offset_x: 0, text_offset_y: 0, image_scale: 1.0,
+                                        sort_order: (showcaseItems.length + 1) * 10
+                                    })}
+                                >
+                                    <MaterialCommunityIcons name="plus" size={24} color="#000" />
+                                    <Text allowFontScaling={false} style={styles.addSliderBtnText}>YENİ SLIDER EKLE</Text>
+                                </TouchableOpacity>
+                            </ScrollView>
+                        </View>
+                    </View>
+                </Modal>
+
+                {/* SHOWCASE EDIT MODAL */}
+                <Modal visible={!!editingShowcaseItem} animationType="fade" transparent>
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.editModalContent}>
+                            <View style={styles.modalHeader}>
+                                <Text allowFontScaling={false} style={styles.modalTitle}>Slider Düzenle</Text>
+                                <TouchableOpacity onPress={() => setEditingShowcaseItem(null)}>
+                                    <MaterialCommunityIcons name="close" size={24} color="#FFF" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <ScrollView style={{ flex: 1, padding: 16 }}>
+                                {/* Image Preview & Picker */}
+                                <TouchableOpacity style={styles.imagePickerArea} onPress={handlePickShowcaseImage}>
+                                    {isUploading ? (
+                                        <ActivityIndicator color="#D4AF37" />
+                                    ) : (
+                                        <>
+                                            <Image 
+                                                source={editingShowcaseItem?.is_local ? getMarketImage(editingShowcaseItem.image_ref) : { uri: editingShowcaseItem?.image_url }} 
+                                                style={[StyleSheet.absoluteFill, { opacity: 0.6 }]} 
+                                            />
+                                            <MaterialCommunityIcons name="camera-plus" size={32} color="#FFF" />
+                                            <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, marginTop: 4 }}>Resmi Değiştir</Text>
+                                        </>
+                                    )}
+                                </TouchableOpacity>
+
+                                {/* Inputs */}
+                                <Text allowFontScaling={false} style={styles.inputLabel}>BANNER ETİKETİ (SARI ALAN)</Text>
+                                <TextInput
+                                    style={styles.modalInput}
+                                    value={editingShowcaseItem?.tag}
+                                    onChangeText={t => setEditingShowcaseItem(prev => ({ ...prev, tag: t }))}
+                                    placeholder="Örn: FIRSAT"
+                                    placeholderTextColor="#666"
+                                />
+
+                                <Text allowFontScaling={false} style={styles.inputLabel}>ANA BAŞLIK</Text>
+                                <TextInput
+                                    style={styles.modalInput}
+                                    value={editingShowcaseItem?.title}
+                                    onChangeText={t => setEditingShowcaseItem(prev => ({ ...prev, title: t }))}
+                                    placeholder="Örn: DEV İNDİRİM"
+                                    placeholderTextColor="#666"
+                                />
+
+                                <Text allowFontScaling={false} style={styles.inputLabel}>ALT BAŞLIK</Text>
+                                <TextInput
+                                    style={styles.modalInput}
+                                    value={editingShowcaseItem?.subtitle}
+                                    onChangeText={t => setEditingShowcaseItem(prev => ({ ...prev, subtitle: t }))}
+                                    placeholder="Detaylı açıklama..."
+                                    placeholderTextColor="#666"
+                                />
+
+                                {/* Color Selectors */}
+                                <Text allowFontScaling={false} style={styles.inputLabel}>ETİKET ZEMİN RENGİ</Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.colorPalette}>
+                                    {COLOR_PALETTE.map(c => (
+                                        <TouchableOpacity 
+                                            key={c.code} 
+                                            style={[styles.colorChip, { backgroundColor: c.code, borderColor: editingShowcaseItem?.tag_color === c.code ? '#FFF' : 'transparent', borderWidth: 2 }]} 
+                                            onPress={() => setEditingShowcaseItem(prev => ({ ...prev, tag_color: c.code }))}
+                                        />
+                                    ))}
+                                </ScrollView>
+
+                                <Text allowFontScaling={false} style={styles.inputLabel}>ANA BAŞLIK RENGİ</Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.colorPalette}>
+                                    {COLOR_PALETTE.map(c => (
+                                        <TouchableOpacity 
+                                            key={c.code} 
+                                            style={[styles.colorChip, { backgroundColor: c.code, borderColor: editingShowcaseItem?.title_color === c.code ? '#FFF' : 'transparent', borderWidth: 2 }]} 
+                                            onPress={() => setEditingShowcaseItem(prev => ({ ...prev, title_color: c.code }))}
+                                        />
+                                    ))}
+                                </ScrollView>
+
+                                <Text allowFontScaling={false} style={styles.inputLabel}>ALT BAŞLIK RENGİ</Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.colorPalette}>
+                                    {COLOR_PALETTE.map(c => (
+                                        <TouchableOpacity 
+                                            key={c.code} 
+                                            style={[styles.colorChip, { backgroundColor: c.code, borderColor: editingShowcaseItem?.subtitle_color === c.code ? '#FFF' : 'transparent', borderWidth: 2 }]} 
+                                            onPress={() => setEditingShowcaseItem(prev => ({ ...prev, subtitle_color: c.code }))}
+                                        />
+                                    ))}
+                                </ScrollView>
+
+                                {/* Visual Adjustments (Sliders) */}
+                                <View style={styles.adjustmentGroup}>
+                                    <View style={styles.adjHeader}>
+                                        <Text allowFontScaling={false} style={styles.inputLabel}>GÖRSEL ÖLÇEĞİ (ZOOM)</Text>
+                                        <Text style={styles.adjVal}>{(editingShowcaseItem?.image_scale || 1).toFixed(2)}x</Text>
+                                    </View>
+                                    <Slider
+                                        style={{ width: '100%', height: 40 }}
+                                        minimumValue={0.5}
+                                        maximumValue={3.0}
+                                        value={editingShowcaseItem?.image_scale || 1}
+                                        onValueChange={v => setEditingShowcaseItem(prev => ({ ...prev, image_scale: v }))}
+                                        minimumTrackTintColor="#D4AF37"
+                                        maximumTrackTintColor="#333"
+                                        thumbTintColor="#D4AF37"
+                                    />
+
+                                    <View style={styles.adjHeader}>
+                                        <Text allowFontScaling={false} style={styles.inputLabel}>YAZI DİKEY KONUM (Y)</Text>
+                                        <Text style={styles.adjVal}>{Math.round(editingShowcaseItem?.text_offset_y || 0)}</Text>
+                                    </View>
+                                    <Slider
+                                        style={{ width: '100%', height: 40 }}
+                                        minimumValue={-150}
+                                        maximumValue={150}
+                                        value={editingShowcaseItem?.text_offset_y || 0}
+                                        onValueChange={v => setEditingShowcaseItem(prev => ({ ...prev, text_offset_y: v }))}
+                                        minimumTrackTintColor="#D4AF37"
+                                        maximumTrackTintColor="#333"
+                                        thumbTintColor="#D4AF37"
+                                    />
+
+                                    <View style={styles.adjHeader}>
+                                        <Text allowFontScaling={false} style={styles.inputLabel}>YAZI YATAY KONUM (X)</Text>
+                                        <Text style={styles.adjVal}>{Math.round(editingShowcaseItem?.text_offset_x || 0)}</Text>
+                                    </View>
+                                    <Slider
+                                        style={{ width: '100%', height: 40 }}
+                                        minimumValue={-150}
+                                        maximumValue={150}
+                                        value={editingShowcaseItem?.text_offset_x || 0}
+                                        onValueChange={v => setEditingShowcaseItem(prev => ({ ...prev, text_offset_x: v }))}
+                                        minimumTrackTintColor="#D4AF37"
+                                        maximumTrackTintColor="#333"
+                                        thumbTintColor="#D4AF37"
+                                    />
+                                </View>
+
+                                <TouchableOpacity style={styles.modalSaveBtn} onPress={handleSaveShowcase}>
+                                    <Text allowFontScaling={false} style={styles.modalSaveBtnText}>DEĞİŞİKLİKLERİ KAYDET</Text>
+                                </TouchableOpacity>
+                                <View style={{ height: 40 }} />
+                            </ScrollView>
+                        </View>
+                    </View>
+                </Modal>
 
             </SafeAreaView>
         </View>
@@ -821,5 +1359,266 @@ const styles = StyleSheet.create({
         color: '#CCC',
         fontStyle: 'italic',
         lineHeight: 16
+    },
+
+    // Admin Category Management Styles
+    editModeBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(212, 175, 55, 0.1)',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#D4AF37',
+        marginTop: 4
+    },
+    editModeBtnActive: {
+        backgroundColor: '#D4AF37',
+    },
+    editModeText: {
+        fontSize: 11,
+        fontWeight: '900',
+        marginLeft: 4,
+        letterSpacing: 1
+    },
+    adminOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        zIndex: 100,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 10,
+        borderRadius: 16
+    },
+    adminBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: '#333',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#D4AF37'
+    },
+    listAdminControls: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginLeft: 10,
+        gap: 6
+    },
+    listAdminBtn: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#1A1A1A',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#333'
+    },
+
+    // Showcase Management Styles
+    adminSliderBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 14,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#D4AF37',
+        justifyContent: 'center',
+        gap: 12,
+        overflow: 'hidden'
+    },
+    adminSliderBtnText: {
+        color: '#D4AF37',
+        fontSize: 13,
+        fontWeight: '900',
+        letterSpacing: 1.5
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.92)',
+        justifyContent: 'flex-end'
+    },
+    managerModalContent: {
+        backgroundColor: '#111',
+        height: '80%',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        borderWidth: 1,
+        borderColor: '#333'
+    },
+    editModalContent: {
+        backgroundColor: '#111',
+        height: '90%',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        borderWidth: 1,
+        borderColor: '#333'
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#222'
+    },
+    modalTitle: {
+        color: '#D4AF37',
+        fontSize: 18,
+        fontWeight: '900'
+    },
+    managerItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1A1A1A',
+        padding: 12,
+        borderRadius: 12,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: '#333'
+    },
+    managerItemThumb: {
+        width: 60,
+        height: 34,
+        borderRadius: 4,
+        backgroundColor: '#333'
+    },
+    managerItemTitle: {
+        color: '#FFF',
+        fontSize: 14,
+        fontWeight: 'bold'
+    },
+    managerActionBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: '#222',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#333'
+    },
+    addSliderBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#D4AF37',
+        padding: 16,
+        borderRadius: 12,
+        justifyContent: 'center',
+        gap: 8,
+        marginTop: 10,
+        marginBottom: 30
+    },
+    addSliderBtnText: {
+        color: '#000',
+        fontSize: 14,
+        fontWeight: '900'
+    },
+    imagePickerArea: {
+        width: '100%',
+        height: 180,
+        backgroundColor: '#1A1A1A',
+        borderRadius: 16,
+        borderWidth: 2,
+        borderColor: '#333',
+        borderStyle: 'dashed',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        marginBottom: 20
+    },
+    inputLabel: {
+        color: '#D4AF37',
+        fontSize: 10,
+        fontWeight: '900',
+        letterSpacing: 1,
+        marginBottom: 8,
+        marginTop: 4
+    },
+    modalInput: {
+        backgroundColor: '#1A1A1A',
+        borderRadius: 12,
+        padding: 14,
+        color: '#FFF',
+        fontSize: 14,
+        borderWidth: 1,
+        borderColor: '#333',
+        marginBottom: 16
+    },
+    adjustmentGroup: {
+        backgroundColor: '#161616',
+        padding: 16,
+        borderRadius: 16,
+        marginVertical: 10,
+        borderWidth: 1,
+        borderColor: '#222'
+    },
+    adjHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+    },
+    adjVal: {
+        color: '#FFF',
+        fontSize: 12,
+        fontWeight: 'bold'
+    },
+    modalSaveBtn: {
+        backgroundColor: '#D4AF37',
+        padding: 18,
+        borderRadius: 16,
+        alignItems: 'center',
+        marginTop: 20,
+        shadowColor: "#D4AF37",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 5
+    },
+    modalSaveBtnText: {
+        color: '#000',
+        fontSize: 15,
+        fontWeight: '900',
+        letterSpacing: 1
+    },
+    heroEditShortcut: {
+        position: 'absolute',
+        top: 40,
+        right: 20,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#D4AF37',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 100,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.5,
+        shadowRadius: 5,
+        elevation: 10
+    },
+    colorPalette: {
+        flexDirection: 'row',
+        marginBottom: 16,
+        paddingVertical: 5
+    },
+    colorChip: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        marginRight: 12,
+        borderWidth: 1,
+        borderColor: '#444'
     }
 });
+
+

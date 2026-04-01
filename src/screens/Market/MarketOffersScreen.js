@@ -280,9 +280,9 @@ export default function MarketOffersScreen() {
                                             
                                             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
                                                 {parsed.vatIncluded ? (
-                                                    <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 13, fontWeight: '800', backgroundColor: 'rgba(74,222,128,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>+ KDV Dahil</Text>
+                                                    <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 13, fontWeight: '800', backgroundColor: 'rgba(74,222,128,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>KDV Dahil</Text>
                                                 ) : (
-                                                    <Text allowFontScaling={false} style={{ color: '#fb923c', fontSize: 13, fontWeight: '800', backgroundColor: 'rgba(251,146,60,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>+ KDV</Text>
+                                                    <Text allowFontScaling={false} style={{ color: '#fb923c', fontSize: 13, fontWeight: '800', backgroundColor: 'rgba(251,146,60,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>KDV</Text>
                                                 )}
                                                 {parsed.pumpFee && (
                                                     <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 12, fontWeight: 'bold', marginLeft: 8 }}>

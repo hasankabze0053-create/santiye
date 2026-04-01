@@ -78,6 +78,10 @@ export default function ProviderDashboardScreen() {
     const [conversations, setConversations] = useState([]);
     const [activeServices, setActiveServices] = useState([]);
 
+    // Category Selection Modal State
+    const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
+    const [categoryActionType, setCategoryActionType] = useState('requests'); // 'requests' or 'tenders'
+
     // Pending state for unapproved corporate users
     if (profile?.user_type === 'corporate' && profile?.approval_status !== 'approved') {
         return (
@@ -204,6 +208,79 @@ export default function ProviderDashboardScreen() {
     };
 
     const myServices = getMyServices();
+
+    const handleCategoryAction = (type) => {
+        if (myServices.length === 0) {
+            Alert.alert('Yetki Yok', 'Henüz admin tarafından size atanmış bir hizmet yetkisi bulunmuyor.');
+            return;
+        }
+
+        if (myServices.length === 1) {
+            const target = SERVICE_MAP[myServices[0]];
+            if (target) navigation.navigate(target.screen);
+        } else {
+            setCategoryActionType(type);
+            setIsCategoryModalVisible(true);
+        }
+    };
+
+    const CategorySelectionModal = () => (
+        <Modal
+            visible={isCategoryModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setIsCategoryModalVisible(false)}
+        >
+            <TouchableOpacity 
+                style={s.modalOverlay} 
+                activeOpacity={1} 
+                onPress={() => setIsCategoryModalVisible(false)}
+            >
+                <View style={s.modalContent}>
+                    <View style={s.modalHeader}>
+                        <View style={s.modalIndicator} />
+                        <Text allowFontScaling={false} style={s.modalTitle}>
+                            {categoryActionType === 'requests' ? 'İncelemek İstediğiniz Alanı Seçin' : 'Teklif Verdiğiniz Alanı Seçin'}
+                        </Text>
+                        <Text allowFontScaling={false} style={s.modalSub}>Birden fazla alanda yetkilisiniz, lütfen devam etmek istediğiniz kategoriyi seçin.</Text>
+                    </View>
+
+                    <ScrollView style={s.modalList} showsVerticalScrollIndicator={false}>
+                        {myServices.map((key) => {
+                            const info = SERVICE_MAP[key];
+                            if (!info) return null;
+                            return (
+                                <TouchableOpacity 
+                                    key={key} 
+                                    style={s.modalItem}
+                                    onPress={() => {
+                                        setIsCategoryModalVisible(false);
+                                        navigation.navigate(info.screen);
+                                    }}
+                                >
+                                    <View style={s.modalItemIcon}>
+                                        <MaterialCommunityIcons name={info.icon} size={24} color={T.gold} />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text allowFontScaling={false} style={s.modalItemLabel}>{info.label}</Text>
+                                        <Text allowFontScaling={false} style={s.modalItemSub}>Bu alandaki tüm {categoryActionType === 'requests' ? 'talepleri' : 'tekliflerinizi'} yönetin</Text>
+                                    </View>
+                                    <Ionicons name="chevron-forward" size={20} color={T.textDim} />
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </ScrollView>
+
+                    <TouchableOpacity 
+                        style={s.modalCloseBtn}
+                        onPress={() => setIsCategoryModalVisible(false)}
+                    >
+                        <Text allowFontScaling={false} style={s.modalCloseText}>Kapat</Text>
+                    </TouchableOpacity>
+                </View>
+            </TouchableOpacity>
+        </Modal>
+    );
 
     return (
         <View style={s.container}>
@@ -380,18 +457,7 @@ export default function ProviderDashboardScreen() {
                         <TouchableOpacity
                             style={s.bigActionBtn}
                             activeOpacity={0.8}
-                            onPress={() => {
-                                if (myServices.length === 0) {
-                                    Alert.alert('Yetki Yok', 'Henüz admin tarafından size atanmış bir hizmet yetkisi bulunmuyor.');
-                                    return;
-                                }
-                                // Navigate to first active service's provider screen for tenders
-                                const firstService = myServices[0];
-                                const target = SERVICE_MAP[firstService];
-                                if (target) {
-                                    navigation.navigate(target.screen);
-                                }
-                            }}
+                            onPress={() => handleCategoryAction('requests')}
                         >
                             <LinearGradient
                                 colors={['rgba(212,175,55,0.12)', 'rgba(212,175,55,0.04)']}
@@ -413,17 +479,7 @@ export default function ProviderDashboardScreen() {
                         <TouchableOpacity
                             style={[s.bigActionBtn, { marginTop: 12 }]}
                             activeOpacity={0.8}
-                            onPress={() => {
-                                if (myServices.length === 0) {
-                                    Alert.alert('Yetki Yok', 'Henüz admin tarafından size atanmış bir hizmet yetkisi bulunmuyor.');
-                                    return;
-                                }
-                                const firstService = myServices[0];
-                                const target = SERVICE_MAP[firstService];
-                                if (target) {
-                                    navigation.navigate(target.screen);
-                                }
-                            }}
+                            onPress={() => handleCategoryAction('tenders')}
                         >
                             <LinearGradient
                                 colors={['rgba(74,222,128,0.10)', 'rgba(74,222,128,0.03)']}
@@ -565,6 +621,7 @@ export default function ProviderDashboardScreen() {
                     </View>
 
                 </ScrollView>
+                <CategorySelectionModal />
             </SafeAreaView>
         </View>
     );
@@ -653,5 +710,20 @@ const s = StyleSheet.create({
     gridItem: { width: (width - 64) / 3, backgroundColor: T.card, borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: T.cardBorder },
     gridIconBox: { width: 50, height: 50, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
     gridLabel: { color: T.text, fontSize: 13, fontWeight: '700', textAlign: 'center', lineHeight: 18 },
+
+    // Modal
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'flex-end' },
+    modalContent: { backgroundColor: T.card, borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 24, paddingBottom: 40, borderTopWidth: 1, borderTopColor: T.goldDim },
+    modalHeader: { alignItems: 'center', marginBottom: 24 },
+    modalIndicator: { width: 40, height: 4, backgroundColor: T.cardBorder, borderRadius: 2, marginBottom: 20 },
+    modalTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginBottom: 8 },
+    modalSub: { color: T.textMid, fontSize: 13, textAlign: 'center', paddingHorizontal: 20, lineHeight: 20 },
+    modalList: { maxHeight: 400 },
+    modalItem: { flexDirection: 'row', alignItems: 'center', padding: 18, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 20, marginBottom: 12, borderWidth: 1, borderColor: T.cardBorder, gap: 16 },
+    modalItemIcon: { width: 48, height: 48, borderRadius: 14, backgroundColor: T.goldDim, alignItems: 'center', justifyContent: 'center' },
+    modalItemLabel: { color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 2 },
+    modalItemSub: { color: T.textDim, fontSize: 12 },
+    modalCloseBtn: { marginTop: 10, paddingVertical: 16, alignItems: 'center' },
+    modalCloseText: { color: T.textMid, fontSize: 15, fontWeight: '600' },
 });
 
