@@ -1,8 +1,9 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Image, Linking, Modal, RefreshControl, ScrollView, StatusBar, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Linking, Modal, RefreshControl, ScrollView, StatusBar, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 
@@ -432,6 +433,51 @@ const AdminDashboardScreen = () => {
         setRejectionReason('');
         setRejectModalVisible(true);
     };
+
+    const handleSubmitAction = async () => {
+        if (!targetUser) return;
+        if (!rejectionReason.trim()) {
+            Alert.alert('Eksik Bilgi', 'Lütfen bir açıklama giriniz.');
+            return;
+        }
+
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({
+                    approval_status: actionType === 'reject' ? 'rejected' : 'incomplete',
+                    rejection_reason: rejectionReason.trim(),
+                })
+                .eq('id', targetUser.id);
+
+            if (error) throw error;
+
+            Alert.alert(
+                'Başarılı', 
+                actionType === 'reject' 
+                    ? `${targetUser.full_name || targetUser.email} hesabı reddedildi. 🛑` 
+                    : `${targetUser.full_name || targetUser.email} hesabından eksik bilgi/belge istendi. 📝`
+            );
+
+            // Optimistic Update
+            setUsers(prev => prev.map(u => 
+                u.id === targetUser.id 
+                ? { ...u, approval_status: actionType === 'reject' ? 'rejected' : 'incomplete', rejection_reason: rejectionReason.trim() } 
+                : u
+            ));
+            
+            if (selectedUserDetail && selectedUserDetail.id === targetUser.id) {
+                 setSelectedUserDetail({ ...selectedUserDetail, approval_status: actionType === 'reject' ? 'rejected' : 'incomplete', rejection_reason: rejectionReason.trim() });
+            }
+
+            setRejectModalVisible(false);
+            setTargetUser(null);
+            setRejectionReason('');
+        } catch (err) {
+            Alert.alert('Hata', 'İşlem başarısız: ' + err.message);
+        }
+    };
+
 
     const handleToggleCompanyService = async (user, serviceType, newValue) => {
         if (!user.company_id) {

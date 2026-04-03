@@ -1,4 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState, useRef } from 'react';
 import * as ImagePicker from 'expo-image-picker';
@@ -8,7 +9,6 @@ import {
     Alert, 
     Animated,
     Dimensions, 
-    Image, 
     Modal, 
     ScrollView, 
     StyleSheet, 
@@ -432,7 +432,7 @@ export default function UrbanTransformationScreen({ navigation }) {
                             horizontal
                             pagingEnabled
                             showsHorizontalScrollIndicator={false}
-                            onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: false })}
+                            onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: true })}
                             scrollEventThrottle={16}
                         >
                             {showcaseItems.map((slide) => (
@@ -448,6 +448,8 @@ export default function UrbanTransformationScreen({ navigation }) {
                                             styles.heroImage,
                                             { transform: [{ scale: slide.image_scale || 1 }] }
                                         ]}
+                                        contentFit="cover"
+                                        transition={500}
                                     />
                                     <LinearGradient colors={['transparent', 'rgba(0,0,0,0.9)']} style={StyleSheet.absoluteFillObject} />
                                     

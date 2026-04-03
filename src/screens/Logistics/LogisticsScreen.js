@@ -173,7 +173,7 @@ export default function LogisticsScreen() {
                                 horizontal
                                 pagingEnabled
                                 showsHorizontalScrollIndicator={false}
-                                onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: false })}
+                                onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: true })}
                                 scrollEventThrottle={16}
                             >
                                 {LOGISTICS_SLIDES.map((slide) => (

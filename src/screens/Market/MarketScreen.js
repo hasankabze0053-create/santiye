@@ -486,7 +486,7 @@ export default function MarketScreen() {
                                     horizontal
                                     pagingEnabled
                                     showsHorizontalScrollIndicator={false}
-                                    onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: false })}
+                                    onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: true })}
                                     scrollEventThrottle={16}
                                     style={styles.heroSlider}
                                     contentContainerStyle={{ paddingHorizontal: 0 }}
@@ -1201,7 +1201,7 @@ const styles = StyleSheet.create({
     // Hero Slider
     heroSliderContainer: { marginBottom: 20, height: 240 },
     heroSlider: { marginTop: 10 },
-    heroCard: { width: width, height: 240 },
+    heroCard: { width: width, height: 240, overflow: 'hidden' },
     heroImage: { width: '100%', height: '100%', justifyContent: 'flex-end', padding: 20 },
     heroTag: { position: 'absolute', top: 50, left: 20, backgroundColor: '#D4AF37', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, zIndex: 10 },
     heroTagText: { fontSize: 10, fontWeight: 'bold', color: '#000' },

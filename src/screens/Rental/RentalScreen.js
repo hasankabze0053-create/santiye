@@ -272,7 +272,7 @@ export default function RentalScreen() {
                                 horizontal
                                 pagingEnabled
                                 showsHorizontalScrollIndicator={false}
-                                onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: false })}
+                                onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: true })}
                                 scrollEventThrottle={16}
                                 contentContainerStyle={{ paddingHorizontal: 0 }}
                             >

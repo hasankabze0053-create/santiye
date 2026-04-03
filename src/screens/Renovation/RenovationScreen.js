@@ -324,7 +324,7 @@ export default function RenovationScreen({ navigation }) {
                             horizontal
                             pagingEnabled
                             showsHorizontalScrollIndicator={false}
-                            onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: false })}
+                            onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: true })}
                             scrollEventThrottle={16}
                         >
                             {showcaseItems.map((slide) => (

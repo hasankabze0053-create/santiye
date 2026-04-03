@@ -534,6 +534,11 @@ export const InboxScreen = () => {
                 // Determine display price/text
                 let displayPrice;
                 const isTurnkey = group.offers.some(o => o.unit_breakdown);
+                const isFlatForLand =
+                    group.request?.offer_type === 'kat_karsiligi' ||
+                    group.request?.offer_type === 'Kat Karşılığı' ||
+                    group.request?.offer_model === 'kat_karsiligi' ||
+                    group.request?.offer_model === 'Kat Karşılığı';
 
                 if (group.offers.length > 1) {
                     displayPrice = `${group.offers.length} Farklı Teklif`;
@@ -549,7 +554,7 @@ export const InboxScreen = () => {
                 return {
                     ...group,
                     price: displayPrice,
-                    requestType: isTadilat ? 'Tadilat' : (isTurnkey ? 'Kat Karşılığı' : 'Kentsel Dönüşüm'),
+                    requestType: isTadilat ? 'Tadilat' : (isFlatForLand ? 'Kat Karşılığı' : 'Anahtar Teslim'),
                     companyName: group.profiles?.company_name || group.profiles?.full_name || 'Bilinmeyen Firma',
                     location: `${group.request?.city || 'İstanbul'} / ${group.request?.district || ''}`
                 };
