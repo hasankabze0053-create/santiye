@@ -112,6 +112,17 @@ export default function ProviderProfileEditScreen() {
         }
     };
 
+    const onRefresh = async () => {
+        try {
+            setRefreshing(true);
+            await loadCompanyData();
+        } catch (error) {
+            console.warn('ProviderProfileEditScreen refresh error:', error);
+        } finally {
+            setRefreshing(false);
+        }
+    };
+
     return (
         <View style={s.container}>
             <StatusBar barStyle="light-content" />
@@ -134,7 +145,7 @@ export default function ProviderProfileEditScreen() {
 
                 <ScrollView 
                     contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadCompanyData(); setRefreshing(false); }} tintColor={T.gold} />}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={T.gold} />}
                 >
                     {/* Photos Section */}
                     <View style={s.section}>

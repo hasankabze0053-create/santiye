@@ -262,6 +262,9 @@ export default function RenovationScreen({ navigation }) {
         } else if (sId === 'paint') {
             navigation.navigate('PaintDecorWizard');
             return;
+        } else if (sId === 'elevator_maintenance') {
+            navigation.navigate('ElevatorWizard');
+            return;
         }
         Alert.alert(service.title.replace(/\\n/g, ' '), `${service.subtitle}\n\nBu modül yakında aktif olacak.`);
     };

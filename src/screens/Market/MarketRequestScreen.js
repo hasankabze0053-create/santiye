@@ -13,7 +13,6 @@ const UNITS = ['Adet', 'Kg', 'Ton', 'M3', 'Paket', 'Metre', 'm²', 'Torba', 'Rul
 const PAYMENT_METHODS = [
     { id: 'cash_transfer', title: 'Nakit / Havale / EFT', icon: 'cash-outline', desc: 'Teslimatta nakit veya banka transferi' },
     { id: 'credit_card', title: 'Kredi Kartı', icon: 'card-outline', desc: 'Teslimatta veya online güvenli ödeme' },
-    { id: 'check', title: 'Çek / Senet', icon: 'document-text-outline', desc: 'Vadeli ödeme seçenekleri' },
 ];
 
 const areEqual = (prevProps, nextProps) => {

@@ -30,6 +30,7 @@ import ContractorRequestsScreen from '../screens/Cost/ContractorRequestsScreen';
 import DetailedCostScreen from '../screens/Cost/DetailedCostScreen';
 import MaliyetScreen from '../screens/Cost/MaliyetScreen';
 import OfferDetailScreen from '../screens/Cost/OfferDetailScreen';
+import OfferSuccessScreen from '../screens/Cost/OfferSuccessScreen';
 import PosCostScreen from '../screens/Cost/PosCostScreen';
 import ProjectIdentityScreen from '../screens/Cost/ProjectIdentityScreen';
 import SimpleCostScreen from '../screens/Cost/SimpleCostScreen';
@@ -73,6 +74,8 @@ import RenovationProviderScreen from '../screens/Provider/RenovationProviderScre
 import TechnicalProviderScreen from '../screens/Provider/TechnicalProviderScreen';
 import AIRenovationAssistantScreen from '../screens/Renovation/AIRenovationAssistantScreen';
 import CustomRequestScreen from '../screens/Renovation/CustomRequestScreen';
+import ElevatorSuccessScreen from '../screens/Renovation/ElevatorSuccessScreen';
+import ElevatorWizardScreen from '../screens/Renovation/ElevatorWizardScreen';
 import KitchenBathWizardScreen from '../screens/Renovation/KitchenBathWizardScreen';
 import PaintDecorWizardScreen from '../screens/Renovation/PaintDecorWizardScreen';
 import RenovationProjectSelectionScreen from '../screens/Renovation/RenovationProjectSelectionScreen';
@@ -328,6 +331,8 @@ export default function AppNavigator() {
             <Stack.Screen name="StyleSelection" component={StyleSelectionScreen} />
             <Stack.Screen name="CustomRequest" component={CustomRequestScreen} />
             <Stack.Screen name="RenovationSuccess" component={RenovationSuccessScreen} />
+            <Stack.Screen name="ElevatorWizard" component={ElevatorWizardScreen} options={{ headerShown: false, gestureEnabled: true, animation: 'slide_from_bottom' }} />
+            <Stack.Screen name="ElevatorSuccess" component={ElevatorSuccessScreen} options={{ headerShown: false, gestureEnabled: false }} />
 
             {/* Engineering & AI */}
             <Stack.Screen name="Mühendislik" component={EngineeringScreen} />
@@ -365,6 +370,7 @@ export default function AppNavigator() {
             <Stack.Screen name="ArchitectRequestDetail" component={ArchitectRequestDetailScreen} />
             <Stack.Screen name="UserRequests" component={UserRequestsScreen} />
             <Stack.Screen name="OfferDetail" component={OfferDetailScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="OfferSuccess" component={OfferSuccessScreen} options={{ headerShown: false }} />
 
             {/* Transformation & Proposals */}
             <Stack.Screen name="KentselDonusum" component={UrbanTransformationScreen} />

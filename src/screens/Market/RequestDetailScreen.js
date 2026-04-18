@@ -8,6 +8,11 @@ import { supabase } from '../../lib/supabase';
 import { ConstructionService } from '../../services/ConstructionService';
 import { MarketService } from '../../services/MarketService';
 
+const formatCurrency = (val) => {
+    if (!val) return '0';
+    return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+};
+
 export default function RequestDetailScreen() {
     const navigation = useNavigation();
     const route = useRoute();
@@ -309,11 +314,19 @@ export default function RequestDetailScreen() {
                                             <MaterialCommunityIcons name="home-outline" size={24} color="#FFD700" />
                                             <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: '900', marginTop: 8, letterSpacing: 1 }}>KONUT</Text>
                                             <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 32, fontWeight: '900', marginTop: 4 }}>{request.campaign_unit_count || 0}</Text>
+                                            <View style={{ marginTop: 8, backgroundColor: 'rgba(52,199,89,0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(52,199,89,0.3)' }}>
+                                                <Text allowFontScaling={false} style={{ color: '#34C759', fontSize: 11, fontWeight: '900' }}>{formatCurrency((request.campaign_unit_count || 0) * 1750000)} ₺</Text>
+                                                <Text allowFontScaling={false} style={{ color: 'rgba(52,199,89,0.7)', fontSize: 8, fontWeight: 'bold', textAlign: 'center', marginTop: 2 }}>TOPLAM DESTEK</Text>
+                                            </View>
                                         </LinearGradient>
                                         <LinearGradient colors={['#1A1200', '#0D0D0D']} style={{ flex: 1, borderRadius: 16, padding: 18, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(212,175,55,0.25)' }}>
                                             <MaterialCommunityIcons name="store-outline" size={24} color="#FFD700" />
                                             <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: '900', marginTop: 8, letterSpacing: 1 }}>TİCARİ</Text>
                                             <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 32, fontWeight: '900', marginTop: 4 }}>{request.campaign_commercial_count || 0}</Text>
+                                            <View style={{ marginTop: 8, backgroundColor: 'rgba(52,199,89,0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(52,199,89,0.3)' }}>
+                                                <Text allowFontScaling={false} style={{ color: '#34C759', fontSize: 11, fontWeight: '900' }}>{formatCurrency((request.campaign_commercial_count || 0) * 875000)} ₺</Text>
+                                                <Text allowFontScaling={false} style={{ color: 'rgba(52,199,89,0.7)', fontSize: 8, fontWeight: 'bold', textAlign: 'center', marginTop: 2 }}>TOPLAM DESTEK</Text>
+                                            </View>
                                         </LinearGradient>
                                     </View>
                                 </View>
@@ -556,6 +569,50 @@ export default function RequestDetailScreen() {
                                 </View>
                             </View>
                         </LinearGradient>
+
+                        {/* ─── PREMIUM PROJE ÖZET BRİFİNGİ ─── */}
+                        <View style={styles.sectionHeader}>
+                            <View style={styles.sectionTitleWrap}>
+                                <MaterialCommunityIcons name="clipboard-text-outline" size={20} color="#FFD700" />
+                                <Text allowFontScaling={false} style={styles.sectionTitle}>PROJE ÖZET BRİFİNGİ</Text>
+                            </View>
+                        </View>
+                        <View style={[styles.card, { marginBottom: 8 }]}>
+                            {(() => {
+                                const rows = [
+                                    { icon: 'home-edit-outline', label: 'Proje Tipi', value: projeTipi, color: '#FFD700' },
+                                    durum && durum !== '-' && { icon: 'floor-plan', label: 'Mekan / Durum', value: durum, color: '#D4AF37' },
+                                    tarz && tarz !== 'Belirtilmedi' && { icon: 'palette-swatch', label: 'İstenen Tasarım', value: tarz, color: '#A78BFA' },
+                                    butce && butce !== '-' && { icon: 'currency-try', label: 'Bütçe Aralığı', value: butce, color: '#4ADE80' },
+                                    lokasyon && lokasyon !== '-' && { icon: 'map-marker-outline', label: 'Lokasyon', value: lokasyon, color: '#38BDF8' },
+                                    kapsam && kapsam !== '-' && { icon: 'format-list-checks', label: 'Kapsam', value: kapsam, color: '#FB923C' },
+                                ].filter(Boolean);
+                                return (
+                                    <View style={{ gap: 0 }}>
+                                        {rows.map((row, idx) => (
+                                            <View key={idx}>
+                                                <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 12 }}>
+                                                    <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: `${row.color}18`, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: `${row.color}30` }}>
+                                                        <MaterialCommunityIcons name={row.icon} size={18} color={row.color} />
+                                                    </View>
+                                                    <View style={{ flex: 1 }}>
+                                                        <Text allowFontScaling={false} style={{ color: '#555', fontSize: 10, fontWeight: '800', letterSpacing: 1, marginBottom: 3 }}>{row.label.toUpperCase()}</Text>
+                                                        <Text allowFontScaling={false} style={{ color: '#EEE', fontSize: 14, fontWeight: '600', lineHeight: 20 }}>{row.value}</Text>
+                                                    </View>
+                                                </View>
+                                                {idx < rows.length - 1 && <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.05)' }} />}
+                                            </View>
+                                        ))}
+                                        {notes && notes !== 'Ek not bulunmuyor.' && (
+                                            <View style={{ marginTop: 12, backgroundColor: 'rgba(212,175,55,0.06)', borderRadius: 12, padding: 14, borderLeftWidth: 3, borderLeftColor: '#D4AF37' }}>
+                                                <Text allowFontScaling={false} style={{ color: '#666', fontSize: 10, fontWeight: '800', letterSpacing: 1, marginBottom: 6 }}>EK NOT</Text>
+                                                <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 13, lineHeight: 20, fontStyle: 'italic' }}>"{notes}"</Text>
+                                            </View>
+                                        )}
+                                    </View>
+                                );
+                            })()}
+                        </View>
 
                         {/* 2. TEKNİK BİLGİLER */}
                         <View style={styles.sectionHeader}>

@@ -1,7 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Dimensions, Modal, RefreshControl, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MarketService } from '../../services/MarketService';
@@ -15,7 +15,7 @@ const PAYMENT_LABELS = {
     'transfer': 'Havale'
 };
 
-const TERMS_OPTIONS = ['EFT', 'Kredi Kartı', '30 Gün', '45 Gün', '60 Gün', '90 Gün'];
+const TERMS_OPTIONS = ['EFT', 'Kredi Kartı'];
 
 export default function MarketProviderScreen() {
     const navigation = useNavigation();
@@ -38,8 +38,11 @@ export default function MarketProviderScreen() {
     const [pumpFee, setPumpFee] = useState('');
     const [shippingType, setShippingType] = useState('Dahil'); // 'Dahil', 'Hariç', 'Alıcı Öder'
     const [shippingFee, setShippingFee] = useState('');
-    const [stockStatus, setStockStatus] = useState('immediate'); // 'immediate', 'wait'
-    const [validity, setValidity] = useState(24); // hours
+    const [stockStatus, setStockStatus] = useState('immediate'); // 'immediate', 'wait', 'custom'
+    const [stockCustom, setStockCustom] = useState(''); // free-text for custom stock status
+    const [validity, setValidity] = useState('24'); // '24', '48', '168', 'custom'
+    const [validityCustom, setValidityCustom] = useState(''); // free-text for custom validity
+    const [pendingOffers, setPendingOffers] = useState([]); // locally saved alternatives, not yet sent
     const [vatIncluded, setVatIncluded] = useState(false);
     const [offerBrand, setOfferBrand] = useState('');
     const [offerTechSpec, setOfferTechSpec] = useState(''); // false: +KDV, true: KDV Dahil
@@ -48,6 +51,7 @@ export default function MarketProviderScreen() {
     const [viewBidModalVisible, setViewBidModalVisible] = useState(false);
     const [selectedBid, setSelectedBid] = useState(null);
     const [successModalVisible, setSuccessModalVisible] = useState(false);
+    const [offerActionSheet, setOfferActionSheet] = useState(null); // { index, offer } or null
 
     // Per-group active bid index: { [requestId]: number }
     const [bidIndexMap, setBidIndexMap] = useState({});
@@ -65,19 +69,26 @@ export default function MarketProviderScreen() {
         isVerified: true
     };
 
-    useEffect(() => {
-        loadData();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            loadData();
+        }, [])
+    );
 
     const loadData = async () => {
-        setRefreshing(true);
-        const [openReqs, userBids] = await Promise.all([
-            MarketService.getOpenRequests(),
-            MarketService.getMyBids()
-        ]);
-        setRequests(openReqs);
-        setMyBids(userBids);
-        setRefreshing(false);
+        try {
+            setRefreshing(true);
+            const [openReqs, userBids] = await Promise.all([
+                MarketService.getOpenRequests(),
+                MarketService.getMyBids()
+            ]);
+            setRequests(openReqs || []);
+            setMyBids(userBids || []);
+        } catch (error) {
+            console.warn('MarketProviderScreen loadData error:', error);
+        } finally {
+            setRefreshing(false);
+        }
     };
 
     const getRequestedPaymentTerm = (req) => {
@@ -114,10 +125,14 @@ export default function MarketProviderScreen() {
         // Parse Stock
         if (notes.includes('Stok Durumu: Hemen Teslim')) parsed.stockStatus = 'immediate';
         else if (notes.includes('Stok Durumu: 2-3 Gün')) parsed.stockStatus = 'wait';
+        else {
+            const customStockMatch = notes.match(/Stok Durumu: (.+?)\|/);
+            if (customStockMatch) { parsed.stockStatus = 'custom'; parsed.stockCustom = customStockMatch[1]; }
+        }
         
         // Parse Validity
-        const validityMatch = notes.match(/Teklif Geçerlilik: (\d+) Saat/);
-        if (validityMatch) parsed.validity = parseInt(validityMatch[1], 10);
+        const validityMatch = notes.match(/Teklif Geçerlilik: (.+?)\|/);
+        if (validityMatch) parsed.validity = validityMatch[1];
         
         // Parse Brand & Tech Spec
         const brandMatch = notes.match(/\[Marka:\s*(.*?)\]/);
@@ -185,64 +200,99 @@ export default function MarketProviderScreen() {
         setPumpFee('');
         setShippingType('Dahil');
         setShippingFee('');
-        setStockStatus('immediate');
-        setValidity(24);
-        setVatIncluded(false);
-        setOfferBrand('');
-        setOfferTechSpec('');
-
+        setStockCustom('');
+        setValidityCustom('');
+        setPendingOffers([]);
         setModalVisible(true);
     };
 
-    const submitBid = async (keepOpen = false) => {
+    // --- OFFER HELPERS (Alternative Offer Flow) ---
+
+    // Snapshot current form into a plain object
+    const captureCurrentOffer = () => ({
+        bidPrice, vatIncluded, shippingType, shippingFee,
+        stockStatus, stockCustom, validity, validityCustom,
+        paymentTerm, offerBrand, offerTechSpec, pumpFee, bidNotes,
+    });
+
+    // Build the notes string from a snapshot (matches parseBidNotes format)
+    const buildNotesFromOffer = (offer) => {
+        let notes = `[KDV: ${offer.vatIncluded ? 'Dahil' : 'Hariç'}] [Nakliye: ${offer.shippingType}]`;
+        if (offer.shippingType === 'Alıcı Öder' && offer.shippingFee) {
+            notes += ` [Nakliye Ücreti: ${offer.shippingFee} TL]`;
+        }
+        const stockLabel = offer.stockStatus === 'immediate' ? 'Hemen Teslim' : offer.stockStatus === 'wait' ? '2-3 Gün' : (offer.stockCustom?.trim() || 'Diğer');
+        if (offer.stockStatus) notes += ` | Stok Durumu: ${stockLabel}|`;
+        const validityLabel = offer.validity === '24' ? '24 Saat' : offer.validity === '48' ? '48 Saat' : offer.validity === '168' ? '1 Hafta' : (offer.validityCustom?.trim() || 'Belirtilmedi');
+        if (offer.validity) notes += ` | Teklif Geçerlilik: ${validityLabel}|`;
+        if (offer.offerBrand?.trim()) notes += ` [Marka: ${offer.offerBrand.trim()}]`;
+        if (offer.offerTechSpec?.trim()) notes += ` [Özellik: ${offer.offerTechSpec.trim()}]`;
+        if (offer.bidNotes) notes += ` | Notlar: ${offer.bidNotes}`;
+        return notes;
+    };
+
+    // Reset form fields for a fresh entry
+    const resetOfferForm = () => {
+        setBidPrice('');
+        setVatIncluded(false);
+        setShippingType('Dahil');
+        setShippingFee('');
+        setStockStatus('immediate');
+        setStockCustom('');
+        setValidity('24');
+        setValidityCustom('');
+        setPaymentTerm('EFT');
+        setOfferBrand('');
+        setOfferTechSpec('');
+        setPumpFee('');
+        setBidNotes('');
+    };
+
+    // Build MarketService-compatible payload from a snapshot
+    const buildBidPayload = (offer, requestId) => ({
+        request_id: requestId,
+        price: parseFloat(offer.bidPrice),
+        notes: buildNotesFromOffer(offer),
+        payment_terms: offer.paymentTerm,
+        pump_fee: parseFloat(offer.pumpFee) || 0,
+        shipping_type: offer.shippingType,
+        shipping_cost: offer.shippingType === 'Alıcı Öder' ? offer.shippingFee : null,
+        stock_status: offer.stockStatus,
+        validity_duration: offer.validity,
+        vat_included: offer.vatIncluded,
+    });
+
+    // Save current offer locally as an alternative (NO server call)
+    const handleAddAlternative = () => {
         if (!bidPrice) {
-            Alert.alert("Eksik", "Lütfen birim fiyat giriniz.");
+            Alert.alert('Eksik', 'Lütfen birim fiyat giriniz.');
             return;
         }
+        setPendingOffers(prev => [...prev, captureCurrentOffer()]);
+        resetOfferForm();
+    };
 
-        let enrichedNotes = `[KDV: ${vatIncluded ? 'Dahil' : 'Hariç'}] [Nakliye: ${shippingType}]`;
-        if (shippingType === 'Alıcı Öder' && shippingFee) {
-            enrichedNotes += ` [Nakliye Ücreti: ${shippingFee} TL]`;
+    // Submit all saved alternatives + current form offer to server
+    const sendAllOffers = async () => {
+        if (!bidPrice && pendingOffers.length === 0) {
+            Alert.alert('Eksik', 'Lütfen birim fiyat giriniz.');
+            return;
         }
-        if (stockStatus) enrichedNotes += ` [Stok: ${stockStatus === 'immediate' ? 'Hemen Teslim' : '2-3 Gün'}]`;
-        if (validity) enrichedNotes += ` [Geçerlilik: ${validity} Saat]`;
-        if (offerBrand && offerBrand.trim()) enrichedNotes += ` [Marka: ${offerBrand.trim()}]`;
-        if (offerTechSpec && offerTechSpec.trim()) enrichedNotes += ` [Özellik: ${offerTechSpec.trim()}]`;
-
-        if (bidNotes) {
-            enrichedNotes += ` | Notlar: ${bidNotes}`;
-        }
+        const allOffers = [...pendingOffers];
+        if (bidPrice) allOffers.push(captureCurrentOffer());
 
         try {
-            const result = await MarketService.submitBid({
-                request_id: selectedRequest.id,
-                price: parseFloat(bidPrice),
-                notes: enrichedNotes,
-                payment_terms: paymentTerm,
-                pump_fee: parseFloat(pumpFee) || 0,
-                shipping_type: shippingType,
-                shipping_cost: shippingType === 'Alıcı Öder' ? shippingFee : null,
-                stock_status: stockStatus,
-                validity_duration: validity,
-                vat_included: vatIncluded
-            });
-
-            if (result.success) {
-                loadData(); // Reload both feeds to move the item to Tekliflerim
-                if (keepOpen) {
-                    Alert.alert("Başarılı", "Teklifiniz başarıyla iletildi. Yeni bir alternatif teklif için fiyat ve marka alanları sıfırlandı.");
-                    setBidPrice('');
-                    setOfferBrand('');
-                    setOfferTechSpec('');
-                } else {
-                    setSuccessModalVisible(true);
-                    setModalVisible(false);
-                }
-            } else {
-                Alert.alert("Hata", "Teklif gönderilemedi.");
+            for (const offer of allOffers) {
+                const result = await MarketService.submitBid(buildBidPayload(offer, selectedRequest.id));
+                if (!result.success) throw new Error('Teklif gönderilemedi.');
             }
+            setPendingOffers([]);
+            resetOfferForm();
+            loadData();
+            setSuccessModalVisible(true);
+            setModalVisible(false);
         } catch (e) {
-            Alert.alert("Hata", "Bir sorun oluştu.");
+            Alert.alert('Hata', 'Bir sorun oluştu: ' + (e.message || ''));
         }
     };
 
@@ -887,7 +937,7 @@ export default function MarketProviderScreen() {
                         <View style={styles.modalContent}>
                             <View style={styles.modalHeader}>
                                 <Text allowFontScaling={false} style={styles.modalTitle}>Hızlı Teklif Ver</Text>
-                                <TouchableOpacity onPress={() => setModalVisible(false)} style={{ padding: 4 }}>
+                                <TouchableOpacity onPress={() => { setModalVisible(false); setPendingOffers([]); resetOfferForm(); }} style={{ padding: 4 }}>
                                     <Ionicons name="close" size={26} color="#94a3b8" />
                                 </TouchableOpacity>
                             </View>
@@ -902,7 +952,12 @@ export default function MarketProviderScreen() {
                                         >
                                             <View style={[styles.reqSummary, { backgroundColor: '#1C1C1E', borderRadius: 16, borderLeftWidth: 4, borderLeftColor: '#FFD700', padding: 18, marginBottom: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6, borderWidth: 0 }]}>
                                                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: '800', letterSpacing: 0.5 }}>{selectedRequest.title}</Text>
+                                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: '800', letterSpacing: 0.5 }}>
+                                                        {(() => {
+                                                            const raw = selectedRequest.items?.[0]?.product_name || selectedRequest.title;
+                                                            return raw.replace(/\[Marka:.*?\]/g, '').replace(/\[Özellik:.*?\]/g, '').trim();
+                                                        })()}
+                                                    </Text>
                                                 </View>
                                                 {selectedRequest.items && selectedRequest.items[0] && renderProductWithBadges(selectedRequest.items[0].product_name, true)}
                                                 
@@ -1010,10 +1065,14 @@ export default function MarketProviderScreen() {
                                                     </View>
 
                                                     <Text allowFontScaling={false} style={styles.label}>Stok Durumu</Text>
-                                                    <View style={{ flexDirection: 'row', marginBottom: 12, gap: 8 }}>
+                                                    <View style={{ flexDirection: 'row', marginBottom: stockStatus === 'custom' ? 8 : 12, gap: 8 }}>
                                                         <TouchableOpacity onPress={() => setStockStatus('immediate')} style={[styles.chip, stockStatus === 'immediate' && styles.chipActive]}><Text allowFontScaling={false} style={[styles.chipText, stockStatus === 'immediate' && styles.chipTextActive]}>Hemen Teslim</Text></TouchableOpacity>
                                                         <TouchableOpacity onPress={() => setStockStatus('wait')} style={[styles.chip, stockStatus === 'wait' && styles.chipActive]}><Text allowFontScaling={false} style={[styles.chipText, stockStatus === 'wait' && styles.chipTextActive]}>2-3 Gün</Text></TouchableOpacity>
+                                                        <TouchableOpacity onPress={() => setStockStatus('custom')} style={[styles.chip, stockStatus === 'custom' && styles.chipActive]}><Text allowFontScaling={false} style={[styles.chipText, stockStatus === 'custom' && styles.chipTextActive]}>Diğer</Text></TouchableOpacity>
                                                     </View>
+                                                    {stockStatus === 'custom' && (
+                                                        <TextInput allowFontScaling={false} style={[styles.inputBox, { height: 44, backgroundColor: '#0A0A0A', marginBottom: 12 }]} placeholder="Stok durumunu yazın" placeholderTextColor="#525252" value={stockCustom} onChangeText={setStockCustom} />
+                                                    )}
 
                                                     <Text allowFontScaling={false} style={styles.label}>Teslimat / Nakliye Durumu</Text>
                                                     <View style={{ flexDirection: 'row', marginBottom: 12, gap: 8 }}>
@@ -1040,81 +1099,196 @@ export default function MarketProviderScreen() {
 
                                             {/* COMMON: VALIDITY */}
                                             <Text allowFontScaling={false} style={styles.label}>Teklif Geçerlilik Süresi</Text>
+                                            <View style={{ flexDirection: 'row', marginBottom: validity === 'custom' ? 8 : 16, gap: 8 }}>
+                                                {[{ val: '24', label: '24 Saat' }, { val: '48', label: '48 Saat' }, { val: '168', label: '1 Hafta' }, { val: 'custom', label: 'Diğer' }].map(opt => (
+                                                    <TouchableOpacity key={opt.val} onPress={() => setValidity(opt.val)} style={[styles.chip, validity === opt.val && styles.chipActive]}>
+                                                        <Text allowFontScaling={false} style={[styles.chipText, validity === opt.val && styles.chipTextActive]}>{opt.label}</Text>
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </View>
+                                            {validity === 'custom' && (
+                                                <TextInput allowFontScaling={false} style={[styles.inputBox, { height: 44, backgroundColor: '#0A0A0A', marginBottom: 16 }]} placeholder="ör: 1 hafta" placeholderTextColor="#525252" value={validityCustom} onChangeText={setValidityCustom} />
+                                            )}
+
                                             <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
-                                                {[24, 48, 168].map(h => (
-                                                    <TouchableOpacity key={h} onPress={() => setValidity(h)} style={[styles.chip, validity === h && styles.chipActive]}>
-                                                        <Text allowFontScaling={false} style={[styles.chipText, validity === h && styles.chipTextActive]}>{h === 168 ? '1 Hafta' : h + ' Saat'}</Text>
+                                                {TERMS_OPTIONS.map(opt => (
+                                                    <TouchableOpacity
+                                                        key={opt}
+                                                        style={[styles.chip, paymentTerm === opt && styles.chipActive]}
+                                                        onPress={() => setPaymentTerm(opt)}
+                                                    >
+                                                        <Text allowFontScaling={false} style={[styles.chipText, paymentTerm === opt && styles.chipTextActive]}>{opt}</Text>
                                                     </TouchableOpacity>
                                                 ))}
                                             </View>
 
-                                            <Text allowFontScaling={false} style={styles.label}>Ödeme Vadesi</Text>
-                                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsScroll}>
-                                                {(() => {
-                                                    const reqVade = getRequestedPaymentTerm(selectedRequest);
-                                                    const optionsToRender = [...TERMS_OPTIONS];
-                                                    if (reqVade && !optionsToRender.includes(reqVade)) {
-                                                        // Insert right after 'EFT' and 'Kredi Kartı'
-                                                        optionsToRender.splice(2, 0, reqVade);
-                                                        optionsToRender.splice(1, 0, reqVade);
-                                                    }
-                                                    return optionsToRender.map(opt => (
-                                                        <TouchableOpacity
-                                                            key={opt}
-                                                            style={[
-                                                                styles.chip,
-                                                                { flexDirection: 'column', paddingVertical: 8, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
-                                                                paymentTerm === opt && styles.chipActive,
-                                                                // Highlight requested vade distinctly if it is not selected
-                                                                reqVade === opt && paymentTerm !== opt && { borderColor: '#4ADE80', borderWidth: 1, backgroundColor: 'rgba(74, 222, 128, 0.1)' }
-                                                            ]}
-                                                            onPress={() => {
-                                                                // Alert if user selects anything other than the requested vade
-                                                                if (reqVade && opt !== reqVade && paymentTerm !== opt) {
+                                            {/* PENDING OFFERS PREVIEW */}
+                                            {(pendingOffers.length > 0 || (bidPrice && String(bidPrice).trim() !== '')) && (
+                                                <View style={{ backgroundColor: '#0A0A0A', borderRadius: 12, padding: 12, marginTop: 8, marginBottom: 4, borderWidth: 1, borderColor: '#D4AF3730' }}>
+                                                    <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 10, fontWeight: '800', letterSpacing: 1, marginBottom: 10 }}>HAZIRLANAN TEKLİFLER</Text>
+                                                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                                                            {pendingOffers.map((offer, i) => (
+                                                                <TouchableOpacity
+                                                                    key={i}
+                                                                    activeOpacity={0.75}
+                                                                    onPress={() => setOfferActionSheet({ index: i, offer })}
+                                                                    style={{ backgroundColor: '#1a1a1a', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: '#D4AF3760', minWidth: 80, alignItems: 'center' }}
+                                                                >
+                                                                    <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 10, fontWeight: '800', letterSpacing: 0.5, marginBottom: 3 }}>TEKLİF {i + 1}</Text>
+                                                                    <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 13, fontWeight: '900' }}>{parseFloat(offer.bidPrice).toLocaleString('tr-TR')} ₺</Text>
+                                                                </TouchableOpacity>
+                                                            ))}
+                                                            {/* Current form indicator */}
+                                                            <TouchableOpacity 
+                                                                activeOpacity={0.7}
+                                                                onPress={() => {
                                                                     Alert.alert(
-                                                                        "Vade Uyarısı",
-                                                                        `Alıcı bu talep için "${reqVade}" vade istemiştir. Siz farklı bir teklif (${opt}) veriyorsunuz, devam etmek istiyor musunuz?`,
+                                                                        `TEKLİF ${pendingOffers.length + 1}`,
+                                                                        bidPrice ? "Girdiğiniz verileri silmek (temizlemek) istiyor musunuz?" : "Bu alternatif teklifi iptal etmek istiyor musunuz?",
                                                                         [
-                                                                            { text: "Vazgeç", style: 'cancel' },
-                                                                            { text: `Evet, ${opt}`, onPress: () => setPaymentTerm(opt) }
+                                                                            { text: 'Vazgeç', style: 'cancel' },
+                                                                            { 
+                                                                                text: bidPrice ? 'Temizle' : 'İptal Et', 
+                                                                                style: 'destructive', 
+                                                                                onPress: () => {
+                                                                                    if (bidPrice) {
+                                                                                        resetOfferForm();
+                                                                                    } else {
+                                                                                        if (pendingOffers.length > 0) {
+                                                                                            const lastOffer = pendingOffers[pendingOffers.length - 1];
+                                                                                            setPendingOffers(prev => prev.slice(0, -1));
+                                                                                            setBidPrice(lastOffer.bidPrice);
+                                                                                            setVatIncluded(lastOffer.vatIncluded);
+                                                                                            setShippingType(lastOffer.shippingType);
+                                                                                            setShippingFee(lastOffer.shippingFee || '');
+                                                                                            setStockStatus(lastOffer.stockStatus);
+                                                                                            setStockCustom(lastOffer.stockCustom || '');
+                                                                                            setValidity(lastOffer.validity);
+                                                                                            setValidityCustom(lastOffer.validityCustom || '');
+                                                                                            setPaymentTerm(lastOffer.paymentTerm);
+                                                                                            setOfferBrand(lastOffer.offerBrand || '');
+                                                                                            setOfferTechSpec(lastOffer.offerTechSpec || '');
+                                                                                            setPumpFee(lastOffer.pumpFee || '');
+                                                                                            setBidNotes(lastOffer.bidNotes || '');
+                                                                                        } else {
+                                                                                            resetOfferForm(); // Fallback
+                                                                                        }
+                                                                                    }
+                                                                                } 
+                                                                            }
                                                                         ]
                                                                     );
-                                                                } else {
-                                                                    setPaymentTerm(opt);
-                                                                }
-                                                            }}
-                                                        >
-                                                            <Text allowFontScaling={false} style={[
-                                                                styles.chipText, 
-                                                                paymentTerm === opt && styles.chipTextActive,
-                                                                reqVade === opt && paymentTerm !== opt && { color: '#4ADE80', fontWeight: 'bold' }
-                                                            ]}>{opt}</Text>
-                                                            
-                                                            {opt !== 'EFT' && opt !== 'Kredi Kartı' && (
-                                                                <Text allowFontScaling={false} style={{
-                                                                    fontSize: 10,
-                                                                    marginTop: 2,
-                                                                    fontWeight: '600',
-                                                                    color: paymentTerm === opt ? '#000' : (reqVade === opt && paymentTerm !== opt ? '#4ADE80' : '#737373')
-                                                                }}>Çek / Senet</Text>
-                                                            )}
-                                                        </TouchableOpacity>
-                                                    ));
-                                                })()}
-                                            </ScrollView>
+                                                                }}
+                                                                style={{ backgroundColor: '#0f2a1a', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: '#4ADE8040', minWidth: 80, alignItems: 'center', justifyContent: 'center', borderStyle: 'dashed' }}
+                                                            >
+                                                                <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 10, fontWeight: '800', letterSpacing: 0.5, marginBottom: 3 }}>TEKLİF {pendingOffers.length + 1}</Text>
+                                                                <Text allowFontScaling={false} style={{ color: '#4ADE8080', fontSize: 9 }}>{bidPrice ? 'Düzenleniyor..' : 'Hazırlanıyor...'}</Text>
+                                                                <Text allowFontScaling={false} style={{ color: '#4ADE8050', fontSize: 8, marginTop: 4 }}>{bidPrice ? '🗑 temizle' : '❌ iptal et'}</Text>
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                    </ScrollView>
+                                                </View>
+                                            )}
 
-                                            <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
-                                                <TouchableOpacity style={[styles.modalBtn, { flex: 1, backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: '#333' }]} onPress={() => submitBid(true)}>
+                                            {/* ACTION BUTTONS */}
+                                            <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+                                                <TouchableOpacity style={[styles.modalBtn, { flex: 1, backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: '#333' }]} onPress={handleAddAlternative}>
                                                     <Text allowFontScaling={false} style={[styles.modalBtnText, { color: '#fff' }]}>+ ALTERNATİF EKLE</Text>
                                                 </TouchableOpacity>
-                                                <TouchableOpacity style={[styles.modalBtn, { flex: 1 }]} onPress={() => submitBid(false)}>
-                                                    <Text allowFontScaling={false} style={styles.modalBtnText}>TEKLİFİ GÖNDER</Text>
+                                                <TouchableOpacity style={[styles.modalBtn, { flex: 1 }]} onPress={sendAllOffers}>
+                                                    <Text allowFontScaling={false} style={styles.modalBtnText}>
+                                                        {pendingOffers.length > 0
+                                                            ? `${pendingOffers.length + (bidPrice ? 1 : 0)} TEKLİF GÖNDER`
+                                                            : 'TEKLİFİ GÖNDER'}
+                                                    </Text>
                                                 </TouchableOpacity>
                                             </View>
                                         </ScrollView>
                                     )}
                                 </View>
                         </View>
+
+                        {/* PREMIUM OFFER ACTION SHEET */}
+                        {offerActionSheet && (
+                            <TouchableOpacity
+                                activeOpacity={1}
+                                onPress={() => setOfferActionSheet(null)}
+                                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'flex-end' }}
+                            >
+                                <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+                                    <View style={{ backgroundColor: '#111', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 12, paddingBottom: 36, paddingHorizontal: 24, borderTopWidth: 1, borderTopColor: '#D4AF3730' }}>
+                                        {/* Handle */}
+                                        <View style={{ width: 40, height: 4, backgroundColor: '#2a2a2a', borderRadius: 2, alignSelf: 'center', marginBottom: 24 }} />
+
+                                        {/* Badge */}
+                                        <View style={{ alignSelf: 'center', backgroundColor: '#D4AF3715', borderRadius: 24, paddingHorizontal: 22, paddingVertical: 10, borderWidth: 1.5, borderColor: '#D4AF3750', marginBottom: 30 }}>
+                                            <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 14, fontWeight: '900', letterSpacing: 2 }}>TEKLİF {offerActionSheet.index + 1}</Text>
+                                        </View>
+
+                                        {/* Düzenle */}
+                                        <TouchableOpacity
+                                            style={{ backgroundColor: '#1a1a1a', borderRadius: 16, paddingVertical: 16, marginBottom: 10, borderWidth: 1, borderColor: '#D4AF3740', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 10 }}
+                                            onPress={() => {
+                                                const offer = offerActionSheet.offer;
+                                                const idx = offerActionSheet.index;
+
+                                                const currentPriceStr = String(bidPrice || '').trim();
+                                                if (currentPriceStr && parseFloat(currentPriceStr) > 0) {
+                                                    const currentOfferData = captureCurrentOffer();
+                                                    setPendingOffers(prev => {
+                                                        const newList = [...prev];
+                                                        newList.splice(idx, 1);
+                                                        newList.push(currentOfferData);
+                                                        return newList;
+                                                    });
+                                                } else {
+                                                    setPendingOffers(prev => prev.filter((_, i) => i !== idx));
+                                                }
+
+                                                setBidPrice(offer.bidPrice);
+                                                setVatIncluded(offer.vatIncluded);
+                                                setShippingType(offer.shippingType);
+                                                setShippingFee(offer.shippingFee || '');
+                                                setStockStatus(offer.stockStatus);
+                                                setStockCustom(offer.stockCustom || '');
+                                                setValidity(offer.validity);
+                                                setValidityCustom(offer.validityCustom || '');
+                                                setPaymentTerm(offer.paymentTerm);
+                                                setOfferBrand(offer.offerBrand || '');
+                                                setOfferTechSpec(offer.offerTechSpec || '');
+                                                setPumpFee(offer.pumpFee || '');
+                                                setBidNotes(offer.bidNotes || '');
+                                                setOfferActionSheet(null);
+                                            }}
+                                        >
+                                            <Ionicons name="create-outline" size={20} color="#D4AF37" />
+                                            <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 15, fontWeight: '700' }}>Düzenle</Text>
+                                        </TouchableOpacity>
+
+                                        {/* Kaldır */}
+                                        <TouchableOpacity
+                                            style={{ backgroundColor: '#1a0505', borderRadius: 16, paddingVertical: 16, marginBottom: 10, borderWidth: 1, borderColor: '#EF444430', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 10 }}
+                                            onPress={() => {
+                                                setPendingOffers(prev => prev.filter((_, i) => i !== offerActionSheet.index));
+                                                setOfferActionSheet(null);
+                                            }}
+                                        >
+                                            <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                                            <Text allowFontScaling={false} style={{ color: '#EF4444', fontSize: 15, fontWeight: '700' }}>Kaldır</Text>
+                                        </TouchableOpacity>
+
+                                        {/* İptal */}
+                                        <TouchableOpacity
+                                            onPress={() => setOfferActionSheet(null)}
+                                            style={{ paddingVertical: 14, alignItems: 'center' }}
+                                        >
+                                            <Text allowFontScaling={false} style={{ color: '#555', fontSize: 14 }}>İptal</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </TouchableOpacity>
+                            </TouchableOpacity>
+                        )}
                     </View>
                 </Modal>
 

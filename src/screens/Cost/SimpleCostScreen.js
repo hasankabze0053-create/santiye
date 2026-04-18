@@ -17,8 +17,10 @@ import {
     UIManager, View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 import GlassCard from '../../components/GlassCard';
 import PremiumBackground from '../../components/PremiumBackground';
+import { DISTRICTS as ALL_DISTRICTS, getSortedCities } from '../../constants/TurkeyLocations';
 
 if (Platform.OS === 'android') {
     if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -29,19 +31,7 @@ if (Platform.OS === 'android') {
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // --- DATA ---
-const CITIES = ['İstanbul', 'Ankara', 'İzmir', 'Kastamonu'];
-const DISTRICTS = {
-    'İstanbul': [
-        'Adalar', 'Arnavutköy', 'Ataşehir', 'Avcılar', 'Bağcılar', 'Bahçelievler', 'Bakırköy', 'Başakşehir',
-        'Bayrampaşa', 'Beşiktaş', 'Beykoz', 'Beylikdüzü', 'Beyoğlu', 'Büyükçekmece', 'Çatalca', 'Çekmeköy',
-        'Esenler', 'Esenyurt', 'Eyüpsultan', 'Fatih', 'Gaziosmanpaşa', 'Güngören', 'Kadıköy', 'Kağıthane',
-        'Kartal', 'Küçükçekmece', 'Maltepe', 'Pendik', 'Sancaktepe', 'Sarıyer', 'Silivri', 'Sultanbeyli',
-        'Sultangazi', 'Şile', 'Şişli', 'Tuzla', 'Ümraniye', 'Üsküdar', 'Zeytinburnu'
-    ],
-    'Ankara': ['Çankaya', 'Keçiören', 'Yenimahalle', 'Mamak', 'Etimesgut', 'Sincan', 'Altındağ', 'Pursaklar', 'Gölbaşı'],
-    'İzmir': ['Konak', 'Karşıyaka', 'Bornova', 'Buca', 'Çiğli', 'Gaziemir', 'Balçova', 'Narlıdere', 'Güzelbahçe'],
-    'Kastamonu': ['Merkez', 'Tosya', 'Taşköprü', 'Cide', 'İnebolu', 'Bozkurt', 'Abana', 'Daday']
-};
+const CITIES = getSortedCities();
 
 const PRESETS = [
     { label: 'Ekonomik', value: 29000, color: '#8C7B75' }, // Dull Bronze Text
@@ -53,71 +43,91 @@ const PRESETS = [
 
 const SelectionModal = ({ visible, onClose, title, items, onSelect, lockedPredicate }) => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
+    const [searchText, setSearchText] = useState('');
 
     useEffect(() => {
         if (visible) {
-            Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+            setSearchText('');
+            Animated.spring(fadeAnim, { toValue: 1, useNativeDriver: true, tension: 50, friction: 8 }).start();
         } else {
             Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }).start();
         }
     }, [visible]);
 
+    const filteredItems = items.filter(val => val.toLocaleLowerCase('tr').includes(searchText.toLocaleLowerCase('tr')));
+
     if (!visible) return null;
 
     return (
-        <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
-            <View style={styles.modalOverlay}>
-                <TouchableOpacity style={StyleSheet.absoluteFill} onPress={onClose} activeOpacity={1} />
-                <Animated.View style={[styles.modalContent, { opacity: fadeAnim, transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [50, 0] }) }] }]}>
-                    <LinearGradient colors={['#1a1a1a', '#0F0F0F']} style={styles.modalGradient}>
-                        <View style={styles.modalHeader}>
-                            <Text allowFontScaling={false} style={styles.modalTitle}>{title}</Text>
-                            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                                <Ionicons name="close" size={24} color="#D4AF37" />
-                            </TouchableOpacity>
-                        </View>
-                        <FlatList
-                            data={items}
-                            keyExtractor={(item) => item}
-                            showsVerticalScrollIndicator={false}
-                            renderItem={({ item }) => {
-                                const isLocked = lockedPredicate ? lockedPredicate(item) : false;
-                                return (
-                                    <TouchableOpacity
-                                        style={[styles.modalItem, isLocked && { opacity: 0.7 }]}
-                                        onPress={() => {
-                                            if (isLocked) {
-                                                Alert.alert(
-                                                    "Premium Özellik 🔒",
-                                                    "İlçe bazlı hesaplama sadece Detaylı Analiz bölümünde yapılabilir. Hızlı hesaplamada sadece il geneli ortalama değerler kullanılır.",
-                                                    [{ text: "Tamam", style: "cancel" }]
-                                                );
-                                            } else {
-                                                onSelect(item);
-                                                onClose();
-                                            }
-                                        }}
-                                    >
-                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                            <Text allowFontScaling={false} style={[styles.modalItemText, isLocked && { color: '#888' }]}>{item}</Text>
-                                            {isLocked && (
-                                                <View style={{ backgroundColor: 'rgba(212, 175, 55, 0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginLeft: 8, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.3)' }}>
-                                                    <Text allowFontScaling={false} style={{ fontSize: 9, color: '#D4AF37', fontWeight: '600' }}>DETAYLI ANALİZ</Text>
-                                                </View>
+        <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+            <TouchableOpacity activeOpacity={1} onPress={onClose} style={styles.modalOverlay}>
+                <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFillObject} />
+                <TouchableOpacity activeOpacity={1} style={{ width: '100%', justifyContent: 'flex-end' }}>
+                    <Animated.View style={[styles.modalContent, { opacity: fadeAnim, transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [200, 0] }) }] }]}>
+                        <LinearGradient colors={['#1a1a1a', '#0a0a0a']} style={styles.modalGradient}>
+                            <View style={styles.modalHeader}>
+                                <View>
+                                    <Text allowFontScaling={false} style={styles.modalTitle}>{title}</Text>
+                                    <View style={styles.titleUnderline} />
+                                </View>
+                                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                                    <MaterialCommunityIcons name="close-circle-outline" size={28} color="#D4AF37" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <View style={styles.searchContainer}>
+                                <MaterialCommunityIcons name="magnify" size={20} color="#D4AF37" style={{ marginRight: 10 }} />
+                                <TextInput allowFontScaling={false}
+                                    style={styles.searchInput}
+                                    placeholder="Ara..."
+                                    placeholderTextColor="#555"
+                                    value={searchText}
+                                    onChangeText={setSearchText}
+                                    autoCorrect={false}
+                                />
+                            </View>
+
+                            <FlatList
+                                data={filteredItems}
+                                keyExtractor={(item) => item}
+                                showsVerticalScrollIndicator={false}
+                                keyboardShouldPersistTaps="handled"
+                                renderItem={({ item }) => {
+                                    const isLocked = lockedPredicate ? lockedPredicate(item) : false;
+                                    const isPriority = ['İstanbul', 'Ankara', 'İzmir'].includes(item);
+                                    
+                                    return (
+                                        <TouchableOpacity
+                                            style={[styles.modalItem, isLocked && { opacity: 0.7 }]}
+                                            onPress={() => {
+                                                if (isLocked) {
+                                                    Alert.alert(
+                                                        "Premium Özellik 🔒",
+                                                        "İlçe bazlı hesaplama sadece Detaylı Analiz bölümünde yapılabilir. Hızlı hesaplamada sadece il geneli ortalama değerler kullanılır.",
+                                                        [{ text: "Tamam", style: "cancel" }]
+                                                    );
+                                                } else {
+                                                    onSelect(item);
+                                                    onClose();
+                                                }
+                                            }}
+                                        >
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                                <Text allowFontScaling={false} style={[styles.modalItemText, isLocked && { color: '#888' }]}>{item}</Text>
+                                            </View>
+                                            {isLocked ? (
+                                                <MaterialCommunityIcons name="lock" size={16} color="#D4AF37" style={{ opacity: 0.5 }} />
+                                            ) : (
+                                                <MaterialCommunityIcons name="chevron-right" size={16} color="rgba(212, 175, 55, 0.3)" />
                                             )}
-                                        </View>
-                                        {isLocked ? (
-                                            <MaterialCommunityIcons name="lock" size={16} color="#D4AF37" style={{ opacity: 0.5 }} />
-                                        ) : (
-                                            <Ionicons name="chevron-forward" size={16} color="rgba(212, 175, 55, 0.3)" />
-                                        )}
-                                    </TouchableOpacity>
-                                );
-                            }}
-                        />
-                    </LinearGradient>
-                </Animated.View>
-            </View>
+                                        </TouchableOpacity>
+                                    );
+                                }}
+                            />
+                        </LinearGradient>
+                    </Animated.View>
+                </TouchableOpacity>
+            </TouchableOpacity>
         </Modal>
     );
 };
@@ -246,7 +256,10 @@ export default function SimpleCostScreen({ navigation, route }) {
     const getModalItems = () => {
         if (modalType === 'city') return CITIES;
         // Return ALL districts, but visual logic will lock them
-        if (modalType === 'district' && city) return ['Tümü', ...(DISTRICTS[city] || [])];
+        if (modalType === 'district' && city) {
+            const rawDistricts = ALL_DISTRICTS[city] || ['Merkez'];
+            return Array.from(new Set(['Tümü', ...rawDistricts]));
+        }
         return [];
     };
 
@@ -272,17 +285,23 @@ export default function SimpleCostScreen({ navigation, route }) {
                         keyboardDismissMode="on-drag" // Dismiss keyboard on scroll
                     >
 
-                        {/* Location Pills */}
-                        <View style={styles.locationRow}>
-                            <TouchableOpacity onPress={openCityModal} style={styles.locationPill}>
-                                <Text allowFontScaling={false} style={styles.locationPillText}>{city}</Text>
-                                <Ionicons name="chevron-down" size={12} color="#FFD700" />
-                            </TouchableOpacity>
-                            <Text allowFontScaling={false} style={{ color: '#444', marginHorizontal: 5 }}>/</Text>
-                            <TouchableOpacity onPress={openDistrictModal} style={styles.locationPill}>
-                                <Text allowFontScaling={false} style={styles.locationPillText}>{district || 'İlçe Seç'}</Text>
-                                <Ionicons name="chevron-down" size={12} color="#FFD700" />
-                            </TouchableOpacity>
+                        {/* Location Selection with Button-like Labels */}
+                        <View style={styles.locationSelectionRow}>
+                            <View style={styles.locationBlock}>
+                                <Text allowFontScaling={false} style={styles.locationButtonLabel}>İL</Text>
+                                <TouchableOpacity onPress={openCityModal} style={styles.locationPill}>
+                                    <Text allowFontScaling={false} style={styles.locationPillTextCity}>{city}</Text>
+                                    <Ionicons name="chevron-down" size={12} color="#fff" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <View style={styles.locationBlock}>
+                                <Text allowFontScaling={false} style={styles.locationButtonLabel}>İLÇE</Text>
+                                <TouchableOpacity onPress={openDistrictModal} style={styles.locationPill}>
+                                    <Text allowFontScaling={false} style={styles.locationPillTextDistrict}>{district || 'İlçe Seç'}</Text>
+                                    <Ionicons name="chevron-down" size={12} color="rgba(255,255,255,0.5)" />
+                                </TouchableOpacity>
+                            </View>
                         </View>
 
                         {/* Header */}
@@ -637,27 +656,43 @@ export default function SimpleCostScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
     content: { padding: 20, paddingTop: 10 },
-    locationRow: {
+    locationSelectionRow: {
         flexDirection: 'row',
         justifyContent: 'center',
+        gap: 16,
+        marginBottom: 24,
+        marginTop: 10,
+    },
+    locationBlock: {
         alignItems: 'center',
-        marginBottom: 20,
+        gap: 8,
+    },
+    locationButtonLabel: {
+        color: '#D4AF37',
+        fontSize: 10,
+        fontWeight: '900',
+        letterSpacing: 1.2,
     },
     locationPill: {
-        backgroundColor: 'rgba(255, 215, 0, 0.1)',
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 215, 0, 0.2)',
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 12,
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6
+        gap: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.1)',
     },
-    locationPillText: {
-        color: '#FFD700',
+    locationPillTextCity: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
+    locationPillTextDistrict: {
+        color: '#fff',
         fontWeight: '600',
-        fontSize: 13,
+        fontSize: 14,
     },
     headerRow: {
         flexDirection: 'row',
@@ -887,68 +922,93 @@ const styles = StyleSheet.create({
     accessoryContainer: {
         flexDirection: 'row',
         justifyContent: 'flex-end',
-        backgroundColor: 'transparent',
+        backgroundColor: '#000',
         padding: 8,
+        borderTopWidth: 1,
+        borderTopColor: '#333'
     },
     accessoryButton: {
         backgroundColor: '#1C1C1E',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#333'
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 8,
     },
     accessoryText: {
-        color: '#FFD700',
+        color: '#D4AF37',
         fontWeight: 'bold',
-        fontSize: 16,
     },
+
+    // Modal Styles
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.8)',
+        backgroundColor: 'rgba(0,0,0,0.4)',
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: '#1a1a1a',
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        height: '70%',
+        height: SCREEN_HEIGHT * 0.6,
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
         overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: 'rgba(212, 175, 55, 0.3)',
     },
     modalGradient: {
         flex: 1,
-        padding: 20,
+        padding: 24,
     },
     modalHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 20,
-        paddingBottom: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255,215,0,0.1)',
     },
     modalTitle: {
         fontSize: 20,
-        fontWeight: '300',
-        color: '#FFD700',
-        letterSpacing: 1,
+        color: '#D4AF37',
+        fontWeight: '900',
+        letterSpacing: 1.5,
+        textTransform: 'uppercase',
+    },
+    titleUnderline: {
+        width: 40,
+        height: 3,
+        backgroundColor: '#D4AF37',
+        marginTop: 4,
+        borderRadius: 2,
     },
     closeButton: {
-        padding: 8,
+        padding: 4,
     },
     modalItem: {
         flexDirection: 'row',
-        alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 16,
+        alignItems: 'center',
+        paddingVertical: 18,
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255,255,255,0.05)',
+        borderBottomColor: 'rgba(255,255,255,0.03)',
     },
     modalItemText: {
+        color: '#eee',
         fontSize: 16,
+        fontWeight: '400',
+    },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.08)',
+        borderRadius: 16,
+        paddingHorizontal: 16,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: 'rgba(212, 175, 55, 0.2)',
+        height: 54,
+    },
+    searchInput: {
+        flex: 1,
         color: '#fff',
-    }
+        fontSize: 16,
+        paddingVertical: 8,
+    },
 });
 
 

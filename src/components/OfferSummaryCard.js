@@ -63,7 +63,7 @@ export default function OfferSummaryCard({
         });
     }
 
-    // 2. Grant Amount
+    // 2. Grant Amount (Standard: 1.75M for residential, 875k for commercial)
     const grantAmount = ((campaignUnitCount || 0) * 1750000) + ((campaignCommercialCount || 0) * 875000);
     const formattedGrant = formatCurrency(grantAmount);
 
@@ -143,10 +143,9 @@ export default function OfferSummaryCard({
                                         Binada yer alan <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>tüm bağımsız bölümlerin</Text> hak sahiplerine teslim edilmesi ve inşaat yapım bedeli olarak;
                                     </>
                                 )}
-                                {'\n\n'}
-                                {isIncluded && grantAmount > 0 ? (
+                                {grantAmount > 0 ? (
                                     <>
-                                        Üstlenicinin toplam <Text allowFontScaling={false} style={{ color: '#FFF', fontWeight: 'bold' }}>{formattedTotalPrice}</Text> tutarındaki talebinden, devletin sağladığı <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedGrant}</Text> hibe/kredi desteği düşüldüğünde;
+                                        Üstlenicinin toplam <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>{formattedTotalPrice}</Text> tutarındaki talebinden, hak sahiplerinin beyanı doğrultusunda devletin sağladığı <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedGrant}</Text> hibe/kredi desteği düşüldüğünde;
                                         {'\n\n'}
                                         Hak sahipleri tarafından <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 16 }}>{formattedNetPrice}</Text>
                                         <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(netPrice)})</Text>

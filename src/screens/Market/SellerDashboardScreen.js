@@ -532,7 +532,12 @@ export default function SellerDashboardScreen() {
                                         >
                                             <View style={[styles.summaryBox, { backgroundColor: '#1C1C1E', borderRadius: 16, borderLeftWidth: 4, borderLeftColor: '#FFD700', padding: 18, marginBottom: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6, borderWidth: 0 }]}>
                                                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: '800', letterSpacing: 0.5 }}>{selectedRequest.title}</Text>
+                                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: '800', letterSpacing: 0.5 }}>
+                                                        {(() => {
+                                                            const raw = selectedRequest.items?.[0]?.product_name || selectedRequest.title;
+                                                            return raw.replace(/\[Marka:.*?\]/g, '').replace(/\[Özellik:.*?\]/g, '').trim();
+                                                        })()}
+                                                    </Text>
                                                 </View>
                                                 {selectedRequest.items && selectedRequest.items[0] && renderProductWithBadges(selectedRequest.items[0].product_name, false, true)}
 

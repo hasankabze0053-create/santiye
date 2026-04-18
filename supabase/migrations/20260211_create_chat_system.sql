@@ -57,5 +57,14 @@ WITH CHECK (
 );
 
 -- Enable Realtime for these tables
+-- Enable Realtime for these tables
 COMMENT ON TABLE transformation_messages IS 'Realtime chat messages';
-alter publication supabase_realtime add table transformation_messages;
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'transformation_messages'
+  ) THEN 
+    ALTER PUBLICATION supabase_realtime ADD TABLE transformation_messages; 
+  END IF; 
+END $$;

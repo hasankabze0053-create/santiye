@@ -38,12 +38,14 @@ export default function ProfileScreen() {
     );
 
     const handleRefresh = async () => {
-        // Don't show full screen loader, just maybe small indicator if needed, 
-        // or just let it update in background.
-        // For now, if profile is missing, we might want to show loader.
-        if (!profile) setLoading(true);
-        await refreshProfile();
-        setLoading(false);
+        try {
+            if (!profile) setLoading(true);
+            await refreshProfile();
+        } catch (error) {
+            console.warn('ProfileScreen handleRefresh error:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSignOut = async () => {
@@ -144,11 +146,15 @@ export default function ProfileScreen() {
     const [refreshing, setRefreshing] = useState(false);
 
     const onRefresh = useCallback(async () => {
-        setRefreshing(true);
-        // Simulate wait for better UX or actual fetch
-        await refreshProfile();
-        setRefreshing(false);
-    }, []);
+        try {
+            setRefreshing(true);
+            await refreshProfile();
+        } catch (error) {
+            console.warn('ProfileScreen onRefresh error:', error);
+        } finally {
+            setRefreshing(false);
+        }
+    }, [refreshProfile]);
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>

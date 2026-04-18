@@ -1,37 +1,15 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import * as ImagePicker from 'expo-image-picker'; // Added ImagePicker
+import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+    ActivityIndicator,
     Alert,
     Animated,
     Dimensions,
     FlatList,
-    Image // Added Image
-    ,
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    Image,
     InputAccessoryView,
     Keyboard,
     LayoutAnimation,
@@ -41,7 +19,7 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    TouchableWithoutFeedback, // Added for smooth transition
+    TouchableWithoutFeedback,
     UIManager,
     View
 } from 'react-native';
@@ -49,7 +27,9 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { SafeAreaView } from 'react-native-safe-area-context';
 import GlassCard from '../../components/GlassCard';
 import PremiumBackground from '../../components/PremiumBackground';
-import { supabase } from '../../lib/supabase'; // Search for this file to confirm path
+import { DISTRICTS as ALL_DISTRICTS, getSortedCities } from '../../constants/TurkeyLocations';
+import { BlurView } from 'expo-blur';
+import { supabase } from '../../lib/supabase';
 // React Native'de blob fetch ile alınır.
 
 
@@ -62,55 +42,81 @@ if (Platform.OS === 'android') {
 }
 
 // --- DATA ---
-const DISTRICTS = {
-    'İstanbul': [
-        'Tümü', 'Adalar', 'Arnavutköy', 'Ataşehir', 'Avcılar', 'Bağcılar', 'Bahçelievler', 'Bakırköy', 'Başakşehir',
-        'Bayrampaşa', 'Beşiktaş', 'Beykoz', 'Beylikdüzü', 'Beyoğlu', 'Büyükçekmece', 'Çatalca', 'Çekmeköy',
-        'Esenler', 'Esenyurt', 'Eyüpsultan', 'Fatih', 'Gaziosmanpaşa', 'Güngören', 'Kadıköy', 'Kağıthane',
-        'Kartal', 'Küçükçekmece', 'Maltepe', 'Pendik', 'Sancaktepe', 'Sarıyer', 'Silivri', 'Sultanbeyli',
-        'Sultangazi', 'Şile', 'Şişli', 'Tuzla', 'Ümraniye', 'Üsküdar', 'Zeytinburnu'
-    ]
-};
+// Removed local DISTRICTS to use TurkeyLocations.js
 
 // --- COMPONENTS ---
 const SelectionModal = ({ visible, onClose, title, items, onSelect }) => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
+    const [searchText, setSearchText] = useState('');
 
     useEffect(() => {
         if (visible) {
+            setSearchText(''); // Reset search on open
             Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
         } else {
             Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }).start();
         }
     }, [visible]);
 
+    const filteredItems = useMemo(() => {
+        if (!searchText) return items;
+        return items.filter(val => val.toLocaleLowerCase('tr').includes(searchText.toLocaleLowerCase('tr')));
+    }, [items, searchText]);
+
     if (!visible) return null;
 
     return (
-        <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
-            <View style={localStyles.modalOverlay}>
-                <Animated.View style={[localStyles.modalContent, { opacity: fadeAnim, transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [50, 0] }) }] }]}>
-                    <LinearGradient colors={['#1a1a1a', '#0F0F0F']} style={localStyles.modalGradient}>
-                        <View style={localStyles.modalHeader}>
-                            <Text allowFontScaling={false} style={localStyles.modalTitle}>{title}</Text>
-                            <TouchableOpacity onPress={onClose} style={localStyles.closeButton}>
-                                <Ionicons name="close" size={24} color="#D4AF37" />
-                            </TouchableOpacity>
-                        </View>
-                        <FlatList
-                            data={items}
-                            keyExtractor={(item) => item}
-                            showsVerticalScrollIndicator={false}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity style={localStyles.modalItem} onPress={() => { onSelect(item); onClose(); }}>
-                                    <Text allowFontScaling={false} style={localStyles.modalItemText}>{item}</Text>
-                                    <Ionicons name="chevron-forward" size={16} color="rgba(212, 175, 55, 0.3)" />
-                                </TouchableOpacity>
-                            )}
-                        />
-                    </LinearGradient>
-                </Animated.View>
-            </View>
+        <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+            <TouchableWithoutFeedback onPress={onClose}>
+                <View style={localStyles.modalOverlay}>
+                    <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFillObject} />
+                    <TouchableWithoutFeedback>
+                        <Animated.View style={[localStyles.modalContent, { opacity: fadeAnim, transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [100, 0] }) }] }]}>
+                            <LinearGradient colors={['#1a1a1a', '#0F0F0F']} style={localStyles.modalGradient}>
+                                <View style={localStyles.modalHeader}>
+                                    <View>
+                                        <Text allowFontScaling={false} style={localStyles.modalTitle}>{title}</Text>
+                                        <View style={localStyles.titleUnderline} />
+                                    </View>
+                                    <TouchableOpacity onPress={onClose} style={localStyles.closeButton}>
+                                        <Ionicons name="close-circle" size={28} color="#D4AF37" />
+                                    </TouchableOpacity>
+                                </View>
+
+                                <View style={localStyles.searchContainer}>
+                                    <Ionicons name="search" size={20} color="#D4AF37" style={{ marginRight: 10 }} />
+                                    <TextInput allowFontScaling={false}
+                                        style={localStyles.searchInput}
+                                        placeholder="Ara..."
+                                        placeholderTextColor="#555"
+                                        value={searchText}
+                                        onChangeText={setSearchText}
+                                        autoCorrect={false}
+                                    />
+                                </View>
+
+                                <FlatList
+                                    data={filteredItems}
+                                    keyExtractor={(item) => item}
+                                    showsVerticalScrollIndicator={false}
+                                    keyboardShouldPersistTaps="handled"
+                                    renderItem={({ item }) => {
+                                        const isPriority = ['İstanbul', 'Ankara', 'İzmir'].includes(item);
+                                        return (
+                                            <TouchableOpacity style={localStyles.modalItem} onPress={() => { onSelect(item); onClose(); }}>
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                                    <Text allowFontScaling={false} style={[localStyles.modalItemText, isPriority && { color: '#D4AF37', fontWeight: 'bold' }]}>{item}</Text>
+                                                </View>
+                                                <Ionicons name="chevron-forward" size={16} color="rgba(212, 175, 55, 0.3)" />
+                                            </TouchableOpacity>
+                                        );
+                                    }}
+                                />
+                            </LinearGradient>
+                        </Animated.View>
+                    </TouchableWithoutFeedback>
+                </View>
+            </TouchableWithoutFeedback>
         </Modal>
     );
 };
@@ -132,11 +138,26 @@ const KeyboardDoneBar = () => {
 export default function ConstructionOfferScreen() {
     const navigation = useNavigation();
     const route = useRoute();
-    // Default location İstanbul/Tümü if not passed
     const [location, setLocation] = useState(route.params?.location || { city: 'İstanbul', district: 'Tümü' });
 
     // Modal State
     const [modalVisible, setModalVisible] = useState(false);
+    const [modalType, setModalType] = useState('city'); // 'city' | 'district'
+
+    // Memoized sorted cities: İstanbul, Ankara, İzmir first, then alphabetical
+    const sortedCities = useMemo(() => getSortedCities(), []);
+
+    // Get districts for current city or default
+    const currentDistricts = useMemo(() => {
+        const cityDistricts = ALL_DISTRICTS[location.city] || ['Merkez'];
+        // Ensure "Tümü" and "Merkez" are handled nicely
+        const uniqueDistricts = Array.from(new Set(['Tümü', ...cityDistricts]));
+        // If it's a generic city and doesn't have Merkez in list, add it
+        if (!uniqueDistricts.includes('Merkez') && !uniqueDistricts.includes(location.city + ' Merkez')) {
+            uniqueDistricts.push('Merkez');
+        }
+        return uniqueDistricts;
+    }, [location.city]);
 
     // Form State
     const [neighborhood, setNeighborhood] = useState('');
@@ -248,7 +269,7 @@ export default function ConstructionOfferScreen() {
                 .from('construction_requests')
                 .insert({
                     user_id: user.id,
-                    city: 'İstanbul',
+                    city: location.city,
                     district: location.district,
                     neighborhood: neighborhood,
                     ada: ada,
@@ -529,23 +550,40 @@ export default function ConstructionOfferScreen() {
                                 </View>
 
                                 <GlassCard style={styles.card}>
-                                    {/* Lokasyon Parçası */}
+                                    {/* Lokasyon Parçası - Premium Seçim Butonları */}
                                     <View style={styles.readOnlyRow}>
-                                        <View style={{ flex: 1 }}>
-                                            <Text allowFontScaling={false} style={styles.label}>İL</Text>
-                                            <Text allowFontScaling={false} style={styles.readOnlyValue}>İstanbul</Text>
-                                        </View>
-                                        <View style={styles.verticalDivider} />
                                         <TouchableOpacity
-                                            style={{ flex: 1, paddingLeft: 12 }}
-                                            onPress={() => setModalVisible(true)}
+                                            style={styles.locationSelectionCard}
+                                            onPress={() => {
+                                                setModalType('city');
+                                                setModalVisible(true);
+                                            }}
                                         >
-                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                <View>
-                                                    <Text allowFontScaling={false} style={styles.label}>İLÇE</Text>
-                                                    <Text allowFontScaling={false} style={styles.readOnlyValue}>{location?.district || 'Tümü'}</Text>
-                                                </View>
-                                                <MaterialCommunityIcons name="chevron-down" size={20} color="#D4AF37" />
+                                            <Text allowFontScaling={false} style={styles.label}>İL</Text>
+                                            <View style={styles.selectValueRow}>
+                                                <Text allowFontScaling={false} style={styles.cityValueText}>{location.city}</Text>
+                                                <MaterialCommunityIcons name="map-marker-outline" size={14} color="#D4AF37" />
+                                            </View>
+                                        </TouchableOpacity>
+
+                                        <LinearGradient
+                                            colors={['transparent', 'rgba(255,255,255,0.1)', 'transparent']}
+                                            style={styles.premiumVerticalDivider}
+                                        />
+
+                                        <TouchableOpacity
+                                            style={[styles.locationSelectionCard, { paddingLeft: 12 }]}
+                                            onPress={() => {
+                                                setModalType('district');
+                                                setModalVisible(true);
+                                            }}
+                                        >
+                                            <Text allowFontScaling={false} style={styles.label}>İLÇE</Text>
+                                            <View style={styles.selectValueRow}>
+                                                <Text allowFontScaling={false} style={[styles.districtValueText, { color: location.district === 'Tümü' ? '#666' : '#fff' }]}>
+                                                    {location.district}
+                                                </Text>
+                                                <MaterialCommunityIcons name="chevron-down" size={20} color="rgba(255,255,255,0.3)" />
                                             </View>
                                         </TouchableOpacity>
                                     </View>
@@ -726,9 +764,15 @@ export default function ConstructionOfferScreen() {
                 <SelectionModal
                     visible={modalVisible}
                     onClose={() => setModalVisible(false)}
-                    title="İLÇE SEÇİN"
-                    items={DISTRICTS['İstanbul']}
-                    onSelect={(item) => setLocation({ ...location, district: item })}
+                    title={modalType === 'city' ? "İL SEÇİN" : "İLÇE SEÇİN"}
+                    items={modalType === 'city' ? sortedCities : currentDistricts}
+                    onSelect={(item) => {
+                        if (modalType === 'city') {
+                            setLocation({ city: item, district: 'Tümü' });
+                        } else {
+                            setLocation({ ...location, district: item });
+                        }
+                    }}
                 />
             </SafeAreaView >
         </PremiumBackground >
@@ -770,9 +814,29 @@ const styles = StyleSheet.create({
     sectionTitle: { color: '#FFD700', fontSize: 14, fontWeight: 'bold', letterSpacing: 1, marginLeft: 8 },
     card: { padding: 16, borderRadius: 16 },
     rowTwo: { flexDirection: 'row' },
-    label: { color: '#E0E0E0', fontSize: 12, fontWeight: '700', marginBottom: 8, letterSpacing: 0.5 },
+    label: { 
+        color: '#D4AF37', 
+        fontSize: 10, 
+        fontWeight: '900', 
+        marginBottom: 8, 
+        letterSpacing: 1.2,
+        textTransform: 'uppercase',
+    },
     readOnlyRow: { flexDirection: 'row', alignItems: 'center' },
     readOnlyValue: { color: '#fff', fontSize: 16, fontWeight: '600' },
+    cityValueText: { color: '#ffffff', fontSize: 16, fontWeight: '800', letterSpacing: 0.3 },
+    districtValueText: { color: '#ffffff', fontSize: 16, fontWeight: '800', letterSpacing: 0.3 },
+    locationSelectionCard: { 
+        flex: 1, 
+        paddingVertical: 8,
+        borderRadius: 12,
+    },
+    locationSelectionCard: { 
+        flex: 1, 
+        paddingVertical: 8,
+        borderRadius: 12,
+    },
+    premiumVerticalDivider: { width: 1, height: '80%', marginHorizontal: 8 },
     verticalDivider: { width: 1, height: '80%', backgroundColor: 'rgba(255,255,255,0.1)', marginHorizontal: 12 },
     input: {
         backgroundColor: 'rgba(0,0,0,0.3)',
@@ -801,6 +865,21 @@ const styles = StyleSheet.create({
         gap: 10,
         borderWidth: 1,
         borderColor: 'rgba(255, 215, 0, 0.2)',
+    },
+    premiumSelectBox: {
+        paddingVertical: 4,
+    },
+    selectValueRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginTop: 2,
+    },
+    selectDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        marginLeft: 8,
     },
     infoText: { color: '#ccc', fontSize: 12, lineHeight: 18, flex: 1 },
     uploadCardContainer: {
@@ -916,12 +995,30 @@ const styles = StyleSheet.create({
 });
 
 const localStyles = StyleSheet.create({
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
-    modalContent: { height: Dimensions.get('window').height * 0.5, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }, // Lightened overlay for BlurView
+    modalContent: { height: Dimensions.get('window').height * 0.6, borderTopLeftRadius: 32, borderTopRightRadius: 32, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.3)' },
     modalGradient: { flex: 1, padding: 24 },
-    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(212, 175, 55, 0.2)', paddingBottom: 16 },
-    modalTitle: { fontSize: 16, color: '#D4AF37', fontWeight: 'bold', letterSpacing: 2 },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+    modalTitle: { fontSize: 20, color: '#D4AF37', fontWeight: '900', letterSpacing: 1.5, textTransform: 'uppercase' },
+    titleUnderline: { width: 40, height: 3, backgroundColor: '#D4AF37', marginTop: 4, borderRadius: 2 },
     closeButton: { padding: 4 },
-    modalItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
-    modalItemText: { color: '#eee', fontSize: 16, fontWeight: '300', letterSpacing: 0.5 },
+    modalItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.03)' },
+    modalItemText: { color: '#eee', fontSize: 16, fontWeight: '400' },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.08)',
+        borderRadius: 16,
+        paddingHorizontal: 16,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: 'rgba(212, 175, 55, 0.2)',
+        height: 54,
+    },
+    searchInput: {
+        flex: 1,
+        color: '#fff',
+        fontSize: 16,
+        paddingVertical: 8,
+    },
 });

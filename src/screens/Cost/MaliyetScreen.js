@@ -10,94 +10,93 @@ import {
     Modal,
     Platform,
     StatusBar, StyleSheet, Text,
+    TextInput,
     TouchableOpacity,
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 import LuxuryCard from '../../components/LuxuryCard';
 import PremiumBackground from '../../components/PremiumBackground';
+import { getSortedCities } from '../../constants/TurkeyLocations';
 import { supabase } from '../../lib/supabase';
 import { ScreenConfigService } from '../../services/ScreenConfigService';
 
 const { width, height } = Dimensions.get('window');
 
 // --- DATA ---
-const CITIES = ['İstanbul', 'Ankara', 'İzmir', 'Kastamonu'];
-
-const DISTRICTS = {
-    'İstanbul': [
-        'Adalar', 'Arnavutköy', 'Ataşehir', 'Avcılar', 'Bağcılar', 'Bahçelievler', 'Bakırköy', 'Başakşehir',
-        'Bayrampaşa', 'Beşiktaş', 'Beykoz', 'Beylikdüzü', 'Beyoğlu', 'Büyükçekmece', 'Çatalca', 'Çekmeköy',
-        'Esenler', 'Esenyurt', 'Eyüpsultan', 'Fatih', 'Gaziosmanpaşa', 'Güngören', 'Kadıköy', 'Kağıthane',
-        'Kartal', 'Küçükçekmece', 'Maltepe', 'Pendik', 'Sancaktepe', 'Sarıyer', 'Silivri', 'Sultanbeyli',
-        'Sultangazi', 'Şile', 'Şişli', 'Tuzla', 'Ümraniye', 'Üsküdar', 'Zeytinburnu'
-    ],
-    'Ankara': ['Çankaya', 'Keçiören', 'Yenimahalle', 'Mamak', 'Etimesgut', 'Sincan', 'Altındağ', 'Pursaklar', 'Gölbaşı'],
-    'İzmir': ['Konak', 'Karşıyaka', 'Bornova', 'Buca', 'Çiğli', 'Gaziemir', 'Balçova', 'Narlıdere', 'Güzelbahçe'],
-    'Kastamonu': ['Merkez', 'Tosya', 'Taşköprü', 'Cide', 'İnebolu', 'Bozkurt', 'Abana', 'Daday']
-};
+const CITIES = getSortedCities();
 
 // --- COMPONENTS ---
 
 // Custom Modal for Elegant Selection
 const SelectionModal = ({ visible, onClose, title, items, onSelect }) => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
+    const [searchText, setSearchText] = useState('');
 
     useEffect(() => {
         if (visible) {
-            Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 300,
-                useNativeDriver: true,
-            }).start();
+            setSearchText('');
+            Animated.spring(fadeAnim, { toValue: 1, useNativeDriver: true, tension: 50, friction: 8 }).start();
         } else {
-            Animated.timing(fadeAnim, {
-                toValue: 0,
-                duration: 200,
-                useNativeDriver: true,
-            }).start();
+            Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }).start();
         }
     }, [visible]);
+
+    const filteredItems = items.filter(val => val.toLocaleLowerCase('tr').includes(searchText.toLocaleLowerCase('tr')));
 
     if (!visible) return null;
 
     return (
-        <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
-            <View style={styles.modalOverlay}>
-                <Animated.View style={[styles.modalContent, { opacity: fadeAnim, transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [50, 0] }) }] }]}>
-                    <LinearGradient
-                        colors={['#1a1a1a', '#0F0F0F']}
-                        style={styles.modalGradient}
-                    >
-                        {/* Header */}
-                        <View style={styles.modalHeader}>
-                            <Text allowFontScaling={false} style={styles.modalTitle}>{title}</Text>
-                            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                                <Ionicons name="close" size={24} color="#D4AF37" />
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* List */}
-                        <FlatList
-                            data={items}
-                            keyExtractor={(item) => item}
-                            showsVerticalScrollIndicator={false}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    style={styles.modalItem}
-                                    onPress={() => {
-                                        onSelect(item);
-                                        onClose();
-                                    }}
-                                >
-                                    <Text allowFontScaling={false} style={styles.modalItemText}>{item}</Text>
-                                    <Ionicons name="chevron-forward" size={16} color="rgba(212, 175, 55, 0.3)" />
+        <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+            <TouchableOpacity activeOpacity={1} onPress={onClose} style={styles.modalOverlay}>
+                <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFillObject} />
+                <TouchableOpacity activeOpacity={1} style={{ width: '100%', justifyContent: 'flex-end' }}>
+                    <Animated.View style={[styles.modalContent, { opacity: fadeAnim, transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [200, 0] }) }] }]}>
+                        <LinearGradient colors={['#1a1a1a', '#0a0a0a']} style={styles.modalGradient}>
+                            <View style={styles.modalHeader}>
+                                <View>
+                                    <Text allowFontScaling={false} style={styles.modalTitle}>{title}</Text>
+                                    <View style={styles.titleUnderline} />
+                                </View>
+                                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                                    <MaterialCommunityIcons name="close-circle-outline" size={28} color="#D4AF37" />
                                 </TouchableOpacity>
-                            )}
-                        />
-                    </LinearGradient>
-                </Animated.View>
-            </View>
+                            </View>
+
+                            <View style={styles.searchContainer}>
+                                <MaterialCommunityIcons name="magnify" size={20} color="#D4AF37" style={{ marginRight: 10 }} />
+                                <TextInput allowFontScaling={false}
+                                    style={styles.searchInput}
+                                    placeholder="Ara..."
+                                    placeholderTextColor="#555"
+                                    value={searchText}
+                                    onChangeText={setSearchText}
+                                    autoCorrect={false}
+                                />
+                            </View>
+
+                            <FlatList
+                                data={filteredItems}
+                                keyExtractor={(item) => item}
+                                showsVerticalScrollIndicator={false}
+                                keyboardShouldPersistTaps="handled"
+                                renderItem={({ item }) => {
+                                    const isPriority = ['İstanbul', 'Ankara', 'İzmir'].includes(item);
+                                    return (
+                                        <TouchableOpacity style={styles.modalItem} onPress={() => { onSelect(item); onClose(); }}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                                <Text allowFontScaling={false} style={[styles.modalItemText, isPriority && { color: '#D4AF37', fontWeight: 'bold' }]}>{item}</Text>
+                                            </View>
+                                            <MaterialCommunityIcons name="chevron-right" size={16} color="rgba(212, 175, 55, 0.3)" />
+                                        </TouchableOpacity>
+                                    );
+                                }}
+                            />
+                        </LinearGradient>
+                    </Animated.View>
+                </TouchableOpacity>
+            </TouchableOpacity>
         </Modal>
     );
 };
@@ -142,20 +141,17 @@ const SECTION_METADATA = {
 };
 
 const LocationSelector = ({ city, onOpenCity }) => (
-    <View style={styles.locationContainer}>
-        {/* City Selector */}
-        <LuxuryCard style={styles.locationCard} onPress={onOpenCity} variant="dark">
+    <TouchableOpacity style={styles.locationContainer} onPress={onOpenCity}>
+        <LuxuryCard style={styles.locationCard}>
             <View style={styles.locationContent}>
                 <View>
-                    <Text allowFontScaling={false} style={styles.locationLabel}>İL SEÇİN</Text>
-                    <Text allowFontScaling={false} style={[styles.locationValue, !city && styles.placeholder]}>
-                        {city || 'Seçiniz...'}
-                    </Text>
+                    <Text allowFontScaling={false} style={styles.locationLabel}>HESAPLAMA YAPILACAK İL</Text>
+                    <Text allowFontScaling={false} style={styles.locationValue}>{city || 'Seçiniz...'}</Text>
                 </View>
-                <MaterialCommunityIcons name="chevron-down" size={20} color="#D4AF37" />
+                <MaterialCommunityIcons name="map-marker-radius" size={24} color="#D4AF37" />
             </View>
         </LuxuryCard>
-    </View>
+    </TouchableOpacity>
 );
 
 
@@ -445,17 +441,17 @@ const styles = StyleSheet.create({
     },
     locationLabel: {
         fontSize: 10,
-        color: '#666',
-        fontWeight: '600',
-        marginBottom: 4,
-        letterSpacing: 1,
+        color: '#D4AF37',
+        fontWeight: '900',
+        marginBottom: 8,
+        letterSpacing: 1.2,
         textTransform: 'uppercase',
     },
     locationValue: {
-        fontSize: 15,
-        color: '#D4AF37', // Gold
-        fontWeight: '500',
-        letterSpacing: 0.5,
+        fontSize: 16,
+        color: '#ffffff',
+        fontWeight: '800',
+        letterSpacing: 0.3,
     },
     placeholder: {
         color: '#444',
@@ -497,14 +493,16 @@ const styles = StyleSheet.create({
     // Modal Styles
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.8)',
+        backgroundColor: 'rgba(0,0,0,0.4)',
         justifyContent: 'flex-end',
     },
     modalContent: {
         height: height * 0.6,
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
         overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: 'rgba(212, 175, 55, 0.3)',
     },
     modalGradient: {
         flex: 1,
@@ -514,17 +512,21 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 24,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(212, 175, 55, 0.2)',
-        paddingBottom: 16,
+        marginBottom: 20,
     },
     modalTitle: {
-        fontSize: 16,
+        fontSize: 20,
         color: '#D4AF37',
-        fontWeight: '600',
-        letterSpacing: 2,
+        fontWeight: '900',
+        letterSpacing: 1.5,
         textTransform: 'uppercase',
+    },
+    titleUnderline: {
+        width: 40,
+        height: 3,
+        backgroundColor: '#D4AF37',
+        marginTop: 4,
+        borderRadius: 2,
     },
     closeButton: {
         padding: 4,
@@ -533,14 +535,30 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 16,
+        paddingVertical: 18,
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255,255,255,0.05)',
+        borderBottomColor: 'rgba(255,255,255,0.03)',
     },
     modalItemText: {
         color: '#eee',
         fontSize: 16,
-        fontWeight: '300',
-        letterSpacing: 0.5,
-    }
+        fontWeight: '400',
+    },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.08)',
+        borderRadius: 16,
+        paddingHorizontal: 16,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: 'rgba(212, 175, 55, 0.2)',
+        height: 54,
+    },
+    searchInput: {
+        flex: 1,
+        color: '#fff',
+        fontSize: 16,
+        paddingVertical: 8,
+    },
 });

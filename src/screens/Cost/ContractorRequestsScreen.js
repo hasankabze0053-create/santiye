@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import GlassCard from '../../components/GlassCard';
 import PremiumBackground from '../../components/PremiumBackground';
+import { ConstructionService } from '../../services/ConstructionService';
 
 const formatDate = (dateString) => {
     if (!dateString) return '';

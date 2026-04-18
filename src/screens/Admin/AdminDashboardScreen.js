@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Linking, Modal, RefreshControl, ScrollView, StatusBar, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
+import TurkeyLocationPicker from '../../components/TurkeyLocationPicker';
 
 // Reuse categories from HomeScreen logic but adapted
 const ADMIN_MODULES = [
@@ -110,7 +111,13 @@ const AdminDashboardScreen = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
+    const [dashboardSubView, setDashboardSubView] = useState('menu'); // 'menu' | 'modules'
     const [offers, setOffers] = useState([]); // Store offers/bids
+
+    // Location Filters
+    const [filterCity, setFilterCity] = useState('');
+    const [filterDistrict, setFilterDistrict] = useState('');
+    const [isLocationPickerVisible, setIsLocationPickerVisible] = useState(false);
 
     // User Management State
     const [users, setUsers] = useState([]);
@@ -126,7 +133,7 @@ const AdminDashboardScreen = () => {
     // Reuse ASSET_MAP for admin display if needed, or just use icons
     // We will use the list from DB for the grid when in Edit Mode
 
-    // Fetch requests when a module is selected
+    // Fetch requests when a module is selected OR search/filter changes
     useEffect(() => {
         if (selectedModule && selectedModule.table) {
             fetchModuleData(selectedModule.table);
@@ -134,7 +141,7 @@ const AdminDashboardScreen = () => {
             // Module with no table
             setRequests([]);
         }
-    }, [selectedModule]);
+    }, [selectedModule, searchQuery, filterCity, filterDistrict]);
 
     // Fetch Config for Edit Mode or Grid
     useEffect(() => {
@@ -226,9 +233,24 @@ const AdminDashboardScreen = () => {
             if (searchQuery) {
                 // ILIKE for title or ID (if strictly numeric)
                 // Note: Joining profiles for name search is complex in one query, restricting to title/id/city for now
-                // query = query.or(`title.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%`);
-                // Simple implementation: Filter by city or id
-                // query = query.ilike('city', `%${searchQuery}%`);
+                query = query.or(`title.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,district.ilike.%${searchQuery}%`);
+            }
+
+            // Apply Location Filters (Compatible with columns if they exist)
+            if (filterCity) {
+                // Some tables use 'city', some use 'location' (string match)
+                if (tableName === 'market_requests' || tableName === 'transport_requests') {
+                    query = query.ilike('location', `%${filterCity}%`);
+                } else {
+                    query = query.eq('city', filterCity);
+                }
+            }
+            if (filterDistrict) {
+                if (tableName === 'market_requests' || tableName === 'transport_requests') {
+                    query = query.ilike('location', `%${filterDistrict}%`);
+                } else {
+                    query = query.eq('district', filterDistrict);
+                }
             }
 
             const { data, error } = await query;
@@ -902,6 +924,62 @@ const AdminDashboardScreen = () => {
         </Modal>
     );
 
+    const renderDashboardMenu = () => (
+        <ScrollView contentContainerStyle={{ padding: 20 }}>
+            <Text allowFontScaling={false} style={styles.adminSectionTitle}>YÖNETİM MERKEZİ</Text>
+            
+            <TouchableOpacity 
+                style={styles.menuFeatureCard}
+                onPress={() => setDashboardSubView('modules')}
+            >
+                <LinearGradient colors={['#D4AF37', '#8A6E2F']} style={styles.menuFeatureIconBox}>
+                    <MaterialCommunityIcons name="view-grid-plus" size={32} color="#000" />
+                </LinearGradient>
+                <View style={styles.menuFeatureContent}>
+                    <Text allowFontScaling={false} style={styles.menuFeatureTitle}>Modül Yönetimi</Text>
+                    <Text allowFontScaling={false} style={styles.menuFeatureSubtitle}>
+                        Hangi hizmetlerin aktif olacağını seçin, modül sıralarını ve içeriklerini düzenleyin.
+                    </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color="#D4AF37" />
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+                style={[styles.menuFeatureCard, { opacity: 0.5 }]}
+                onPress={() => Alert.alert("Yakında", "İstatistik ve raporlama modülü geliştirme aşamasındadır.")}
+            >
+                <View style={[styles.menuFeatureIconBox, { backgroundColor: '#1e293b' }]}>
+                    <MaterialCommunityIcons name="chart-box-outline" size={32} color="#94a3b8" />
+                </View>
+                <View style={styles.menuFeatureContent}>
+                    <Text allowFontScaling={false} style={styles.menuFeatureTitle}>İstatistikler & Raporlar</Text>
+                    <Text allowFontScaling={false} style={styles.menuFeatureSubtitle}>
+                        Uygulama trafiği, teklif oranları ve finansal verileri gerçek zamanlı takip edin.
+                    </Text>
+                </View>
+                <Ionicons name="lock-closed" size={20} color="#334155" />
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+                style={[styles.menuFeatureCard, { opacity: 0.5 }]}
+                onPress={() => Alert.alert("Yakında", "Sistem ayarları modülü geliştirme aşamasındadır.")}
+            >
+                <View style={[styles.menuFeatureIconBox, { backgroundColor: '#1e293b' }]}>
+                    <MaterialCommunityIcons name="cog-outline" size={32} color="#94a3b8" />
+                </View>
+                <View style={styles.menuFeatureContent}>
+                    <Text allowFontScaling={false} style={styles.menuFeatureTitle}>Genel Sistem Ayarları</Text>
+                    <Text allowFontScaling={false} style={styles.menuFeatureSubtitle}>
+                        Uygulama genelindeki metinler, limitler ve bildirim tercihlerini yönetin.
+                    </Text>
+                </View>
+                <Ionicons name="lock-closed" size={20} color="#334155" />
+            </TouchableOpacity>
+
+            <View style={{ height: 40 }} />
+        </ScrollView>
+    );
+
     // --- RENDER MODULE GRID ---
     const renderModuleItem = ({ item }) => {
         // Resolve Assets
@@ -920,7 +998,7 @@ const AdminDashboardScreen = () => {
                 onPress={() => { setSelectedModule(item); setViewMode('module_detail'); }}
             >
                 <View style={styles.moduleImageContainer}>
-                    <Image source={imageSource} style={styles.moduleBg} resizeMode="cover" />
+                    <Image source={imageSource} style={styles.moduleBg} contentFit="cover" />
                     <LinearGradient
                         colors={['transparent', 'rgba(0,0,0,0.9)']}
                         style={StyleSheet.absoluteFill}
@@ -987,6 +1065,7 @@ const AdminDashboardScreen = () => {
                     <TouchableOpacity
                         onPress={() => {
                             if (selectedModule) setSelectedModule(null);
+                            else if (viewMode === 'dashboard' && dashboardSubView === 'modules') setDashboardSubView('menu');
                             else if (viewMode === 'users') setViewMode('dashboard');
                             else navigation.goBack();
                         }}
@@ -1085,18 +1164,46 @@ const AdminDashboardScreen = () => {
                     ) : viewMode === 'module_detail' && selectedModule ? (
                         /* MODULE DETAIL VIEW (Requests & Offers) */
                         <View style={{ flex: 1 }}>
-                            {/* Search & Tabs */}
-                            <View style={{ backgroundColor: '#1e293b', padding: 10 }}>
-                                <TextInput allowFontScaling={false}
-                                    style={styles.searchBar}
-                                    placeholder="🔍 Talep Ara..."
-                                    placeholderTextColor="#94a3b8"
-                                    value={searchQuery}
-                                    onChangeText={(text) => {
-                                        setSearchQuery(text);
-                                    }}
-                                    onSubmitEditing={() => fetchModuleData(selectedModule.table)}
-                                />
+                            {/* Search & Tabs Header */}
+                            <View style={{ backgroundColor: '#000', padding: 15, borderBottomWidth: 1, borderBottomColor: '#1A1A1E' }}>
+                                <View style={styles.searchContainer}>
+                                    <Ionicons name="search" size={20} color="#D4AF37" style={{ marginRight: 10 }} />
+                                    <TextInput allowFontScaling={false}
+                                        style={styles.searchInput}
+                                        placeholder="Taleplerde Ara..."
+                                        placeholderTextColor="#666"
+                                        value={searchQuery}
+                                        onChangeText={setSearchQuery}
+                                    />
+                                </View>
+
+                                {/* Location Filter Row */}
+                                <View style={styles.locationFilterRow}>
+                                    <TouchableOpacity 
+                                        onPress={() => setIsLocationPickerVisible(true)} 
+                                        style={styles.locationFilterBtn}
+                                        activeOpacity={0.7}
+                                    >
+                                        <LinearGradient colors={['#1C1C1E', '#111']} style={StyleSheet.absoluteFillObject} />
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                                            <Ionicons name="location" size={16} color="#D4AF37" />
+                                            <Text allowFontScaling={false} style={[styles.locationFilterText, filterCity && { color: '#FFF' }]}>
+                                                {filterCity ? `${filterCity} / ${filterDistrict || 'Tümü'}` : '📍 Bölge Seçin'}
+                                            </Text>
+                                        </View>
+                                        <Ionicons name="chevron-down" size={14} color="#555" />
+                                    </TouchableOpacity>
+                                    
+                                    {filterCity ? (
+                                        <TouchableOpacity 
+                                            onPress={() => { setFilterCity(''); setFilterDistrict(''); }} 
+                                            style={styles.clearFilterBtn}
+                                        >
+                                            <MaterialCommunityIcons name="filter-remove" size={18} color="#EF4444" />
+                                        </TouchableOpacity>
+                                    ) : null}
+                                </View>
+                            </View>
                                 <View style={{ flexDirection: 'row', marginTop: 10 }}>
                                     <TouchableOpacity
                                         style={[styles.subTab, activeTab === 'requests' && styles.subTabActive]}
@@ -1111,8 +1218,6 @@ const AdminDashboardScreen = () => {
                                         <Text allowFontScaling={false} style={[styles.subTabText, activeTab === 'offers' && styles.subTabTextActive]}>Teklifler ({offers.length})</Text>
                                     </TouchableOpacity>
                                 </View>
-                            </View>
-
                             {loading && !refreshing && page === 0 ? (
                                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                                     <ActivityIndicator size="large" color="#D4AF37" />
@@ -1143,41 +1248,42 @@ const AdminDashboardScreen = () => {
                             )}
                         </View>
                     ) : (
-                        /* MODULE GRID VIEW OR EDIT LIST */
-                        isEditMode ? (
-                            <FlatList
-                                data={configModules}
-                                keyExtractor={item => item.id}
-                                renderItem={({ item, index }) => (
-                                    <View style={styles.editRow}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                            <MaterialCommunityIcons name="drag-horizontal" size={24} color="#666" style={{ marginRight: 10 }} />
-                                            <Text allowFontScaling={false} style={[styles.editTitle, !item.is_active && { color: '#555', textDecorationLine: 'line-through' }]}>
-                                                {item.title}
-                                            </Text>
-                                        </View>
+                        /* DASHBOARD VIEW: MENU OR MODULES */
+                        dashboardSubView === 'menu' ? renderDashboardMenu() : (
+                            isEditMode ? (
+                                <FlatList
+                                    data={configModules}
+                                    keyExtractor={item => item.id}
+                                    renderItem={({ item, index }) => (
+                                        <View style={styles.editRow}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                <MaterialCommunityIcons name="drag-horizontal" size={24} color="#666" style={{ marginRight: 10 }} />
+                                                <Text allowFontScaling={false} style={[styles.editTitle, !item.is_active && { color: '#555', textDecorationLine: 'line-through' }]}>
+                                                    {item.title}
+                                                </Text>
+                                            </View>
 
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                                            <TouchableOpacity onPress={() => moveModule(index, 'up')} disabled={index === 0}>
-                                                <Ionicons name="arrow-up-circle" size={28} color={index === 0 ? '#333' : '#3B82F6'} />
-                                            </TouchableOpacity>
-                                            <TouchableOpacity onPress={() => moveModule(index, 'down')} disabled={index === configModules.length - 1}>
-                                                <Ionicons name="arrow-down-circle" size={28} color={index === configModules.length - 1 ? '#333' : '#3B82F6'} />
-                                            </TouchableOpacity>
-                                            <View style={{ width: 10 }} />
-                                            <TouchableOpacity onPress={() => toggleModuleVisibility(item.id, item.is_active)}>
-                                                <MaterialCommunityIcons
-                                                    name={item.is_active ? "eye" : "eye-off"}
-                                                    size={24}
-                                                    color={item.is_active ? "#4ADE80" : "#EF4444"}
-                                                />
-                                            </TouchableOpacity>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                                <TouchableOpacity onPress={() => moveModule(index, 'up')} disabled={index === 0}>
+                                                    <Ionicons name="arrow-up-circle" size={28} color={index === 0 ? '#333' : '#3B82F6'} />
+                                                </TouchableOpacity>
+                                                <TouchableOpacity onPress={() => moveModule(index, 'down')} disabled={index === configModules.length - 1}>
+                                                    <Ionicons name="arrow-down-circle" size={28} color={index === configModules.length - 1 ? '#333' : '#3B82F6'} />
+                                                </TouchableOpacity>
+                                                <View style={{ width: 10 }} />
+                                                <TouchableOpacity onPress={() => toggleModuleVisibility(item.id, item.is_active)}>
+                                                    <MaterialCommunityIcons
+                                                        name={item.is_active ? "eye" : "eye-off"}
+                                                        size={24}
+                                                        color={item.is_active ? "#4ADE80" : "#EF4444"}
+                                                    />
+                                                </TouchableOpacity>
+                                            </View>
                                         </View>
-                                    </View>
-                                )}
-                                contentContainerStyle={{ padding: 20 }}
-                            />
-                        ) : (
+                                    )}
+                                    contentContainerStyle={{ padding: 20 }}
+                                />
+                            ) : (
                             <FlatList
                                 key="module-grid"
                                 data={configModules.filter(m => m.is_active)}
@@ -1198,8 +1304,9 @@ const AdminDashboardScreen = () => {
                                 style={{ flex: 1 }}
                             />
                         )
-                    )}
-                </View>
+                    )
+                )}
+            </View>
 
                 {/* DETAIL MODAL */}
                 <Modal
@@ -1355,6 +1462,18 @@ const AdminDashboardScreen = () => {
             </Modal>
 
             {renderUserDetailModal()}
+
+            {/* LOCATION PICKER MODAL */}
+            <TurkeyLocationPicker 
+                visible={isLocationPickerVisible}
+                onClose={() => setIsLocationPickerVisible(false)}
+                onSelect={(c, d) => {
+                    setFilterCity(c);
+                    setFilterDistrict(d);
+                }}
+                currentCity={filterCity}
+                currentDistrict={filterDistrict}
+            />
         </View >
     );
 };
@@ -1401,6 +1520,46 @@ const styles = StyleSheet.create({
     editBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
 
     // Module Card Styles
+    adminSectionTitle: {
+        color: '#D4AF37',
+        fontSize: 12,
+        fontWeight: 'bold',
+        letterSpacing: 1,
+        marginBottom: 15,
+        marginLeft: 4
+    },
+    menuFeatureCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1e293b',
+        borderRadius: 20,
+        padding: 16,
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(212, 175, 55, 0.1)'
+    },
+    menuFeatureIconBox: {
+        width: 60,
+        height: 60,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 16
+    },
+    menuFeatureContent: {
+        flex: 1
+    },
+    menuFeatureTitle: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginBottom: 4
+    },
+    menuFeatureSubtitle: {
+        color: '#94a3b8',
+        fontSize: 12,
+        lineHeight: 16
+    },
     moduleCard: {
         backgroundColor: '#1e293b',
         borderRadius: 16,
@@ -1523,5 +1682,13 @@ const styles = StyleSheet.create({
     // Action Buttons
     actionBtn: { padding: 5 },
     approveBtn: { backgroundColor: '#D4AF37', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 8, marginLeft: 10 },
-    approveBtnText: { color: '#000', fontWeight: 'bold', fontSize: 12 }
+    approveBtnText: { color: '#000', fontWeight: 'bold', fontSize: 12 },
+
+    // Detail Filters
+    searchContainer: { backgroundColor: '#1A1A1C', borderRadius: 12, borderWidth: 1, borderColor: '#333', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, marginBottom: 12 },
+    searchInput: { flex: 1, height: 48, color: '#FFF', fontSize: 14, fontWeight: '500' },
+    locationFilterRow: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginBottom: 15, gap: 10 },
+    locationFilterBtn: { flex: 1, height: 40, borderRadius: 10, borderWidth: 1, borderColor: '#222', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8, overflow: 'hidden' },
+    locationFilterText: { color: '#888', fontSize: 12, fontWeight: '600', flex: 1 },
+    clearFilterBtn: { width: 40, height: 40, borderRadius: 10, backgroundColor: 'rgba(239, 68, 68, 0.08)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.15)' },
 });

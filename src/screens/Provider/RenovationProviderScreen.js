@@ -58,10 +58,17 @@ export default function RenovationProviderScreen() {
 
                 {/* Right Content */}
                 <View style={{ flex: 1, justifyContent: 'center' }}>
-                    {/* Title */}
-                    <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16, marginBottom: 12 }}>
+                    <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16, marginBottom: 8 }}>
                         {projeTipi}
                     </Text>
+
+                    {/* Location Info */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+                        <Ionicons name="location" size={14} color="#D4AF37" />
+                        <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 12, fontWeight: '600' }}>
+                            {item.city || 'Belirtilmedi'} • {item.district || ''}
+                        </Text>
+                    </View>
 
                     {/* Actions Area */}
                     <View style={{ flexDirection: 'row', gap: 8 }}>

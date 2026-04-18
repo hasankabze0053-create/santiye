@@ -5,21 +5,25 @@ import { useCallback, useEffect, useState } from 'react';
 import { Dimensions, RefreshControl, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ConstructionService } from '../../services/ConstructionService';
+import { useAuth } from '../../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
-export default function ContractorProviderScreen() {
-    const navigation = useNavigation();
+export default function ContractorProviderScreen(props) {
+    const navigationHook = useNavigation();
+    const antigravityNav = navigationHook || props.navigation;
+    const { user } = useAuth();
     const [requests, setRequests] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
     const [activeTab, setActiveTab] = useState('tenders'); // 'tenders' | 'bids' | 'won'
 
-    // Static Provider Info (Mock for UI)
+    // Dynamic Provider Info
     const providerInfo = {
-        name: 'Müteahhit Yapı A.Ş.',
+        name: user?.company_name || user?.full_name || 'İnşaat Firması',
         rating: 4.8,
-        location: 'İstanbul, TR',
-        isVerified: true
+        location: user?.city ? `${user.city}, TR` : 'Konum Belirtilmedi',
+        isVerified: true,
+        initials: (user?.company_name || user?.full_name || '??').substring(0, 2).toUpperCase()
     };
 
     useFocusEffect(
@@ -29,23 +33,30 @@ export default function ContractorProviderScreen() {
     );
 
     const loadRequests = async () => {
-        setRefreshing(true);
-        let data = [];
-        if (activeTab === 'tenders') {
-            data = await ConstructionService.getOpenRequestsForContractor();
-        } else if (activeTab === 'bids') {
-            data = await ConstructionService.getContractorBids();
-        } else {
-            // won - future implementation
-            data = [];
+        try {
+            setRefreshing(true);
+            let data = [];
+            if (activeTab === 'tenders') {
+                data = await ConstructionService.getOpenRequestsForContractor();
+            } else if (activeTab === 'bids') {
+                data = await ConstructionService.getContractorBids();
+            } else {
+                // won - future implementation
+                data = [];
+            }
+            setRequests(data || []);
+        } catch (error) {
+            console.warn('ContractorProviderScreen loadRequests error:', error);
+        } finally {
+            setRefreshing(false);
         }
-        setRequests(data || []);
-        setRefreshing(false);
     };
 
-    useEffect(() => {
-        loadRequests();
-    }, [activeTab]);
+    useFocusEffect(
+        useCallback(() => {
+            loadRequests();
+        }, [activeTab])
+    );
 
     const renderTendersTab = () => (
         <View style={styles.tabContent}>
@@ -139,7 +150,7 @@ export default function ContractorProviderScreen() {
                         <TouchableOpacity
                             style={styles.bidButton}
                             activeOpacity={0.8}
-                            onPress={() => navigation.navigate(activeTab === 'bids' ? 'OfferDetail' : 'RequestDetail', {
+                            onPress={() => antigravityNav.navigate(activeTab === 'bids' ? 'OfferDetail' : 'RequestDetail', {
                                 request: item,
                                 request_id: item.id,
                                 contractor_id: item.my_offers?.[0]?.contractor_id,
@@ -185,7 +196,7 @@ export default function ContractorProviderScreen() {
                     <View style={styles.header}>
                         <View style={styles.profileRow}>
                             <View style={styles.avatar}>
-                                <Text allowFontScaling={false} style={styles.avatarTxt}>MY</Text>
+                                <Text allowFontScaling={false} style={styles.avatarTxt}>{providerInfo.initials}</Text>
                             </View>
                             <View>
                                 <Text allowFontScaling={false} style={styles.welcome}>Hoşgeldin,</Text>
@@ -195,10 +206,19 @@ export default function ContractorProviderScreen() {
                                 </View>
                             </View>
                         </View>
-                        <TouchableOpacity style={styles.iconBtn}>
-                            <Ionicons name="notifications-outline" size={24} color="#e2e8f0" />
-                            <View style={styles.badgeDot} />
-                        </TouchableOpacity>
+                        <View style={styles.headerActions}>
+                            <TouchableOpacity 
+                                style={styles.iconBtn} 
+                                onPress={() => antigravityNav.reset({ index: 0, routes: [{ name: 'MainTabs' }] })}
+                            >
+                                <Ionicons name="home-outline" size={22} color="#D4AF37" />
+                            </TouchableOpacity>
+                            
+                            <TouchableOpacity style={[styles.iconBtn, { marginTop: 12 }]}>
+                                <Ionicons name="notifications-outline" size={22} color="#e2e8f0" />
+                                <View style={styles.badgeDot} />
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
                     {/* 2. STATS OVERVIEW */}
@@ -250,8 +270,9 @@ const styles = StyleSheet.create({
     avatarTxt: { color: '#D4AF37', fontSize: 16, fontWeight: '800' },
     welcome: { color: '#a3a3a3', fontSize: 13 },
     companyName: { color: '#fff', fontSize: 17, fontWeight: '700' },
-    iconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: '#333' },
-    badgeDot: { position: 'absolute', top: 10, right: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444', borderWidth: 1, borderColor: '#000' },
+    iconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: '#333' },
+    badgeDot: { position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444', borderWidth: 1, borderColor: '#000' },
+    headerActions: { alignItems: 'center' },
 
     statsRow: { flexDirection: 'row', paddingHorizontal: 20, gap: 10, marginBottom: 24 },
     statPill: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(212, 175, 55, 0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.2)' },

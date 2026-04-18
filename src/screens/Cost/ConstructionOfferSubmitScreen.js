@@ -62,8 +62,9 @@ const StepperInput = ({ value, onChange, min = 0, max = 100, label }) => (
     </View>
 );
 
-export default function ConstructionOfferSubmitScreen() {
-    const navigation = useNavigation();
+export default function ConstructionOfferSubmitScreen(props) {
+    const navigationHook = useNavigation();
+    const antigravityNav = navigationHook || props.navigation;
     const route = useRoute();
     const { request } = route.params || {};
 
@@ -107,7 +108,6 @@ export default function ConstructionOfferSubmitScreen() {
     // ---------------------------------
     const [totalArea, setTotalArea] = useState('');
     const [unitBreakdown, setUnitBreakdown] = useState([]);
-    const [campaignPolicy, setCampaignPolicy] = useState('standard');
     const [modalVisible, setModalVisible] = useState(false);
     const [newItem, setNewItem] = useState({ type: '2+1', area: '', count: '' });
 
@@ -507,7 +507,7 @@ export default function ConstructionOfferSubmitScreen() {
             }
 
             Alert.alert('Teklif Gönderimi', `${savedStrategies.length} adet kaydedilmiş teklif seçeneği iletildi.`, [
-                { text: 'Tamam', onPress: () => navigation.navigate('MainTabs', { screen: 'Requests' }) }
+                { text: 'Tamam', onPress: () => antigravityNav.navigate('MainTabs', { screen: 'Requests' }) }
             ]);
             return;
         }
@@ -557,7 +557,7 @@ export default function ConstructionOfferSubmitScreen() {
                 contractor_id: user.id,
                 offer_details: request?.offer_type === 'anahtar_teslim_tadilat' ? architectNote : details,
                 total_area: parseFloat(totalArea) || 0,
-                campaign_policy: campaignPolicy,
+                campaign_policy: 'included',
                 floor_count: floorCount ? parseInt(floorCount) : null,
                 basement_count: basementCount ? parseInt(basementCount) : 0,
                 is_basement_residential: isBasementResidential,
@@ -648,17 +648,7 @@ export default function ConstructionOfferSubmitScreen() {
 
                 if (updateError) console.error('Error updating drafts:', updateError);
 
-                console.log('DEBUG: Final submission success, navigating...');
-                Alert.alert('Başarılı', 'Teklifiniz başarıyla iletildi!', [
-                    { text: 'Tamam', onPress: () => navigation.navigate('MainTabs', { screen: 'Requests' }) }
-                ]);
-
-                // Fallback navigation if alert is blocked
-                setTimeout(() => {
-                    if (navigation.canGoBack()) {
-                        navigation.navigate('MainTabs', { screen: 'Requests' });
-                    }
-                }, 1500);
+                antigravityNav.navigate('OfferSuccess');
             } else {
 
                 await fetchSavedStrategies(); // Refresh list
@@ -747,29 +737,8 @@ export default function ConstructionOfferSubmitScreen() {
 
                 {request?.is_campaign_active && (
                     <View style={{ marginTop: 20 }}>
-                        <Text allowFontScaling={false} style={styles.inputLabel}>HİBE + KREDİ DURUMU</Text>
-                        <View style={styles.segmentContainer}>
-                            {['included', 'excluded'].map((option) => (
-                                <TouchableOpacity
-                                    key={option}
-                                    style={[
-                                        styles.segmentButton,
-                                        campaignPolicy === option && styles.segmentButtonActive
-                                    ]}
-                                    onPress={() => setCampaignPolicy(option)}
-                                >
-                                    <Text allowFontScaling={false} style={[
-                                        styles.segmentText,
-                                        campaignPolicy === option && styles.segmentTextActive
-                                    ]}>
-                                        {option === 'included' ? 'Fiyata Dahil' : 'Fiyata Hariç'}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-
-                        {/* Grant Deduction Logic */}
-                        {campaignPolicy === 'included' && price && (
+                        {/* Grant Info Detail Box (Always visible if active) */}
+                        {price && (
                             <View style={{ marginTop: 16, backgroundColor: 'rgba(50, 205, 50, 0.1)', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(50, 205, 50, 0.3)' }}>
                                 <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold', marginBottom: 8, fontSize: 13 }}>DEVLET DESTEĞİ DETAYI</Text>
 
@@ -1175,7 +1144,7 @@ export default function ConstructionOfferSubmitScreen() {
             <SafeAreaView style={{ flex: 1 }}>
                 <StatusBar barStyle="light-content" translucent={true} backgroundColor="transparent" />
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <TouchableOpacity onPress={() => antigravityNav.goBack()} style={styles.backButton}>
                         <Ionicons name="chevron-back" size={24} color="#D4AF37" />
                     </TouchableOpacity>
                     <Text allowFontScaling={false} style={styles.headerTitle}>TEKLİF OLUŞTUR</Text>
@@ -1263,22 +1232,68 @@ export default function ConstructionOfferSubmitScreen() {
                                 )}
                             </GlassCard>
 
-                            {/* Project Notes & Details */}
-                            <Text allowFontScaling={false} style={styles.sectionHeader}>PROJE NOTLARI</Text>
+                            {/* Project Briefing - Premium Parsed */}
+                            <Text allowFontScaling={false} style={styles.sectionHeader}>MÜŞTERİ TALEP BRİFİNGİ</Text>
                             <GlassCard style={styles.card}>
-                                <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
-                                    <MaterialCommunityIcons name="comment-text-outline" size={24} color="#D4AF37" style={{ marginTop: 2 }} />
-                                    <View style={{ flex: 1 }}>
-                                        <Text allowFontScaling={false} style={[
-                                            styles.summaryValue,
-                                            { fontSize: 13, lineHeight: 20, color: '#DDD' },
-                                            !request?.description && { color: '#666', fontStyle: 'italic' }
-                                        ]}>
-                                            {request?.description || 'Müşteri herhangi bir proje notu veya detay belirtmemiş.'}
-                                        </Text>
-                                    </View>
-                                </View>
+                                {(() => {
+                                    const getField = (tag) => {
+                                        if (!request?.description) return null;
+                                        const regexNew = new RegExp(`\\[${tag}\\]\\s*(.*)`, 'i');
+                                        const matchNew = request.description.match(regexNew);
+                                        if (matchNew) return matchNew[1].trim();
+                                        const regexOld = new RegExp(`${tag}:\\s*(.*)`, 'i');
+                                        const matchOld = request.description.match(regexOld);
+                                        if (matchOld) return matchOld[1].trim();
+                                        return null;
+                                    };
+
+                                    const projeTipi = getField('PROJE TİPİ') || 'Anahtar Teslim Tadilat';
+                                    const mekan = getField('MEKAN') || getField('DURUM') || null;
+                                    const tasarim = getField('TASARIM') || getField('TARZ') || null;
+                                    const butce = getField('BÜTÇE') || null;
+                                    const lokasyon = getField('LOKASYON') || request?.city ? `${request.city || ''}${request.district ? ' / ' + request.district : ''}` : null;
+                                    const kapsam = getField('KAPSAM') || getField('HİZMETLER') || null;
+                                    const not = getField('NOT') || null;
+
+                                    const rows = [
+                                        { icon: 'home-edit-outline', label: 'Proje Tipi', value: projeTipi, color: '#FFD700' },
+                                        mekan && { icon: 'floor-plan', label: 'Mekan / Alan', value: mekan, color: '#D4AF37' },
+                                        tasarim && { icon: 'palette-swatch', label: 'İstenen Tasarım', value: tasarim, color: '#A78BFA' },
+                                        butce && { icon: 'currency-try', label: 'Bütçe Aralığı', value: butce, color: '#4ADE80' },
+                                        lokasyon && { icon: 'map-marker-outline', label: 'Lokasyon', value: lokasyon, color: '#38BDF8' },
+                                        kapsam && { icon: 'format-list-checks', label: 'Kapsam', value: kapsam, color: '#FB923C' },
+                                    ].filter(Boolean);
+
+                                    return (
+                                        <View style={{ gap: 0 }}>
+                                            {rows.map((row, idx) => (
+                                                <View key={idx}>
+                                                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 12 }}>
+                                                        <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: `${row.color}18`, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: `${row.color}30` }}>
+                                                            <MaterialCommunityIcons name={row.icon} size={18} color={row.color} />
+                                                        </View>
+                                                        <View style={{ flex: 1 }}>
+                                                            <Text allowFontScaling={false} style={{ color: '#666', fontSize: 10, fontWeight: '800', letterSpacing: 1, marginBottom: 3 }}>{row.label.toUpperCase()}</Text>
+                                                            <Text allowFontScaling={false} style={{ color: '#EEE', fontSize: 14, fontWeight: '600', lineHeight: 20 }}>{row.value}</Text>
+                                                        </View>
+                                                    </View>
+                                                    {idx < rows.length - 1 && <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.05)' }} />}
+                                                </View>
+                                            ))}
+                                            {not && (
+                                                <View style={{ marginTop: 12, backgroundColor: 'rgba(212,175,55,0.06)', borderRadius: 12, padding: 14, borderLeftWidth: 3, borderLeftColor: '#D4AF37' }}>
+                                                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: '800', letterSpacing: 1, marginBottom: 6 }}>MÜŞTERİ NOTU</Text>
+                                                    <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 13, lineHeight: 20, fontStyle: 'italic' }}>"{not}"</Text>
+                                                </View>
+                                            )}
+                                            {rows.length === 0 && (
+                                                <Text allowFontScaling={false} style={{ color: '#555', fontStyle: 'italic', fontSize: 13 }}>Müşteri herhangi bir proje notu veya detay belirtmemiş.</Text>
+                                            )}
+                                        </View>
+                                    );
+                                })()}
                             </GlassCard>
+
 
                             {request?.offer_type === 'anahtar_teslim_tadilat' ? renderRenovationOffer() : (
                                 <>
@@ -1375,7 +1390,7 @@ export default function ConstructionOfferSubmitScreen() {
                                             isFlatForLand={isFlatForLand}
                                             turnkeyData={{
                                                 totalPrice: parseCurrency(price) || 0,
-                                                campaignPolicy: campaignPolicy
+                                                campaignPolicy: 'included'
                                             }}
                                         />
                                     </View>
@@ -1392,7 +1407,7 @@ export default function ConstructionOfferSubmitScreen() {
                                         campaignCommercialCount={request?.campaign_commercial_count}
                                         isFlatForLand={isFlatForLand}
                                         totalPrice={price}
-                                        campaignPolicy={campaignPolicy}
+                                        campaignPolicy={'included'}
                                     />
 
 
