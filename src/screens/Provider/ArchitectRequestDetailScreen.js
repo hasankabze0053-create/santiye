@@ -5,7 +5,6 @@ import { useState } from 'react';
 import {
     Image,
     Modal,
-    SafeAreaView,
     ScrollView,
     StatusBar,
     StyleSheet,
@@ -14,6 +13,7 @@ import {
     View,
     Dimensions
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -42,16 +42,18 @@ export default function ArchitectRequestDetailScreen() {
         return null;
     };
 
-    const projeTipi = getField('PROJE TİPİ') || 'Anahtar Teslim Tadilat';
-    const kapsam = getField('KAPSAM') || getField('HİZMETLER') || '-';
-    const durum = getField('DURUM') || getField('YENİLEME') || '-';
-    const teknik = getField('TEKNİK') || getField('MEKAN') || '-';
-    const tarz = getField('TASARIM') || getField('TARZ') || 'Belirtilmedi';
-    const butce = getField('BÜTÇE') || '-';
-    const lokasyon = getField('LOKASYON') || '-';
+    const isElevator = request._tableName === 'elevator_requests' || !!request.fault_type;
+
+    const projeTipi = isElevator ? request.fault_type : (getField('PROJE TİPİ') || 'Anahtar Teslim Tadilat');
+    const kapsam = isElevator ? 'Asansör Bakım & Arıza Onarımı' : (getField('KAPSAM') || getField('HİZMETLER') || '-');
+    const durum = isElevator ? 'Acil / Rutin Bakım' : (getField('DURUM') || getField('YENİLEME') || '-');
+    const teknik = isElevator ? 'Asansör Kabini, Motor, Ray ve Kapı Sistemleri' : (getField('TEKNİK') || getField('MEKAN') || '-');
+    const tarz = isElevator ? 'Teknik Onarım' : (getField('TASARIM') || getField('TARZ') || 'Belirtilmedi');
+    const butce = isElevator ? 'Keşif Sonrası Belirlenecek' : (getField('BÜTÇE') || '-');
+    const lokasyon = isElevator ? `${request.city} / ${request.district}` : (getField('LOKASYON') || '-');
 
     // Notları ayıkla
-    let notes = 'Ek not bulunmuyor.';
+    let notes = isElevator ? 'Müşteriye en kısa sürede ulaşılarak arıza tespiti yapılmalıdır.' : 'Ek not bulunmuyor.';
     if (request.description?.includes('[NOT]')) {
         notes = request.description.split('[NOT]')[1]?.trim() || notes;
     } else if (request.description?.includes('NOT:')) {
@@ -249,16 +251,27 @@ export default function ArchitectRequestDetailScreen() {
                 <View style={styles.footer}>
                     <View style={styles.footerContent}>
                         <TouchableOpacity style={styles.msgBtn}>
-                            <Ionicons name="chatbubble-ellipses" size={20} color="#FFF" />
-                            <Text allowFontScaling={false} style={styles.msgBtnText}>Mesaj</Text>
+                            <Ionicons name="call" size={20} color="#FFF" />
+                            <Text allowFontScaling={false} style={styles.msgBtnText}>Ara</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity 
-                            style={styles.offerBtn}
-                            onPress={() => navigation.navigate('ConstructionOfferSubmit', { request })}
-                        >
-                            <LinearGradient colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
-                            <Text allowFontScaling={false} style={styles.offerBtnText}>TEKLİF HAZIRLA</Text>
-                        </TouchableOpacity>
+                        {!isElevator && (
+                            <TouchableOpacity 
+                                style={styles.offerBtn}
+                                onPress={() => navigation.navigate('ConstructionOfferSubmit', { request })}
+                            >
+                                <LinearGradient colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+                                <Text allowFontScaling={false} style={styles.offerBtnText}>TEKLİF HAZIRLA</Text>
+                            </TouchableOpacity>
+                        )}
+                        {isElevator && (
+                             <TouchableOpacity 
+                                 style={styles.offerBtn}
+                                 onPress={() => Alert.alert('Bilgi', 'Asansör taleplerine uygulama üzerinden teklif verme yakında eklenecektir. Lütfen müşteriyle iletişime geçiniz.')}
+                             >
+                                 <LinearGradient colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+                                 <Text allowFontScaling={false} style={styles.offerBtnText}>ONAY BEKLİYOR</Text>
+                             </TouchableOpacity>
+                        )}
                     </View>
                 </View>
 

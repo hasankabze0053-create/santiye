@@ -14,7 +14,7 @@ const ADMIN_MODULES = [
         id: 'renovation',
         title: 'TADİLAT',
         subtitle: 'Boya & Tamirat',
-        table: null, // Placeholder or separate table later
+        table: 'renovation_group', // Virtual table to fetch both construction_requests and elevator_requests
         icon: 'hammer-wrench',
         color: '#D4AF37',
         image: require('../../assets/categories/cat_renovation_v9.png'),
@@ -130,6 +130,13 @@ const AdminDashboardScreen = () => {
     const [targetUser, setTargetUser] = useState(null);
     const [actionType, setActionType] = useState(null); // 'reject' | 'incomplete'
 
+    // Provider Assignment Modal State
+    const [assignModalVisible, setAssignModalVisible] = useState(false);
+    const [assignTargetRequest, setAssignTargetRequest] = useState(null);
+    const [assignableProviders, setAssignableProviders] = useState([]);
+    const [selectedProviderIds, setSelectedProviderIds] = useState([]);
+    const [assignLoading, setAssignLoading] = useState(false);
+
     // Reuse ASSET_MAP for admin display if needed, or just use icons
     // We will use the list from DB for the grid when in Edit Mode
 
@@ -213,6 +220,56 @@ const AdminDashboardScreen = () => {
             // Build Query String safely
             let selectQuery = '*, profiles(full_name, email)';
 
+            if (tableName === 'renovation_group') {
+                // Fetch from construction_requests where offer_type='anahtar_teslim_tadilat' AND elevator_requests
+                let query1 = supabase.from('construction_requests').select(selectQuery + ', bids:construction_offers(*)').eq('offer_type', 'anahtar_teslim_tadilat').order('created_at', { ascending: false });
+                let query2 = supabase.from('elevator_requests').select(selectQuery).order('created_at', { ascending: false });
+
+                if (searchQuery) {
+                    query1 = query1.or(`title.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,district.ilike.%${searchQuery}%`);
+                    query2 = query2.or(`city.ilike.%${searchQuery}%,district.ilike.%${searchQuery}%`);
+                }
+                if (filterCity) {
+                    query1 = query1.eq('city', filterCity);
+                    query2 = query2.eq('city', filterCity);
+                }
+                if (filterDistrict) {
+                    query1 = query1.eq('district', filterDistrict);
+                    query2 = query2.eq('district', filterDistrict);
+                }
+
+                if (loadMore) {
+                    query1 = query1.range((page + 1) * 20, (page + 1) * 20 + 19);
+                    query2 = query2.range((page + 1) * 20, (page + 1) * 20 + 19);
+                } else {
+                    query1 = query1.range(0, 19);
+                    query2 = query2.range(0, 19);
+                }
+
+                const [res1, res2] = await Promise.all([query1, query2]);
+                if (res1.error) console.error('Tadilat fetch err', res1.error);
+                if (res2.error) console.error('Elevator fetch err', res2.error);
+
+                const data1 = (res1.data || []).map(d => ({ ...d, _tableName: 'construction_requests' }));
+                const data2 = (res2.data || []).map(d => ({ ...d, _tableName: 'elevator_requests' }));
+                
+                const merged = [...data1, ...data2].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                if (merged.length < 20) setHasMore(false);
+
+                if (loadMore) {
+                    setRequests(prev => [...prev, ...merged]);
+                    setPage(prev => prev + 1);
+                } else {
+                    setRequests(merged);
+                }
+                setLoading(false);
+                setRefreshing(false);
+                
+                fetchOffers('construction_requests'); // Tadilat can have construction offers
+                return;
+            }
+
             if (tableName === 'construction_requests') {
                 selectQuery += ', bids:construction_offers(*)';
                 // selectQuery += ', offers:construction_offers(*)'; // Removed duplicate
@@ -226,8 +283,18 @@ const AdminDashboardScreen = () => {
             let query = supabase
                 .from(tableName)
                 .select(selectQuery)
-                .order('created_at', { ascending: false })
-                .range(loadMore ? (page + 1) * 20 : 0, loadMore ? (page + 1) * 20 + 19 : 19);
+                .order('created_at', { ascending: false });
+
+            // If we are in urban_transformation, exclude Tadilat requests because they are shown in Tadilat module
+            if (tableName === 'construction_requests' && selectedModule.id === 'urban_transformation') {
+                query = query.neq('offer_type', 'anahtar_teslim_tadilat');
+            }
+
+            if (loadMore) {
+                query = query.range((page + 1) * 20, (page + 1) * 20 + 19);
+            } else {
+                query = query.range(0, 19);
+            }
 
             // Apply Search Filter
             if (searchQuery) {
@@ -265,10 +332,10 @@ const AdminDashboardScreen = () => {
             }
 
             if (loadMore) {
-                setRequests(prev => [...prev, ...data]);
+                setRequests(prev => [...prev, ...data.map(d => ({...d, _tableName: tableName}))]);
                 setPage(prev => prev + 1);
             } else {
-                setRequests(data || []);
+                setRequests((data || []).map(d => ({...d, _tableName: tableName})));
             }
 
             // Also fetch offers if we are in module detail view
@@ -314,6 +381,7 @@ const AdminDashboardScreen = () => {
     };
 
     const handleDelete = (item) => {
+        const targetTable = item._tableName || selectedModule.table;
         Alert.alert(
             'Admin Silme İşlemi',
             'Bu talebi kalıcı olarak silmek istediğinize emin misiniz?',
@@ -324,7 +392,7 @@ const AdminDashboardScreen = () => {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            const { error } = await supabase.from(selectedModule.table).delete().eq('id', item.id);
+                            const { error } = await supabase.from(targetTable).delete().eq('id', item.id);
                             if (error) throw error;
 
                             Alert.alert('Başarılı', 'Talep silindi.');
@@ -379,6 +447,62 @@ const AdminDashboardScreen = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    // Yönlendirme yapılabilecek satıcıları (kurumsal hesapları) getir
+    const fetchAssignableProviders = async () => {
+        try {
+            setAssignLoading(true);
+            const { data: profiles, error } = await supabase
+                .from('profiles')
+                .select('id, full_name, email, phone, user_type')
+                .eq('user_type', 'corporate');
+            
+            if (error) throw error;
+            setAssignableProviders(profiles || []);
+        } catch (err) {
+            console.error('Error fetching assignable providers:', err);
+            Alert.alert("Hata", "Tedarikçiler yüklenemedi.");
+        } finally {
+            setAssignLoading(false);
+        }
+    };
+
+    // Yönlendirme Modalını Aç
+    useEffect(() => {
+        if (assignModalVisible && assignableProviders.length === 0) {
+            fetchAssignableProviders();
+        }
+    }, [assignModalVisible]);
+
+    const handleAssignProviders = async () => {
+        if (!assignTargetRequest) return;
+        const targetTable = assignTargetRequest._tableName || selectedModule.table;
+        try {
+            const { error } = await supabase
+                .from(targetTable)
+                .update({ assigned_provider_ids: selectedProviderIds })
+                .eq('id', assignTargetRequest.id);
+            
+            if (error) throw error;
+            
+            Alert.alert("Başarılı", "Talep seçili firmalara yönlendirildi. Artık o firmalar panellerinde bu talebi görebilecekler.");
+            setAssignModalVisible(false);
+            setAssignTargetRequest(null);
+            setSelectedProviderIds([]);
+            
+            // Refresh requests
+            fetchModuleData(selectedModule.table);
+        } catch (err) {
+            console.error(err);
+            Alert.alert("Hata", "Yönlendirme işlemi başarısız oldu.");
+        }
+    };
+
+    const toggleProviderSelection = (id) => {
+        setSelectedProviderIds(prev => 
+            prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]
+        );
     };
 
     const handleCall = (phone) => {
@@ -1046,10 +1170,33 @@ const AdminDashboardScreen = () => {
                     )}
                 </View>
 
-                <TouchableOpacity onPress={() => handleDelete(item)} style={styles.delBtn}>
-                    <Ionicons name="trash" size={20} color="#EF4444" />
-                </TouchableOpacity>
+                {selectedModule?.id !== 'market' && (
+                    <TouchableOpacity onPress={() => handleDelete(item)} style={styles.delBtn}>
+                        <Ionicons name="trash" size={20} color="#EF4444" />
+                    </TouchableOpacity>
+                )}
             </View>
+            
+            {/* Yönlendirme & Silme Alanı */}
+            {['market', 'renovation', 'urban_transformation'].includes(selectedModule?.id) && (
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 15, paddingTop: 15, borderTopWidth: 1, borderTopColor: '#334155' }}>
+                    <TouchableOpacity 
+                        style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FBBF24', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}
+                        onPress={() => {
+                            setAssignTargetRequest(item);
+                            setSelectedProviderIds(item.assigned_provider_ids || []);
+                            setAssignModalVisible(true);
+                        }}
+                    >
+                        <MaterialCommunityIcons name="briefcase-check" size={18} color="#78350F" />
+                        <Text allowFontScaling={false} style={{ color: '#78350F', fontWeight: 'bold', marginLeft: 8 }}>HİZMET VERENE YÖNLENDİR</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity onPress={() => handleDelete(item)} style={{ padding: 8 }}>
+                        <Ionicons name="trash" size={22} color="#EF4444" />
+                    </TouchableOpacity>
+                </View>
+            )}
         </TouchableOpacity>
     );
 
@@ -1461,9 +1608,84 @@ const AdminDashboardScreen = () => {
                 </View>
             </Modal>
 
+            {/* ASSIGNMENT MODAL (YÖNLENDİRME) */}
+            <Modal
+                visible={assignModalVisible}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setAssignModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.modalContent, { backgroundColor: '#0f172a', height: '80%' }]}>
+                        <View style={styles.modalHeader}>
+                            <Text allowFontScaling={false} style={styles.modalTitle}>Tedarikçilere Yönlendir</Text>
+                            <TouchableOpacity onPress={() => setAssignModalVisible(false)}>
+                                <Ionicons name="close" size={24} color="#FFF" />
+                            </TouchableOpacity>
+                        </View>
+                        
+                        <View style={{ backgroundColor: 'rgba(251, 191, 36, 0.1)', padding: 12, margin: 15, borderRadius: 8, borderWidth: 1, borderColor: '#FBBF24' }}>
+                            <Text allowFontScaling={false} style={{ color: '#FBBF24', fontSize: 13, textAlign: 'center' }}>
+                                Seçtiğiniz firmalar dışında hiçbir firma bu talebi GÖREMEZ. İncelemesini istediğiniz firmaları belirleyin.
+                            </Text>
+                        </View>
+
+                        {assignLoading ? (
+                            <ActivityIndicator size="large" color="#FBBF24" style={{ marginTop: 50 }} />
+                        ) : (
+                            <FlatList
+                                data={assignableProviders}
+                                keyExtractor={item => item.id}
+                                contentContainerStyle={{ paddingHorizontal: 15, paddingBottom: 20 }}
+                                renderItem={({ item }) => {
+                                    const isSelected = selectedProviderIds.includes(item.id);
+                                    return (
+                                        <TouchableOpacity 
+                                            activeOpacity={0.7}
+                                            style={{
+                                                flexDirection: 'row', alignItems: 'center', backgroundColor: isSelected ? 'rgba(74, 222, 128, 0.1)' : '#1e293b', 
+                                                padding: 15, borderRadius: 12, marginBottom: 10,
+                                                borderWidth: 1, borderColor: isSelected ? '#4ADE80' : '#334155'
+                                            }}
+                                            onPress={() => toggleProviderSelection(item.id)}
+                                        >
+                                            <MaterialCommunityIcons 
+                                                name={isSelected ? "checkbox-marked-circle" : "checkbox-blank-circle-outline"} 
+                                                size={24} color={isSelected ? "#4ADE80" : "#64748b"} 
+                                                style={{ marginRight: 15 }} 
+                                            />
+                                            <View style={{ flex: 1 }}>
+                                                <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>{item.full_name || 'İsimsiz Firma'}</Text>
+                                                <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 13 }}>{item.email}</Text>
+                                                {item.phone && <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 12 }}>📞 {item.phone}</Text>}
+                                            </View>
+                                        </TouchableOpacity>
+                                    );
+                                }}
+                                ListEmptyComponent={
+                                    <Text allowFontScaling={false} style={{ color: '#64748b', textAlign: 'center', marginTop: 30 }}>Kayıtlı uygun firma bulunamadı.</Text>
+                                }
+                            />
+                        )}
+
+                        <View style={{ padding: 15, borderTopWidth: 1, borderTopColor: '#1e293b' }}>
+                            <TouchableOpacity
+                                style={{ backgroundColor: '#FBBF24', padding: 16, borderRadius: 12, alignItems: 'center' }}
+                                onPress={handleAssignProviders}
+                            >
+                                <Text allowFontScaling={false} style={{ color: '#000', fontSize: 16, fontWeight: 'bold' }}>
+                                    {selectedProviderIds.length} FİRMAYA YÖNLENDİR (KAYDET)
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
             {renderUserDetailModal()}
 
             {/* LOCATION PICKER MODAL */}
+
             <TurkeyLocationPicker 
                 visible={isLocationPickerVisible}
                 onClose={() => setIsLocationPickerVisible(false)}

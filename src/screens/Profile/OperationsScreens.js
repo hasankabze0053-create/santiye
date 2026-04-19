@@ -54,6 +54,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChatService } from '../../services/ChatService';
 import { ConstructionService } from '../../services/ConstructionService'; // Added ConstructionService
 import { MarketService } from '../../services/MarketService';
+import { ElevatorService } from '../../services/ElevatorService';
 
 // --- MOCK DATA ---
 
@@ -175,9 +176,10 @@ export const RequestsScreen = () => {
 
 
         try {
-            const [marketData, constructionData] = await Promise.all([
+            const [marketData, constructionData, elevatorData] = await Promise.all([
                 MarketService.getUserRequests(),
-                ConstructionService.getUserRequests()
+                ConstructionService.getUserRequests(),
+                ElevatorService.getUserRequests()
             ]);
 
             // Transform construction data to match request interface if needed
@@ -229,8 +231,20 @@ export const RequestsScreen = () => {
                 };
             });
 
+            // Format elevator data
+            const formattedElevatorData = (elevatorData || []).map(item => ({
+                ...item,
+                type: 'elevator',
+                title: item.fault_type || 'Asansör Arıza Bakım',
+                subtitle: `${item.district} / ${item.city}`,
+                created_at: item.created_at,
+                status: item.status === 'pending' ? 'OPEN' : item.status,
+                category: 'Tadilat Talepleri', // Tag as Tadilat
+                bids: [] // Elevator doesn't have bids yet
+            }));
+
             // Merge and sort
-            const allRequests = [...formattedMarketData, ...formattedConstructionData];
+            const allRequests = [...formattedMarketData, ...formattedConstructionData, ...formattedElevatorData];
             allRequests.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
             setRequests(allRequests);
@@ -279,17 +293,17 @@ export const RequestsScreen = () => {
                         width: 48, 
                         height: 48, 
                         borderRadius: 14, 
-                        backgroundColor: isTadilat ? 'rgba(255, 215, 0, 0.1)' : 'rgba(100, 181, 246, 0.1)', 
+                        backgroundColor: isTadilat || item.type === 'elevator' ? 'rgba(255, 215, 0, 0.1)' : 'rgba(100, 181, 246, 0.1)', 
                         alignItems: 'center', 
                         justifyContent: 'center', 
                         marginRight: 14,
                         borderWidth: 1,
-                        borderColor: isTadilat ? 'rgba(255, 215, 0, 0.2)' : 'rgba(100, 181, 246, 0.2)'
+                        borderColor: isTadilat || item.type === 'elevator' ? 'rgba(255, 215, 0, 0.2)' : 'rgba(100, 181, 246, 0.2)'
                     }}>
                         <MaterialCommunityIcons 
-                            name={isTadilat ? "home-edit" : (item.type === 'construction' ? "office-building-cog" : "package-variant-closed")} 
+                            name={isTadilat ? "home-edit" : (item.type === 'elevator' ? 'elevator-passenger' : (item.type === 'construction' ? "office-building-cog" : "package-variant-closed"))} 
                             size={26} 
-                            color={isTadilat ? "#FFD700" : "#64B5F6"} 
+                            color={isTadilat || item.type === 'elevator' ? "#FFD700" : "#64B5F6"} 
                         />
                     </View>
                     

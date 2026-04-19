@@ -162,8 +162,8 @@ export const ConstructionService = {
 
             const bidRequestIds = existingBids.map(b => b.request_id);
 
-            // 2. Fetch tadilat requests that are pending/offers_received AND NOT in the bid list
-            let query = supabase
+            // 2. Fetch tadilat requests from construction_requests
+            let query1 = supabase
                 .from('construction_requests')
                 .select('*')
                 .eq('offer_type', 'anahtar_teslim_tadilat') // ONLY TADILAT
@@ -171,13 +171,29 @@ export const ConstructionService = {
                 .order('created_at', { ascending: false });
 
             if (bidRequestIds.length > 0) {
-                query = query.not('id', 'in', `(${bidRequestIds.join(',')})`);
+                query1 = query1.not('id', 'in', `(${bidRequestIds.join(',')})`);
             }
 
-            const { data, error } = await query;
+            // 3. Fetch from elevator_requests
+            // Since there is no bidding process yet for elevator_requests, just fetch those assigned to the provider
+            let query2 = supabase
+                .from('elevator_requests')
+                .select('*')
+                .in('status', ['pending', 'offers_received'])
+                .order('created_at', { ascending: false });
 
-            if (error) throw error;
-            return data || [];
+            const [res1, res2] = await Promise.all([query1, query2]);
+
+            if (res1.error) throw res1.error;
+            if (res2.error) throw res2.error;
+
+            const tadilatData = (res1.data || []).map(r => ({...r, _tableName: 'construction_requests'}));
+            const elevatorData = (res2.data || []).map(r => ({...r, _tableName: 'elevator_requests'}));
+
+            const merged = [...tadilatData, ...elevatorData];
+            merged.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+
+            return merged;
         } catch (error) {
             console.error('ConstructionService.getOpenRequestsForArchitect Error:', error);
             return [];
