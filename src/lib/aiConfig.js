@@ -1,4 +1,4 @@
 export const AI_CONFIG = {
-    GEMINI_API_KEY: 'AIzaSyArqD7Bq8ySe0LrLBjbthypkq64jHMwIxQ', // Google AI Studio'dan aldığın anahtarı buraya koy
+    GEMINI_API_KEY: process.env.EXPO_PUBLIC_GEMINI_API_KEY,
     MODEL_NAME: 'gemini-2.5-flash-lite',
 };
