@@ -48,4 +48,22 @@ export const ElevatorService = {
             return [];
         }
     },
+
+    /**
+     * Talebi sil
+     */
+    deleteRequest: async (requestId) => {
+        try {
+            const { error } = await supabase
+                .from('elevator_requests')
+                .delete()
+                .eq('id', requestId);
+
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('ElevatorService.deleteRequest error:', error);
+            return { success: false, error: error.message };
+        }
+    },
 };

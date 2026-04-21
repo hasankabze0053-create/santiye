@@ -129,7 +129,8 @@ const CITY_NAMES = getSortedCities();
 
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 export default function ElevatorWizardScreen({ navigation }) {
-    const [mode, setMode] = useState('city'); 
+    const [mode, setMode] = useState('type_selection'); 
+    const [selectedType, setSelectedType] = useState(null);
     const [selectedCity, setSelectedCity] = useState(null);
     const [selectedDistrict, setSelectedDistrict] = useState(null);
     const [phone, setPhone] = useState('');
@@ -144,6 +145,13 @@ export default function ElevatorWizardScreen({ navigation }) {
             Animated.timing(fadeAnim, { toValue: 1, duration: 120, useNativeDriver: true }),
         ]).start();
         callback();
+    };
+
+    const handleTypeSelect = (type) => {
+        animateTransition(() => {
+            setSelectedType(type);
+            setMode('city');
+        });
     };
 
     const handleCitySelect = (city) => {
@@ -184,6 +192,7 @@ export default function ElevatorWizardScreen({ navigation }) {
                 city: selectedCity,
                 district: selectedDistrict,
                 phone: `+90${phone}`,
+                faultType: selectedType === 'malfunction' ? 'Asansör Arıza Onarımı' : 'Asansör Periyodik Bakım',
             });
 
             if (result.success) {
@@ -225,6 +234,7 @@ export default function ElevatorWizardScreen({ navigation }) {
                     <TouchableOpacity style={styles.backBtn} onPress={() => {
                         if (mode === 'phone') setMode('district');
                         else if (mode === 'district') setMode('city');
+                        else if (mode === 'city') setMode('type_selection');
                         else navigation.goBack();
                     }}>
                         <MaterialCommunityIcons name="arrow-left" size={24} color="#FFF" />
@@ -239,8 +249,54 @@ export default function ElevatorWizardScreen({ navigation }) {
                     <View style={{ width: 44 }} />
                 </View>
 
+                {/* TYPE SELECTION VIEW */}
+                {mode === 'type_selection' && (
+                    <Animated.View style={[styles.typeContainer, { opacity: fadeAnim }]}>
+                        <Text allowFontScaling={false} style={styles.typePrompt}>Ne için talep oluşturuyorsunuz?</Text>
+                        
+                        <TouchableOpacity 
+                            style={[styles.typeCard, selectedType === 'malfunction' && styles.typeCardActive]} 
+                            onPress={() => handleTypeSelect('malfunction')}
+                            activeOpacity={0.7}
+                        >
+                            <LinearGradient 
+                                colors={selectedType === 'malfunction' ? [GOLD_DARK, '#1A1A1A'] : ['#141414', '#0A0A0A']} 
+                                style={StyleSheet.absoluteFillObject} 
+                            />
+                            <View style={styles.typeIconBox}>
+                                <MaterialCommunityIcons name="alert-circle-outline" size={32} color={GOLD} />
+                            </View>
+                            <View style={styles.typeContent}>
+                                <Text allowFontScaling={false} style={styles.typeTitle}>Asansör Arıza Onarımı</Text>
+                                <Text allowFontScaling={false} style={styles.typeDesc}>Asansörünüzde teknik bir sorun varsa hızlı müdahale için seçin.</Text>
+                            </View>
+                            <MaterialCommunityIcons name="chevron-right" size={24} color={BORDER} />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity 
+                            style={[styles.typeCard, selectedType === 'maintenance' && styles.typeCardActive]} 
+                            onPress={() => handleTypeSelect('maintenance')}
+                            activeOpacity={0.7}
+                        >
+                            <LinearGradient 
+                                colors={selectedType === 'maintenance' ? [GOLD_DARK, '#1A1A1A'] : ['#141414', '#0A0A0A']} 
+                                style={StyleSheet.absoluteFillObject} 
+                            />
+                            <View style={styles.typeIconBox}>
+                                <MaterialCommunityIcons name="shield-check-outline" size={32} color={GOLD} />
+                            </View>
+                            <View style={styles.typeContent}>
+                                <Text allowFontScaling={false} style={styles.typeTitle}>Asansör Periyodik Bakım</Text>
+                                <Text allowFontScaling={false} style={styles.typeDesc}>Güvenli kullanım için düzenli kontrol ve yağlama hizmeti.</Text>
+                            </View>
+                            <MaterialCommunityIcons name="chevron-right" size={24} color={BORDER} />
+                        </TouchableOpacity>
+                    </Animated.View>
+                )}
+
                 {/* DUAL TOGGLE */}
-                <View style={styles.toggleRow}>
+                {mode !== 'type_selection' && (
+                    <View style={styles.toggleRow}>
                     <TouchableOpacity
                         activeOpacity={0.8}
                         style={[styles.toggleBtn, mode === 'city' && styles.toggleBtnActive]}
@@ -270,11 +326,13 @@ export default function ElevatorWizardScreen({ navigation }) {
                         </View>
                     </TouchableOpacity>
                 </View>
+                )}
 
-                <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-                    <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-                        
-                        {mode !== 'phone' ? (
+                {mode !== 'type_selection' && (
+                    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+                        <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+                            
+                            {mode !== 'phone' ? (
                             <>
                                 {/* SEARCH BAR */}
                                 <View style={styles.searchContainer}>
@@ -377,8 +435,9 @@ export default function ElevatorWizardScreen({ navigation }) {
                                 </BlurView>
                             </View>
                         )}
-                    </Animated.View>
-                </KeyboardAvoidingView>
+                        </Animated.View>
+                    </KeyboardAvoidingView>
+                )}
             </SafeAreaView>
         </View>
         </TouchableWithoutFeedback>
@@ -434,4 +493,24 @@ const styles = StyleSheet.create({
     phoneSubmitText: { color: '#000', fontSize: 16, fontWeight: '900', letterSpacing: 1.5 },
     selectionSummary: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 24, opacity: 0.5 },
     summaryText: { color: '#FFF', fontSize: 12, fontWeight: '500' },
+
+    // Type Selection
+    typeContainer: { flex: 1, padding: 20, paddingTop: 40 },
+    typePrompt: { color: '#FFF', fontSize: 20, fontWeight: '800', marginBottom: 30, textAlign: 'center' },
+    typeCard: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: '#141414', 
+        borderRadius: 20, 
+        padding: 20, 
+        marginBottom: 16, 
+        borderWidth: 1.5, 
+        borderColor: BORDER,
+        overflow: 'hidden'
+    },
+    typeCardActive: { borderColor: GOLD },
+    typeIconBox: { width: 56, height: 56, borderRadius: 16, backgroundColor: 'rgba(212, 175, 55, 0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 16 },
+    typeContent: { flex: 1 },
+    typeTitle: { color: '#FFF', fontSize: 18, fontWeight: '700', marginBottom: 4 },
+    typeDesc: { color: '#888', fontSize: 13, lineHeight: 18 },
 });

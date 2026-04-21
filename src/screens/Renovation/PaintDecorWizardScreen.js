@@ -226,7 +226,7 @@ export default function PaintDecorWizardScreen() {
     const pickImages = async (setter) => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') { Alert.alert('İzin Gerekli', 'Galeri erişimi gerekiyor.'); return; }
-        const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsMultipleSelection: true, quality: 0.8 });
+        const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaType.Images, allowsMultipleSelection: true, quality: 0.8 });
         if (!res.canceled) setter(p => [...p, ...res.assets]);
     };
 

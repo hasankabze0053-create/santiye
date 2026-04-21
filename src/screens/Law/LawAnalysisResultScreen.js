@@ -53,7 +53,7 @@ const MOCK_LAWYERS = [
 ];
 
 // ─── SCANNER OVERLAY ──────────────────────────────────────────────────────────
-function ScannerOverlay({ visible, onComplete }) {
+function ScannerOverlay({ visible, onComplete, hasFile, fileName }) {
     const scanY   = useRef(new Animated.Value(0)).current;
     const opacity = useRef(new Animated.Value(0)).current;
 
@@ -66,7 +66,7 @@ function ScannerOverlay({ visible, onComplete }) {
                 Animated.timing(scanY, { toValue: 1, duration: 1800, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
                 Animated.timing(scanY, { toValue: 0, duration: 1800, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
             ]),
-            { iterations: 2 }
+            { iterations: hasFile ? 2 : 1 } // Dosya varsa daha uzun sürsün (gerçekçilik)
         ).start(() => {
             Animated.timing(opacity, { toValue: 0, duration: 400, useNativeDriver: true }).start(onComplete);
         });
@@ -90,10 +90,14 @@ function ScannerOverlay({ visible, onComplete }) {
                 <View style={{ height: 40, backgroundColor: 'rgba(212,175,55,0.04)' }} />
             </Animated.View>
             {/* Center text */}
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <MaterialCommunityIcons name="text-search" size={44} color={GOLD} />
-                <Text allowFontScaling={false} style={{ color: GOLD, fontSize: 14, fontWeight: 'bold', marginTop: 16, letterSpacing: 2 }}>BELGELER ANALİZ EDİLİYOR</Text>
-                <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, marginTop: 6 }}>Yapay Zeka Vaka Taraması · Lütfen Bekleyin...</Text>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 }}>
+                <MaterialCommunityIcons name={hasFile ? "file-search" : "text-search"} size={44} color={GOLD} />
+                <Text allowFontScaling={false} style={{ color: GOLD, fontSize: 14, fontWeight: 'bold', marginTop: 16, letterSpacing: 2, textAlign: 'center' }}>
+                    {hasFile ? 'BELGELER ANALİZ EDİLİYOR' : 'VAKA ANALİZ EDİLİYOR'}
+                </Text>
+                <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, marginTop: 6, textAlign: 'center' }}>
+                    {hasFile ? `"${fileName}" taranıyor...` : 'Girdiğiniz detaylar inceleniyor...'}
+                </Text>
             </View>
         </Animated.View>
     );
@@ -160,30 +164,36 @@ export default function LawAnalysisResultScreen() {
     const analysisData = route?.params?.analysisData;
     const caseText     = route?.params?.caseText || '';
 
-    // Parse AI result
-    const riskScore  = analysisData?.riskScore  ?? 7;
-    const caseTitle  = analysisData?.caseTitle  ?? 'Kritik Hakediş Uyuşmazlığı ve Sözleşme İhlali';
-    const findings   = analysisData?.findings   ?? [
-        { type: 'law',     icon: 'book-open-outline', color: GOLD,   text: 'TBK Madde 470 uyarınca eser sözleşmesi kapsamında değerlendirildi.' },
-        { type: 'risk',    icon: 'alert-circle',      color: DANGER, text: 'Sözleşmedeki 5. madde gecikme faizi hakkınızı kısıtlıyor olabilir.' },
-        { type: 'risk',    icon: 'clock-alert',       color: ORANGE, text: 'Hakediş ödemesi 30 günü aşmış. Temerrüt faizi hakkı doğmuş olabilir.' },
-        { type: 'missing', icon: 'file-document',     color: '#888', text: 'Analizi derinleştirmek için imzalı sözleşmeyi yükleyin.' },
-    ];
-    const legalArticles = analysisData?.legalArticles ?? ['TBK Md.470', 'TBK Md.182', 'İİK Md.67', 'TBK Md.120'];
-    const actions       = analysisData?.actions ?? [
-        'İhtarname gönderilmesi ve noter onayının alınması',
-        'Hakediş belgelerinin noter sureti ile teslim edilmesi',
-        'Sözleşme ihlali için arabuluculuk başvurusu yapılması',
-        'Dava açılmadan önce uzlaşı görüşmeleri yürütülmesi',
-    ];
-    const requiredDocs = analysisData?.requiredDocs ?? [
-        'İmzalı sözleşme (PDF)',
-        'Hakediş raporu ve tutanaklar',
-        'Yazışma kayıtları (e-posta / WhatsApp)',
-        'İhtarname (varsa)',
+    // AI Sonuçlarını Ayrıştır
+    const riskScore  = analysisData?.aciliyet_skoru ?? 5;
+    const caseTitle  = analysisData?.caseTitle ?? analysisData?.kategori ?? 'Vaka Analiz Raporu';
+    const isInsufficient = analysisData?.yetersiz_bilgi === true;
+    const disclaimerMessage = analysisData?.disclaimer ?? 'Bu bir yapay zeka ön analizidir. Kesin bilgi için avukata danışmalısınız.';
+
+    const findings = analysisData?.kritik_riskler?.map((text, i) => ({
+        type: 'risk',
+        icon: i === 0 ? 'alert-decagram' : 'alert-circle-outline',
+        color: i === 0 ? ORANGE : '#888',
+        text
+    })) || [
+        { type: 'missing', icon: 'file-search', color: GOLD, text: 'Detaylı analiz için daha fazla veri gerekli.' }
     ];
 
-    const [scanning, setScanning]           = useState(true);
+    const legalArticles = analysisData?.kanun_maddeleri?.map(m => 
+        `${m.kanun}${m.madde ? ' Md.' + m.madde : ''}`
+    ) || ['Genel Mevzuat'];
+
+    const actions = analysisData?.onerilen_aksiyonlar ?? [
+        'Durumu tüm detaylarıyla kayıt altına alın',
+        'Bir hukuk uzmanı ile görüşme planlayın'
+    ];
+
+    const requiredDocs = analysisData?.gereken_belgeler ?? [
+        'İlgili sözleşmeler',
+        'Vaka ile ilgili yazışmalar'
+    ];
+
+    const [scanning, setScanning]           = useState(!route?.params?.isHistorical);
     const [showConfirmModal, setShowConfirm] = useState(false);
     const [selectedLawyer, setSelectedLawyer] = useState(null);
     const [summaryText, setSummaryText] = useState('');
@@ -217,7 +227,12 @@ export default function LawAnalysisResultScreen() {
             <LinearGradient colors={['rgba(212,175,55,0.05)', 'transparent']} style={StyleSheet.absoluteFillObject} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.35 }} pointerEvents="none" />
 
             {/* Scanner overlay */}
-            <ScannerOverlay visible={scanning} onComplete={() => { setScanning(false); handleScanComplete(); }} />
+            <ScannerOverlay 
+                visible={scanning} 
+                hasFile={route?.params?.hasFile}
+                fileName={route?.params?.fileName}
+                onComplete={() => { setScanning(false); handleScanComplete(); }} 
+            />
 
             <SafeAreaView style={{ flex: 1 }}>
                 {/* Header */}
@@ -246,42 +261,70 @@ export default function LawAnalysisResultScreen() {
                             <Text allowFontScaling={false} style={s.heroEye}>VAKA TEŞHİSİ</Text>
                             <Text allowFontScaling={false} style={s.heroTitle}>{caseTitle}</Text>
                             <View style={s.heroIdRow}>
-                                <MaterialCommunityIcons name="shield-check" size={12} color={GOLD} />
-                                <Text allowFontScaling={false} style={s.heroIdText}>AI Analizi Tamamlandı</Text>
+                                <MaterialCommunityIcons name={route?.params?.hasFile ? "file-check" : "shield-check"} size={12} color={GOLD} />
+                                <Text allowFontScaling={false} style={s.heroIdText}>
+                                    {route?.params?.hasFile ? `Analiz Kaynağı: ${route?.params?.fileName}` : 'Gerçek Zamanlı AI Analizi'}
+                                </Text>
                             </View>
                         </View>
                         {/* Right: gauge */}
                         <RiskGauge score={riskScore} />
                     </View>
 
-                    {/* ── VAKA ÖZETİ ── */}
-                    <View style={s.sectionHeader}>
-                        <View style={s.sectionDot} />
-                        <Text allowFontScaling={false} style={s.sectionTitle}>Vaka Özeti</Text>
-                        <TouchableOpacity onPress={() => { if (!editingSummary && !summaryText) setSummaryText(caseText || 'Müteahhitin hakedişi zamanında yapılmadığı ve sözleşmede belirlenen ödeme koşullarının ihlal edildiği tespit edilmiştir.'); setEditingSummary(e => !e); }} style={s.editBtn}>
-                            <MaterialCommunityIcons name={editingSummary ? 'check' : 'pencil-outline'} size={14} color={GOLD} />
-                            <Text allowFontScaling={false} style={s.editBtnText}>{editingSummary ? 'Kaydet' : 'Düzenle'}</Text>
-                        </TouchableOpacity>
+                    {/* ── YASAL UYARI (DISCLAIMER) ── */}
+                    <View style={s.disclaimerCard}>
+                        <View style={s.disclaimerIconBox}>
+                            <MaterialCommunityIcons name="information-outline" size={16} color={GOLD} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text allowFontScaling={false} style={s.disclaimerTitle}>YASAL BİLGİLENDİRME</Text>
+                            <Text allowFontScaling={false} style={s.disclaimerText}>{disclaimerMessage}</Text>
+                        </View>
                     </View>
-                    <View style={s.glassCard}>
-                        <View style={s.glassAccent} />
-                        {editingSummary ? (
-                            <TextInput
-                                allowFontScaling={false}
-                                style={[s.caseSummaryText, s.caseSummaryInput]}
-                                value={summaryText}
-                                onChangeText={setSummaryText}
-                                multiline
-                                autoFocus
-                                placeholderTextColor="#444"
-                                placeholder="Vaka özetini düzenleyin..."
-                            />
-                        ) : (
-                            <Text allowFontScaling={false} style={s.caseSummaryText}>
-                                {summaryText || caseText || 'Müteahhitin hakedişi zamanında yapılmadığı ve sözleşmede belirlenen ödeme koşullarının ihlal edildiği tespit edilmiştir. Yetersiz sözleşme koruma maddesi nedeniyle hak kayıplarına yol açabilecek riskler mevcuttur.'}
+
+                    {isInsufficient ? (
+                        <View style={s.insufficientBox}>
+                            <MaterialCommunityIcons name="comment-question-outline" size={32} color={GOLD} />
+                            <Text allowFontScaling={false} style={s.insufficientTitle}>Daha Fazla Detay Gerekli</Text>
+                            <Text allowFontScaling={false} style={s.insufficientText}>
+                                {analysisData?.kisa_ozet || 'Girdiğiniz metin tam bir analiz için çok kısa. Lütfen sözleşme detayları veya uyuşmazlık konusunu biraz daha açın.'}
                             </Text>
-                        )}
-                    </View>
+                            <TouchableOpacity onPress={() => navigation.goBack()} style={s.insufficientBtn}>
+                                <Text allowFontScaling={false} style={s.insufficientBtnText}>Düzelt ve Tekrar Analiz Et</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <>
+                            {/* ── VAKA ÖZETİ ── */}
+                            <View style={s.sectionHeader}>
+                                <View style={s.sectionDot} />
+                                <Text allowFontScaling={false} style={s.sectionTitle}>Vaka Özeti</Text>
+                                <TouchableOpacity onPress={() => { if (!editingSummary && !summaryText) setSummaryText(analysisData?.kisa_ozet || caseText); setEditingSummary(e => !e); }} style={s.editBtn}>
+                                    <MaterialCommunityIcons name={editingSummary ? 'check' : 'pencil-outline'} size={14} color={GOLD} />
+                                    <Text allowFontScaling={false} style={s.editBtnText}>{editingSummary ? 'Kaydet' : 'Düzenle'}</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <View style={s.glassCard}>
+                                <View style={s.glassAccent} />
+                                {editingSummary ? (
+                                    <TextInput
+                                        allowFontScaling={false}
+                                        style={[s.caseSummaryText, s.caseSummaryInput]}
+                                        value={summaryText}
+                                        onChangeText={setSummaryText}
+                                        multiline
+                                        autoFocus
+                                        placeholderTextColor="#444"
+                                        placeholder="Vaka özetini düzenleyin..."
+                                    />
+                                ) : (
+                                    <Text allowFontScaling={false} style={s.caseSummaryText}>
+                                        {summaryText || analysisData?.kisa_ozet || caseText}
+                                    </Text>
+                                )}
+                            </View>
+                        </>
+                    )}
 
                     {/* ── KRİTİK BULGULAR ── */}
                     <View style={s.sectionHeader}>
@@ -449,6 +492,44 @@ export default function LawAnalysisResultScreen() {
 // ─── STYLES ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
     root: { flex: 1, backgroundColor: BG },
+
+    // Disclaimer
+    disclaimerCard: {
+        flexDirection: 'row',
+        backgroundColor: '#1a1810',
+        borderRadius: 14,
+        padding: 12,
+        marginBottom: 24,
+        borderWidth: 1,
+        borderColor: GOLD + '33',
+        gap: 12
+    },
+    disclaimerIconBox: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: GOLD + '22',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    disclaimerTitle: { color: GOLD, fontSize: 10, fontWeight: '900', letterSpacing: 1, marginBottom: 2 },
+    disclaimerText: { color: '#888', fontSize: 11, lineHeight: 16 },
+
+    // Insufficient Info
+    insufficientBox: {
+        backgroundColor: '#111',
+        borderRadius: 20,
+        padding: 24,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#222',
+        marginBottom: 24,
+        gap: 12
+    },
+    insufficientTitle: { color: '#fff', fontSize: 16, fontWeight: '800' },
+    insufficientText: { color: '#777', fontSize: 13, textAlign: 'center', lineHeight: 20 },
+    insufficientBtn: { backgroundColor: GOLD + '15', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: GOLD + '44', marginTop: 8 },
+    insufficientBtnText: { color: GOLD, fontSize: 13, fontWeight: '700' },
 
     // Header
     header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },

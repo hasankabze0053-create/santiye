@@ -6,121 +6,148 @@
 
 const MOCK_RESPONSES = {
   default: {
-    kategori: 'Sözleşme & Hakediş',
-    aciliyet_skoru: 7,
-    kisa_ozet: 'Sözleşmedeki cezai şart oranı yasal sınırı aşıyor ve hakediş ödeme takvimi belirsiz bırakılmış. Acilen avukat incelemesi gerekiyor.',
+    kategori: 'Genel Analiz',
+    aciliyet_skoru: 5,
+    kisa_ozet: 'Vaka inceleniyor. Net bir hukuki analiz için lütfen durumunuzu daha detaylı açıklayın.',
     kritik_riskler: [
-      'Cezai şart oranı (%25) yasal sınırın üzerinde (TBK Md. 182)',
-      'Hakediş ödeme takvimi tek taraflı değiştirilebilir nitelikte',
-      'Taşeron fesih maddesinde yüklenici aleyhine tek yönlü hüküm',
-      'Eksik iş tespiti için bağımsız keşif hükmü bulunmuyor',
+      'Belirsiz sözleşme hükümleri hak kaybına yol açabilir',
+      'Yazılı bildirim eksikliği ispat sürecini zorlaştırabilir',
     ],
     kanun_maddeleri: [
-      { kanun: 'Türk Borçlar Kanunu', no: null, madde: '182', konu: 'Cezai Şart Üst Sınırı' },
-      { kanun: 'Türk Borçlar Kanunu', no: null, madde: '470', konu: 'İstisna Sözleşmesi (Eser)' },
-      { kanun: 'İş Sağlığı & Güvenliği Kanunu', no: '6331', madde: '4', konu: 'İşveren Yükümlülükleri' },
+      { kanun: 'Türk Borçlar Kanunu', no: null, madde: 'Genel Hükümler', konu: 'Sözleşme Serbestisi' },
     ],
     gereken_belgeler: [
-      'İmzalı sözleşmenin tamamı (sayfa 2–5 eksik)',
-      'Hakediş raporları (son 3 dönem)',
-      'SGK hizmet dökümü ve prim ödeme belgeleri',
-      'Metraj cetveli ve iş programı',
+      'İmzalı sözleşme metni',
+      'Varsa ilgili yazışmalar',
     ],
     onerilen_aksiyonlar: [
-      '48 saat içinde noter kanalıyla ihtarname gönderin',
-      'Sözleşmedeki cezai şart maddesini inşaat hukuku uzmanına inceletin',
-      'Tüm yazışmaları kayıt altına alın; sözlü anlaşmalar geçersiz sayılabilir',
-      'Hakediş tahsilatını durdurmak yerine ihtirazi kayıtla alın',
+      'Durumu tüm detaylarıyla kayıt altına alın',
+      'Kesin bir hukuki yol haritası için sistem üzerinden avukatınıza bağlanın',
     ],
-    taraflar: { yuklenici: 'Kullanıcı Şirketi', taseron: 'Tespit edilemedi', idare: 'Belirtilmemiş' },
+    taraflar: { yuklenici: 'Belirtilmedi', taseron: 'Belirtilmedi', idare: 'Belirtilmedi' },
     sos_modu: false,
-    avukat_kategorisi: ['inşaat_hukuku', 'sozlesme'],
+    avukat_kategorisi: ['inşaat_hukuku'],
+    yetersiz_bilgi: true, // Mock her zaman daha fazla detay isteyebilir
   },
   sos: {
-    kategori: 'İş Kazası & SGK',
+    kategori: 'Acil Durum / İş Kazası',
     aciliyet_skoru: 10,
-    kisa_ozet: 'ACİL: Şantiyede iş kazası veya baskın tespit edildi. Derhal hukuki koruma altına alınmalısınız.',
+    kisa_ozet: 'KRİTİK: Acil müdahale gerektiren bir durum tespit edildi.',
     kritik_riskler: [
-      'İş kazası 3 iş günü içinde SGK\'ya bildirilmezse ağır idari para cezası',
-      'Kaza anı tutanağı hazırlanmadan şantiyeyi terk etmeyin',
-      'Sosyal medya ve basına açıklama yapmayın — hukuki süreç zarar görebilir',
-      'Yaralı işçinin beyanı resmi kayıt altına alınmalı',
+      'Yasal bildirim sürelerinin kaçırılması riski',
+      'Olay yeri koruma ve delil tespiti eksikliği',
     ],
     kanun_maddeleri: [
-      { kanun: 'SGK Kanunu', no: '5510', madde: '21', konu: 'İş Kazası Bildirimi (3 gün)' },
-      { kanun: 'İş Sağlığı & Güvenliği Kanunu', no: '6331', madde: '13', konu: 'Çalışanın Hakları' },
-      { kanun: 'İş Sağlığı & Güvenliği Kanunu', no: '6331', madde: '26', konu: 'İdari Para Cezaları' },
-      { kanun: 'Türk Ceza Kanunu', no: '5237', madde: '85', konu: 'Taksirle Yaralama/Öldürme' },
+      { kanun: 'İSG Kanunu', no: '6331', madde: 'Genel', konu: 'İş Kazası Bildirimi' },
     ],
     gereken_belgeler: [
-      'Kaza anı tutanağı (VİYOLAN ZAMANDA düzenlenmiş)',
-      'İşçinin SGK sigortalılık belgesi',
-      'Şantiye Güvenlik Planı (İSG Belgesi)',
-      'Fotoğraflı kaza yeri tespiti',
-      'Tanık ifadeleri (yazılı)',
+      'Olay anı tutanakları',
+      'Resmi kurum bildirim evrakları',
     ],
     onerilen_aksiyonlar: [
-      'Şu an avukat ile görüşün — bu mesajı avukatınıza iletin',
-      'SGK\'ya 3 iş günü içinde kaza bildirimi yapın (e-Devlet)',
-      'Kaza yerini değiştirmeyin, fotoğraf ve video alın',
-      'Yaralıya ilk yardım yapın, 112\'yi arayın',
+      'Derhal bir hukuk uzmanı ile görüşün',
+      'Resmi makamlar dışındaki taraflara beyan vermeyin',
     ],
-    taraflar: { yuklenici: 'Kullanıcı Şirketi', taseron: 'Tespit edilemedi', idare: 'SGK' },
+    taraflar: { yuklenici: 'Belirtilmedi', taseron: 'Belirtilmedi', idare: 'İlgili Kurumlar' },
     sos_modu: true,
     avukat_kategorisi: ['is_kazasi', 'sgk'],
-  },
-  hakedeş: {
-    kategori: 'Sözleşme & Hakediş',
-    aciliyet_skoru: 8,
-    kisa_ozet: 'Hakediş ödemesi gecikiyor ve haksız kesintiler yapılıyor. Yasal faiz işletme hakkınız mevcut.',
-    kritik_riskler: [
-      'Hakediş gecikmesi için yasal faiz hakkı doğuyor (TBK Md. 120)',
-      'Haksız kesintiler için yazılı itiraz yapılmadan kabul etmiş sayılırsınız',
-      'Ödeme yapılmadan işi durdurmak sözleşme ihlaline yol açabilir',
-    ],
-    kanun_maddeleri: [
-      { kanun: 'Türk Borçlar Kanunu', no: null, madde: '120', konu: 'Temerrüt Faizi' },
-      { kanun: 'Türk Borçlar Kanunu', no: null, madde: '112', konu: 'Borca Aykırılık' },
-    ],
-    gereken_belgeler: [
-      'Hakediş belgesi ve imzalı suretleri',
-      'Kesinti yapılan kalemlerin dökümü',
-      'Yazışma kayıtları (e-posta, WhatsApp)',
-    ],
-    onerilen_aksiyonlar: [
-      'İhtirazi kayıtla (kabul etmiyorum şerhiyle) imzalayın',
-      'Resmi yazılı itiraz belgesi gönderin (3 iş günü içinde)',
-      'Arabuluculuk başvurusu yapın (dava öncesi zorunlu)',
-    ],
-    taraflar: { yuklenici: 'Kullanıcı Şirketi', taseron: 'Tespit edilemedi', idare: 'İşveren/Müteahhit' },
-    sos_modu: false,
-    avukat_kategorisi: ['inşaat_hukuku', 'sozlesme'],
-  },
+  }
 };
 
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { AI_CONFIG } from "../lib/aiConfig";
+
 /**
- * Girdi metnini analiz eder, AI benzeri keyword tespiti yapar.
- * Gerçek entegrasyonda burası Supabase Edge Function çağrısına dönüşür.
+ * Girdi metnini (ve varsa dosyayı) analiz eder. 
  */
-export async function analyzeLegalCase({ text, userId }) {
-  // Simüle edilmiş API gecikmesi (premium UX için)
-  await new Promise(resolve => setTimeout(resolve, 3200));
+export async function analyzeLegalCase({ text, userId, fileData }) {
+  if (!AI_CONFIG.GEMINI_API_KEY || AI_CONFIG.GEMINI_API_KEY === 'BURAYA_API_ANAHTARINI_YAPISTIR') {
+    return runMockAnalysis(text);
+  }
 
+  try {
+    const genAI = new GoogleGenerativeAI(AI_CONFIG.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ 
+      model: AI_CONFIG.MODEL_NAME,
+      generationConfig: { responseMimeType: "application/json" }
+    });
+
+    const promptText = `
+      Sen Türkiye'de uzman bir inşaat hukuku danışmanısın. Kullanıcının ilettiği vakayı analiz et.
+      
+      KRİTİK TALİMATLAR:
+      1. ASLA UYDURMA (HALLUCINATION): Kullanıcının metninde veya ilettiği dosyada geçmeyen hiçbir madde numarası, gün sayısı, miktar veya özel şartı kendin uydurma.
+      2. BELGE ANALİZİ: Eğer bir belge (PDF veya Görsel) iletildiyse, öncelikle bu belgedeki ibareleri ve maddeleri baz al.
+      3. YETERSIZ GİRDİ KONTROLÜ: Eğer metin ve belge içeriği analiz için yetersizse, "yetersiz_bilgi" alanını true yap ve eksik kısımları sor.
+      4. YASAL UYARI: Her analizin içine bunun bir "Ön Bilgilendirme" olduğu notunu düş.
+
+      KULLANICI METNİ: "${text}"
+
+      JSON ŞEMASI:
+      {
+        "kategori": "vaka kategorisi",
+        "caseTitle": "Vakaya özel kısa başlık",
+        "aciliyet_skoru": 0-10,
+        "kisa_ozet": "Vakanın özeti",
+        "kritik_riskler": ["Gerçek riskler"],
+        "kanun_maddeleri": [{"kanun": "Kanun", "madde": "No", "konu": "Özet"}],
+        "gereken_belgeler": ["Eksik evraklar"],
+        "onerilen_aksiyonlar": ["Genel adımlar"],
+        "yetersiz_bilgi": true/false,
+        "avukat_kategorisi": ["inşaat_hukuku", "sozlesme", "is_kazasi", "sgk", "imar", "ceza"],
+        "disclaimer": "Bu bir yapay zeka ön analizidir. Avukata danışmalısınız."
+      }
+    `;
+
+    const contentParts = [promptText];
+    
+    // Eğer dosya verisi varsa, Gemini'ye input olarak ekle
+    if (fileData?.data && fileData?.mimeType) {
+      contentParts.push({
+        inlineData: {
+          data: fileData.data,
+          mimeType: fileData.mimeType
+        }
+      });
+    }
+
+    const result = await model.generateContent(contentParts);
+    const response = await result.response;
+    let jsonText = response.text();
+    
+    // Gemini bazen yanıtı ```json ... ``` içine koyabiliyor, onu temizleyelim
+    jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').trim();
+    
+    const data = JSON.parse(jsonText);
+
+    return { success: true, data };
+
+  } catch (error) {
+    console.error('Gemini Analysis Error:', error);
+    // Hata durumunda güvenli mock verisine dön
+    return runMockAnalysis(text);
+  }
+}
+
+/**
+ * Fallback Mock Mantığı
+ */
+async function runMockAnalysis(text) {
+  // Simüle edilmiş gecikme (Premium UX)
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
   const lowerText = text.toLowerCase();
-
-  // SOS tespiti
   const sosKeywords = ['kaza', 'yaralı', 'ölüm', 'baskın', 'ambulans', 'hastane', 'acil', 'acelen', 'kapatıldık', 'mühürlendi'];
+  
   if (sosKeywords.some(k => lowerText.includes(k))) {
     return { success: true, data: MOCK_RESPONSES.sos };
   }
 
-  // Hakediş tespiti
   const hakedesKeywords = ['hakediş', 'ödeme', 'para yatmadı', 'kesinti', 'ücret', 'tahsilat'];
   if (hakedesKeywords.some(k => lowerText.includes(k))) {
     return { success: true, data: MOCK_RESPONSES.hakedeş };
   }
 
-  // Default analiz
   return { success: true, data: MOCK_RESPONSES.default };
 }
 

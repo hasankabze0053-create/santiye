@@ -11,7 +11,8 @@ import {
     Text,
     TouchableOpacity,
     View,
-    Dimensions
+    Dimensions,
+    Linking
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -23,6 +24,15 @@ export default function ArchitectRequestDetailScreen() {
     const { request } = route.params || {};
 
     const [selectedImage, setSelectedImage] = useState(null);
+
+    const handleCall = () => {
+        const phoneNumber = request.phone || request.phoneNumber;
+        if (phoneNumber) {
+            Linking.openURL(`tel:${phoneNumber}`);
+        } else {
+            Alert.alert('Hata', 'Müşteriye ait telefon numarası bulunamadı.');
+        }
+    };
 
     if (!request) return null;
 
@@ -44,10 +54,14 @@ export default function ArchitectRequestDetailScreen() {
 
     const isElevator = request._tableName === 'elevator_requests' || !!request.fault_type;
 
-    const projeTipi = isElevator ? request.fault_type : (getField('PROJE TİPİ') || 'Anahtar Teslim Tadilat');
-    const kapsam = isElevator ? 'Asansör Bakım & Arıza Onarımı' : (getField('KAPSAM') || getField('HİZMETLER') || '-');
-    const durum = isElevator ? 'Acil / Rutin Bakım' : (getField('DURUM') || getField('YENİLEME') || '-');
-    const teknik = isElevator ? 'Asansör Kabini, Motor, Ray ve Kapı Sistemleri' : (getField('TEKNİK') || getField('MEKAN') || '-');
+    let projeTipi = isElevator ? 'Asansör Bakımı' : (getField('PROJE TİPİ') || 'Anahtar Teslim Tadilat');
+    if (isElevator) {
+        if (request.fault_type === 'Periyodik Bakım') projeTipi = 'Asansör Periyodik Bakımı';
+        if (request.fault_type === 'Arıza Onarımı') projeTipi = 'Asansör Arıza Tespit Onarımı';
+    }
+    const kapsam = isElevator ? request.fault_type : (getField('KAPSAM') || getField('HİZMETLER') || '-');
+    const durum = isElevator ? (request.city && request.district ? `${request.city} / ${request.district}` : 'Belirtilmedi') : (getField('DURUM') || getField('YENİLEME') || '-');
+    const teknik = isElevator ? '' : (getField('TEKNİK') || getField('MEKAN') || '-');
     const tarz = isElevator ? 'Teknik Onarım' : (getField('TASARIM') || getField('TARZ') || 'Belirtilmedi');
     const butce = isElevator ? 'Keşif Sonrası Belirlenecek' : (getField('BÜTÇE') || '-');
     const lokasyon = isElevator ? `${request.city} / ${request.district}` : (getField('LOKASYON') || '-');
@@ -128,107 +142,125 @@ export default function ArchitectRequestDetailScreen() {
                             <Text allowFontScaling={false} style={styles.infoLabel}>Mekan / Bina Durumu</Text>
                             <Text allowFontScaling={false} style={[styles.infoValue, { color: '#FFD700' }]}>{durum}</Text>
                         </View>
-                        
-                        <View style={styles.separator} />
-                        
-                        <Text allowFontScaling={false} style={styles.subHeader}>YENİLENECEK ALANLAR</Text>
-                        {teknikItems.length > 0 ? teknikItems.map((item, idx) => (
-                            <View key={idx} style={styles.techItem}>
-                                <MaterialCommunityIcons name="check-circle-outline" size={20} color="#FFD700" />
-                                <Text allowFontScaling={false} style={styles.techItemText}>{item}</Text>
+
+                        {isElevator && (request.phone || request.phoneNumber) && (
+                            <View style={[styles.infoRow, { marginTop: 8, padding: 12, backgroundColor: 'rgba(212, 175, 55, 0.05)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.2)' }]}>
+                                <Text allowFontScaling={false} style={[styles.infoLabel, { color: '#FFD700' }]}>Müşteri Telefonu</Text>
+                                <Text allowFontScaling={false} style={[styles.infoValue, { color: '#FFF', fontSize: 16 }]}>{request.phone || request.phoneNumber}</Text>
                             </View>
-                        )) : (
-                            <Text allowFontScaling={false} style={{ color: '#666', fontStyle: 'italic' }}>Belirtilmedi</Text>
+                        )}
+                        
+                        {!isElevator && (
+                            <>
+                                <View style={styles.separator} />
+                                <Text allowFontScaling={false} style={styles.subHeader}>YENİLENECEK ALANLAR</Text>
+                                {teknikItems.length > 0 ? teknikItems.map((item, idx) => (
+                                    <View key={idx} style={styles.techItem}>
+                                        <MaterialCommunityIcons name="check-circle-outline" size={20} color="#FFD700" />
+                                        <Text allowFontScaling={false} style={styles.techItemText}>{item}</Text>
+                                    </View>
+                                )) : (
+                                    <Text allowFontScaling={false} style={{ color: '#666', fontStyle: 'italic' }}>Belirtilmedi</Text>
+                                )}
+                            </>
                         )}
                     </View>
 
                     {/* 3. TASARIM DİLİ */}
-                    <View style={styles.sectionHeader}>
-                        <View style={styles.sectionTitleWrap}>
-                            <MaterialCommunityIcons name="palette-swatch" size={20} color="#FFD700" />
-                            <Text allowFontScaling={false} style={styles.sectionTitle}>MİMARİ TARZ & ATMOSFER</Text>
-                        </View>
-                    </View>
-                    <View style={styles.card}>
-                        <View style={styles.styleBox}>
-                            <MaterialCommunityIcons name="pillar" size={32} color="#FFD700" />
-                            <View style={{ flex: 1, marginLeft: 16 }}>
-                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 16, fontWeight: '800' }}>{tarz}</Text>
-                                <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, marginTop: 4 }}>Kullanıcının hayalindeki tasarım dili.</Text>
-                            </View>
-                        </View>
-                    </View>
-
-                    {/* 4. GÖRSEL GALERİ */}
-                    {request.current_situation_urls?.length > 0 || request.inspiration_urls?.length > 0 ? (
-                        <>
-                            {request.current_situation_urls?.length > 0 && (
-                                <>
-                                    <View style={styles.sectionHeader}>
-                                        <View style={styles.sectionTitleWrap}>
-                                            <MaterialCommunityIcons name="camera-outline" size={20} color="#FFD700" />
-                                            <Text allowFontScaling={false} style={styles.sectionTitle}>MEVCUT DURUM FOTOĞRAFLARI</Text>
-                                        </View>
-                                    </View>
-                                    <View style={{ paddingHorizontal: 20, marginBottom: 15 }}>
-                                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-                                            {request.current_situation_urls.map((url, idx) => (
-                                                <TouchableOpacity key={`current-${idx}`} onPress={() => setSelectedImage(url)} activeOpacity={0.9}>
-                                                    <Image source={{ uri: url }} style={styles.galleryImg} />
-                                                </TouchableOpacity>
-                                            ))}
-                                        </ScrollView>
-                                    </View>
-                                </>
-                            )}
-
-                            {request.inspiration_urls?.length > 0 && (
-                                <>
-                                    <View style={styles.sectionHeader}>
-                                        <View style={styles.sectionTitleWrap}>
-                                            <MaterialCommunityIcons name="lightbulb-outline" size={20} color="#FFD700" />
-                                            <Text allowFontScaling={false} style={styles.sectionTitle}>İLHAM ALINAN FOTOĞRAFLAR</Text>
-                                        </View>
-                                    </View>
-                                    <View style={{ paddingHorizontal: 20, marginBottom: 15 }}>
-                                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-                                            {request.inspiration_urls.map((url, idx) => (
-                                                <TouchableOpacity key={`inspiration-${idx}`} onPress={() => setSelectedImage(url)} activeOpacity={0.9}>
-                                                    <Image source={{ uri: url }} style={styles.galleryImg} />
-                                                </TouchableOpacity>
-                                            ))}
-                                        </ScrollView>
-                                    </View>
-                                </>
-                            )}
-                        </>
-                    ) : (
+                    {!isElevator && (
                         <>
                             <View style={styles.sectionHeader}>
                                 <View style={styles.sectionTitleWrap}>
-                                    <MaterialCommunityIcons name="camera-burst" size={20} color="#FFD700" />
-                                    <Text allowFontScaling={false} style={styles.sectionTitle}>FOTOĞRAFLAR & REFERANSLAR</Text>
+                                    <MaterialCommunityIcons name="palette-swatch" size={20} color="#FFD700" />
+                                    <Text allowFontScaling={false} style={styles.sectionTitle}>MİMARİ TARZ & ATMOSFER</Text>
                                 </View>
                             </View>
-                            <View style={{ paddingHorizontal: 20, marginBottom: 15 }}>
-                                {request.document_urls?.length > 0 ? (
-                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-                                        {request.document_urls.map((url, idx) => (
-                                            <TouchableOpacity key={idx} onPress={() => setSelectedImage(url)} activeOpacity={0.9}>
-                                                <Image source={{ uri: url }} style={styles.galleryImg} />
-                                                <View style={styles.imgLabel}>
-                                                    <Text allowFontScaling={false} style={styles.imgLabelText}>{idx < 2 ? (idx === 0 ? 'Mevcut' : 'İlham') : `Görsel ${idx + 1}`}</Text>
-                                                </View>
-                                            </TouchableOpacity>
-                                        ))}
-                                    </ScrollView>
-                                ) : (
-                                    <View style={styles.emptyPhotos}>
-                                        <MaterialCommunityIcons name="image-off-outline" size={32} color="#333" />
-                                        <Text allowFontScaling={false} style={{ color: '#555', fontSize: 12, marginTop: 8 }}>Kullanıcı görsel eklemedi</Text>
+                            <View style={styles.card}>
+                                <View style={styles.styleBox}>
+                                    <MaterialCommunityIcons name="pillar" size={32} color="#FFD700" />
+                                    <View style={{ flex: 1, marginLeft: 16 }}>
+                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 16, fontWeight: '800' }}>{tarz}</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, marginTop: 4 }}>Kullanıcının hayalindeki tasarım dili.</Text>
                                     </View>
-                                )}
+                                </View>
                             </View>
+                        </>
+                    )}
+
+                    {/* 4. GÖRSEL GALERİ */}
+                    {!isElevator && (
+                        <>
+                            {request.current_situation_urls?.length > 0 || request.inspiration_urls?.length > 0 ? (
+                                <>
+                                    {request.current_situation_urls?.length > 0 && (
+                                        <>
+                                            <View style={styles.sectionHeader}>
+                                                <View style={styles.sectionTitleWrap}>
+                                                    <MaterialCommunityIcons name="camera-outline" size={20} color="#FFD700" />
+                                                    <Text allowFontScaling={false} style={styles.sectionTitle}>MEVCUT DURUM FOTOĞRAFLARI</Text>
+                                                </View>
+                                            </View>
+                                            <View style={{ paddingHorizontal: 20, marginBottom: 15 }}>
+                                                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                                                    {request.current_situation_urls.map((url, idx) => (
+                                                        <TouchableOpacity key={`current-${idx}`} onPress={() => setSelectedImage(url)} activeOpacity={0.9}>
+                                                            <Image source={{ uri: url }} style={styles.galleryImg} />
+                                                        </TouchableOpacity>
+                                                    ))}
+                                                </ScrollView>
+                                            </View>
+                                        </>
+                                    )}
+
+                                    {request.inspiration_urls?.length > 0 && (
+                                        <>
+                                            <View style={styles.sectionHeader}>
+                                                <View style={styles.sectionTitleWrap}>
+                                                    <MaterialCommunityIcons name="lightbulb-outline" size={20} color="#FFD700" />
+                                                    <Text allowFontScaling={false} style={styles.sectionTitle}>İLHAM ALINAN FOTOĞRAFLAR</Text>
+                                                </View>
+                                            </View>
+                                            <View style={{ paddingHorizontal: 20, marginBottom: 15 }}>
+                                                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                                                    {request.inspiration_urls.map((url, idx) => (
+                                                        <TouchableOpacity key={`inspiration-${idx}`} onPress={() => setSelectedImage(url)} activeOpacity={0.9}>
+                                                            <Image source={{ uri: url }} style={styles.galleryImg} />
+                                                        </TouchableOpacity>
+                                                    ))}
+                                                </ScrollView>
+                                            </View>
+                                        </>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    <View style={styles.sectionHeader}>
+                                        <View style={styles.sectionTitleWrap}>
+                                            <MaterialCommunityIcons name="camera-burst" size={20} color="#FFD700" />
+                                            <Text allowFontScaling={false} style={styles.sectionTitle}>FOTOĞRAFLAR & REFERANSLAR</Text>
+                                        </View>
+                                    </View>
+                                    <View style={{ paddingHorizontal: 20, marginBottom: 15 }}>
+                                        {request.document_urls?.length > 0 ? (
+                                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                                                {request.document_urls.map((url, idx) => (
+                                                    <TouchableOpacity key={idx} onPress={() => setSelectedImage(url)} activeOpacity={0.9}>
+                                                        <Image source={{ uri: url }} style={styles.galleryImg} />
+                                                        <View style={styles.imgLabel}>
+                                                            <Text allowFontScaling={false} style={styles.imgLabelText}>{idx < 2 ? (idx === 0 ? 'Mevcut' : 'İlham') : `Görsel ${idx + 1}`}</Text>
+                                                        </View>
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </ScrollView>
+                                        ) : (
+                                            <View style={styles.emptyPhotos}>
+                                                <MaterialCommunityIcons name="image-off-outline" size={32} color="#333" />
+                                                <Text allowFontScaling={false} style={{ color: '#555', fontSize: 12, marginTop: 8 }}>Kullanıcı görsel eklemedi</Text>
+                                            </View>
+                                        )}
+                                    </View>
+                                </>
+                            )}
                         </>
                     )}
 
@@ -250,9 +282,15 @@ export default function ArchitectRequestDetailScreen() {
                 {/* FIXED FOOTER */}
                 <View style={styles.footer}>
                     <View style={styles.footerContent}>
-                        <TouchableOpacity style={styles.msgBtn}>
+                        <TouchableOpacity style={styles.msgBtn} onPress={handleCall}>
+                            <LinearGradient 
+                                colors={['#0B3D2E', '#1B5E20', '#2E7D32']} 
+                                start={{ x: 0, y: 0 }} 
+                                end={{ x: 1, y: 1 }} 
+                                style={StyleSheet.absoluteFillObject} 
+                            />
                             <Ionicons name="call" size={20} color="#FFF" />
-                            <Text allowFontScaling={false} style={styles.msgBtnText}>Ara</Text>
+                            <Text allowFontScaling={false} style={[styles.msgBtnText, { fontSize: 16 }]}>ARA</Text>
                         </TouchableOpacity>
                         {!isElevator && (
                             <TouchableOpacity 
@@ -266,10 +304,13 @@ export default function ArchitectRequestDetailScreen() {
                         {isElevator && (
                              <TouchableOpacity 
                                  style={styles.offerBtn}
-                                 onPress={() => Alert.alert('Bilgi', 'Asansör taleplerine uygulama üzerinden teklif verme yakında eklenecektir. Lütfen müşteriyle iletişime geçiniz.')}
+                                 onPress={handleCall}
                              >
                                  <LinearGradient colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
-                                 <Text allowFontScaling={false} style={styles.offerBtnText}>ONAY BEKLİYOR</Text>
+                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <MaterialCommunityIcons name="arrow-left" size={20} color="#000" />
+                                    <Text allowFontScaling={false} style={styles.offerBtnText}>ŞİMDİ GÖRÜŞ</Text>
+                                 </View>
                              </TouchableOpacity>
                         )}
                     </View>
@@ -328,8 +369,8 @@ const styles = StyleSheet.create({
     
     footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20, paddingBottom: 40, backgroundColor: 'rgba(0,0,0,0.95)', borderTopWidth: 1, borderTopColor: '#222' },
     footerContent: { flexDirection: 'row', gap: 12 },
-    msgBtn: { flex: 0.3, height: 56, borderRadius: 18, borderVertical: 1, borderWidth: 1, borderColor: '#333', backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 },
-    msgBtnText: { color: '#FFF', fontWeight: 'bold' },
+    msgBtn: { flex: 0.3, height: 56, borderRadius: 18, borderWidth: 1, borderColor: '#333', backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, overflow: 'hidden' },
+    msgBtnText: { color: '#FFF', fontWeight: 'bold', zIndex: 1 },
     offerBtn: { flex: 0.7, height: 56, borderRadius: 18, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
     offerBtnText: { color: '#000', fontWeight: '900', fontSize: 16, letterSpacing: 1 },
 

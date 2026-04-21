@@ -4,7 +4,7 @@ const fs = require('fs');
 const connectionString = 'postgresql://postgres.nxsjokupnsaeemtnlexf:Cs1907Kz0354@aws-1-eu-central-1.pooler.supabase.com:6543/postgres';
 
 async function executeFile() {
-    const sqlStr = fs.readFileSync('fix_security.sql', 'utf8');
+    const sqlStr = fs.readFileSync('init_buckets.sql', 'utf8');
     const client = new Client({
         connectionString,
         ssl: { rejectUnauthorized: false }

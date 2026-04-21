@@ -232,16 +232,18 @@ export const RequestsScreen = () => {
             });
 
             // Format elevator data
-            const formattedElevatorData = (elevatorData || []).map(item => ({
-                ...item,
-                type: 'elevator',
-                title: item.fault_type || 'Asansör Arıza Bakım',
-                subtitle: `${item.district} / ${item.city}`,
-                created_at: item.created_at,
-                status: item.status === 'pending' ? 'OPEN' : item.status,
-                category: 'Tadilat Talepleri', // Tag as Tadilat
-                bids: [] // Elevator doesn't have bids yet
-            }));
+            const formattedElevatorData = (elevatorData || []).map(item => {
+                return {
+                    ...item,
+                    type: 'elevator',
+                    title: 'Asansör Arıza & Bakım',
+                    subtitle: `${item.district} / ${item.city}`,
+                    created_at: item.created_at,
+                    status: item.status === 'pending' ? 'OPEN' : item.status,
+                    category: 'Tadilat Talepleri', // Tag as Tadilat
+                    bids: [] // Elevator doesn't have bids yet
+                };
+            });
 
             // Merge and sort
             const allRequests = [...formattedMarketData, ...formattedConstructionData, ...formattedElevatorData];

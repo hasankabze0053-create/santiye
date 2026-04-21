@@ -39,7 +39,11 @@ export default function RenovationProviderScreen() {
         const hasPhotos = item.document_urls && item.document_urls.length > 0;
 
         let projeTipi = 'Anahtar Teslim Tadilat';
-        if (item.description && item.description.includes('PROJE TİPİ:')) {
+        const isElevator = item.fault_type || item._tableName === 'elevator_requests';
+
+        if (isElevator) {
+            projeTipi = 'Asansör Arıza & Bakım';
+        } else if (item.description && item.description.includes('PROJE TİPİ:')) {
             projeTipi = item.description.split('PROJE TİPİ:')[1].split('\n')[0].trim();
         }
 

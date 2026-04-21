@@ -136,6 +136,9 @@ export default function RequestDetailScreen() {
                         let result;
                         if (type === 'construction') {
                             result = await ConstructionService.deleteRequest(request.id);
+                        } else if (type === 'elevator') {
+                            const { ElevatorService } = require('../../services/ElevatorService');
+                            result = await ElevatorService.deleteRequest(request.id);
                         } else {
                             result = await MarketService.deleteRequest(request.id);
                         }
@@ -172,6 +175,129 @@ export default function RequestDetailScreen() {
             </Text>
         </View>
     );
+
+    // --- ELEVATOR DETAIL VIEW ---
+    if (type === 'elevator') {
+        const faultType = request.fault_type || 'Asansör Arıza & Bakım';
+        
+        return (
+            <View style={styles.container}>
+                <StatusBar barStyle="light-content" />
+                <LinearGradient colors={['#000000', '#0D0D0D']} style={StyleSheet.absoluteFillObject} />
+                <SafeAreaView style={{ flex: 1 }}>
+                    {/* Header */}
+                    <View style={styles.header}>
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                            <Ionicons name="arrow-back" size={24} color="#FFF" />
+                        </TouchableOpacity>
+                        <View style={{ alignItems: 'center' }}>
+                            <Text allowFontScaling={false} style={styles.headerTitle}>ASANSÖR TALEBİ</Text>
+                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: 'bold', marginTop: 2 }}>#{request.id?.slice(0, 8).toUpperCase()}</Text>
+                        </View>
+                        <View style={{ width: 40 }} />
+                    </View>
+
+                    <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+                        
+                        {/* Hero Card */}
+                        <LinearGradient
+                            colors={['#1A1200', '#0D0D0D']}
+                            style={{ marginHorizontal: 16, marginTop: 8, marginBottom: 20, borderRadius: 24, padding: 24, borderWidth: 1, borderColor: 'rgba(212,175,55,0.3)', overflow: 'hidden' }}
+                        >
+                            <LinearGradient
+                                colors={['rgba(212,175,55,0)', 'rgba(212,175,55,0.7)', 'rgba(212,175,55,0)']}
+                                style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2 }}
+                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                            />
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+                                <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: 'rgba(212,175,55,0.1)', borderWidth: 1, borderColor: 'rgba(212,175,55,0.4)', alignItems: 'center', justifyContent: 'center', marginRight: 14 }}>
+                                    <MaterialCommunityIcons name="elevator-passenger" size={28} color="#D4AF37" />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 20, fontWeight: '900', letterSpacing: 0.5 }}>{faultType}</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 13, marginTop: 2 }}>Asansör Servis Talebi</Text>
+                                </View>
+                                <StatusBadge status={request.status || 'pending'} />
+                            </View>
+
+                            <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: 'rgba(212,175,55,0.15)', paddingTop: 16 }}>
+                                <View style={{ flex: 1, alignItems: 'center' }}>
+                                    <MaterialCommunityIcons name="map-marker-radius" size={20} color="#FFD700" />
+                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 9, fontWeight: '900', marginTop: 6, letterSpacing: 1 }}>ŞEHİR</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '800', marginTop: 3 }}>{request.city || '-'}</Text>
+                                </View>
+                                <View style={{ width: 1, backgroundColor: 'rgba(212,175,55,0.15)' }} />
+                                <View style={{ flex: 1, alignItems: 'center' }}>
+                                    <MaterialCommunityIcons name="map-marker-outline" size={20} color="#FFD700" />
+                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 9, fontWeight: '900', marginTop: 6, letterSpacing: 1 }}>İLÇE</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '800', marginTop: 3 }}>{request.district || '-'}</Text>
+                                </View>
+                                <View style={{ width: 1, backgroundColor: 'rgba(212,175,55,0.15)' }} />
+                                <View style={{ flex: 1, alignItems: 'center' }}>
+                                    <MaterialCommunityIcons name="phone-outline" size={20} color="#FFD700" />
+                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 9, fontWeight: '900', marginTop: 6, letterSpacing: 1 }}>İLETİŞİM</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '800', marginTop: 3 }}>{request.phone || '-'}</Text>
+                                </View>
+                            </View>
+                        </LinearGradient>
+
+                        {/* Info Section */}
+                        <View style={{ marginHorizontal: 16, marginBottom: 16 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                                <MaterialCommunityIcons name="information-outline" size={18} color="#FFD700" />
+                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>HİZMET BİLGİLERİ</Text>
+                            </View>
+                            <View style={{ backgroundColor: '#111', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#222', gap: 14 }}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 13 }}>Hizmet Türü</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 14, fontWeight: '900' }}>{faultType}</Text>
+                                </View>
+                                <View style={{ height: 1, backgroundColor: '#1E1E1E' }} />
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 13 }}>Kategori</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 14, fontWeight: '700' }}>Asansör Arıza & Bakım</Text>
+                                </View>
+                                <View style={{ height: 1, backgroundColor: '#1E1E1E' }} />
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 13 }}>Sertifika Durumu</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                        <MaterialCommunityIcons name="shield-check" size={14} color="#34C759" />
+                                        <Text allowFontScaling={false} style={{ color: '#34C759', fontSize: 12, fontWeight: 'bold' }}>Yetkili Servis</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* Note / Support Section */}
+                        <View style={{ marginHorizontal: 16, marginBottom: 30 }}>
+                             <View style={{ backgroundColor: 'rgba(212,175,55,0.05)', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: 'rgba(212,175,55,0.15)', borderStyle: 'dashed', alignItems: 'center' }}>
+                                <MaterialCommunityIcons name="headset" size={24} color="#D4AF37" style={{ marginBottom: 10 }} />
+                                <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 13, textAlign: 'center', lineHeight: 20 }}>
+                                    Talebiniz bölgenizdeki en yakın uzmanlarımıza iletilmiştir.{'\n'}Ortalama yanıt süresi 30 dakikadır.
+                                </Text>
+                             </View>
+                        </View>
+
+                        {/* Delete Action */}
+                        {isOwner && (
+                            <View style={{ marginHorizontal: 16, marginBottom: 40 }}>
+                                <TouchableOpacity 
+                                    style={{ backgroundColor: 'rgba(239,68,68,0.07)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.25)', borderRadius: 16, paddingVertical: 16, alignItems: 'center' }} 
+                                    onPress={handleDeleteRequest}
+                                >
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                        <MaterialCommunityIcons name="trash-can-outline" size={20} color="#EF4444" />
+                                        <Text allowFontScaling={false} style={{ color: '#EF4444', fontWeight: 'bold', fontSize: 15, letterSpacing: 1 }}>TALEBİ İPTAL ET / SİL</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+
+                    </ScrollView>
+                </SafeAreaView>
+            </View>
+        );
+    }
 
     // --- CONSTRUCTION DETAIL VIEW ---
     // --- PROFOSYONEL PARSING MANTIĞI ---

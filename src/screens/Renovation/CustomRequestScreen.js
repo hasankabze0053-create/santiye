@@ -63,7 +63,7 @@ export default function CustomRequestScreen({ navigation, route }) {
                             return;
                         }
                         const result = await ImagePicker.launchCameraAsync({
-                            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                            mediaTypes: ImagePicker.MediaType.Images,
                             quality: 0.8,
                         });
                         if (!result.canceled) {
@@ -81,7 +81,7 @@ export default function CustomRequestScreen({ navigation, route }) {
                             return;
                         }
                         const result = await ImagePicker.launchImageLibraryAsync({
-                            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                            mediaTypes: ImagePicker.MediaType.Images,
                             quality: 0.8,
                             allowsMultipleSelection: true
                         });

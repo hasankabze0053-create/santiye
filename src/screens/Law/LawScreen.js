@@ -6,6 +6,7 @@ import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-ico
 import { useNavigation } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -21,11 +22,13 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
+    ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { analyzeLegalCase } from '../../services/legalAiService';
+import { LegalHistoryService } from '../../services/legalHistoryService';
 import AiOraclePulse from './components/AiOraclePulse';
 import InsightPanel from './components/InsightPanel';
 import SOSBanner from './components/SOSBanner';
@@ -91,20 +94,32 @@ function WaveBar({ delay }) {
 }
 
 // ─── RECENT CASE CARD ────────────────────────────────────────────────────────
-function RecentCard({ cat, score, time }) {
+function RecentCard({ cat, score, time, onPress, onDelete }) {
     const c = score >= 8 ? DANGER : score >= 5 ? ORANGE : GREEN;
     return (
-        <View style={s.recentCard}>
-            <View style={{ flex: 1 }}>
-                <Text allowFontScaling={false} style={s.recentCat}>{cat}</Text>
+        <TouchableOpacity style={s.recentCard} onPress={onPress} activeOpacity={0.85}>
+            <LinearGradient 
+                colors={['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)']} 
+                style={StyleSheet.absoluteFillObject} 
+                borderRadius={18} 
+            />
+            <View style={s.recentIconBox}>
+                <MaterialCommunityIcons name="file-document-outline" size={20} color={GOLD} />
+            </View>
+            <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text allowFontScaling={false} style={s.recentCat} numberOfLines={1}>{cat}</Text>
                 <Text allowFontScaling={false} style={s.recentTime}>{time}</Text>
             </View>
-            {/* Circular ring score */}
-            <View style={[s.circleScore, { borderColor: c }]}>
-                <Text allowFontScaling={false} style={[s.circleScoreNum, { color: c }]}>{score}</Text>
-                <Text allowFontScaling={false} style={[s.circleScoreDen, { color: c + '88' }]}>/10</Text>
+            {/* Score box */}
+            <View style={[s.scoreTag, { borderColor: c + '44' }]}>
+                <Text allowFontScaling={false} style={[s.scoreTagNum, { color: c }]}>{score}</Text>
+                <Text allowFontScaling={false} style={[s.scoreTagDen, { color: c + '88' }]}>/10</Text>
             </View>
-        </View>
+            {/* Delete btn */}
+            <TouchableOpacity style={s.deleteBtn} onPress={onDelete} activeOpacity={0.7}>
+                <MaterialCommunityIcons name="trash-can-outline" size={19} color="#EF4444" />
+            </TouchableOpacity>
+        </TouchableOpacity>
     );
 }
 
@@ -123,12 +138,17 @@ export default function LawScreen() {
     const [panelVisible, setPanelVisible]     = useState(false);
     const [isAdmin, setIsAdmin]               = useState(false);
     const [isLawyer, setIsLawyer]             = useState(false);
+    const [recentAnalyses, setRecentAnalyses] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(true);
 
     // Input glow aura
     const auraOpacity = useRef(new Animated.Value(0)).current;
     const auraScale   = useRef(new Animated.Value(0.97)).current;
 
-    useEffect(() => { checkUserStatus(); }, []);
+    useEffect(() => { 
+        checkUserStatus(); 
+        loadHistory();
+    }, []);
 
     useEffect(() => {
         const focused = isInputFocused || inputText.length > 0;
@@ -153,6 +173,27 @@ export default function LawScreen() {
         } catch (e) {
             console.warn('User status check failed', e);
         }
+    };
+
+    const loadHistory = async () => {
+        setLoadingHistory(true);
+        const data = await LegalHistoryService.getRecentAnalyses(5);
+        setRecentAnalyses(data);
+        setLoadingHistory(false);
+    };
+
+    const handleDeleteAnalysis = async (id) => {
+        Alert.alert('Silinecek', 'Bu analiz geçmişten kalıcı olarak silinecek. Emin misiniz?', [
+            { text: 'Vazgeç', style: 'cancel' },
+            { 
+                text: 'Sil', 
+                style: 'destructive',
+                onPress: async () => {
+                    const res = await LegalHistoryService.deleteAnalysis(id);
+                    if (res.success) loadHistory();
+                }
+            }
+        ]);
     };
 
     const handlePickFile = async () => {
@@ -185,19 +226,44 @@ export default function LawScreen() {
         Keyboard.dismiss();
         setIsAnalyzing(true);
         try {
-            const result = await analyzeLegalCase({ text: text || inputText, userId: 'user_demo' });
+            let fileData = null;
+            if (attachedFile) {
+                // Dosyayı base64 olarak oku
+                const base64Data = await FileSystem.readAsStringAsync(attachedFile.uri, {
+                    encoding: FileSystem.EncodingType.Base64,
+                });
+                fileData = {
+                    data: base64Data,
+                    mimeType: attachedFile.mimeType || 'application/pdf',
+                };
+            }
+
+            const result = await analyzeLegalCase({ 
+                text: text || inputText, 
+                userId: 'user_demo',
+                fileData // Yeni multimodal veri
+            });
+
             if (result.success) {
+                // Veritabanına kaydet
+                await LegalHistoryService.saveAnalysis(result.data, text || inputText);
+                loadHistory(); // Listeyi tazele
+
                 setCaseData(result.data);
                 setIsAnalyzing(false);
-                // Navigate to the new premium analysis result screen
+                // Sonuç ekranına yönlendir
                 navigation.navigate('LawAnalysisResult', {
                     analysisData: result.data,
                     caseText: text || inputText,
+                    hasFile: !!attachedFile,
+                    fileName: attachedFile?.name,
+                    isHistorical: false
                 });
             }
-        } catch {
+        } catch (e) {
+            console.error('Analysis failed:', e);
             setIsAnalyzing(false);
-            Alert.alert('Hata', 'Analiz yapılamadı. Tekrar deneyin.');
+            Alert.alert('Hata', 'Analiz yapılamadı. İnternet bağlantınızı veya dosya boyutunu kontrol edin.');
         }
     };
 
@@ -363,16 +429,52 @@ export default function LawScreen() {
 
                         {/* ── RECENT CASES ── */}
                         <View style={s.recentSection}>
-                            {/* Hairline separator */}
-                            <View style={s.separator}>
-                                <View style={s.sepLine} />
-                                <Text allowFontScaling={false} style={s.sepLabel}>SON ANALİZLERİM</Text>
-                                <View style={s.sepLine} />
+                            <View style={s.premiumHeader}>
+                                <View style={{ flex: 1 }}>
+                                    <Text allowFontScaling={false} style={s.premiumTitle}>SON ANALİZLERİM</Text>
+                                    <Text allowFontScaling={false} style={s.premiumSub}>Hukuki vaka geçmişiniz ve raporlarınız</Text>
+                                </View>
+                                <MaterialCommunityIcons name="history" size={24} color={GOLD + '66'} />
                             </View>
 
-                            <RecentCard cat="📄 Sözleşme & Hakediş" score={8} time="3 gün önce" />
-                            <RecentCard cat="🏛️ İmar & Ceza" score={6} time="1 hafta önce" />
-                            <RecentCard cat="👷 Taşeron & İşçi" score={3} time="2 hafta önce" />
+                            {loadingHistory ? (
+                                <View style={{ padding: 40, alignItems: 'center' }}>
+                                    <ActivityIndicator color={GOLD} />
+                                </View>
+                            ) : recentAnalyses.length === 0 ? (
+                                <View style={s.emptyHistory}>
+                                    <MaterialCommunityIcons name="text-box-search-outline" size={32} color="#222" />
+                                    <Text allowFontScaling={false} style={s.emptyHistoryText}>Henüz bir analiziniz bulunmuyor.</Text>
+                                </View>
+                            ) : (
+                                <>
+                                    {recentAnalyses.map((item) => (
+                                        <RecentCard 
+                                            key={item.id}
+                                            cat={item.case_title || item.kategori} 
+                                            score={item.aciliyet_skoru} 
+                                            time={new Date(item.created_at).toLocaleDateString('tr-TR')} 
+                                            onPress={() => {
+                                                navigation.navigate('LawAnalysisResult', {
+                                                    analysisData: item.full_data,
+                                                    caseText: item.search_text,
+                                                    isHistorical: true
+                                                });
+                                            }}
+                                            onDelete={() => handleDeleteAnalysis(item.id)}
+                                        />
+                                    ))}
+                                    
+                                    <TouchableOpacity style={s.viewAllBtn} onPress={() => Alert.alert('Çok Yakında', 'Tüm analizlerinizin listelendiği gelişmiş geçmiş sayfası yakında aktif edilecek.')}>
+                                        <Text allowFontScaling={false} style={s.viewAllText}>TÜMÜNÜ GÖR</Text>
+                                        <LinearGradient 
+                                            colors={['transparent', GOLD + '22', 'transparent']} 
+                                            style={StyleSheet.absoluteFillObject} 
+                                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} 
+                                        />
+                                    </TouchableOpacity>
+                                </>
+                            )}
                         </View>
                     </ScrollView>
                 </SafeAreaView>
@@ -518,26 +620,68 @@ const s = StyleSheet.create({
     ctaText: { color: '#000', fontSize: 14, fontWeight: '900', letterSpacing: 0.8 },
 
     // Recent section
-    recentSection: { paddingHorizontal: 20 },
-    separator: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
-    sepLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.06)' },
-    sepLabel: { color: 'rgba(255,255,255,0.25)', fontSize: 9, fontWeight: '700', letterSpacing: 2 },
+    recentSection: { paddingHorizontal: 20, marginTop: 10 },
+    premiumHeader: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        marginBottom: 20,
+        borderLeftWidth: 3,
+        borderLeftColor: GOLD,
+        paddingLeft: 12
+    },
+    premiumTitle: { 
+        color: '#fff', 
+        fontSize: 18, 
+        fontWeight: '900', 
+        letterSpacing: 1.5,
+        textShadowColor: GOLD + '44',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 10
+    },
+    premiumSub: { color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2, fontWeight: '500' },
 
     recentCard: {
         flexDirection: 'row', alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.03)',
-        borderRadius: 16, padding: 14, marginBottom: 8,
+        borderRadius: 18, padding: 16, marginBottom: 12,
         borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
+        overflow: 'hidden'
     },
-    recentCat: { color: 'rgba(255,255,255,0.72)', fontSize: 13, fontWeight: '600', marginBottom: 3 },
-    recentTime: { color: 'rgba(255,255,255,0.25)', fontSize: 11 },
-    circleScore: {
-        width: 48, height: 48, borderRadius: 24,
-        borderWidth: 2,
+    recentIconBox: {
+        width: 42, height: 42, borderRadius: 12,
+        backgroundColor: GOLD + '15',
         alignItems: 'center', justifyContent: 'center',
+        borderWidth: 1, borderColor: GOLD + '33'
     },
-    circleScoreNum: { fontSize: 16, fontWeight: '900', lineHeight: 18 },
-    circleScoreDen: { fontSize: 8, fontWeight: '600' },
+    recentCat: { color: '#fff', fontSize: 14, fontWeight: '700', marginBottom: 2 },
+    recentTime: { color: 'rgba(255,255,255,0.25)', fontSize: 11 },
+    
+    scoreTag: {
+        flexDirection: 'row', alignItems: 'center',
+        paddingHorizontal: 8, paddingVertical: 4,
+        borderRadius: 8, borderWidth: 1,
+        marginRight: 8
+    },
+    scoreTagNum: { fontSize: 13, fontWeight: '900' },
+    scoreTagDen: { fontSize: 8, fontWeight: '600', marginLeft: 1 },
+    
+    deleteBtn: {
+        width: 36, height: 36, borderRadius: 10,
+        backgroundColor: 'rgba(239, 68, 68, 0.08)',
+        borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.15)',
+        alignItems: 'center', justifyContent: 'center',
+        marginLeft: 8
+    },
+
+    viewAllBtn: {
+        height: 48, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+        alignItems: 'center', justifyContent: 'center',
+        marginTop: 8, marginBottom: 40,
+        overflow: 'hidden'
+    },
+    viewAllText: { color: GOLD, fontSize: 11, fontWeight: '900', letterSpacing: 2 },
+
+    emptyHistory: { alignItems: 'center', paddingVertical: 40, gap: 12 },
+    emptyHistoryText: { color: '#333', fontSize: 13, fontWeight: '600' },
 
     // Analyzing overlay
     overlayBg: { ...StyleSheet.absoluteFillObject, zIndex: 999, alignItems: 'center', justifyContent: 'center' },
