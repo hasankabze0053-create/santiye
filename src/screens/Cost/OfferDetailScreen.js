@@ -8,6 +8,7 @@ import {
     Alert,
     Animated,
     Dimensions,
+    Linking,
     Modal,
     ScrollView,
     StatusBar,
@@ -240,6 +241,50 @@ export default function OfferDetailScreen() {
                 contentContainerStyle={{ paddingBottom: 150 }}
                 showsVerticalScrollIndicator={false}
             >
+                {/* 0. Firm Info Section */}
+                <GlassCard style={styles.firmCard}>
+                    <View style={styles.firmHeaderRow}>
+                        <View style={styles.avatarContainer}>
+                            {contractor?.avatar_url ? (
+                                <View style={styles.avatarPlaceholder}>
+                                    <MaterialCommunityIcons name="office-building" size={24} color="#D4AF37" />
+                                </View>
+                            ) : (
+                                <View style={styles.avatarPlaceholder}>
+                                    <MaterialCommunityIcons name="office-building" size={24} color="#D4AF37" />
+                                </View>
+                            )}
+                            <View style={styles.onlineBadge} />
+                        </View>
+                        <View style={styles.firmMeta}>
+                            <Text allowFontScaling={false} numberOfLines={1} style={styles.firmLabel}>
+                                {contractor?.company_name || contractor?.full_name || 'MÜTEAHHİT FİRMA'}
+                            </Text>
+                            <View style={styles.nameRow}>
+                                <Text allowFontScaling={false} style={styles.firmName}>
+                                    {contractor?.company_name || contractor?.full_name || 'Müteahhit Firma'}
+                                </Text>
+                                <MaterialCommunityIcons name="check-decagram" size={18} color="#38BDF8" style={{ marginLeft: 6 }} />
+                            </View>
+                            <View style={styles.statusRow}>
+                                <View style={styles.dot} />
+                                <Text style={styles.statusText}>Aktif Kurumsal Üye</Text>
+                            </View>
+                        </View>
+                    </View>
+
+                    <TouchableOpacity 
+                        style={styles.visitBtn}
+                        onPress={() => navigation.navigate('ProviderPublicProfile', { providerId: contractor?.id })}
+                    >
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <MaterialCommunityIcons name="store-outline" size={18} color="#D4AF37" style={{ marginRight: 8 }} />
+                            <Text allowFontScaling={false} style={styles.visitBtnText}>Firma Sayfasını Ziyaret Et</Text>
+                        </View>
+                        <MaterialCommunityIcons name="chevron-right" size={20} color="#D4AF37" />
+                    </TouchableOpacity>
+                </GlassCard>
+
                 {/* 1. Price & Duration Summary */}
                 <GlassCard style={[styles.card, isTadilat && { borderColor: '#4CAF50', borderLeftWidth: 4 }]}>
                     <View style={styles.cardHeader}>
@@ -358,33 +403,74 @@ export default function OfferDetailScreen() {
                 )}
 
                 {/* 4. Action Buttons */}
-                {/* 4. Action Buttons - Hide if viewer is the contractor who made the offer */}
                 {contractor?.id !== user?.id && (
                     <View style={{ marginTop: 30, gap: 12 }}>
-                        <TouchableOpacity style={styles.primaryBtn}>
+                        {/* Info Note */}
+                        <GlassCard style={styles.infoNoteCard}>
+                            <View style={{ flexDirection: 'row', gap: 10 }}>
+                                <MaterialCommunityIcons name="shield-check" size={20} color="#D4AF37" />
+                                <View style={{ flex: 1 }}>
+                                    <Text allowFontScaling={false} style={styles.infoNoteTitle}>GÜVENLİ İLETİŞİM NOTU</Text>
+                                    <Text allowFontScaling={false} style={styles.infoNoteText}>
+                                        İletişim bilgileriniz şimdiye kadar teklif veren firmayla güvenliğinizi korumak amaçlı <Text style={styles.redEmphasis}>PAYLAŞILMAMIŞTIR</Text>. 
+                                        Ön teklif sonrası görüşmek isterseniz iletişim bilgilerinizi <Text style={styles.greenEmphasis}>PAYLAŞABİLİR</Text> ya da siz firmayı <Text style={styles.greenEmphasis}>ARAYABİLİRSİNİZ.</Text>
+                                    </Text>
+                                </View>
+                            </View>
+                        </GlassCard>
+
+                        <TouchableOpacity 
+                            style={styles.primaryBtn}
+                            onPress={() => {
+                                Alert.alert(
+                                    'İletişim Bilgileri',
+                                    'İletişim bilgileriniz firma ile paylaşılacaktır. Onaylıyor musunuz?',
+                                    [
+                                        { text: 'Vazgeç', style: 'cancel' },
+                                        { text: 'Paylaş', onPress: () => Alert.alert('Başarılı', 'Bilgileriniz iletildi. Firma sizinle iletişime geçecektir.') }
+                                    ]
+                                );
+                            }}
+                        >
                             <LinearGradient
                                 colors={['#D4AF37', '#B8860B']}
                                 style={styles.gradientBtn}
                             >
-                                <Text allowFontScaling={false} style={styles.primaryBtnText}>FİRMA İLE GÖRÜŞ</Text>
+                                <Text allowFontScaling={false} style={styles.primaryBtnText}>İLETİŞİM BİLGİLERİNİ PAYLAŞ</Text>
                             </LinearGradient>
                         </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={styles.secondaryBtn}
-                            onPress={() => {
-                                navigation.navigate('Chat', {
-                                    receiver_id: contractor?.id || contractor_id,
-                                    receiver_name: contractor?.company_name || contractor?.full_name || 'Müteahhit Firma',
-                                    receiver_avatar: contractor?.avatar_url,
-                                    request_id: request?.id || request_id,
-                                    request_title: request?.title || 'Kentsel Dönüşüm Projesi'
-                                });
-                            }}
-                        >
-                            <MaterialCommunityIcons name="message-text-outline" size={20} color="#38BDF8" style={{ marginRight: 8 }} />
-                            <Text allowFontScaling={false} style={[styles.secondaryBtnText, { color: '#38BDF8' }]}>FİRMAYA SOR <Text style={{ fontSize: 11, opacity: 0.8 }}>(Mesaj At)</Text></Text>
-                        </TouchableOpacity>
+                        <View style={styles.actionRow}>
+                            <TouchableOpacity
+                                style={styles.callBtn}
+                                onPress={() => {
+                                    if (contractor?.phone) {
+                                        Linking.openURL(`tel:${contractor.phone}`);
+                                    } else {
+                                        Alert.alert('Hata', 'Firma telefon numarası bulunamadı.');
+                                    }
+                                }}
+                            >
+                                <MaterialCommunityIcons name="phone" size={20} color="#4CAF50" style={{ marginRight: 8 }} />
+                                <Text allowFontScaling={false} style={[styles.secondaryBtnText, { color: '#4CAF50' }]}>ARA</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.messageBtn}
+                                onPress={() => {
+                                    navigation.navigate('Chat', {
+                                        receiver_id: contractor?.id || contractor_id,
+                                        receiver_name: contractor?.company_name || contractor?.full_name || 'Müteahhit Firma',
+                                        receiver_avatar: contractor?.avatar_url,
+                                        request_id: request?.id || request_id,
+                                        request_title: request?.title || 'Kentsel Dönüşüm Projesi'
+                                    });
+                                }}
+                            >
+                                <MaterialCommunityIcons name="message-text" size={20} color="#2196F3" style={{ marginRight: 8 }} />
+                                <Text allowFontScaling={false} style={[styles.secondaryBtnText, { color: '#2196F3' }]}>MESAJ AT</Text>
+                            </TouchableOpacity>
+                        </View>
 
                         <TouchableOpacity style={[styles.secondaryBtn, { borderColor: '#EF4444' }]}>
                             <Text allowFontScaling={false} style={[styles.secondaryBtnText, { color: '#EF4444' }]}>REDDET</Text>
@@ -534,10 +620,162 @@ const styles = StyleSheet.create({
     schemaContainer: { backgroundColor: 'rgba(255,255,255,0.02)', padding: 0, borderRadius: 16, borderWidth: 1, borderColor: '#222', overflow: 'hidden' },
 
     noteText: { color: '#DDD', fontSize: 14, lineHeight: 22 },
+    infoNoteCard: {
+        padding: 16,
+        borderRadius: 16,
+        backgroundColor: 'rgba(212,175,55,0.05)',
+        borderWidth: 1,
+        borderColor: 'rgba(212,175,55,0.2)',
+        marginBottom: 8,
+    },
+    infoNoteTitle: {
+        color: '#D4AF37',
+        fontSize: 11,
+        fontWeight: 'bold',
+        marginBottom: 4,
+        letterSpacing: 0.5,
+    },
+    infoNoteText: {
+        color: '#BBB',
+        fontSize: 13,
+        lineHeight: 20,
+        fontWeight: '500',
+    },
+    redEmphasis: {
+        color: '#FF4444',
+        fontWeight: 'bold',
+    },
+    greenEmphasis: {
+        color: '#4CAF50',
+        fontWeight: 'bold',
+    },
+    firmCard: {
+        padding: 20,
+        borderRadius: 20,
+        marginBottom: 20,
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        borderWidth: 1,
+        borderColor: 'rgba(212,175,55,0.15)',
+        shadowColor: '#D4AF37',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+    },
+    firmHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    avatarContainer: {
+        position: 'relative',
+        marginRight: 15,
+    },
+    avatarPlaceholder: {
+        width: 54,
+        height: 54,
+        borderRadius: 16,
+        backgroundColor: 'rgba(212,175,55,0.1)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(212,175,55,0.3)',
+    },
+    onlineBadge: {
+        position: 'absolute',
+        bottom: -2,
+        right: -2,
+        width: 14,
+        height: 14,
+        borderRadius: 7,
+        backgroundColor: '#4CAF50',
+        borderWidth: 2,
+        borderColor: '#121212',
+    },
+    firmMeta: {
+        flex: 1,
+    },
+    nameRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    statusRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    dot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#4CAF50',
+        marginRight: 6,
+    },
+    statusText: {
+        color: '#888',
+        fontSize: 11,
+        fontWeight: '500',
+    },
+    firmLabel: {
+        color: '#D4AF37',
+        fontSize: 10,
+        fontWeight: 'bold',
+        letterSpacing: 1.2,
+        marginBottom: 2,
+        textTransform: 'uppercase',
+    },
+    firmName: {
+        color: '#FFF',
+        fontSize: 20,
+        fontWeight: '900',
+        letterSpacing: 0.5,
+    },
+    visitBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 14,
+        backgroundColor: 'rgba(212,175,55,0.08)',
+        borderWidth: 1,
+        borderColor: 'rgba(212,175,55,0.25)',
+    },
+    visitBtnText: {
+        color: '#D4AF37',
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
 
     primaryBtn: { borderRadius: 12, overflow: 'hidden' },
     gradientBtn: { paddingVertical: 16, alignItems: 'center' },
-    primaryBtnText: { color: '#000', fontWeight: 'bold', fontSize: 15, letterSpacing: 0.5 },
+    primaryBtnText: { color: '#000', fontWeight: 'bold', fontSize: 13, letterSpacing: 0.5 },
+
+    actionRow: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    callBtn: {
+        flex: 1,
+        flexDirection: 'row',
+        paddingVertical: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(76, 175, 80, 0.4)',
+        backgroundColor: 'rgba(76, 175, 80, 0.05)',
+    },
+    messageBtn: {
+        flex: 1,
+        flexDirection: 'row',
+        paddingVertical: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(33, 150, 243, 0.4)',
+        backgroundColor: 'rgba(33, 150, 243, 0.05)',
+    },
 
     secondaryBtn: { flexDirection: 'row', paddingVertical: 14, alignItems: 'center', justifyContent: 'center', borderRadius: 12, borderWidth: 1, borderColor: '#333', backgroundColor: 'rgba(255,255,255,0.05)' },
     secondaryBtnText: { color: '#FFF', fontWeight: '600', fontSize: 14 },
