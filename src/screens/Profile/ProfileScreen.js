@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const PROFILE_IMAGE = "https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-1.2.1&auto=format&fit=crop&w=687&q=80";
 
@@ -25,7 +26,7 @@ export default function ProfileScreen() {
     const { user, signOut, profile, refreshProfile } = useAuth(); // Use profile from context
     // const [profile, setProfile] = useState(null); // Removed local state
     const [loading, setLoading] = useState(false); // Default false, strictly for refresh
-    const [isDarkMode, setIsDarkMode] = useState(true);
+    const { isDarkMode, toggleTheme, accent, accentBright } = useTheme();
 
     // Initial fetch handled by AuthContext. We just refresh on focus.
     useFocusEffect(
@@ -73,16 +74,21 @@ export default function ProfileScreen() {
         ]);
     };
 
-    // Dynamic Theme System
+    // Dynamic Theme System — powered by ThemeContext
     const theme = {
-        background: isDarkMode ? '#000000' : '#F2F2F7',
+        background: isDarkMode ? '#000000' : '#F4F1EB',
         card: isDarkMode ? '#1C1C1E' : '#FFFFFF',
-        text: isDarkMode ? '#FFFFFF' : '#121212',
-        subText: isDarkMode ? '#8E8E93' : '#636366',
-        icon: isDarkMode ? '#FDCB58' : '#121212',
-        border: isDarkMode ? '#333333' : '#E5E5EA',
-        placeholder: isDarkMode ? '#2C2C2E' : '#FFFFFF',
-        shadow: isDarkMode ? '#000' : '#ccc',
+        text: isDarkMode ? '#FFFFFF' : '#1A1A1A',
+        subText: isDarkMode ? '#8E8E93' : '#5C5C5C',
+        icon: isDarkMode ? '#FDCB58' : '#9A6F00',
+        border: isDarkMode ? '#333333' : '#D6CEBC',
+        iconBg: isDarkMode ? '#2C2C2E' : '#EDE8DC',
+        placeholder: isDarkMode ? '#2C2C2E' : '#F0ECE4',
+        shadow: isDarkMode ? '#000' : '#A09070',
+        sectionBg: isDarkMode ? '#000000' : '#F4F1EB',
+        switchTrackActive: isDarkMode ? '#FDCB58' : '#9A6F00',
+        editBtn: isDarkMode ? '#2C2C2E' : '#EDE8DC',
+        avatarBorder: isDarkMode ? '#333333' : '#D6CEBC',
     };
 
     // The Corporate Card ALWAYS keeps this Dark/Gold scheme
@@ -99,7 +105,7 @@ export default function ProfileScreen() {
             style={[styles.quickActionBtn, {
                 backgroundColor: theme.card,
                 borderColor: theme.border,
-                borderWidth: isDarkMode ? 1 : 0,
+                borderWidth: 1,
                 shadowColor: theme.shadow,
             }]}
             activeOpacity={0.8}
@@ -120,7 +126,7 @@ export default function ProfileScreen() {
             onPress={onPress}
             disabled={hasSwitch}
         >
-            <View style={[styles.menuIconContainer, { backgroundColor: isDestructive ? 'rgba(255, 59, 48, 0.1)' : (isDarkMode ? '#2C2C2E' : '#F2F2F7') }]}>
+            <View style={[styles.menuIconContainer, { backgroundColor: isDestructive ? 'rgba(255, 59, 48, 0.1)' : theme.iconBg }]}>
                 <Ionicons
                     name={icon}
                     size={20}
@@ -131,9 +137,9 @@ export default function ProfileScreen() {
 
             {hasSwitch ? (
                 <Switch
-                    trackColor={{ false: "#767577", true: "#FDCB58" }}
+                    trackColor={{ false: isDarkMode ? "#767577" : "#C9BFB0", true: theme.switchTrackActive }}
                     thumbColor={switchValue ? "#fff" : "#f4f3f4"}
-                    ios_backgroundColor="#3e3e3e"
+                    ios_backgroundColor={isDarkMode ? "#3e3e3e" : "#C9BFB0"}
                     onValueChange={onSwitchChange}
                     value={switchValue}
                 />
@@ -188,7 +194,7 @@ export default function ProfileScreen() {
                                 </>
                             )}
                         </View>
-                        <TouchableOpacity style={[styles.editButton, { backgroundColor: isDarkMode ? '#333' : '#E5E5EA' }]}>
+                        <TouchableOpacity style={[styles.editButton, { backgroundColor: theme.editBtn }]}>
                             <MaterialCommunityIcons name="pencil" size={20} color={theme.text} />
                         </TouchableOpacity>
                     </View>
@@ -341,7 +347,7 @@ export default function ProfileScreen() {
                             label={isDarkMode ? "Karanlık Mod" : "Aydınlık Mod"}
                             hasSwitch
                             switchValue={isDarkMode}
-                            onSwitchChange={() => setIsDarkMode(!isDarkMode)}
+                            onSwitchChange={toggleTheme}
                         />
                         <MenuItem
                             icon="notifications-outline"
@@ -428,7 +434,7 @@ const styles = StyleSheet.create({
     // Header
     header: { padding: 20, paddingTop: 10 },
     profileRow: { flexDirection: 'row', alignItems: 'center' },
-    avatar: { width: 60, height: 60, borderRadius: 30, borderWidth: 2, borderColor: '#333' },
+    avatar: { width: 60, height: 60, borderRadius: 30, borderWidth: 2, borderColor: 'transparent' },
     profileInfo: { flex: 1, marginLeft: 15 },
     userName: { fontSize: 20, fontWeight: '700' },
     userType: { fontSize: 13, marginTop: 2 },

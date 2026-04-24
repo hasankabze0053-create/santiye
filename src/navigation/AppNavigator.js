@@ -122,16 +122,16 @@ function ProfileStackNavigator() {
 // --- PREMIUM BOTTOM TAB NAVIGATOR ---
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
-import { ConstructionService } from '../services/ConstructionService'; // Added ConstructionService
+import { ConstructionService } from '../services/ConstructionService';
 import { MarketService } from '../services/MarketService';
+import { useTheme } from '../context/ThemeContext';
 
 // ... (existing imports)
 
 // --- PREMIUM BOTTOM TAB NAVIGATOR ---
 function BottomTabNavigator() {
-    const colorScheme = useColorScheme();
-    const isDarkMode = colorScheme === 'dark' || true; // Force Dark Mode for now context or remove true
-    const { user } = useAuth(); // Get user to trigger refetch on login
+    const { isDarkMode } = useTheme(); // Global theme
+    const { user } = useAuth();
 
     const [requestCount, setRequestCount] = useState(0);
     const [inboxCount, setInboxCount] = useState(0);
@@ -183,12 +183,12 @@ function BottomTabNavigator() {
         }
     };
 
-    // Theme Colors
+    // Theme Colors — from ThemeContext
     const theme = {
         barBg: isDarkMode ? '#000000' : '#FFFFFF',
-        active: isDarkMode ? '#FDCB58' : '#121212',
-        inactive: isDarkMode ? '#636366' : '#8E8E93',
-        border: isDarkMode ? '#1C1C1E' : '#E5E5EA',
+        active: isDarkMode ? '#FDCB58' : '#9A6F00',
+        inactive: isDarkMode ? '#636366' : '#8A8A8A',
+        border: isDarkMode ? '#1C1C1E' : '#E5DFD3',
     };
 
     return (

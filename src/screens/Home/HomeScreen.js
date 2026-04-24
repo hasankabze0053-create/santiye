@@ -5,9 +5,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, Easing, FlatList, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../../context/AuthContext'; // Import useAuth
+import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
-import { MarketService } from '../../services/MarketService'; // Ensure MarketService is also i imported if usedAuth
+import { MarketService } from '../../services/MarketService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -60,7 +61,8 @@ const ASSET_MAP = {
 };
 
 export default function HomeScreen({ navigation }) {
-    const { profile } = useAuth(); // Get profile
+    const { profile } = useAuth();
+    const { isDarkMode } = useTheme();
     const [greeting, setGreeting] = useState('İYİ GÜNLER');
     const [marketCount, setMarketCount] = useState(0);
 
@@ -258,8 +260,8 @@ export default function HomeScreen({ navigation }) {
     );
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" />
+        <View style={[styles.container, { backgroundColor: isDarkMode ? '#000000' : '#F4F1EB' }]}>
+            <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
             <SafeAreaView style={{ flex: 1 }}>
                 <ScrollView
                     showsVerticalScrollIndicator={false}
@@ -273,10 +275,10 @@ export default function HomeScreen({ navigation }) {
                                 {/* Steel Cable - Fixed from top */}
                                 <View style={{
                                     position: 'absolute',
-                                    top: -1000, // Goes way up
-                                    bottom: '95%', // Ends just above the hook
+                                    top: -1000,
+                                    bottom: '95%',
                                     width: 1.5,
-                                    backgroundColor: 'rgba(255,255,255,0.3)', // Steel look
+                                    backgroundColor: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
                                 }} />
 
                                 {/* Swinging Sign Container */}
@@ -291,7 +293,7 @@ export default function HomeScreen({ navigation }) {
 
                                     {/* Text Logo with Emoji */}
                                     <Text allowFontScaling={false} style={{ fontSize: 30, fontWeight: '900', letterSpacing: -1, lineHeight: 34 }}>
-                                        <Text allowFontScaling={false} style={{ color: '#ffffff' }}>Cepte</Text>
+                                        <Text allowFontScaling={false} style={{ color: isDarkMode ? '#ffffff' : '#1A1A1A' }}>Cepte</Text>
                                         <Text allowFontScaling={false} style={{ color: '#D4AF37' }}>Şef</Text>
                                         <Text allowFontScaling={false} style={{ fontSize: 24 }}> 👷🏼</Text>
                                     </Text>
@@ -337,9 +339,15 @@ export default function HomeScreen({ navigation }) {
                                     </TouchableOpacity>
                                 )}
 
-                                <TouchableOpacity style={styles.profileBtn} onPress={() => navigation.navigate('ProfileMain')}>
-                                    <View style={styles.initialsContainer}>
-                                        <Text allowFontScaling={false} style={styles.initialsText}>
+                                <TouchableOpacity style={[
+                                    styles.profileBtn,
+                                    {
+                                        backgroundColor: isDarkMode ? '#111' : '#FFFFFF',
+                                        borderColor: isDarkMode ? '#333' : '#D6CEBC',
+                                    }
+                                ]} onPress={() => navigation.navigate('ProfileMain')}>
+                                    <View style={[styles.initialsContainer, { backgroundColor: isDarkMode ? '#1a1a1a' : '#F4F1EB' }]}>
+                                        <Text allowFontScaling={false} style={[styles.initialsText, { color: isDarkMode ? '#D4AF37' : '#9A6F00' }]}>
                                             {profile?.full_name ? profile.full_name.substring(0, 2).toUpperCase() : 'CŞ'}
                                         </Text>
                                     </View>
@@ -349,18 +357,18 @@ export default function HomeScreen({ navigation }) {
                         </View>
                     </View>
 
-                    {/* METALLIC TICKER BAND */}
                     <View style={styles.tickerContainer}>
                         <LinearGradient
-                            colors={['#2c3e50', '#000000', '#2c3e50']}
+                            colors={isDarkMode
+                                ? ['#2c3e50', '#000000', '#2c3e50']
+                                : ['#4A3728', '#2C1810', '#4A3728']
+                            }
                             start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }} // Horizontal gradient for brushed metal look
+                            end={{ x: 1, y: 0 }}
                             style={styles.tickerBand}
                         >
-                            {/* Top/Bottom Gold Borders */}
                             <View style={styles.goldBorderTop} />
 
-                            {/* Native Animated Ticker (No Drag, High Performance) */}
                             <View style={{ overflow: 'hidden', width: '100%' }}>
                                 <Animated.View
                                     style={{
@@ -373,7 +381,6 @@ export default function HomeScreen({ navigation }) {
                                         }]
                                     }}
                                 >
-                                    {/* FIRST SET - We measure this one */}
                                     <View
                                         style={{ flexDirection: 'row' }}
                                         onLayout={(e) => {
@@ -382,7 +389,6 @@ export default function HomeScreen({ navigation }) {
                                             }
                                         }}
                                     >
-                                        {/* Ticker Items */}
                                         <View style={{ flexDirection: 'row' }}>
                                             {renderTickerItem(selectedValues.iron, `iron-1`)}
                                             <View style={styles.tickerSeparator} />
@@ -406,7 +412,6 @@ export default function HomeScreen({ navigation }) {
                                         </View>
                                     </View>
 
-                                    {/* SECOND SET - Duplicate for Loop continuity */}
                                     <View style={{ flexDirection: 'row' }}>
                                         {renderTickerItem(selectedValues.iron, `iron-2`)}
                                         <View style={styles.tickerSeparator} />
@@ -432,23 +437,19 @@ export default function HomeScreen({ navigation }) {
                             </View>
 
                             <View style={styles.goldBorderBottom} />
-                            <View style={styles.goldBorderBottom} />
                         </LinearGradient>
                     </View>
 
-                    {/* GRID CATEGORIES - SPLIT VIEW METALLIC */}
                     <View style={styles.gridContainer}>
                         {loadingConfig ? (
                             <ActivityIndicator size="large" color="#D4AF37" style={{ marginTop: 20, width: '100%' }} />
                         ) : (
                             categories.map((cat, index) => {
                                 let subtitle = cat.subtitle;
-                                // Special logic for Market
                                 if (cat.id === 'market' && marketCount > 0) {
                                     subtitle = `${marketCount} Aktif Talep`;
                                 }
 
-                                // Resolve Image
                                 const imageSource = ASSET_MAP[cat.image_asset_key] || null;
 
                                 return (
@@ -466,13 +467,11 @@ export default function HomeScreen({ navigation }) {
                                         }}
                                         activeOpacity={0.9}
                                     >
-                                        <View style={styles.cardContainer}>
-                                            {/* Full Height Image */}
+                                        <View style={[styles.cardContainer, { backgroundColor: isDarkMode ? '#111' : '#FFF' }]}>
                                             <View style={styles.cardImageContainer}>
                                                 <Image source={imageSource} style={styles.cardImageFull} contentFit="cover" transition={300} />
                                             </View>
 
-                                            {/* Overlay Gradient Footer */}
                                             <LinearGradient
                                                 colors={['transparent', 'rgba(0,0,0,0.95)']}
                                                 style={styles.cardFooter}
@@ -489,8 +488,6 @@ export default function HomeScreen({ navigation }) {
                                                 <Ionicons name="chevron-forward" size={18} color="#D4AF37" />
                                             </LinearGradient>
                                         </View>
-
-                                        {/* Glossy Border Overlay */}
                                         <View style={styles.cardBorder} />
                                     </TouchableOpacity>
                                 )
@@ -499,7 +496,6 @@ export default function HomeScreen({ navigation }) {
                 </ScrollView>
             </SafeAreaView>
 
-            {/* SELECTION MODAL */}
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -511,27 +507,25 @@ export default function HomeScreen({ navigation }) {
                     activeOpacity={1}
                     onPress={closeModal}
                 >
-                    {/* Glassy Gradient Background for Modal */}
                     <TouchableOpacity
                         activeOpacity={1}
                         style={styles.modalContainer}
                         onPress={(e) => e.stopPropagation()}
                     >
                         <LinearGradient
-                            colors={['#1a1a1a', '#000000']}
+                            colors={isDarkMode ? ['#1a1a1a', '#000000'] : ['#FFFFFF', '#F4F1EB']}
                             style={styles.modalContent}
                         >
-                            {/* Drag Handle */}
                             <View style={styles.modalHandleContainer}>
-                                <View style={styles.modalHandle} />
+                                <View style={[styles.modalHandle, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)' }]} />
                             </View>
 
                             <View style={styles.modalHeader}>
-                                <Text allowFontScaling={false} style={styles.modalTitle}>
+                                <Text allowFontScaling={false} style={[styles.modalTitle, { color: isDarkMode ? '#D4AF37' : '#9A6F00' }]}>
                                     {activeCategory ? MARKET_OPTS[activeCategory].title : 'SEÇİM YAPIN'}
                                 </Text>
                                 <TouchableOpacity onPress={closeModal} style={styles.closeBtn}>
-                                    <Ionicons name="close" size={20} color="#000" />
+                                    <Ionicons name="close" size={20} color={isDarkMode ? '#FFF' : '#1A1A1A'} />
                                 </TouchableOpacity>
                             </View>
 
@@ -541,20 +535,20 @@ export default function HomeScreen({ navigation }) {
                                 contentContainerStyle={{ paddingBottom: 40 }}
                                 renderItem={({ item }) => (
                                     <TouchableOpacity
-                                        style={styles.modalItem}
+                                        style={[styles.modalItem, { borderBottomColor: isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]}
                                         onPress={() => handleSelectOption(item)}
                                         activeOpacity={0.7}
                                     >
-                                        <Text allowFontScaling={false} style={styles.modalItemLabel}>{item.label}</Text>
+                                        <Text allowFontScaling={false} style={[styles.modalItemLabel, { color: isDarkMode ? '#FFF' : '#1A1A1A' }]}>{item.label}</Text>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                            <Text allowFontScaling={false} style={styles.modalItemValue}>{item.value}</Text>
+                                            <Text allowFontScaling={false} style={[styles.modalItemValue, { color: isDarkMode ? '#CCC' : '#666' }]}>{item.value}</Text>
                                             {item.trend === 'up' && <Ionicons name="caret-up" size={14} color="#4ADE80" style={{ marginLeft: 8 }} />}
                                             {item.trend === 'down' && <Ionicons name="caret-down" size={14} color="#EF4444" style={{ marginLeft: 8 }} />}
                                             {item.trend === 'neutral' && <Ionicons name="remove" size={14} color="#9CA3AF" style={{ marginLeft: 8 }} />}
                                         </View>
                                     </TouchableOpacity>
                                 )}
-                                ItemSeparatorComponent={() => <View style={styles.modalSeparator} />}
+                                ItemSeparatorComponent={() => <View style={[styles.modalSeparator, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />}
                             />
                         </LinearGradient>
                     </TouchableOpacity>
@@ -566,7 +560,7 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#000000' }, // Deep Black Background (Premium)
+    container: { flex: 1 },
     scrollContent: { paddingBottom: 120 },
 
     // HEADER STYLES
