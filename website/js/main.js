@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. FORM SUBMISSION (GOOGLE SHEETS & EMAIL)
     const preRegisterForm = document.getElementById('preRegisterForm');
     // ÖNEMLİ: Aşağıdaki URL'yi kendi Google Apps Script Web App URL'niz ile değiştirin.
-    const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL'; 
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6-h7m4Di3oKn2QFbJgYhm6jCQbGjImGL2j4y9SEjKsyCGdvcqUcVo6YvYB4shxnp2/exec'; 
     
     if (preRegisterForm) {
         preRegisterForm.addEventListener('submit', function(e) {
