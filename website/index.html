@@ -1,1151 +1,275 @@
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CepteŞef | Şantiyeniz Cebinizde</title>
-    <link rel="stylesheet" href="css/style.css?v=3">
+    <title>CepteŞef - İnşaatın Dijital Ekosistemi</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
 </head>
+<body class="obsidian-theme">
 
-<body>
-
-    <!-- HERO SECTION -->
-    <header class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <div class="hanging-sign-container static">
-                    <!-- Text (Restored) -->
-                    <div class="sign-text">
-                        <span class="white">Cepte</span><span class="gold">Şef</span> <span
-                            class="worker-emoji">👷🏼</span>
-                    </div>
-                    <!-- 5 Gold Bricks (2 Top, 3 Bottom) -->
-                    <div class="bricks-pile">
-                        <div class="brick-row">
-                            <div class="brick"></div>
-                            <div class="brick"></div>
-                        </div>
-                        <div class="brick-row">
-                            <div class="brick"></div>
-                            <div class="brick"></div>
-                            <div class="brick"></div>
-                        </div>
-                    </div>
-                </div>
-                <h2 class="headline">İnşaat Alanında <span>Premium</span> Çözüm Ortağınız</h2>
-                <p class="sub-headline">CepteŞef, inşaat alanında uçtan uca bir mobil uygulamadır.</p>
-                <!-- Video Button Row -->
-                <!-- Video Button Row -->
-                <div style="margin-bottom: 30px;">
-                    <a href="#" id="btnPromoVideo" class="btn btn-premium-video">
-                        <i class="fa-solid fa-play"></i> Tanıtım Videosu
-                    </a>
-                </div>
-
-                <!-- Store Buttons Row -->
-                <div class="cta-group">
-                    <a href="#" class="btn btn-gold"><i class="fa-brands fa-apple"></i> App Store</a>
-                    <a href="#" class="btn btn-outline"><i class="fa-brands fa-google-play"></i> Google Play</a>
+    <!-- HEADER / NAVBAR -->
+    <header class="main-header">
+        <div class="container header-container">
+            <div class="logo-area">
+                <div class="logo-text">
+                    <h1>Cepte<span>Şef</span></h1>
+                    <span class="logo-slogan">Karar Şefte, Çözüm Cepte.</span>
                 </div>
             </div>
-            <div class="hero-visual">
-                <div class="phone-mockup">
-                    <div class="notch"></div>
-                    <div class="screen-content">
-                        <img src="assets/hero_screen.png" alt="CepteŞef Ana Ekran">
-                    </div>
-                </div>
+            
+            <nav class="nav-menu">
+                <a href="#home" class="nav-link active">Anasayfa</a>
+                <a href="#about" class="nav-link">CepteŞef Nedir?</a>
+                <a href="#audience" class="nav-link">Kimler İçin?</a>
+                <a href="#why" class="nav-link">Neden CepteŞef?</a>
+                <a href="#contact" class="nav-link">İletişim</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="#pre-register" class="btn-gold">Ön Kayıt Ol <i class="fa-solid fa-arrow-right"></i></a>
+                <button class="mobile-menu-btn"><i class="fa-solid fa-bars"></i></button>
             </div>
         </div>
     </header>
 
-    <!-- INTERACTIVE SHOWCASE Tabs -->
-    <section class="app-showcase">
-        <div class="container">
-            <div class="tabs-header">
-                <button class="tab-btn active" data-target="rental"><i class="fa-solid fa-truck-yellow"></i>
-                    Kiralama</button>
-                <button class="tab-btn" data-target="market"><i class="fa-solid fa-shopping-basket"></i> Market</button>
-                <button class="tab-btn" data-target="renovation"><i class="fa-solid fa-paint-roller"></i>
-                    Tadilat</button>
-                <button class="tab-btn" data-target="engineering"><i class="fa-solid fa-helmet-safety"></i>
-                    Teknik Ofis</button>
-                <button class="tab-btn" data-target="cost"><i class="fa-solid fa-calculator"></i>
-                    Maliyet</button>
-                <button class="tab-btn" data-target="logistics"><i class="fa-solid fa-truck-fast"></i> Nakliye</button>
-                <button class="tab-btn" data-target="law"><i class="fa-solid fa-scale-balanced"></i> Hukuk</button>
-                <button class="tab-btn" data-target="transformation"><i class="fa-solid fa-city"></i> Kentsel
-                    Dönüşüm</button>
-            </div>
+    <!-- HERO SECTION -->
+    <section id="home" class="hero-section">
+        <div class="container hero-container">
+            
+            <!-- Left Column -->
+            <div class="hero-left">
+                <span class="subtitle">İNŞAAT SEKTÖRÜNDE DİJİTAL DÖNÜŞÜM BAŞLIYOR</span>
+                <h2 class="main-title">Türkiye'nin<br><span class="gold-text">Dijital İnşaat Ekosistemi</span></h2>
+                <p class="hero-desc">
+                    CepteŞef; inşaat sektörünün tüm paydaşlarını <strong>(müteahhit, tedarikçi, mülk sahibi, avukat)</strong> tek bir çatı altında toplayan, uçtan uca yönetilen merkezi bir dijital ekosistem platformudur.
+                </p>
 
-            <div class="tab-content-wrapper">
+                <div class="hero-btns">
+                    <a href="#pre-register" class="btn-gold large">Firma Ön Kaydı Oluştur <i class="fa-solid fa-arrow-right"></i></a>
+                    <a href="#about" class="btn-transparent">CepteŞef'i Tanı <i class="fa-solid fa-play"></i></a>
+                </div>
 
-                <!-- 1. KİRALAMA -->
-                <!-- 1. KİRALAMA (Zig-Zag Showcase) -->
-                <div class="tab-pane active" id="rental">
-                    <div class="zig-zag-container">
-
-                        <!-- Row 1: Hero (Video Left, Text Right) -->
-                        <div class="zig-zag-row video-row">
-                            <div class="media-side">
-                                <div class="phone-mockup-large">
-                                    <div class="notch"></div>
-                                    <video src="assets/video_rental.mp4" autoplay loop muted playsinline
-                                        class="screen-video"></video>
-                                </div>
-                            </div>
-                            <div class="video-play-btn"><i class="fa-solid fa-play"></i></div>
-                            <div class="text-side">
-                                <div class="video-indicator"><i class="fa-solid fa-arrow-left"></i> VİDEO</div>
-                                <h3 class="highlight-gold">Kiralama Ekranı Uygulama İçi Kullanımı</h3>
-                                <p>İş makinesi kiralama sürecini nasıl dijitalleştirdiğimizi izleyin. İster saatlik,
-                                    günlük veya haftalık kısa dönemli; isterseniz de proje bazlı uzun dönemli anlaşmalar
-                                    yapın. Kontrol tamamen sizde; çalışma süresini ve şartları belirleyin, bu çerçevede
-                                    en uygun teklifi anında alın.</p>
-                                <div class="badges">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
-                                        alt="App Store" class="store-badge">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
-                                        alt="Google Play" class="store-badge">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 2: Map Discovery (Text Left, Image Right) -->
-                        <div class="zig-zag-row row-reverse">
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-map-location-dot"></i></div>
-                                <h3>KİRALAMA KARTINI SEÇİN DEVAM EDİN</h3>
-                                <p>Uygulamanın ana sayfasında yer alan panelden "Kiralama" kartını seçin. İhtiyacınız
-                                    olan iş makinelerine ulaşmak ve kiralama sürecini başlatmak için ilk adımı atın;
-                                    gerisini CepteŞef'in hızına bırakın.</p>
-                            </div>
-                            <div class="media-side">
-                                <div class="phone-mockup-floating glow-effect">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_rental_1.jpg" alt="Map View" class="screen-img">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 3: Opportunities (NEW IMAGE) (Image Left, Text Right) -->
-                        <div class="zig-zag-row">
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_rental_parkur.jpg" alt="Opportunities" class="screen-img">
-                                </div>
-                            </div>
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-star"></i></div>
-                                <h3>KAMPANYALAR VE KİRALAMA TERCİHİ</h3>
-                                <p>Ekranın en üstünde firmaların sunduğu "Enkaz Karşılığı Yıkım" gibi özel fırsatları ve
-                                    kampanyaları anlık takip edin. Hemen altında, projenizin ihtiyacına göre "Süreli
-                                    Kiralama" (Saatlik/Günlük) veya "Proje Bazlı Kiralama" seçeneklerinden birini
-                                    belirleyerek geniş makine parkurumuza ulaşın.</p>
-                            </div>
-                        </div>
-
-
-
-                        <!-- Row 4: Order Tracking (Moved Up) (Text Left, Image Right) -->
-                        <div class="zig-zag-row row-reverse">
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-truck-fast"></i></div>
-                                <h3>FİRMALARI VE FİYATLARI KARŞILAŞTIRIN</h3>
-                                <p>İstediğiniz iş makinesi için bölgenizdeki tedarikçi firmaları tek ekranda listeleyin.
-                                    Firmaların saatlik, günlük, haftalık ve aylık birim fiyatlarını şeffaf bir şekilde
-                                    yan yana görün. Bütçenize ve projenizin süresine en uygun teklifi sunan firmayı
-                                    anında seçerek kiralama işlemini başlatın.</p>
-                            </div>
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_rental_tracking_new.jpg" alt="Order Tracking"
-                                        class="screen-img">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 5: Rental Options (Image Left, Text Right) -->
-                        <div class="zig-zag-row">
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_rental_4.jpg" alt="Rental Options" class="screen-img">
-                                </div>
-                            </div>
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-regular fa-calendar-check"></i></div>
-                                <h3>KİRALAMA DETAYLARINI BELİRLEYİN</h3>
-                                <p>Seçtiğiniz makine için kiralama koşullarını siz belirleyin. Akıllı form üzerinden
-                                    başlangıç tarihini, çalışma süresini ve şantiye adresini girerek talebinizi
-                                    oluşturun. Eksiksiz doldurulan form sayesinde, projenize en uygun makineye en hızlı
-                                    şekilde ulaşın.</p>
-                            </div>
-                        </div>
-
-                        <!-- Row 6: Instant Approval (Text Left, Image Right) -->
-                        <div class="zig-zag-row row-reverse">
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-circle-check"></i></div>
-                                <h3>SİPARİŞ ÖZETİ VE ONAY</h3>
-                                <p>Kiralama sürecinin final adımı. Seçtiğiniz hizmet, firma, çalışma süresi ve toplam
-                                    maliyet gibi tüm detayları tek bir özet ekranında şeffafça görüntüleyin. Her şey
-                                    doğruysa, tek tıkla teklifi onaylayıp güvenle siparişinizi oluşturun.</p>
-                            </div>
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_rental_5.jpg" alt="Success Screen" class="screen-img">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 7: Technical Detail (Image Left, Text Right) -->
-                        <div class="zig-zag-row">
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_rental_3.jpg" alt="Vehicle Detail" class="screen-img">
-                                </div>
-                            </div>
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-gears"></i></div>
-                                <h3>SONUÇ: BAŞARILI VE HIZLI</h3>
-                                <p>Kiralama talebiniz saniyeler içinde tamamlandı ve tedarikçiye iletildi. İşlem onayını
-                                    aldıktan sonra tek bir dokunuşla ana panelinize (dashboard) geri dönün. Sipariş
-                                    durumunuzu takip ederken yeni talepler oluşturmaya hemen başlayın.</p>
-                            </div>
-                        </div>
-
+                <div class="hero-badges">
+                    <div class="badge-item">
+                        <i class="fa-solid fa-shield-halved badge-icon"></i>
+                        <span>Komisyon YOK</span>
+                    </div>
+                    <div class="badge-item">
+                        <i class="fa-solid fa-users badge-icon"></i>
+                        <span>Gerçek Talep Gerçek Müşteri</span>
+                    </div>
+                    <div class="badge-item">
+                        <i class="fa-solid fa-handshake badge-icon"></i>
+                        <span>Şeffaf Teklif Rekabeti</span>
+                    </div>
+                    <div class="badge-item">
+                        <i class="fa-solid fa-brain badge-icon"></i>
+                        <span>Yapay Zeka Destekli</span>
                     </div>
                 </div>
 
-                <!-- 2. MARKET -->
-                <!-- 2. MARKET (Zig-Zag Showcase) -->
-                <div class="tab-pane" id="market">
-                    <div class="zig-zag-container">
-
-                        <!-- Row 1: Hero -->
-                        <div class="zig-zag-row video-row">
-                            <div class="media-side">
-                                <div class="phone-mockup-large">
-                                    <div class="notch"></div>
-                                    <video src="assets/video_market.mp4" autoplay loop muted playsinline
-                                        class="screen-video" poster="assets/img_market_final_1.jpg"></video>
-                                </div>
-                            </div>
-                            <div class="video-play-btn"><i class="fa-solid fa-play"></i></div>
-                            <div class="text-side">
-                                <div class="video-indicator"><i class="fa-solid fa-arrow-left"></i> VİDEO</div>
-                                <h3 class="highlight-gold">AYNI KALİTE, DAHA UYGUN FİYAT</h3>
-                                <p>İnşaat malzemesi tedariğinde maliyetlerinizi düşürün. Videoda izleyeceğiniz gibi;
-                                    istediğiniz markayı, ürünü ve miktarı belirleyin, tüm tedarikçilerden teklifleri
-                                    toplayın. Müteahhitler için geliştirdiğimiz bu sistemle, kaliteden ödün vermeden
-                                    piyasadaki en rekabetçi fiyatlara ulaşın ve bütçenizi koruyun.</p>
-                                <div class="badges">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
-                                        alt="App Store" class="store-badge">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
-                                        alt="Google Play" class="store-badge">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 2: Logistics / Delivery (Moved to Pos 1, Transformed to Reverse) -->
-                        <div class="zig-zag-row row-reverse">
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-layer-group"></i></div>
-                                <h3>MARKET KARTINI SEÇİN, ALIŞVERİŞE BAŞLAYIN</h3>
-                                <p>Uygulamanın ana panelinden "Market" kartına dokunun. Kaba inşaattan ince işçiliğe
-                                    kadar binlerce yapı malzemesine ve geniş tedarikçi ağına ulaşmanın en hızlı yolunu
-                                    keşfedin.</p>
-                            </div>
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_market_5.jpg" alt="Logistics Delivery" class="screen-img">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 3: Product Detail / Review -->
-                        <div class="zig-zag-row">
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_market_2.jpg" alt="Product Review" class="screen-img">
-                                </div>
-                            </div>
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
-                                <h3>LİSTENİZİ OLUŞTURUN, TEKLİF TOPLAYIN</h3>
-                                <p>Malzeme tedariğinde vakit kaybetmeyin. İlgilendiğiniz ürünleri detaylıca inceledikten
-                                    sonra "Teklif Topla" modülünü kullanın. Tek tek fiyat sormak yerine, oluşturduğunuz
-                                    liste üzerinden ilerleyerek tüm tedarikçilerden aynı anda teklif isteyin.</p>
-                            </div>
-                        </div>
-
-                        <!-- Row 4: Bulk Request / List -->
-                        <div class="zig-zag-row row-reverse">
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-list-check"></i></div>
-                                <h3>PROJENİZE ÖZEL ALIM LİSTESİ</h3>
-                                <p>Şantiyenizin ihtiyaçlarını tek bir listede toplayın. C30 betondan seramiğe kadar ne
-                                    üzerine teklif almak istiyorsanız forma işleyin. Oluşturduğunuz bu detaylı liste
-                                    sayesinde, tedarikçiler size özel stok ve fiyat çalışması yapsın.</p>
-                            </div>
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_market_3.jpg" alt="Bulk List" class="screen-img">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 5: Dashboard / Categories (Moved to Pos 4, Transformed to Normal) -->
-                        <div class="zig-zag-row">
-                            <div class="media-side">
-                                <div class="phone-mockup-floating glow-effect">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_market_1.jpg" alt="Market Dashboard" class="screen-img">
-                                </div>
-                            </div>
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-truck-clock"></i></div>
-                                <h3>TESLİMAT DETAYLARI VE ZAMANLAMA</h3>
-                                <p>Siparişiniz doğru yere, doğru zamanda ulaşsın. Adres bilginizi detaylandırın,
-                                    teslimat için "Hemen / Acil" veya ileri tarihli bir zaman dilimi belirleyin. Varsa
-                                    sahayla ilgili özel notlarınızı ekleyerek nakliye sürecindeki tüm belirsizlikleri
-                                    yok edin.</p>
-                            </div>
-                        </div>
-
-                        <!-- Row 6: Payment / Supplier -->
-                        <div class="zig-zag-row row-reverse">
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-regular fa-credit-card"></i></div>
-                                <h3>ÖDEME TERCİHİ VE TEKLİF İSTEME</h3>
-                                <p>Son aşamadasınız. Size sunulan Nakit, Kredi Kartı veya Çek/Vade opsiyonlarından
-                                    birini seçerek ödeme tercihinizi belirtin. "Teklif İste" butonuna bastığınız anda
-                                    talebiniz kriterlerinize uygun tüm tedarikçilere iletilsin.</p>
-                            </div>
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_market_4.jpg" alt="Payment Options" class="screen-img">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 7: Success / Pool -->
-                        <div class="zig-zag-row">
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_market_success.jpg" alt="Success Pool" class="screen-img">
-                                </div>
-                            </div>
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-                                <h3>TEKLİF HAVUZUNUZ HAZIRLANIYOR</h3>
-                                <p>Malzeme talebiniz başarıyla işleme alındı. Arka planda tüm tedarikçilerden fiyatlar
-                                    toplanırken ekran başında beklemenize gerek yok. Panelinize geri dönün; teklifler
-                                    tamamlandığında size bildirimle haber verelim.</p>
-                            </div>
-                        </div>
-
+                <div class="app-teaser-card">
+                    <div class="teaser-left">
+                        <i class="fa-solid fa-mobile-screen teaser-phone-icon"></i>
                     </div>
-                </div>
-
-
-
-                <!-- 4. TADİLAT -->
-                <!-- 4. TADİLAT (Zig-Zag Showcase) -->
-                <div class="tab-pane" id="renovation">
-                    <div class="zig-zag-container">
-
-                        <!-- Row 1: Hero (VIDEO) -->
-                        <div class="zig-zag-row video-row">
-                            <div class="media-side">
-                                <div class="phone-mockup-large">
-                                    <div class="notch"></div>
-                                    <video src="assets/video_renovation.mp4" autoplay loop muted playsinline
-                                        class="screen-video" poster="assets/img_renovation.jpg"></video>
-                                </div>
-                            </div>
-                            <div class="video-play-btn"><i class="fa-solid fa-play"></i></div>
-                            <div class="text-side">
-                                <div class="video-indicator"><i class="fa-solid fa-arrow-left"></i> VİDEO</div>
-                                <h3 class="highlight-gold">MİMARLİK VE TADİLAT OFİSLERİNDEN TEKLİF ALIN</h3>
-                                <p>Tadilat süreci artık korkulu rüya değil. Uygulama üzerinden proje detaylarınızı
-                                    girin, profesyonel mimarlar ve uygulama ekipleri projenizi incelesin. Karmaşık fiyat
-                                    araştırmalarıyla uğraşmadan, size en yaratıcı tasarımları ve en uygun bütçeli
-                                    çözümleri sunan firmayı kolayca seçin.</p>
-                                <div class="badges">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
-                                        alt="App Store" class="store-badge">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
-                                        alt="Google Play" class="store-badge">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 2: Dashboard (Moved from Row 4) -->
-                        <div class="zig-zag-row row-reverse">
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-house-chimney"></i></div>
-                                <h3>TADİLAT KARTINI SEÇİN, DÖNÜŞÜMÜ BAŞLATIN</h3>
-                                <p>Uygulamanın ana ekranında yer alan "Tadilat" kartına dokunun. Mimari tasarımdan
-                                    anahtar teslim uygulamaya kadar, mekanınızı yenilemek için ihtiyaç duyduğunuz
-                                    profesyonel ağa ve ustalara anında erişin.</p>
-                            </div>
-                            <div class="media-side">
-                                <div class="phone-mockup-floating glow-effect">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_renovation_2.jpg" alt="Renovation Dashboard"
-                                        class="screen-img">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 3: Service Selection -->
-                        <div class="zig-zag-row">
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_renovation_1.jpg" alt="Service Selection" class="screen-img">
-                                </div>
-                            </div>
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-paint-roller"></i></div>
-                                <h3>İHTİYACINIZ OLAN HİZMETİ SEÇİN</h3>
-                                <p>Evinizin neye ihtiyacı var? <strong>"Anahtar Teslim Tadilat"</strong>tan
-                                    <strong>"Boya & Dekorasyon"</strong>a, <strong>"Mutfak & Banyo Yenileme"</strong>den
-                                    restorasyona kadar geniş hizmet yelpazemizden size uygun olanı belirleyin. Doğru
-                                    kategori seçimiyle alanında uzman ekiplere en kısa yoldan ulaşın.
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Row 4: Project Type -->
-                        <div class="zig-zag-row row-reverse">
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-                                <h3>HAYALİNİZDEKİ PROJEYİ BAŞLATIN</h3>
-                                <p>Mekanınızın potansiyelini ortaya çıkarın. Yenilemek istediğiniz alanın türünü ve
-                                    metrekaresini sisteme girerek tasarım sürecinin ilk adımını atın. Girdiğiniz bu
-                                    temel veriler sayesinde, mimarlık ofisleri size özel, uygulanabilir ve bütçenize
-                                    uygun anahtar teslim çözümler üretsin.</p>
-                            </div>
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_renovation_start.jpg" alt="Project Type" class="screen-img">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 5: Style Selection (Was Expert) -->
-                        <div class="zig-zag-row">
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_renovation_3.jpg" alt="Style Selection" class="screen-img">
-                                </div>
-                            </div>
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-users-gear"></i></div>
-                                <h3>TARZINIZI MİMARLARA YANSITIN</h3>
-                                <p>Sözcüklerle anlatması zor, seçmesi kolay. Galerimizdeki stillerden zevkinize en uygun
-                                    olanı işaretleyin. Mimarlık ofisleri, belirlediğiniz bu tasarım karakterine uygun
-                                    malzeme ve dekorasyon önerileriyle en doğru fiyat teklifini hazırlasın.</p>
-                            </div>
-                        </div>
-
-                        <!-- Row 6: Details (Was Comparison) -->
-                        <div class="zig-zag-row row-reverse">
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-scale-balanced"></i></div>
-                                <h3>PROJENİZİ DETAYLANDIRIN VE GÖNDERİN</h3>
-                                <p>Teklif öncesi son adım. Mevcut alanın fotoğraflarını ve özel taleplerinizi sisteme
-                                    girin. Eksiksiz bir form oluşturarak mimarlık ofislerinin projenizi incelemesini
-                                    sağlayın ve en gerçekçi bütçe/süre planıyla size dönmelerini bekleyin.</p>
-                            </div>
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_renovation_4.jpg" alt="Details" class="screen-img">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 7: Success (New) -->
-                        <div class="zig-zag-row">
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_renovation_success_final.jpg" alt="Renovation Success"
-                                        class="screen-img">
-                                </div>
-                            </div>
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-clipboard-check"></i></div>
-                                <h3>BAŞVURUNUZ TAMAMLANDI</h3>
-                                <p>Tasarım ve uygulama talebiniz sisteme kaydedildi. Mimarlık ofisleri sizinle iletişime
-                                    geçene kadar yapmanız gereken başka bir işlem yok. "Ana Sayfaya Dön" butonuna
-                                    tıklayarak uygulamanın diğer özelliklerini keşfetmeye devam edin.</p>
-                            </div>
-                        </div>
-
+                    <div class="teaser-center">
+                        <span class="teaser-subtitle">Çok Yakında</span>
+                        <h4 class="teaser-title gold-text">Google Play ve App Store'da!</h4>
+                        <p class="teaser-desc">Erken kayıt oluştur, ilk kullanıcılar arasında yerini al.</p>
                     </div>
-                </div>
-
-                <!-- 5. MÜHENDİSLİK -->
-                <!-- 5. ENGINEERING (Zig-Zag Showcase) -->
-                <div class="tab-pane" id="engineering">
-                    <div class="zig-zag-container">
-
-                        <!-- Row 1: Hero (VIDEO) -->
-                        <div class="zig-zag-row video-row">
-                            <div class="media-side">
-                                <div class="phone-mockup-large">
-                                    <div class="notch"></div>
-                                    <video src="assets/video_engineering.mp4" autoplay loop muted playsinline
-                                        class="screen-video" poster="assets/img_engineering.jpg"></video>
+                    <div class="teaser-right">
+                        <div class="store-btns">
+                            <a href="#" class="store-btn">
+                                <i class="fa-brands fa-apple"></i>
+                                <div class="store-text">
+                                    <small>Çok Yakında</small>
+                                    <span>App Store</span>
                                 </div>
-                            </div>
-                            <div class="video-play-btn"><i class="fa-solid fa-play"></i></div>
-                            <div class="text-side">
-                                <div class="video-indicator"><i class="fa-solid fa-arrow-left"></i> VİDEO</div>
-                                <h3 class="highlight-gold">İNŞAATIN HER ALANINDA UZMAN GÖRÜŞÜ</h3>
-                                <p>Hata kabul etmeyen işler için doğru adrestesiniz. Deprem performansı analizi, hak
-                                    ediş hazırlama veya mimari tasarım... Teknik Ofis modülümüzle, Türkiye'nin yetkin
-                                    teknik kadrosuna erişim sağlayın. Proje bazlı veya saatlik danışmanlık alarak
-                                    işinizi riske atmayın, profesyonellerle ilerleyin.</p>
-                                <div class="badges">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
-                                        alt="App Store" class="store-badge">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
-                                        alt="Google Play" class="store-badge">
+                            </a>
+                            <a href="#" class="store-btn">
+                                <i class="fa-brands fa-google-play"></i>
+                                <div class="store-text">
+                                    <small>Çok Yakında</small>
+                                    <span>Google Play</span>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 2: Dashboard -->
-                        <div class="zig-zag-row row-reverse">
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-hard-hat"></i></div>
-                                <h3>TEKNİK OFİS KARTINA DOKUNUN</h3>
-                                <p>Uygulama ana ekranından "Teknik Ofis" kartını seçerek Türkiye'nin en geniş teknik
-                                    uzman ağına erişin. İnşaat mühendisi, mimar, harita mühendisi ve İSG uzmanı gibi
-                                    profesyonellerden anlık destek almak için kapıyı aralayın.</p>
-                            </div>
-                            <div class="media-side">
-                                <div class="phone-mockup-floating glow-effect">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_engineering_1.jpg" alt="Engineering Dashboard"
-                                        class="screen-img">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 3: Service Selection -->
-                        <div class="zig-zag-row">
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_engineering_2.jpg" alt="Service Selection" class="screen-img">
-                                </div>
-                            </div>
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-list-check"></i></div>
-                                <h3>PROJENİZE UYGUN ÇÖZÜMÜ BELİRLEYİN</h3>
-                                <p>Aklınızdaki proje veya soruna özel danışmanlık alın. İster "Soru & Cevap" ile hızlı
-                                    bir bilgi edinin, ister "Yerinde Teknik Keşif" ile uzmanı sahanıza çağırın.
-                                    İhtiyacınızı butonlardan seçerek teknik süreci başlatın.</p>
-                            </div>
-                        </div>
-
-                        <!-- Row 4: Detail (Question Form Text) -->
-                        <div class="zig-zag-row row-reverse">
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-file-pen"></i></div>
-                                <h3>SORU & CEVAP İLE HIZLI DANIŞMANLIK</h3>
-                                <p>Aklınıza takılan mevzuat, uygulama hatası veya proje detayı neyse buraya yazın.
-                                    Sorununuzu detaylandırıp "Uzman Seçimine Geç" diyerek ilerleyin. Konusunda deneyimli
-                                    mühendisler sorunuzu incelesin ve size net bir yol haritası çıkarsın.</p>
-                            </div>
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_engineering_new_detail.jpg" alt="Question Detail"
-                                        class="screen-img">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 5: Expert Selection (Restored) -->
-                        <div class="zig-zag-row">
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_engineering_expert_selection.jpg" alt="Expert Selection"
-                                        class="screen-img">
-                                </div>
-                            </div>
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-sitemap"></i></div>
-                                <h3>UZMANLIK ALANI VE AKILLI EŞLEŞME</h3>
-                                <p>Projenizin ihtiyacı olan disiplini listeden işaretleyin. Eğer sorununuzun hangi
-                                    teknik birime (Statik, Mekanik vb.) ait olduğunu bilmiyorsanız, yönlendirmeyi bize
-                                    bırakın. Ekibimiz içeriği analiz edip doğru uzmanla eşleşmenizi sağlasın.</p>
-                            </div>
-                        </div>
-
-                        <!-- Row 6: Success -->
-                        <div class="zig-zag-row row-reverse">
-                            <div class="text-side">
-                                <div class="icon-box"><i class="fa-solid fa-check-double"></i></div>
-                                <h3>CEVAP MESAJ KUTUNUZDA</h3>
-                                <p>Teknik destek talebiniz başarıyla alındı. Uzmanımız konuyu değerlendirip en kısa
-                                    sürede size geri dönüş yapacak. Cevabı ve çözüm önerilerini uygulama içindeki "Mesaj
-                                    Paneli" üzerinden takip edebilirsiniz.</p>
-                            </div>
-                            <div class="media-side">
-                                <div class="phone-mockup-floating">
-                                    <div class="notch"></div>
-                                    <img src="assets/img_engineering_6.jpg" alt="Success" class="screen-img">
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-            <!-- 6. MALİYET -->
-            <!-- 6. MALİYET (Zig-Zag Showcase) -->
-            <div class="tab-pane" id="cost">
-                <div class="zig-zag-container">
-
-                    <!-- Row 1: Hero (VIDEO) -->
-                    <div class="zig-zag-row video-row">
-                        <div class="media-side">
-                            <div class="phone-mockup-large">
-                                <div class="notch"></div>
-                                <video src="assets/video_cost.mp4" autoplay loop muted playsinline class="screen-video"
-                                    poster="assets/img_cost_1.jpg"></video>
-                            </div>
-                        </div>
-                        <div class="video-play-btn"><i class="fa-solid fa-play"></i></div>
-                        <div class="text-side">
-                            <div class="video-indicator"><i class="fa-solid fa-arrow-left"></i> VİDEO</div>
-                            <h3 class="highlight-gold">İNŞAAT MALİYETİNİZ KONTROL ALTINDA</h3>
-                            <p>Projenizin bütçesini sürprizlere bırakmayın. Videoda izleyeceğiniz gibi; ister Hızlı
-                                Hesaplama ile öngörü oluşturun, ister Detaylı Analiz ile kuruşu kuruşuna maliyet
-                                çıkarın. Çıkan sonucu inşaat firmalarıyla paylaşarak, bütçenize uygun gerçek
-                                uygulama tekliflerini hemen toplayın.</p>
-                            <div class="badges">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
-                                    alt="App Store" class="store-badge">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
-                                    alt="Google Play" class="store-badge">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Row 2: Details (Content: Proje Künyesi/Details) -->
-                    <div class="zig-zag-row row-reverse">
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-file-invoice"></i></div>
-                            <h3>DOĞRU BİLGİ, DOĞRU FİYAT</h3>
-                            <p>Sürpriz maliyetlerle karşılaşmamak için proje künyesini eksiksiz doldurun. İl, ilçe,
-                                ada ve parsel bilgileriniz sayesinde müteahhitler imar durumunu (KAKS/TAKS)
-                                incelesin ve size en gerçekçi, şaşmayan anahtar teslim teklifi sunsun.</p>
-                        </div>
-                        <div class="media-side">
-                            <div class="phone-mockup-floating">
-                                <div class="notch"></div>
-                                <img src="assets/img_cost_new_details.jpg" alt="Project Details" class="screen-img">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Row 3: Menu Selection (Content: Hesaplama Yöntemi) -->
-                    <div class="zig-zag-row">
-                        <div class="media-side">
-                            <div class="phone-mockup-floating">
-                                <div class="notch"></div>
-                                <img src="assets/img_cost_2.jpg" alt="Calculation Method" class="screen-img">
-                            </div>
-                        </div>
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-list-check"></i></div>
-                            <h3>HESAPLAMA YÖNTEMİNİZİ SEÇİN</h3>
-                            <p>Projenizin aşamasına göre ilerleyin. Fikir edinmek için "Hızlı Hesaplama", kesin
-                                bütçe ve metraj için "Detaylı Analiz" veya güncel birim fiyatları kontrol etmek için
-                                "Poz Sorgulama" seçeneklerini kullanın.</p>
-                        </div>
-                    </div>
-
-                    <!-- Row 4: Dashboard (Content: Bütçe Yönetimi) -->
-                    <div class="zig-zag-row row-reverse">
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-chart-pie"></i></div>
-                            <h3>BÜTÇENİZİ YÖNETMEYE BAŞLAYIN</h3>
-                            <p>Paranızın nereye gittiğini bilin. Ana ekrandaki "Maliyet" kartına dokunarak hesaplama
-                                araçlarına ulaşın. Güncel piyasa birim fiyatlarıyla inşaatınızın finansal haritasını
-                                çıkarın ve bütçenizi kontrol altına alın.</p>
-                        </div>
-                        <div class="media-side">
-                            <div class="phone-mockup-floating glow-effect">
-                                <div class="notch"></div>
-                                <img src="assets/img_cost_1.jpg" alt="Cost Dashboard" class="screen-img">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Row 5: Calculation (Content: Gerçekçi Maliyet) -->
-                    <div class="zig-zag-row">
-                        <div class="media-side">
-                            <div class="phone-mockup-floating">
-                                <div class="notch"></div>
-                                <img src="assets/img_cost_5_new.jpg" alt="Cost Calculation" class="screen-img">
-                            </div>
-                        </div>
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-calculator"></i></div>
-                            <h3>GERÇEKÇİ MALİYET VE FİRMA TEKLİFİ</h3>
-                            <p>Projenizin metrekaresini ve yapı sınıfını (Lüks, Standart, Ekonomik) girin, güncel
-                                piyasa verileriyle tahmini maliyeti anında görün. Bu hesabı referans alarak "İnşaat
-                                Firmalarından Teklif Al" butonuna basın; farklı firmalardan gelen fiyatları
-                                toplayın, karşılaştırın ve en doğru tercihi yapın.</p>
-                        </div>
-                    </div>
-
-                    <!-- Row 6: Success (Content: Sonuç/Müteahhitlere Ulaştı) -->
-                    <div class="zig-zag-row row-reverse">
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-check-double"></i></div>
-                            <h3>PROJENİZ MÜTEAHHİTLERE ULAŞTI</h3>
-                            <p>Artık top profesyonellerde. Doğruladığınız proje bilgileriniz bölgenizdeki seçkin
-                                yüklenicilerin ekranına düştü. En rekabetçi fiyatlar ve en uygun çalışma şartları
-                                için firmaların dönüşünü bekleyin. Sonuçlar çok yakında panelinizde.</p>
-                        </div>
-                        <div class="media-side">
-                            <div class="phone-mockup-floating">
-                                <div class="notch"></div>
-                                <img src="assets/img_cost_6.jpg" alt="Success" class="screen-img">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Row 7: Verification (Content: Gerçek Kişi/Doğrulama) -->
-                    <div class="zig-zag-row">
-                        <div class="media-side">
-                            <div class="phone-mockup-floating">
-                                <div class="notch"></div>
-                                <img src="assets/img_cost_5.jpg" alt="Verification" class="screen-img">
-                            </div>
-                        </div>
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-user-check"></i></div>
-                            <h3>GERÇEK KİŞİ, GERÇEK TEKLİF</h3>
-                            <p>Yanıltıcı başvuruların önüne geçmek için kimliğinizi doğruluyoruz. SMS onayını
-                                tamamlayın, proje künyeniz sadece doğrulanmış ve güvenilir kurumsal firmalarla
-                                paylaşılsın.</p>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 3. NAKLİYE (MOVED TO END) -->
-            <!-- 3. NAKLİYE -->
-            <div class="tab-pane" id="logistics">
-                <div class="zig-zag-container">
-
-                    <!-- Row 1: Hero (VIDEO) -->
-                    <div class="zig-zag-row video-row">
-                        <div class="media-side">
-                            <div class="phone-mockup-large">
-                                <div class="notch"></div>
-                                <video src="assets/video_logistics.mp4" autoplay loop muted playsinline
-                                    class="screen-video"></video>
-                            </div>
-                        </div>
-
-                        <div class="text-side">
-                            <div class="video-indicator"><i class="fa-solid fa-arrow-left"></i> VİDEO</div>
-                            <h3 class="highlight-gold">81 İLE ANINDA ARAÇ BULUN</h3>
-                            <p>Yükünüz hazır ama araç mı yok? Türkiye'nin neresinde olursanız olun, rotanızı girin ve
-                                anlık nakliye ilanlarını listeleyin. İster parça yük ister komple tır... Size en yakın
-                                ve en uygun fiyatlı aracı saniyeler içinde bulun, beklemeden yola çıkın.</p>
-                            <div class="badges">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
-                                    alt="App Store" class="store-badge">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
-                                    alt="Google Play" class="store-badge">
-                            </div>
-                        </div>
-                    </div>
+            <!-- Center Column Removed -->
 
 
-
-
-
-
-
-
-
-
-
-
-                    <!-- Row 2: Empty Return Opportunities (Img 5) -->
-                    <div class="zig-zag-row row-reverse">
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-rotate-left"></i></div>
-                            <h3>NAKLİYE MODÜLÜNÜ SEÇİN</h3>
-                            <p>Uygulamanın ana panelinden "Nakliye" bölümüne giriş yapın. 81 ilde araç bulmanın en kolay
-                                yolu burada. Karta dokunduğunuz an, ister indirimli dönüş araçlarını listeleyin, ister
-                                acil yükünüz için hemen araç talep edin.</p>
-                        </div>
-                        <div class="media-side">
-                            <div class="phone-mockup-floating glow-effect">
-                                <div class="notch"></div>
-                                <img src="assets/img_logistics_real_2.jpg" alt="Boş Dönüş" class="screen-img">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Row 3: Opportunity List (Img 1) -->
-                    <div class="zig-zag-row">
-                        <div class="media-side">
-                            <div class="phone-mockup-floating">
-                                <div class="notch"></div>
-                                <img src="assets/img_logistics_real_5.jpg" alt="Fırsat Listesi" class="screen-img">
-                            </div>
-                        </div>
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-list-ul"></i></div>
-                            <h3>İSTER FIRSAT YAKALA, İSTER ARAÇ ÇAĞIR</h3>
-                            <p>Nakliye çözümünüzü siz belirleyin. Maliyeti düşürmek için **"Boş Dönüş Fırsatları"**nı
-                                inceleyin ya da acil yükünüz varsa "Hızlı Nakliye" ile size en yakın tır veya kamyoneti
-                                hemen çağırın. Tüm lojistik seçenekleri tek ekranda.</p>
-                        </div>
-                    </div>
-
-                    <!-- Row 4: Vehicle Categories (Img 2) -->
-                    <div class="zig-zag-row row-reverse">
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-truck-moving"></i></div>
-                            <h3>UYGUN FİYATLARI YAKALAYIN</h3>
-                            <p>Nakliye maliyetinizi düşüren liste karşınızda. İstanbul, Ankara, İzmir... Hangi şehirden
-                                olursa olsun, piyasa fiyatının altındaki taşıma fırsatlarını değerlendirin. Rotanızı
-                                belirleyin, aracı seçin ve bütçenizi koruyun.</p>
-                        </div>
-                        <div class="media-side">
-                            <div class="phone-mockup-floating">
-                                <div class="notch"></div>
-                                <img src="assets/img_logistics_real_1.jpg" alt="Araç Kategorileri" class="screen-img">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Row 5: Vehicle Detail (Img 3) -->
-                    <div class="zig-zag-row">
-                        <div class="media-side">
-                            <div class="phone-mockup-floating">
-                                <div class="notch"></div>
-                                <img src="assets/img_logistics_real_8.jpg" alt="Araç Detayı" class="screen-img">
-                            </div>
-                        </div>
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-circle-info"></i></div>
-                            <h3>DETAYLI İNCELEME VE REZERVASYON</h3>
-                            <p>Sadece bir kamyon değil, iş ortağınızı seçin. Aracın markasından tente tipine kadar tüm
-                                detayları görün. Fiyatı ve KDV durumunu kontrol edip, tek tuşla aracı işinize rezerve
-                                edin.</p>
-                        </div>
-                    </div>
-
-                    <!-- Row 6: Secure Payment (Img 4) -->
-                    <div class="zig-zag-row row-reverse">
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-credit-card"></i></div>
-                            <h3>ROTA VE ÖDEME DETAYLARI</h3>
-                            <p>Her şey şeffaf. Şoför bilgisini, çıkış-varış rotasını ve toplam tutarı son kez kontrol
-                                edin. Ödemenizi güvenli altyapımızla yaparak "Aracı Bağla" butonuna basın ve taşıma
-                                sürecini resmi olarak başlatın.</p>
-                        </div>
-                        <div class="media-side">
-                            <div class="phone-mockup-floating">
-                                <div class="notch"></div>
-                                <img src="assets/img_logistics_real_3.jpg" alt="Güvenli Ödeme" class="screen-img">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Row 7: Order Details (New Img) -->
-                    <div class="zig-zag-row">
-                        <div class="media-side">
-                            <div class="phone-mockup-floating">
-                                <div class="notch"></div>
-                                <img src="assets/img_logistics_real_4.jpg" alt="Sipariş Detayları" class="screen-img">
-                            </div>
-                        </div>
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-list-check"></i></div>
-                            <h3>GÜVENLİ İŞLEM ONAYI</h3>
-                            <p>İşinizi şansa bırakmayın. Yük tipini ve konum bilgilerini kontrol edin. Ödemenizi ister
-                                Kredi Kartı, ister Cari/Havale, isterseniz Kapıda Ödeme ile yapın. Fatura bilgilerinizi
-                                seçip taşıma sözleşmesini onaylayarak taşıma işlemini resmen başlatın.</p>
-                        </div>
-                    </div>
-
-                    <!-- Row 8: Confirmation (Img 6) -->
-                    <div class="zig-zag-row">
-                        <div class="media-side">
-                            <div class="phone-mockup-floating">
-                                <div class="notch"></div>
-                                <img src="assets/img_logistics_real_6.jpg" alt="İşlem Onayı" class="screen-img">
-                            </div>
-                        </div>
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-check-double"></i></div>
-                            <h3>TEBRİKLER! ARAÇ YOLA ÇIKIYOR</h3>
-                            <p>Nakliye sürecini tamamladınız. Sürücü bilgileri ve tahmini varış saati ekranınızda.
-                                Dilerseniz taşıma irsaliyesini şimdi düzenleyebilir veya ana sayfaya dönerek yeni bir
-                                işlem başlatabilirsiniz.</p>
-
-                        </div>
+            <!-- Right Column (Pre-Launch CTA) -->
+            <div class="hero-right">
+                <div class="pre-launch-card">
+                    <span class="card-question">Hangi alanda hizmet veriyorsunuz?</span>
+                    <h3 class="card-title">
+                        <span class="title-pre">LANSMAN ÖNCESİ</span>
+                        <span class="title-main">Firmanıza Yer <span class="gold-text">AYIRIN</span></span>
+                    </h3>
+                    
+                    <div class="cta-buttons">
+                        <a href="#pre-register" class="btn-cta" onclick="selectUserType('muteahhit')">
+                            <i class="fa-solid fa-helmet-safety"></i>
+                            <span>Müteahhit Firma</span>
+                        </a>
+                        <a href="#pre-register" class="btn-cta" onclick="selectUserType('tedarikci')">
+                            <i class="fa-solid fa-truck-ramp-box"></i>
+                            <span>İnşaat Yapı Malzemeleri Firması</span>
+                        </a>
                     </div>
                 </div>
             </div>
 
-            <!-- 7. HUKUK -->
-            <div class="tab-pane" id="law">
-                <div class="zig-zag-container">
-
-                    <!-- Row 1: Hero (VIDEO) -->
-                    <div class="zig-zag-row video-row">
-                        <div class="media-side">
-                            <div class="phone-mockup-large">
-                                <div class="notch"></div>
-                                <video src="assets/video_law.mp4" autoplay loop muted playsinline class="screen-video"
-                                    poster="assets/img_law_1.jpg"></video>
-                            </div>
-                        </div>
-                        <div class="video-play-btn"><i class="fa-solid fa-play"></i></div>
-                        <div class="text-side">
-                            <div class="video-indicator"><i class="fa-solid fa-arrow-left"></i> VİDEO</div>
-                            <h3 class="highlight-gold">İNŞAAT HUKUKUNDA UZMAN DESTEĞİ</h3>
-                            <p>Şantiye ile adliye arasındaki köprüyü kurun. İmar mevzuatı, iş kazası davaları veya hak
-                                ediş ihtilafları... Sektöre hakim hukukçulardan görüntülü veya yazılı danışmanlık alarak
-                                haklarınızı profesyonelce koruma altına alın.</p>
-                            <div class="badges">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
-                                    alt="App Store" class="store-badge">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
-                                    alt="Google Play" class="store-badge">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Row 2: Dashboard (Img 1) -->
-                    <div class="zig-zag-row row-reverse">
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-gavel"></i></div>
-                            <h3>HAKLARINIZI KORUMA ALTINA ALIN</h3>
-                            <p>İnşaat sektörü hata kabul etmez. Sözleşme incelemelerinden taşeron anlaşmazlıklarına
-                                kadar her adımda hukuki güvence sağlayın. Hukuk kartına dokunarak riskleri yönetin ve
-                                işinizi sağlam temellere oturtun.</p>
-                        </div>
-                        <div class="media-side">
-                            <div class="phone-mockup-floating glow-effect">
-                                <div class="notch"></div>
-                                <img src="assets/img_law_5.jpg" alt="Law Dashboard" class="screen-img">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Row 3: Selection (Img 2) -->
-                    <div class="zig-zag-row">
-                        <div class="media-side">
-                            <div class="phone-mockup-floating">
-                                <div class="notch"></div>
-                                <img src="assets/img_law_1.jpg" alt="Selection" class="screen-img">
-                            </div>
-                        </div>
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-clipboard-question"></i></div>
-                            <h3>SORUNUNUZU TANIMLAYIN</h3>
-                            <p>Karşılaştığınız hukuki problemi netleştirin. Hazır kategorilerden durumunuza uygun olanı
-                                (Örn: Hakediş, Sözleşme) işaretleyin veya talebinizi detaylıca yazarak avukatın konuya
-                                tam hakim olmasını sağlayın.</p>
-                        </div>
-                    </div>
-
-                    <!-- Row 4: Upload (Img 3) -->
-                    <div class="zig-zag-row row-reverse">
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-file-contract"></i></div>
-                            <h3>KONUYU SEÇ VE İLERLE</h3>
-                            <p>İnceleme başlatmak için konuyu daraltın. Karşılaştığınız hukuki engeli listeden seçin.
-                                Bir sonraki adımda bu konuyla ilgili sözleşme, tutanak veya fotoğrafları yükleyerek
-                                başvurunuzu tamamlayacaksınız.</p>
-                        </div>
-                        <div class="media-side">
-                            <div class="phone-mockup-floating">
-                                <div class="notch"></div>
-                                <img src="assets/img_law_2.jpg" alt="Upload Documents" class="screen-img">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Row 5: Success (Img 4) -->
-                    <div class="zig-zag-row">
-                        <div class="media-side">
-                            <div class="phone-mockup-floating">
-                                <div class="notch"></div>
-                                <img src="assets/img_law_3.jpg" alt="Success" class="screen-img">
-                            </div>
-                        </div>
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-file-upload"></i></div>
-                            <h3>DOSYANIZI GÖNDERİN</h3>
-                            <p>Başvurunuzu tamamlamak için son adım. Sorununuzla ilgili belgeleri ekleyin ve
-                                açıklamanızı yapın. "Gönder" butonuna bastığınızda talebiniz anında işleme alınır ve
-                                avukat ataması gerçekleşir.</p>
-                        </div>
-                        <div class="media-side">
-                            <div class="phone-mockup-floating">
-                                <div class="notch"></div>
-                                <img src="assets/img_law_3.jpg" alt="Success" class="screen-img">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Row 6: Success (Img 4) -->
-                    <div class="zig-zag-row row-reverse">
-                        <div class="text-side">
-                            <div class="icon-box"><i class="fa-solid fa-check-circle"></i></div>
-                            <h3>HUKUKİ SÜREÇ BAŞLATILDI</h3>
-                            <p>Endişeye gerek yok, hukuki sorununuzu kayıt altına aldık. İnceleme süreci boyunca
-                                bildirimlerle sizi haberdar edeceğiz. Şimdi "Ana Sayfaya Dön" diyerek diğer işlerinizi
-                                yönetmeye devam edebilirsiniz.</p>
-                        </div>
-                        <div class="media-side">
-                            <div class="phone-mockup-floating">
-                                <div class="notch"></div>
-                                <img src="assets/img_law_4.jpg" alt="Integrated System" class="screen-img">
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- 8. KENTSEL DÖNÜŞÜM -->
-            <div class="tab-pane" id="transformation">
-                <div class="zig-zag-container">
-                    <div class="zig-zag-row video-row">
-                        <div class="media-side">
-                            <div class="phone-mockup-simple">
-                                <div class="notch"></div>
-                                <img src="assets/img_transformation_consultant.jpg" alt="Kentsel Dönüşüm Danışmanı"
-                                    class="screen-img">
-                            </div>
-                        </div>
-                        <div class="text-side">
-                            <h3 class="highlight-gold">Kentsel Dönüşüm Asistanı</h3>
-                            <p>Yarısı Bizden kampanyası, devlet hibeleri ve kredi süreçleri hakkında detaylı
-                                bilgiye ulaşın. Binanızın risk durumunu sorgulayın ve yetkili firmalardan teklif
-                                toplayın.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-        </div>
-
-        </div>
         </div>
     </section>
 
-    <footer>
+    <!-- AUDIENCE SECTION -->
+    <section id="audience" class="audience-section">
         <div class="container">
-            <div class="footer-content">
-                <h3>Cepte<span>Şef</span></h3>
-                <p>İnşaatın Geleceği.</p>
-                <p>&copy; 2026 Tüm Hakları Saklıdır.</p>
+            <h2 class="section-title">Kimler İçin?</h2>
+            
+            <div class="audience-grid">
+                <div class="audience-card">
+                    <i class="fa-solid fa-helmet-safety card-icon"></i>
+                    <h3>Müteahhitler İçin</h3>
+                    <p>Projelerinizi büyütün, doğru taleplere teklif verin ve yeni iş fırsatlarına ulaşın. Tadilat, kentsel dönüşüm ve inşaat projelerinizi kolayca yönetin.</p>
+                    <a href="#pre-register" class="text-link">Detaylı Bilgi <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+
+                <div class="audience-card">
+                    <i class="fa-solid fa-house-chimney card-icon"></i>
+                    <h3>Mülk Sahipleri İçin</h3>
+                    <p>Evinizi yenilerken müteahhitlerden teklif alın, tadilat için mimarlık ofislerine ulaşın, asansör, havuz, bakım-onarım gibi tüm ihtiyaçlarınıza kolayca erişin.</p>
+                    <a href="#pre-register" class="text-link">Detaylı Bilgi <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+
+                <div class="audience-card">
+                    <i class="fa-solid fa-truck-ramp-box card-icon"></i>
+                    <h3>İnşaat Malzemesi Satıcıları İçin</h3>
+                    <p>Gerçek ihtiyaç sahiplerinden gelen taleplere teklif verin, yeni müşterilere ulaşın ve satışlarınızı artırın.</p>
+                    <a href="#pre-register" class="text-link">Detaylı Bilgi <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+
+                <div class="audience-card">
+                    <i class="fa-solid fa-scale-balanced card-icon"></i>
+                    <h3>Avukatlar İçin</h3>
+                    <p>İnşaat hukuku alanında yeni iş fırsatlarına ulaşın, danışan ağınızı genişletin ve uzmanlık alanınızda öne çıkın.</p>
+                    <a href="#pre-register" class="text-link">Detaylı Bilgi <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
             </div>
+        </div>
+    </section>
+
+    <!-- PRE-REGISTER SECTION -->
+    <section id="pre-register" class="pre-register-section">
+        <div class="container form-container">
+            <div class="form-wrapper">
+                <h2 class="section-title">Ön Kayıt Oluştur</h2>
+                <p class="form-desc">Lansmana özel avantajlardan faydalanmak ve ilk kullanıcılardan olmak için formu doldurun.</p>
+                
+                <form id="preRegisterForm" action="https://formspree.io/f/placeholder" method="POST">
+                    <div class="form-group">
+                        <label for="fullName">Ad Soyad / Firma Ünvanı</label>
+                        <input type="text" id="fullName" name="fullName" required placeholder="Örn: Ahmet Yılmaz / ABC İnşaat">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">E-posta Adresi</label>
+                        <input type="email" id="email" name="email" required placeholder="Örn: ahmet@firma.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Telefon Numarası</label>
+                        <input type="tel" id="phone" name="phone" required placeholder="Örn: 0555 555 55 55">
+                    </div>
+                    <div class="form-group">
+                        <label for="userType">Üyelik Tipi</label>
+                        <select id="userType" name="userType" required onchange="toggleOtherInput()">
+                            <option value="" disabled selected>Seçiniz</option>
+                            <option value="muteahhit">Müteahhit</option>
+                            <option value="tedarikci">İnşaat Malzemesi Satıcısı</option>
+                            <option value="diger">Diğer</option>
+                        </select>
+                    </div>
+                    <div class="form-group hidden" id="otherTypeGroup">
+                        <label for="otherType">Hizmet Alanınızı Belirtiniz</label>
+                        <input type="text" id="otherType" name="otherType" placeholder="Örn: Mimar, Mühendis, Taşeron">
+                    </div>
+                    <button type="submit" class="btn-gold large full-width">Ön Kaydı Tamamla <i class="fa-solid fa-check"></i></button>
+                </form>
+                
+                <div id="formSuccess" class="form-success hidden">
+                    <i class="fa-solid fa-circle-check success-icon"></i>
+                    <h3>Ön kaydınız başarıyla alındı.</h3>
+                    <p>En kısa sürede sizinle iletişime geçeceğiz.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- WHY SECTION -->
+    <section id="why" class="why-section">
+        <div class="container">
+            <h2 class="section-title">Neden CepteŞef?</h2>
+            <div class="why-grid">
+                <div class="why-card">
+                    <i class="fa-solid fa-bolt why-icon"></i>
+                    <h3>Hız ve Verimlilik</h3>
+                    <p>İş süreçlerinizi dijitalleştirerek zamandan tasarruf edin.</p>
+                </div>
+                <div class="why-card">
+                    <i class="fa-solid fa-handshake-angle why-icon"></i>
+                    <h3>Güvenli Ekosistem</h3>
+                    <p>Doğrulanmış firmalarla güvenle çalışın.</p>
+                </div>
+                <div class="why-card">
+                    <i class="fa-solid fa-chart-line why-icon"></i>
+                    <h3>Maliyet Kontrolü</h3>
+                    <p>Teklifleri karşılaştırarak en doğru bütçeyi yönetin.</p>
+                </div>
+            </div>
+            
+            <div class="why-impact-container">
+                <div class="why-impact-text">
+                    Yenilenmesi gereken <span class="gold-glow">10 Milyon Adet Konut</span> ve Yıllık <span class="gold-glow">Milyarlarca TL</span> Hacimli Tadilat Pazarı Dijitalleşiyor, Doğrudan Erişiminize Açılıyor!
+                </div>
+                
+                <div class="why-highlight-text">
+                    <span class="gold-glow">100+</span> Müteahhit Havuzu ve <span class="gold-glow">300+</span> İnşaat Malzemesi Satıcısı Arasında Yerinizi Alın, <span class="gold-text">Kazanmaya Başlayın!</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT SECTION -->
+    <section id="contact" class="contact-section">
+        <div class="container">
+            <h2 class="section-title">İletişim</h2>
+            <div class="contact-content">
+                <p>Sorularınız veya iş birliği talepleriniz için bize ulaşabilirsiniz.</p>
+                <a href="mailto:info@ceptesef.com" class="contact-email"><i class="fa-solid fa-envelope"></i> info@ceptesef.com</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="main-footer">
+        <div class="container footer-container">
+            <p>&copy; 2026 CepteŞef. Tüm Hakları Saklıdır.</p>
         </div>
     </footer>
 
+    <!-- Custom JS -->
+    <script src="js/main.js"></script>
     <script src="js/script.js"></script>
-    <!-- VIDEO MODAL OVERLAY -->
-    <div id="videoModal" class="video-modal-overlay">
-        <button class="modal-close-btn" onclick="closeVideoModal()">
-            <i class="fa-solid fa-arrow-left"></i> Geri Dön
-        </button>
-        <div class="video-modal-content">
-            <video id="promoVideo" controls playsinline>
-                <source src="assets/intro.mp4" type="video/mp4">
-                Tarayıcınız video etiketini desteklemiyor.
-            </video>
-        </div>
-    </div>
-
-    <!-- VIDEO MODAL SCRIPT -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const modal = document.getElementById('videoModal');
-            const video = document.getElementById('promoVideo');
-            const btnOpen = document.getElementById('btnPromoVideo');
-            const btnClose = document.querySelector('.modal-close-btn');
-
-            if (btnOpen) {
-                btnOpen.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    modal.classList.add('active');
-                    video.play().catch(err => console.log("Video play error (likely no source):", err));
-                    document.body.style.overflow = 'hidden';
-                });
-            }
-
-            // Close Logic
-            function closeModal() {
-                modal.classList.remove('active');
-                video.pause();
-                video.currentTime = 0;
-                document.body.style.overflow = '';
-            }
-
-            if (btnClose) {
-                btnClose.addEventListener('click', closeModal);
-            }
-
-            // Close on outside click
-            modal.addEventListener('click', function (e) {
-                if (e.target === modal) {
-                    closeModal();
-                }
-            });
-
-            // Close on Escape key
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape' && modal.classList.contains('active')) {
-                    closeModal();
-                }
-            });
-        });
-    </script>
 </body>
-
 </html>
