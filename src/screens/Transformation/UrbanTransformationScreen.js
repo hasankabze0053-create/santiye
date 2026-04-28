@@ -22,6 +22,7 @@ import { supabase } from '../../lib/supabase';
 import { ScreenConfigService } from '../../services/ScreenConfigService';
 import { PermissionService } from '../../services/PermissionService';
 import { TransformationService } from '../../services/TransformationService';
+import { useTheme } from '../../context/ThemeContext';
 
 const COLOR_PALETTE = [
     { name: 'Altın', code: '#D4AF37' },
@@ -121,6 +122,29 @@ const DEFAULT_SECTIONS = [
 ];
 
 export default function UrbanTransformationScreen({ navigation }) {
+    const { isDarkMode } = useTheme();
+
+    // Dynamic theme colors
+    const T = {
+        bg:          isDarkMode ? '#000000' : '#EDE5D5',
+        surface:     isDarkMode ? '#111111' : '#FAF8F3',
+        surface2:    isDarkMode ? '#161616' : '#F2EBE0',
+        border:      isDarkMode ? '#222222' : '#D4C4A8',
+        border2:     isDarkMode ? '#333333' : '#DDD0B8',
+        text:        isDarkMode ? '#FFFFFF' : '#1C1208',
+        textSub:     isDarkMode ? '#AAAAAA' : '#4A3D28',
+        textMuted:   isDarkMode ? '#888888' : '#8A7A65',
+        gold:        isDarkMode ? '#FFD700' : '#8C6200',
+        headerBg:    isDarkMode ? 'rgba(26,26,26,0.95)' : 'rgba(237,229,213,0.97)',
+        backBtn:     isDarkMode ? '#222222' : '#EDE0CA',
+        statsBg:     isDarkMode ? '#111111' : '#FAF8F3',
+        iconBg:      isDarkMode ? 'rgba(255,215,0,0.1)' : 'rgba(140,98,0,0.10)',
+        stepNumBg:   isDarkMode ? '#333333' : '#EDE0CA',
+        stepDivider: isDarkMode ? '#222222' : '#D4C4A8',
+        expertBg:    isDarkMode ? '#1A1A1A' : '#FAF8F3',
+        expertBorder:isDarkMode ? '#333333' : '#D4C4A8',
+    };
+
     const [selectedStep, setSelectedStep] = useState(null);
     const [campaignModalVisible, setCampaignModalVisible] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
@@ -286,16 +310,20 @@ export default function UrbanTransformationScreen({ navigation }) {
         switch (sectionId) {
             case 'urban_expert_qa':
                 return (
-                    <View key={sectionId} style={styles.premiumBox}>
-                        <LinearGradient
-                            colors={['#1A1A1A', '#000000']}
-                            style={StyleSheet.absoluteFillObject}
-                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                        />
+                    <View key={sectionId} style={[styles.premiumBox, { borderColor: T.expertBorder }]}>
+                        {isDarkMode ? (
+                            <LinearGradient
+                                colors={['#1A1A1A', '#000000']}
+                                style={[StyleSheet.absoluteFillObject, { borderRadius: 20 }]}
+                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                            />
+                        ) : (
+                            <View style={[StyleSheet.absoluteFillObject, { backgroundColor: T.expertBg, borderRadius: 20 }]} />
+                        )}
                         <View style={styles.premiumBoxContent}>
                             <View style={styles.premiumHeaderRow}>
-                                <Text allowFontScaling={false} style={styles.premiumBoxTitle}>KENTSEL DÖNÜŞÜM UZMANINA SOR</Text>
-                                <MaterialCommunityIcons name="crown" size={20} color="#FFD700" />
+                                <Text allowFontScaling={false} style={[styles.premiumBoxTitle, { color: T.gold }]}>KENTSEL DÖNÜŞÜM UZMANINA SOR</Text>
+                                <MaterialCommunityIcons name="crown" size={20} color={T.gold} />
                             </View>
 
                             <TouchableOpacity
@@ -326,14 +354,14 @@ export default function UrbanTransformationScreen({ navigation }) {
 
             case 'urban_construction_quotes':
                 return (
-                    <View key={sectionId} style={styles.premiumActionCard}>
+                    <View key={sectionId} style={[styles.premiumActionCard, { backgroundColor: T.surface, borderColor: T.border }]}>
                         <View style={styles.premiumActionHeader}>
                             <View style={styles.premiumActionIconBox}>
                                 <MaterialCommunityIcons name="crane" size={24} color="#000" />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text allowFontScaling={false} style={styles.premiumActionTitle}>Anahtar Teslim İnşaat Teklifi</Text>
-                                <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, marginTop: 4 }}>Lisanslı müteahhitlerden resmi teklif alın.</Text>
+                                <Text allowFontScaling={false} style={[styles.premiumActionTitle, { color: T.text }]}>Anahtar Teslim İnşaat Teklifi</Text>
+                                <Text allowFontScaling={false} style={{ color: T.textMuted, fontSize: 12, marginTop: 4 }}>Lisanslı müteahhitlerden resmi teklif alın.</Text>
                             </View>
                         </View>
                         <TouchableOpacity activeOpacity={0.9} onPress={handleGetQuotes}>
@@ -353,32 +381,32 @@ export default function UrbanTransformationScreen({ navigation }) {
             case 'urban_process_steps':
                 return (
                     <View key={sectionId}>
-                        <Text allowFontScaling={false} style={styles.sectionTitle}>DÖNÜŞÜM SÜRECİ ADIMLARI</Text>
+                        <Text allowFontScaling={false} style={[styles.sectionTitle, { color: T.text }]}>DÖNÜŞÜM SÜRECİ ADIMLARI</Text>
                         {TRANSFORMATION_STEPS.map((step, index) => (
                             <TouchableOpacity
                                 key={step.id}
-                                style={styles.stepCard}
+                                style={[styles.stepCard, { backgroundColor: T.surface2, borderColor: T.border }]}
                                 activeOpacity={0.9}
                                 onPress={() => handleAction(step)}
                             >
                                 <View style={styles.stepHeader}>
-                                    <View style={styles.iconBox}>
-                                        <MaterialCommunityIcons name={step.icon} size={24} color="#FFD700" />
+                                    <View style={[styles.iconBox, { backgroundColor: T.iconBg }]}>
+                                        <MaterialCommunityIcons name={step.icon} size={24} color={T.gold} />
                                     </View>
                                     <View style={{ flex: 1, marginLeft: 15 }}>
-                                        <Text allowFontScaling={false} style={styles.stepTitle}>{step.title}</Text>
-                                        <Text allowFontScaling={false} style={styles.stepSubtitle}>{step.subtitle}</Text>
+                                        <Text allowFontScaling={false} style={[styles.stepTitle, { color: T.text }]}>{step.title}</Text>
+                                        <Text allowFontScaling={false} style={[styles.stepSubtitle, { color: T.textMuted }]}>{step.subtitle}</Text>
                                     </View>
-                                    <View style={styles.stepNumberBox}>
-                                        <Text allowFontScaling={false} style={styles.stepNumber}>{step.id}</Text>
+                                    <View style={[styles.stepNumberBox, { backgroundColor: T.stepNumBg }]}>
+                                        <Text allowFontScaling={false} style={[styles.stepNumber, { color: T.textSub }]}>{step.id}</Text>
                                     </View>
                                 </View>
 
-                                <Text allowFontScaling={false} style={styles.stepDesc}>{step.desc}</Text>
+                                <Text allowFontScaling={false} style={[styles.stepDesc, { color: T.textSub }]}>{step.desc}</Text>
 
-                                <View style={styles.stepFooter}>
-                                    <Text allowFontScaling={false} style={styles.actionText}>{step.action}</Text>
-                                    <Ionicons name="arrow-forward-circle" size={24} color="#FFD700" />
+                                <View style={[styles.stepFooter, { borderTopColor: T.stepDivider }]}>
+                                    <Text allowFontScaling={false} style={[styles.actionText, { color: T.gold }]}>{step.action}</Text>
+                                    <Ionicons name="arrow-forward-circle" size={24} color={T.gold} />
                                 </View>
                             </TouchableOpacity>
                         ))}
@@ -390,22 +418,24 @@ export default function UrbanTransformationScreen({ navigation }) {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: T.bg }]}>
             {/* Background */}
-            <LinearGradient
-                colors={['#1a1a1a', '#000000']}
-                style={StyleSheet.absoluteFillObject}
-            />
+            {isDarkMode && (
+                <LinearGradient
+                    colors={['#1a1a1a', '#000000']}
+                    style={StyleSheet.absoluteFillObject}
+                />
+            )}
 
             <SafeAreaView style={{ flex: 1 }}>
                 {/* Header */}
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                        <Ionicons name="arrow-back" size={24} color="#fff" />
+                <View style={[styles.header, { borderBottomColor: T.border }]}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: T.backBtn }]}>
+                        <Ionicons name="arrow-back" size={24} color={T.text} />
                     </TouchableOpacity>
                     <View>
-                        <Text allowFontScaling={false} style={styles.headerTitle}>YERİNDE DÖNÜŞÜM</Text>
-                        <Text allowFontScaling={false} style={styles.headerSubtitle}>GÜVENLİ GELECEK</Text>
+                        <Text allowFontScaling={false} style={[styles.headerTitle, { color: T.gold }]}>YERİNDE DÖNÜŞÜM</Text>
+                        <Text allowFontScaling={false} style={[styles.headerSubtitle, { color: T.textMuted }]}>GÜVENLİ GELECEK</Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                         <TouchableOpacity
@@ -520,20 +550,20 @@ export default function UrbanTransformationScreen({ navigation }) {
                     )}
 
                     {/* Stats Row - Always Visible */}
-                    <View style={styles.statsRow}>
+                    <View style={[styles.statsRow, { backgroundColor: T.statsBg, borderColor: T.border }]}>
                         <View style={styles.statItem}>
-                            <Text allowFontScaling={false} style={styles.statValue}>875.000₺</Text>
-                            <Text allowFontScaling={false} style={styles.statLabel}>HİBE</Text>
+                            <Text allowFontScaling={false} style={[styles.statValue, { color: T.gold }]}>875.000₺</Text>
+                            <Text allowFontScaling={false} style={[styles.statLabel, { color: T.textSub }]}>HİBE</Text>
                         </View>
-                        <View style={styles.statDivider} />
+                        <View style={[styles.statDivider, { backgroundColor: T.border }]} />
                         <View style={styles.statItem}>
-                            <Text allowFontScaling={false} style={styles.statValue}>875.000₺</Text>
-                            <Text allowFontScaling={false} style={styles.statLabel}>KREDİ</Text>
+                            <Text allowFontScaling={false} style={[styles.statValue, { color: T.gold }]}>875.000₺</Text>
+                            <Text allowFontScaling={false} style={[styles.statLabel, { color: T.textSub }]}>KREDİ</Text>
                         </View>
-                        <View style={styles.statDivider} />
+                        <View style={[styles.statDivider, { backgroundColor: T.border }]} />
                         <View style={styles.statItem}>
-                            <Text allowFontScaling={false} style={styles.statValue}>12-18 Ay</Text>
-                            <Text allowFontScaling={false} style={styles.statLabel}>Teslim Hedefi</Text>
+                            <Text allowFontScaling={false} style={[styles.statValue, { color: T.gold }]}>12-18 Ay</Text>
+                            <Text allowFontScaling={false} style={[styles.statLabel, { color: T.textSub }]}>Teslim Hedefi</Text>
                         </View>
                     </View>
 

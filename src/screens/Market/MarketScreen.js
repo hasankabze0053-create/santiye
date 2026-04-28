@@ -8,6 +8,7 @@ import Slider from '@react-native-community/slider';
 import { ActivityIndicator, Alert, Animated, Dimensions, Easing, Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMarketCart } from '../../context/MarketCartContext';
+import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { MarketService } from '../../services/MarketService';
 import { getMarketImage } from '../../utils/marketAssets';
@@ -25,64 +26,24 @@ const COLOR_PALETTE = [
     { name: 'Kırmızı', code: '#EF4444' },
 ];
 
-// ─── MARKET PRICE TICKER ──────────────────────────────────────────────────
-const MARKET_PRICES = [
-    { label: 'Nervürlü Demir', value: '₺28.40', unit: '/kg',    trend: 'up' },
-    { label: 'Beton C30',      value: '₺3.850', unit: '/m³',   trend: 'up' },
-    { label: 'Çimento 50kg',   value: '₺285',   unit: '/torba', trend: 'down' },
-    { label: 'Kum',            value: '₺180',   unit: '/m³',   trend: 'up' },
-    { label: 'Hazır Beton',    value: '₺3.650', unit: '/m³',   trend: 'down' },
-    { label: 'Tuğla',          value: '₺4.20',  unit: '/adet',  trend: 'up' },
-];
 
-function MarketPriceTicker() {
-    const scrollX = useRef(new Animated.Value(0)).current;
-    const totalW  = MARKET_PRICES.length * 160;
-    useEffect(() => {
-        Animated.loop(
-            Animated.timing(scrollX, { toValue: -totalW, duration: MARKET_PRICES.length * 2800, easing: Easing.linear, useNativeDriver: true })
-        ).start();
-    }, []);
-    const items = [...MARKET_PRICES, ...MARKET_PRICES];
-    return (
-        <View style={tk.wrap}>
-            <View style={tk.dot} />
-            <Text allowFontScaling={false} style={tk.live}>CANLI</Text>
-            <View style={{ flex: 1, overflow: 'hidden' }}>
-                <Animated.View style={{ flexDirection: 'row', transform: [{ translateX: scrollX }] }}>
-                    {items.map((p, i) => (
-                        <View key={i} style={tk.item}>
-                            <Text allowFontScaling={false} style={tk.label}>{p.label}</Text>
-                            <Text allowFontScaling={false} style={[tk.val, { color: p.trend === 'up' ? '#F97316' : '#10B981' }]}>
-                                {p.value}<Text style={tk.unit}>{p.unit}</Text>
-                            </Text>
-                            <MaterialCommunityIcons
-                                name={p.trend === 'up' ? 'trending-up' : 'trending-down'}
-                                size={12}
-                                color={p.trend === 'up' ? '#F97316' : '#10B981'}
-                            />
-                        </View>
-                    ))}
-                </Animated.View>
-            </View>
-        </View>
-    );
-}
-
-const tk = StyleSheet.create({
-    wrap:  { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 7, backgroundColor: '#0a0a0a', borderBottomWidth: 1, borderBottomColor: '#1a1a1a', gap: 8 },
-    dot:   { width: 6, height: 6, borderRadius: 3, backgroundColor: '#EF4444' },
-    live:  { color: '#EF4444', fontSize: 9, fontWeight: '800', letterSpacing: 1.5 },
-    item:  { flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: 22, width: 150 },
-    label: { color: '#666', fontSize: 10 },
-    val:   { fontSize: 11, fontWeight: '700' },
-    unit:  { fontSize: 9, fontWeight: '400', color: '#555' },
-});
 
 export default function MarketScreen() {
     const navigation = useNavigation();
     const route = useRoute();
     const { getCartCount } = useMarketCart();
+    const { isDarkMode } = useTheme();
+    const T = {
+        bg: isDarkMode ? '#000000' : '#FDFBF7',
+        card: isDarkMode ? '#111111' : '#FFFFFF',
+        textPrimary: isDarkMode ? '#FFFFFF' : '#111111',
+        textSecondary: isDarkMode ? '#AAAAAA' : '#777777',
+        border: isDarkMode ? '#333333' : '#E8E0D0',
+        searchBg: isDarkMode ? '#1A1A1A' : '#FFFFFF',
+        goldPrimary: '#D4AF37',
+    };
+    const styles = getStyles(T, isDarkMode);
+
 
     const [isAdmin, setIsAdmin] = useState(false);
     const [isSeller, setIsSeller] = useState(false);
@@ -418,7 +379,7 @@ export default function MarketScreen() {
     if (isLoading) {
         return (
             <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                <StatusBar barStyle="light-content" />
+                <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
                 <ActivityIndicator size="large" color="#D4AF37" />
             </View>
         );
@@ -426,14 +387,14 @@ export default function MarketScreen() {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" />
-            <LinearGradient colors={['#000000', '#121212']} style={StyleSheet.absoluteFillObject} />
+            <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
+            <LinearGradient colors={isDarkMode ? ['#000000', '#121212'] : ['#FDFBF7', '#F7F1E4']} style={StyleSheet.absoluteFillObject} />
             <SafeAreaView style={{ flex: 1 }}>
 
                 {/* 1. HEADER (Standardized) */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={handleBack} style={styles.headerBtn}>
-                        <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
+                        <MaterialCommunityIcons name="arrow-left" size={24} color={T.textPrimary} />
                     </TouchableOpacity>
                     <View style={{ alignItems: 'center' }}>
                         <Text allowFontScaling={false} style={styles.headerTitle}>YAPI MARKET</Text>
@@ -458,8 +419,7 @@ export default function MarketScreen() {
                     </View>
                 </View>
 
-                {/* PRICE TICKER */}
-                <MarketPriceTicker />
+                
 
                 {/* SEARCH BAR (In-Flow) */}
                 <View style={styles.searchContainer}>
@@ -472,7 +432,7 @@ export default function MarketScreen() {
                         onChangeText={setSearchQuery}
                     />
                     <TouchableOpacity>
-                        <MaterialCommunityIcons name="tune" size={24} color="#fff" />
+                        <MaterialCommunityIcons name="tune" size={24} color={T.textPrimary} />
                     </TouchableOpacity>
                 </View>
 
@@ -548,7 +508,7 @@ export default function MarketScreen() {
                                                             end={{ x: 1, y: 0 }}
                                                         />
                                                         <Text allowFontScaling={false} style={styles.heroPremiumBtnText}>{item.button_text || 'Şimdi En Uygun Fiyatı Öğren'}</Text>
-                                                        <MaterialCommunityIcons name="arrow-right" size={16} color="#000" style={{ marginLeft: 6 }} />
+                                                        <MaterialCommunityIcons name="arrow-right" size={16} color={isDarkMode ? '#000' : '#FFF'} style={{ marginLeft: 6 }} />
                                                     </TouchableOpacity>
                                                 </View>
 
@@ -558,7 +518,7 @@ export default function MarketScreen() {
                                                         style={styles.heroEditShortcut} 
                                                         onPress={() => setEditingShowcaseItem(item)}
                                                     >
-                                                        <MaterialCommunityIcons name="pencil" size={20} color="#000" />
+                                                        <MaterialCommunityIcons name="pencil" size={20} color={isDarkMode ? '#000' : '#FFF'} />
                                                     </TouchableOpacity>
                                                 )}
                                             </View>
@@ -589,7 +549,7 @@ export default function MarketScreen() {
                                         <LinearGradient colors={['#1A1A1A', '#111']} style={StyleSheet.absoluteFillObject} />
                                         <MaterialCommunityIcons name="view-carousel-outline" size={20} color="#D4AF37" />
                                         <Text allowFontScaling={false} style={styles.adminSliderBtnText}>SLIDER AYARLARI</Text>
-                                        <MaterialCommunityIcons name="cog-outline" size={16} color="#666" />
+                                        <MaterialCommunityIcons name="cog-outline" size={16} color={T.textSecondary} />
                                     </TouchableOpacity>
                                 </View>
                             )}
@@ -598,7 +558,7 @@ export default function MarketScreen() {
                             <TouchableOpacity style={styles.bulkActionBar} onPress={handleRfq} activeOpacity={0.9}>
                                 <View style={styles.bulkContainer}>
                                     <View style={styles.bulkIconCircle}>
-                                        <MaterialCommunityIcons name="clipboard-list-outline" size={32} color="#000" />
+                                        <MaterialCommunityIcons name="clipboard-list-outline" size={32} color={isDarkMode ? '#000' : '#FFF'} />
                                     </View>
                                     <View style={{ flex: 1 }}>
                                         <Text allowFontScaling={false} style={styles.bulkTitle}>TEKLİF TOPLA</Text>
@@ -614,7 +574,7 @@ export default function MarketScreen() {
                                 activeOpacity={0.9}
                             >
                                 <LinearGradient
-                                    colors={['#101828', '#1D2939']} // Dark blue-grey gradient background
+                                    colors={isDarkMode ? ['#101828', '#1D2939'] : ['#FDFBF7', '#FDFBF7']} // Dark blue-grey gradient background
                                     style={StyleSheet.absoluteFill}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 1 }}
@@ -625,7 +585,7 @@ export default function MarketScreen() {
                                             colors={['#FDB931', '#996515']} // Gold gradient for icon bg
                                             style={StyleSheet.absoluteFill}
                                         />
-                                        <MaterialCommunityIcons name="robot-confused-outline" size={32} color="#000" />
+                                        <MaterialCommunityIcons name="robot-confused-outline" size={32} color={isDarkMode ? '#000' : '#FFF'} />
                                     </View>
                                     <View style={{ flex: 1 }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
@@ -685,11 +645,11 @@ export default function MarketScreen() {
                                         {isEditMode && (
                                             <View style={[styles.adminOverlay, { flexDirection: 'column' }]}>
                                                 <TouchableOpacity onPress={() => handleRenameCat(cat)} style={[styles.adminBtn, { backgroundColor: '#B8860B', marginBottom: 10, width: 44, height: 44, borderRadius: 22 }]}>
-                                                    <MaterialCommunityIcons name="pencil" size={24} color="#FFF" />
+                                                    <MaterialCommunityIcons name="pencil" size={24} color={T.textPrimary} />
                                                 </TouchableOpacity>
                                                 <View style={{ flexDirection: 'row', gap: 10 }}>
                                                     <TouchableOpacity onPress={() => moveCat(idx, 'left')} style={styles.adminBtn}>
-                                                        <MaterialCommunityIcons name="arrow-left" size={18} color="#FFF" />
+                                                        <MaterialCommunityIcons name="arrow-left" size={18} color={T.textPrimary} />
                                                     </TouchableOpacity>
                                                     <TouchableOpacity onPress={() => toggleCatVisibility(cat)} style={styles.adminBtn}>
                                                         <MaterialCommunityIcons 
@@ -699,7 +659,7 @@ export default function MarketScreen() {
                                                         />
                                                     </TouchableOpacity>
                                                     <TouchableOpacity onPress={() => moveCat(idx, 'right')} style={styles.adminBtn}>
-                                                        <MaterialCommunityIcons name="arrow-right" size={18} color="#FFF" />
+                                                        <MaterialCommunityIcons name="arrow-right" size={18} color={T.textPrimary} />
                                                     </TouchableOpacity>
                                                 </View>
                                             </View>
@@ -779,7 +739,7 @@ export default function MarketScreen() {
                                             <View style={styles.listContent}>
                                                 <Text allowFontScaling={false} style={styles.listTitle}>{sub.name}</Text>
                                             </View>
-                                            {!isEditMode && <MaterialCommunityIcons name="chevron-right" size={24} color="#666" />}
+                                            {!isEditMode && <MaterialCommunityIcons name="chevron-right" size={24} color={T.textSecondary} />}
                                         </TouchableOpacity>
 
                                         {isEditMode && (
@@ -862,7 +822,7 @@ export default function MarketScreen() {
                                                 <Text allowFontScaling={false} style={styles.productName}>{item.name}</Text>
                                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                                     <Text allowFontScaling={false} style={styles.productSpec}>{item.subcategory} • {item.spec}</Text>
-                                                    {item.options && <Text allowFontScaling={false} style={{ color: '#666', fontSize: 11, marginLeft: 6 }}>({Object.keys(item.options).length} Seçenek)</Text>}
+                                                    {item.options && <Text allowFontScaling={false} style={{ color: T.textSecondary, fontSize: 11, marginLeft: 6 }}>({Object.keys(item.options).length} Seçenek)</Text>}
                                                 </View>
                                                 {isExpanded && item.options && (
                                                     <Text allowFontScaling={false} style={{ fontSize: 11, color: '#D4AF37', marginTop: 4 }}>
@@ -919,7 +879,7 @@ export default function MarketScreen() {
 
                                                         <View style={{ alignItems: 'flex-end', gap: 6 }}>
                                                             <View style={{ alignItems: 'flex-end' }}>
-                                                                <Text allowFontScaling={false} style={{ color: '#666', fontSize: 10, fontWeight: 'bold' }}>BİRİM FİYAT</Text>
+                                                                <Text allowFontScaling={false} style={{ color: T.textSecondary, fontSize: 10, fontWeight: 'bold' }}>BİRİM FİYAT</Text>
                                                                 <Text allowFontScaling={false} style={styles.supplierPrice}>{supplier.price}</Text>
                                                             </View>
                                                             <TouchableOpacity style={styles.addToCartBtnSmall} onPress={() => handleAddToCart(item)}>
@@ -940,7 +900,7 @@ export default function MarketScreen() {
 
                 {/* 5. FLOATING MAP BUTTON */}
                 <TouchableOpacity style={styles.mapFab} onPress={handleOpenMap}>
-                    <MaterialCommunityIcons name="map-marker-radius" size={28} color="#000" />
+                    <MaterialCommunityIcons name="map-marker-radius" size={28} color={isDarkMode ? '#000' : '#FFF'} />
                 </TouchableOpacity>
 
                 {/* 6. FLOATING CART BUTTON (Dynamic) */}
@@ -952,7 +912,7 @@ export default function MarketScreen() {
                     >
                         <LinearGradient colors={['#D4AF37', '#B8860B']} style={StyleSheet.absoluteFillObject} />
                         <View style={styles.cartContentWrap}>
-                            <MaterialCommunityIcons name="cart-outline" size={26} color="#000" />
+                            <MaterialCommunityIcons name="cart-outline" size={26} color={isDarkMode ? '#000' : '#FFF'} />
                             <View style={styles.cartBadge}>
                                 <Text allowFontScaling={false} style={styles.cartBadgeText}>{getCartCount()}</Text>
                             </View>
@@ -969,7 +929,7 @@ export default function MarketScreen() {
                             <View style={styles.modalHeader}>
                                 <Text allowFontScaling={false} style={styles.modalTitle}>Slider Yönetimi</Text>
                                 <TouchableOpacity onPress={() => setIsShowcaseManagerVisible(false)}>
-                                    <MaterialCommunityIcons name="close" size={24} color="#FFF" />
+                                    <MaterialCommunityIcons name="close" size={24} color={T.textPrimary} />
                                 </TouchableOpacity>
                             </View>
 
@@ -1005,7 +965,7 @@ export default function MarketScreen() {
                                         sort_order: (showcaseItems.length + 1) * 10
                                     })}
                                 >
-                                    <MaterialCommunityIcons name="plus" size={24} color="#000" />
+                                    <MaterialCommunityIcons name="plus" size={24} color={isDarkMode ? '#000' : '#FFF'} />
                                     <Text allowFontScaling={false} style={styles.addSliderBtnText}>YENİ SLIDER EKLE</Text>
                                 </TouchableOpacity>
                             </ScrollView>
@@ -1020,7 +980,7 @@ export default function MarketScreen() {
                             <View style={styles.modalHeader}>
                                 <Text allowFontScaling={false} style={styles.modalTitle}>Slider Düzenle</Text>
                                 <TouchableOpacity onPress={() => setEditingShowcaseItem(null)}>
-                                    <MaterialCommunityIcons name="close" size={24} color="#FFF" />
+                                    <MaterialCommunityIcons name="close" size={24} color={T.textPrimary} />
                                 </TouchableOpacity>
                             </View>
 
@@ -1035,8 +995,8 @@ export default function MarketScreen() {
                                                 source={editingShowcaseItem?.is_local ? getMarketImage(editingShowcaseItem.image_ref) : { uri: editingShowcaseItem?.image_url }} 
                                                 style={[StyleSheet.absoluteFill, { opacity: 0.6 }]} 
                                             />
-                                            <MaterialCommunityIcons name="camera-plus" size={32} color="#FFF" />
-                                            <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, marginTop: 4 }}>Resmi Değiştir</Text>
+                                            <MaterialCommunityIcons name="camera-plus" size={32} color={T.textPrimary} />
+                                            <Text allowFontScaling={false} style={{ color: T.textPrimary, fontSize: 12, marginTop: 4 }}>Resmi Değiştir</Text>
                                         </>
                                     )}
                                 </TouchableOpacity>
@@ -1165,20 +1125,20 @@ export default function MarketScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#000' },
+const getStyles = (T, isDarkMode) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: T.bg },
 
     // Header
     // Header (Standardized)
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, marginBottom: 10 },
     headerTitle: { color: '#D4AF37', fontSize: 12, fontWeight: '900', letterSpacing: 2 },
-    headerSubtitle: { color: '#fff', fontSize: 16, fontWeight: '300', marginTop: 4 },
+    headerSubtitle: { color: T.textPrimary, fontSize: 16, fontWeight: '300', marginTop: 4 },
     headerBtn: { padding: 5 },
     headerIconBtn: {
         width: 44,
         height: 44,
         borderRadius: 12,
-        backgroundColor: '#1A1A1A',
+        backgroundColor: T.searchBg,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
@@ -1192,11 +1152,11 @@ const styles = StyleSheet.create({
 
     // Search Bar
     searchContainer: {
-        flexDirection: 'row', alignItems: 'center', backgroundColor: '#1A1A1A',
+        flexDirection: 'row', alignItems: 'center', backgroundColor: T.searchBg,
         marginHorizontal: 16, marginBottom: 20, paddingHorizontal: 16, height: 50, borderRadius: 12,
-        borderWidth: 1, borderColor: '#333'
+        borderWidth: 1, borderColor: T.border
     },
-    searchInput: { flex: 1, color: '#fff', marginLeft: 8, fontSize: 14 },
+    searchInput: { flex: 1, color: T.textPrimary, marginLeft: 8, fontSize: 14 },
 
     // Hero Slider
     heroSliderContainer: { marginBottom: 20, height: 240 },
@@ -1206,7 +1166,7 @@ const styles = StyleSheet.create({
     heroTag: { position: 'absolute', top: 50, left: 20, backgroundColor: '#D4AF37', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, zIndex: 10 },
     heroTagText: { fontSize: 10, fontWeight: 'bold', color: '#000' },
     heroContent: { marginBottom: 20 },
-    heroTitle: { color: '#fff', fontSize: 24, fontWeight: '900', marginBottom: 4, textShadowColor: '#000', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 10 },
+    heroTitle: { color: T.textPrimary, fontSize: 24, fontWeight: '900', marginBottom: 4, textShadowColor: '#000', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 10 },
     heroSubtitle: { color: '#ddd', fontSize: 13, textShadowColor: '#000', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
     heroPremiumBtn: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, marginTop: 12, overflow: 'hidden' },
     heroPremiumBtnText: { color: '#000', fontSize: 13, fontWeight: 'bold' },
@@ -1216,11 +1176,11 @@ const styles = StyleSheet.create({
     dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#D4AF37', marginHorizontal: 4 },
 
     // Bulk Action
-    bulkActionBar: { marginHorizontal: 16, marginBottom: 24, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#D4AF37', backgroundColor: '#141414' },
+    bulkActionBar: { marginHorizontal: 16, marginBottom: 24, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#D4AF37', backgroundColor: T.card },
     bulkContainer: { flexDirection: 'row', alignItems: 'center', padding: 20 },
     bulkIconCircle: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#D4AF37', alignItems: 'center', justifyContent: 'center', marginRight: 16, borderWidth: 4, borderColor: 'rgba(255, 215, 0, 0.3)' },
     bulkTitle: { fontSize: 16, fontWeight: '900', color: '#D4AF37', letterSpacing: 0.5 },
-    bulkSubtitle: { fontSize: 13, color: '#888', marginTop: 4, fontWeight: '400' },
+    bulkSubtitle: { fontSize: 13, color: T.textSecondary, marginTop: 4, fontWeight: '400' },
     // bulkIconBox removed
 
     // Grid
@@ -1228,10 +1188,10 @@ const styles = StyleSheet.create({
     sectionTitle: { color: '#D4AF37', fontSize: 13, fontWeight: 'bold', letterSpacing: 1 },
     gridContainer: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12 },
     gridCard: { width: '50%', padding: 6, height: 160, marginBottom: 4 },
-    gridImage: { width: '100%', height: '100%', justifyContent: 'flex-end', padding: 12, borderWidth: 1, borderColor: '#333', borderRadius: 16, overflow: 'hidden' },
+    gridImage: { width: '100%', height: '100%', justifyContent: 'flex-end', padding: 12, borderWidth: 1, borderColor: T.border, borderRadius: 16, overflow: 'hidden' },
     gridContent: { alignItems: 'flex-start', width: '100%' }, // Ensure text takes width if needed
     gridIconAbsolute: { position: 'absolute', top: 12, right: 12, zIndex: 10 },
-    gridTitle: { color: '#fff', fontSize: 13, fontWeight: 'bold', marginBottom: 0, textShadowColor: 'rgba(0,0,0,0.9)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3, lineHeight: 18 },
+    gridTitle: { color: T.textPrimary, fontSize: 13, fontWeight: 'bold', marginBottom: 0, textShadowColor: 'rgba(0,0,0,0.9)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3, lineHeight: 18 },
     gridBadge: { backgroundColor: 'rgba(255,215,0,0.25)', alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#D4AF37' },
     gridBadgeText: { color: '#D4AF37', fontSize: 10, fontWeight: 'bold' },
 
@@ -1239,39 +1199,39 @@ const styles = StyleSheet.create({
     detailContainer: { padding: 16 },
     categoryHeader: { marginBottom: 20 },
     categoryTitle: { color: '#D4AF37', fontSize: 22, fontWeight: '900', marginBottom: 4 },
-    categorySubtitle: { color: '#888', fontSize: 14 },
+    categorySubtitle: { color: T.textSecondary, fontSize: 14 },
     // Product Card (Expandable List View)
-    productCard: { borderRadius: 12, marginBottom: 12, backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#333', overflow: 'hidden' },
+    productCard: { borderRadius: 12, marginBottom: 12, backgroundColor: T.searchBg, borderWidth: 1, borderColor: T.border, overflow: 'hidden' },
     productMainRow: { flexDirection: 'row', alignItems: 'center', padding: 16 }, // Adjusted padding for list
     productIconBox: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(212, 175, 55, 0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 12 }, // New Icon Box
     productInfo: { flex: 1, justifyContent: 'center' },
-    productName: { color: '#FFF', fontSize: 15, fontWeight: 'bold', marginBottom: 2 },
-    productSpec: { color: '#888', fontSize: 12, fontWeight: '500' },
+    productName: { color: T.textPrimary, fontSize: 15, fontWeight: 'bold', marginBottom: 2 },
+    productSpec: { color: T.textSecondary, fontSize: 12, fontWeight: '500' },
 
     // Price & Expand Button
-    priceExpandBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#000', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 },
+    priceExpandBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: T.bg, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 },
     priceExpandText: { fontSize: 12, fontWeight: 'bold', color: '#D4AF37' },
 
     // Expanded Supplier List (NEW: Dark Theme)
-    supplierListContainer: { backgroundColor: '#111', padding: 16, borderTopWidth: 1, borderTopColor: '#333' },
+    supplierListContainer: { backgroundColor: T.card, padding: 16, borderTopWidth: 1, borderTopColor: T.border },
     supplierListHeader: { color: '#D4AF37', fontSize: 12, fontWeight: '900', letterSpacing: 1 },
-    supplierRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottomWidth: 1, borderBottomColor: '#222', paddingBottom: 10 },
+    supplierRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottomWidth: 1, borderBottomColor: T.border, paddingBottom: 10 },
     supplierInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
     supplierAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#333', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
     supplierInitials: { color: '#D4AF37', fontWeight: 'bold', fontSize: 14 },
-    supplierNameText: { color: '#FFF', fontSize: 14, fontWeight: 'bold', marginBottom: 2 },
-    supplierRating: { color: '#888', fontSize: 12, marginLeft: 4 },
+    supplierNameText: { color: T.textPrimary, fontSize: 14, fontWeight: 'bold', marginBottom: 2 },
+    supplierRating: { color: T.textSecondary, fontSize: 12, marginLeft: 4 },
     supplierPrice: { color: '#D4AF37', fontSize: 18, fontWeight: '900' },
     addToCartBtnSmall: { backgroundColor: '#D4AF37', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, marginTop: 4 },
     addToCartText: { color: '#000', fontSize: 11, fontWeight: 'bold' },
 
     // Options (New)
-    optionsContainer: { marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#333' },
+    optionsContainer: { marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: T.border },
     optionRow: { marginBottom: 12 },
-    optionLabel: { color: '#FFF', fontSize: 13, fontWeight: 'bold', marginBottom: 6 },
+    optionLabel: { color: T.textPrimary, fontSize: 13, fontWeight: 'bold', marginBottom: 6 },
     optionChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, backgroundColor: '#333', marginRight: 8, borderWidth: 1, borderColor: '#444' },
     optionChipActive: { backgroundColor: '#D4AF37', borderColor: '#D4AF37' },
-    optionChipText: { color: '#ccc', fontSize: 12, fontWeight: '500' },
+    optionChipText: { color: T.textSecondary, fontSize: 12, fontWeight: '500' },
     optionChipTextActive: { color: '#000', fontWeight: 'bold' },
 
     // Floating Map Button
@@ -1280,30 +1240,30 @@ const styles = StyleSheet.create({
     // Floating Cart Button
     cartFab: { position: 'absolute', bottom: 100, right: 20, borderRadius: 28, height: 56, paddingHorizontal: 20, overflow: 'hidden', shadowColor: '#D4AF37', shadowOffset: { height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 },
     cartContentWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
-    cartBadge: { position: 'absolute', top: 4, left: 16, backgroundColor: '#000', width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#D4AF37' },
+    cartBadge: { position: 'absolute', top: 4, left: 16, backgroundColor: T.bg, width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#D4AF37' },
     cartBadgeText: { color: '#D4AF37', fontSize: 10, fontWeight: 'bold' },
     cartFabText: { color: '#000', fontSize: 15, fontWeight: '800', marginLeft: 10 },
 
     // Filter Chips
     filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#333', marginRight: 10, borderWidth: 1, borderColor: '#444' },
     filterChipActive: { backgroundColor: '#D4AF37', borderColor: '#D4AF37' },
-    filterChipText: { color: '#ccc', fontSize: 13, fontWeight: '500' },
+    filterChipText: { color: T.textSecondary, fontSize: 13, fontWeight: '500' },
     filterChipTextActive: { color: '#000', fontWeight: 'bold' },
 
     // List View Styles
     listContainer: { paddingHorizontal: 16 },
     listCard: {
-        flexDirection: 'row', alignItems: 'center', backgroundColor: '#1A1A1A',
+        flexDirection: 'row', alignItems: 'center', backgroundColor: T.searchBg,
         borderRadius: 12, padding: 16, marginBottom: 12,
-        borderWidth: 1, borderColor: '#333'
+        borderWidth: 1, borderColor: T.border
     },
     listIconContainer: {
         width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(212, 175, 55, 0.1)',
         alignItems: 'center', justifyContent: 'center', marginRight: 16
     },
     listContent: { flex: 1 },
-    listTitle: { fontSize: 16, fontWeight: 'bold', color: '#FFF' },
-    listSubtitle: { fontSize: 12, color: '#888', marginTop: 2 },
+    listTitle: { fontSize: 16, fontWeight: 'bold', color: T.textPrimary },
+    listSubtitle: { fontSize: 12, color: T.textSecondary, marginTop: 2 },
 
     // AI Wizard Button Styles
     aiWizardButton: {
@@ -1356,7 +1316,7 @@ const styles = StyleSheet.create({
     },
     aiSubtitle: {
         fontSize: 12,
-        color: '#CCC',
+        color: T.textSecondary,
         fontStyle: 'italic',
         lineHeight: 16
     },
@@ -1416,11 +1376,11 @@ const styles = StyleSheet.create({
         width: 32,
         height: 32,
         borderRadius: 16,
-        backgroundColor: '#1A1A1A',
+        backgroundColor: T.searchBg,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: '#333'
+        borderColor: T.border
     },
 
     // Showcase Management Styles
@@ -1447,20 +1407,20 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end'
     },
     managerModalContent: {
-        backgroundColor: '#111',
+        backgroundColor: T.card,
         height: '80%',
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         borderWidth: 1,
-        borderColor: '#333'
+        borderColor: T.border
     },
     editModalContent: {
-        backgroundColor: '#111',
+        backgroundColor: T.card,
         height: '90%',
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         borderWidth: 1,
-        borderColor: '#333'
+        borderColor: T.border
     },
     modalHeader: {
         flexDirection: 'row',
@@ -1468,7 +1428,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 20,
         borderBottomWidth: 1,
-        borderBottomColor: '#222'
+        borderBottomColor: T.border
     },
     modalTitle: {
         color: '#D4AF37',
@@ -1478,12 +1438,12 @@ const styles = StyleSheet.create({
     managerItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#1A1A1A',
+        backgroundColor: T.searchBg,
         padding: 12,
         borderRadius: 12,
         marginBottom: 12,
         borderWidth: 1,
-        borderColor: '#333'
+        borderColor: T.border
     },
     managerItemThumb: {
         width: 60,
@@ -1492,7 +1452,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#333'
     },
     managerItemTitle: {
-        color: '#FFF',
+        color: T.textPrimary,
         fontSize: 14,
         fontWeight: 'bold'
     },
@@ -1504,7 +1464,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: '#333'
+        borderColor: T.border
     },
     addSliderBtn: {
         flexDirection: 'row',
@@ -1525,10 +1485,10 @@ const styles = StyleSheet.create({
     imagePickerArea: {
         width: '100%',
         height: 180,
-        backgroundColor: '#1A1A1A',
+        backgroundColor: T.searchBg,
         borderRadius: 16,
         borderWidth: 2,
-        borderColor: '#333',
+        borderColor: T.border,
         borderStyle: 'dashed',
         alignItems: 'center',
         justifyContent: 'center',
@@ -1544,13 +1504,13 @@ const styles = StyleSheet.create({
         marginTop: 4
     },
     modalInput: {
-        backgroundColor: '#1A1A1A',
+        backgroundColor: T.searchBg,
         borderRadius: 12,
         padding: 14,
-        color: '#FFF',
+        color: T.textPrimary,
         fontSize: 14,
         borderWidth: 1,
-        borderColor: '#333',
+        borderColor: T.border,
         marginBottom: 16
     },
     adjustmentGroup: {
@@ -1559,7 +1519,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         marginVertical: 10,
         borderWidth: 1,
-        borderColor: '#222'
+        borderColor: T.border
     },
     adjHeader: {
         flexDirection: 'row',
@@ -1567,7 +1527,7 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     adjVal: {
-        color: '#FFF',
+        color: T.textPrimary,
         fontSize: 12,
         fontWeight: 'bold'
     },

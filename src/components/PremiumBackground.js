@@ -8,52 +8,57 @@ export default function PremiumBackground({ children }) {
     const { isDarkMode } = useTheme();
 
     if (!isDarkMode) {
-        // LIGHT MODE: Sıcak beton/krem arka plan
+        // ── LIGHT MODE ──────────────────────────────────────────────
+        // Palette: "Güneş altındaki şantiye" — sıcak taş + kum + fildişi
+        // #E8DFD0 → #F2EDE3 → #FAF7F2  (koyu kumtaşından açık fildişiye)
         return (
-            <View style={[styles.container, { backgroundColor: '#F4F1EB' }]}>
+            <View style={styles.container_light}>
+
+                {/* 1. Ana zemin: dikey sıcak kum gradyanı */}
                 <LinearGradient
-                    colors={['#F4F1EB', '#EDE8DC', '#F4F1EB']}
+                    colors={['#E8DFD0', '#EFE9DC', '#F5F1E9', '#FAF8F3']}
                     start={{ x: 0, y: 0 }}
-                    end={{ x: 0.8, y: 1 }}
+                    end={{ x: 0, y: 1 }}
                     style={StyleSheet.absoluteFill}
                 />
-                {/* Subtle warm gold accent */}
+
+                {/* 2. Çapraz sıcak altın tarama — tekstür hissi */}
                 <LinearGradient
-                    colors={['rgba(154, 111, 0, 0.04)', 'transparent']}
+                    colors={['rgba(180, 130, 40, 0.07)', 'transparent', 'rgba(180, 130, 40, 0.04)']}
                     start={{ x: 0, y: 0 }}
-                    end={{ x: 0.7, y: 0.7 }}
-                    style={[StyleSheet.absoluteFill, { width, height }]}
+                    end={{ x: 1, y: 1 }}
+                    style={StyleSheet.absoluteFill}
                 />
-                <View style={styles.content}>
-                    {children}
-                </View>
+
+                {/* 3. Üst vignette — derinlik ve başlık ayrımı */}
+                <LinearGradient
+                    colors={['rgba(160, 110, 20, 0.06)', 'transparent']}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 0.25 }}
+                    style={StyleSheet.absoluteFill}
+                />
+
+                <View style={styles.content}>{children}</View>
             </View>
         );
     }
 
-    // DARK MODE: Mevcut premium karanlık arka plan (hiç değişmedi)
+    // ── DARK MODE (değişmedi) ──────────────────────────────────────
     return (
         <View style={styles.container}>
-            {/* Base Anthracite Background */}
             <LinearGradient
                 colors={['#0F0F0F', '#181818', '#0A0A0A']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0.8, y: 1 }}
                 style={StyleSheet.absoluteFill}
             />
-
-            {/* Architectural Spot Light (Bronze/Gold Hint) */}
             <LinearGradient
                 colors={['rgba(191, 149, 63, 0.04)', 'transparent']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0.7, y: 0.7 }}
                 style={[StyleSheet.absoluteFill, { width, height }]}
             />
-
-            {/* Content Layer */}
-            <View style={styles.content}>
-                {children}
-            </View>
+            <View style={styles.content}>{children}</View>
         </View>
     );
 }
@@ -63,7 +68,11 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#0F0F0F',
     },
+    container_light: {
+        flex: 1,
+        backgroundColor: '#E8DFD0',
+    },
     content: {
         flex: 1,
-    }
+    },
 });

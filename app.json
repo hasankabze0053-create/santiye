@@ -45,7 +45,8 @@
           "photosPermission": "Uygulamanın fotoğraflarınıza erişmesi gerekiyor.",
           "cameraPermission": "Uygulamanın kameranıza erişmesi gerekiyor."
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

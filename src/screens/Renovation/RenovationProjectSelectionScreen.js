@@ -13,6 +13,7 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -74,6 +75,24 @@ const DATA = Array.from({ length: LOOPS * ORIGINAL_DATA.length }).map((_, i) => 
 const INITIAL_INDEX = Math.floor(DATA.length / 2);
 
 export default function RenovationProjectSelectionScreen({ navigation }) {
+    const { isDarkMode } = useTheme();
+
+    const T = {
+        bg: isDarkMode ? '#000000' : '#EDE5D5',
+        surface: isDarkMode ? '#121212' : '#FAF8F3',
+        titleColor: isDarkMode ? '#E5E5E5' : '#1C1208',
+        goldPrimary: isDarkMode ? '#D4AF37' : '#B8820F',
+        goldShadow: isDarkMode ? '#AA8230' : '#8C6200',
+        goldHighlight: isDarkMode ? '#F7E5A8' : '#1C1208',
+        textSub: isDarkMode ? '#CCC' : '#4A3D28',
+        textMuted: isDarkMode ? '#666' : '#8A7A61',
+        cardGlow: isDarkMode ? '#FFD700' : '#8C6200',
+        border: isDarkMode ? 'rgba(255, 215, 0, 0.5)' : 'rgba(184, 130, 15, 0.5)',
+        overlayStart: isDarkMode ? 'rgba(0,0,0,0.5)' : 'rgba(250,248,243,0.5)',
+        overlayEnd: isDarkMode ? 'rgba(0,0,0,0.95)' : 'rgba(250,248,243,0.95)',
+        activeBg: isDarkMode ? '#000' : '#FFF',
+    };
+
     const [area, setArea] = useState(150);
     const scrollX = useRef(new Animated.Value(0)).current;
     const flatListRef = useRef(null);
@@ -144,12 +163,12 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
 
                     {/* V21: MAGIC GLOW (Behind) - Enhanced */}
                     {/* Using negative margin/larger size to ensure glow spills out */}
-                    <Animated.View style={[styles.glowContainer, { opacity: activeOpacity }]} />
+                    <Animated.View style={[styles.glowContainer, { opacity: activeOpacity, shadowColor: T.cardGlow, backgroundColor: T.activeBg }]} />
 
                     {/* CONTAINER */}
-                    <View style={styles.cardContainer}>
+                    <View style={[styles.cardContainer, { backgroundColor: T.activeBg }]}>
 
-                        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: '#333' }]} />
+                        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: T.surface }]} />
 
                         {/* IMAGE */}
                         <Image
@@ -169,7 +188,7 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
                             pointerEvents="none"
                             style={[
                                 StyleSheet.absoluteFillObject,
-                                { backgroundColor: '#000', opacity: overlayOpacity, zIndex: 10 }
+                                { backgroundColor: T.activeBg, opacity: overlayOpacity, zIndex: 10 }
                             ]}
                         />
 
@@ -178,19 +197,19 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
                             pointerEvents="none"
                             style={[
                                 styles.activeBorder,
-                                { opacity: borderOpacity }
+                                { opacity: borderOpacity, borderColor: T.border }
                             ]}
                         />
 
                         {/* GRADIENT */}
                         <LinearGradient
-                            colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.95)']}
+                            colors={['transparent', T.overlayStart, T.overlayEnd]}
                             locations={[0, 0.6, 1]}
                             style={[styles.cardGradient, { height: '100%', justifyContent: 'flex-end', paddingBottom: 30 }]}
                             pointerEvents="none"
                         >
-                            <Text allowFontScaling={false} style={styles.cardTitle}>{item.title}</Text>
-                            <Text allowFontScaling={false} style={styles.cardSubtitle}>{item.subtitle}</Text>
+                            <Text allowFontScaling={false} style={[styles.cardTitle, { color: T.goldPrimary, textShadowColor: isDarkMode ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)' }]}>{item.title}</Text>
+                            <Text allowFontScaling={false} style={[styles.cardSubtitle, { color: T.textSub }]}>{item.subtitle}</Text>
                         </LinearGradient>
 
                     </View>
@@ -211,7 +230,7 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
                         styles.tick,
                         {
                             height: isLarge ? 8 : 4,
-                            backgroundColor: isLarge ? THEME.goldPrimary : '#666',
+                            backgroundColor: isLarge ? T.goldPrimary : T.textMuted,
                             opacity: isLarge ? 0.9 : 0.4,
                             width: isLarge ? 2 : 1
                         }
@@ -233,26 +252,26 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
     });
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" />
+        <View style={[styles.container, { backgroundColor: T.bg }]}>
+            <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
 
-            <LinearGradient colors={['#000000', '#121212', '#000000']} style={StyleSheet.absoluteFill} />
+            <LinearGradient colors={isDarkMode ? ['#000000', '#121212', '#000000'] : ['#EDE5D5', '#FAF8F3', '#EDE5D5']} style={StyleSheet.absoluteFill} />
 
             <SafeAreaView style={styles.safeArea}>
 
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={24} color="#FFF" />
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backButton, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
+                        <Ionicons name="arrow-back" size={24} color={T.titleColor} />
                     </TouchableOpacity>
                     <View style={styles.logoContainer}>
-                        <Text allowFontScaling={false} style={styles.logoText}>Cepte</Text>
-                        <Text allowFontScaling={false} style={[styles.logoText, { color: THEME.goldPrimary }]}>Şef</Text>
+                        <Text allowFontScaling={false} style={[styles.logoText, { color: T.titleColor }]}>Cepte</Text>
+                        <Text allowFontScaling={false} style={[styles.logoText, { color: T.goldPrimary }]}>Şef</Text>
                     </View>
                     <View style={{ width: 40 }} />
                 </View>
 
                 <View style={styles.titleContainer}>
-                    <Text allowFontScaling={false} style={styles.mainTitle}>Dönüşüm Nerede Başlayacak?</Text>
+                    <Text allowFontScaling={false} style={[styles.mainTitle, { color: T.titleColor }]}>Dönüşüm Nerede Başlayacak?</Text>
                 </View>
 
                 <View style={styles.carouselContainer}>
@@ -280,9 +299,9 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
                 </View>
 
                 <View style={styles.sliderSection}>
-                    <Text allowFontScaling={false} style={styles.sliderLabel}>MODERN DÖNÜŞÜM ALANI (m²)</Text>
+                    <Text allowFontScaling={false} style={[styles.sliderLabel, { color: T.textMuted }]}>MODERN DÖNÜŞÜM ALANI (m²)</Text>
 
-                    <Text allowFontScaling={false} style={[styles.sliderValue, { color: THEME.goldHighlight }]}>{area} m²</Text>
+                    <Text allowFontScaling={false} style={[styles.sliderValue, { color: T.goldHighlight }]}>{area} m²</Text>
 
                     <View style={{ width: '100%', alignItems: 'center' }}>
                         <Slider
@@ -292,15 +311,15 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
                             step={10}
                             value={area}
                             onValueChange={setArea}
-                            minimumTrackTintColor={THEME.goldPrimary}
-                            maximumTrackTintColor="#333"
-                            thumbTintColor={THEME.goldHighlight}
+                            minimumTrackTintColor={T.goldPrimary}
+                            maximumTrackTintColor={isDarkMode ? '#333' : '#D4C4A8'}
+                            thumbTintColor={T.goldHighlight}
                         />
                         {renderRulerTicks()}
                         <View style={styles.sliderMarks}>
-                            <Text allowFontScaling={false} style={styles.markText}>0</Text>
-                            <Text allowFontScaling={false} style={[styles.markText, { color: THEME.goldShadow }]}>150</Text>
-                            <Text allowFontScaling={false} style={styles.markText}>300</Text>
+                            <Text allowFontScaling={false} style={[styles.markText, { color: T.textMuted }]}>0</Text>
+                            <Text allowFontScaling={false} style={[styles.markText, { color: T.goldShadow }]}>150</Text>
+                            <Text allowFontScaling={false} style={[styles.markText, { color: T.textMuted }]}>300</Text>
                         </View>
                     </View>
                 </View>
@@ -309,7 +328,7 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
                     <TouchableOpacity
                         style={[
                             styles.continueButton,
-                            // Dim the button slightly if we haven't scrolled to a clear selection (optional, it auto-snaps anyway)
+                            { shadowColor: T.goldPrimary }
                         ]}
                         onPress={() => {
                             // Find which item is currently centered
@@ -325,12 +344,12 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
                         }}
                     >
                         <LinearGradient
-                            colors={BTN_GRADIENT}
+                            colors={isDarkMode ? ['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30'] : ['#B8820F', '#D4AF37', '#8C6A30']}
                             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                             style={styles.gradientButton}
                         >
-                            <Text allowFontScaling={false} style={styles.buttonText}>DEVAM ET</Text>
-                            <Ionicons name="arrow-forward" size={18} color="#1a1a1a" style={{ marginLeft: 6 }} />
+                            <Text allowFontScaling={false} style={[styles.buttonText, { color: isDarkMode ? '#1a1a1a' : '#FFF' }]}>DEVAM ET</Text>
+                            <Ionicons name="arrow-forward" size={18} color={isDarkMode ? '#1a1a1a' : '#FFF'} style={{ marginLeft: 6 }} />
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>

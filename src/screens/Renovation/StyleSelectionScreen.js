@@ -12,6 +12,7 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -69,6 +70,23 @@ const STYLES = [
 ];
 
 export default function StyleSelectionScreen({ navigation, route }) {
+    const { isDarkMode } = useTheme();
+
+    const T = {
+        bg: isDarkMode ? '#000000' : '#EDE5D5',
+        surface: isDarkMode ? '#121212' : '#FAF8F3',
+        titleColor: isDarkMode ? '#F7E5A8' : '#1C1208',
+        textSub: isDarkMode ? '#888' : '#4A3D28',
+        goldPrimary: isDarkMode ? '#D4AF37' : '#B8820F',
+        border: isDarkMode ? '#333' : '#D4C4A8',
+        activeBorder: isDarkMode ? 'rgba(255, 215, 0, 0.8)' : 'rgba(184, 130, 15, 0.8)',
+        cardGradientMid: isDarkMode ? 'rgba(0,0,0,0.6)' : 'rgba(250,248,243,0.6)',
+        cardGradientEnd: isDarkMode ? 'rgba(0,0,0,0.95)' : 'rgba(250,248,243,0.95)',
+        cardText: isDarkMode ? '#EEE' : '#1C1208',
+        cardTextSelected: isDarkMode ? '#F7E5A8' : '#B8820F',
+        bottomFade: isDarkMode ? '#000' : '#EDE5D5',
+    };
+
     const { area, propertyType } = route.params || {};
     const [selectedId, setSelectedId] = useState(null);
 
@@ -77,29 +95,29 @@ export default function StyleSelectionScreen({ navigation, route }) {
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" />
+        <View style={[styles.container, { backgroundColor: T.bg }]}>
+            <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
 
             {/* Background Gradient */}
-            <LinearGradient colors={['#000000', '#121212', '#000000']} style={StyleSheet.absoluteFill} />
+            <LinearGradient colors={isDarkMode ? ['#000000', '#121212', '#000000'] : ['#EDE5D5', '#FAF8F3', '#EDE5D5']} style={StyleSheet.absoluteFill} />
 
             <SafeAreaView style={styles.safeArea}>
 
                 {/* HEADER */}
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={24} color="#FFF" />
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backButton, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
+                        <Ionicons name="arrow-back" size={24} color={isDarkMode ? '#FFF' : '#1C1208'} />
                     </TouchableOpacity>
                     <View style={styles.logoContainer}>
-                        <Text allowFontScaling={false} style={styles.logoText}>Tarzını</Text>
-                        <Text allowFontScaling={false} style={[styles.logoText, { color: THEME.goldPrimary }]}>Seç</Text>
+                        <Text allowFontScaling={false} style={[styles.logoText, { color: isDarkMode ? '#FFF' : '#1C1208' }]}>Tarzını</Text>
+                        <Text allowFontScaling={false} style={[styles.logoText, { color: T.goldPrimary }]}>Seç</Text>
                     </View>
                     <View style={{ width: 40 }} />
                 </View>
 
                 <View style={styles.titleContainer}>
-                    <Text allowFontScaling={false} style={styles.mainTitle}>Hayalindeki Atmosfer Hangisi?</Text>
-                    <Text allowFontScaling={false} style={styles.subtitle}>Sana en uygun tasarım dilini belirleyelim.</Text>
+                    <Text allowFontScaling={false} style={[styles.mainTitle, { color: T.titleColor }]}>Hayalindeki Atmosfer Hangisi?</Text>
+                    <Text allowFontScaling={false} style={[styles.subtitle, { color: T.textSub }]}>Sana en uygun tasarım dilini belirleyelim.</Text>
                 </View>
 
                 {/* GRID CONTENT */}
@@ -120,8 +138,8 @@ export default function StyleSelectionScreen({ navigation, route }) {
                                 >
                                     <View style={[
                                         styles.cardContainer,
-                                        // Selected Border Logic
-                                        isSelected && styles.selectedCardBorder
+                                        { backgroundColor: T.surface, borderColor: T.border },
+                                        isSelected && { borderColor: T.activeBorder }
                                     ]}>
 
                                         {/* Image */}
@@ -134,13 +152,14 @@ export default function StyleSelectionScreen({ navigation, route }) {
 
                                         {/* Overlay Gradient for Text Readability */}
                                         <LinearGradient
-                                            colors={['transparent', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.95)']}
+                                            colors={['transparent', T.cardGradientMid, T.cardGradientEnd]}
                                             locations={[0, 0.6, 1]}
                                             style={styles.cardGradient}
                                         >
                                             <Text allowFontScaling={false} style={[
                                                 styles.cardTitle,
-                                                isSelected && { color: THEME.goldHighlight }
+                                                { color: T.cardText, textShadowColor: isDarkMode ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)' },
+                                                isSelected && { color: T.cardTextSelected }
                                             ]}>
                                                 {item.title}
                                             </Text>
@@ -148,7 +167,7 @@ export default function StyleSelectionScreen({ navigation, route }) {
 
                                         {/* GOLDEN GLOW (When Selected) */}
                                         {isSelected && (
-                                            <View style={styles.glowContainer} />
+                                            <View style={[styles.glowContainer, { borderColor: T.goldPrimary, shadowColor: T.goldPrimary }]} />
                                         )}
                                     </View>
                                 </TouchableOpacity>
@@ -164,7 +183,7 @@ export default function StyleSelectionScreen({ navigation, route }) {
                 <View style={styles.footerContainer}>
                     {/* Gradient Fade at bottom of scroll content */}
                     <LinearGradient
-                        colors={['transparent', '#000']}
+                        colors={['transparent', T.bottomFade]}
                         style={styles.bottomFade}
                         pointerEvents="none"
                     />
@@ -172,7 +191,7 @@ export default function StyleSelectionScreen({ navigation, route }) {
                     <TouchableOpacity
                         style={[
                             styles.continueButton,
-                            { opacity: selectedId ? 1 : 0.5 } // Dim if not selected
+                            { opacity: selectedId ? 1 : 0.5, shadowColor: T.goldPrimary } // Dim if not selected
                         ]}
                         disabled={!selectedId}
                         onPress={() => {
@@ -185,12 +204,12 @@ export default function StyleSelectionScreen({ navigation, route }) {
                         }}
                     >
                         <LinearGradient
-                            colors={BTN_GRADIENT}
+                            colors={isDarkMode ? ['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30'] : ['#B8820F', '#D4AF37', '#8C6A30']}
                             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                             style={styles.gradientButton}
                         >
-                            <Text allowFontScaling={false} style={styles.buttonText}>DEVAM ET</Text>
-                            <Ionicons name="arrow-forward" size={18} color="#1a1a1a" style={{ marginLeft: 6 }} />
+                            <Text allowFontScaling={false} style={[styles.buttonText, { color: isDarkMode ? '#1a1a1a' : '#FFF' }]}>DEVAM ET</Text>
+                            <Ionicons name="arrow-forward" size={18} color={isDarkMode ? '#1a1a1a' : '#FFF'} style={{ marginLeft: 6 }} />
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>

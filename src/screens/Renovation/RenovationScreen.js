@@ -21,6 +21,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PermissionService } from '../../services/PermissionService';
+import { useTheme } from '../../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -52,20 +53,47 @@ const HERO_SLIDES = [
     }
 ];
 
-// Standard Gold Card (Premium Button)
-const GoldCard = ({ children, style, onPress }) => (
-    <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={[styles.goldCardContainer, style]}>
-        <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
-        <LinearGradient
-            colors={['rgba(255, 215, 0, 0.15)', 'transparent', 'rgba(255, 255, 255, 0.05)']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-        />
-        <View style={styles.cardContent}>
-            {children}
-        </View>
-    </TouchableOpacity>
-);
+const GoldCard = ({ children, style, onPress }) => {
+    const { isDarkMode } = useTheme();
+    return (
+        <TouchableOpacity 
+            activeOpacity={0.8} 
+            onPress={onPress} 
+            style={[
+                styles.goldCardContainer, 
+                style,
+                !isDarkMode && {
+                    backgroundColor: 'rgba(255, 252, 244, 0.95)',
+                    borderColor: 'rgba(140, 98, 0, 0.18)',
+                    shadowColor: '#8C7050',
+                    elevation: 5,
+                    shadowOpacity: 0.15,
+                }
+            ]}
+        >
+            <BlurView intensity={isDarkMode ? 40 : 20} tint={isDarkMode ? "dark" : "light"} style={StyleSheet.absoluteFill} />
+            <LinearGradient
+                colors={
+                    isDarkMode 
+                        ? ['rgba(255, 215, 0, 0.15)', 'transparent', 'rgba(255, 255, 255, 0.05)']
+                        : ['rgba(250, 248, 243, 0.9)', 'rgba(242, 235, 224, 0.6)', 'transparent']
+                }
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                style={StyleSheet.absoluteFill}
+            />
+            {!isDarkMode && (
+                <LinearGradient
+                    colors={['rgba(140, 98, 0, 0.12)', 'transparent']}
+                    start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+                    style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2 }}
+                />
+            )}
+            <View style={styles.cardContent}>
+                {children}
+            </View>
+        </TouchableOpacity>
+    );
+};
 
 import { supabase } from '../../lib/supabase';
 import { RenovationService } from '../../services/RenovationService';
@@ -81,6 +109,20 @@ const COLOR_PALETTE = [
 ];
 
 export default function RenovationScreen({ navigation }) {
+    const { isDarkMode } = useTheme();
+    const T = {
+        bg:          isDarkMode ? '#000000' : '#EDE5D5',
+        surface:     isDarkMode ? '#111111' : '#FAF8F3',
+        surface2:    isDarkMode ? '#1A1A1A' : '#F2EBE0',
+        border:      isDarkMode ? '#333333' : '#D4C4A8',
+        text:        isDarkMode ? '#FFFFFF' : '#1C1208',
+        textSub:     isDarkMode ? '#888888' : '#4A3D28',
+        gold:        isDarkMode ? '#FFD700' : '#8C6200',
+        goldAccent:  isDarkMode ? '#D4AF37' : '#B8820F',
+        iconBg:      isDarkMode ? 'rgba(255, 215, 0, 0.1)' : 'rgba(140,98,0,0.1)',
+        shadow:      isDarkMode ? '#000' : '#8C7050',
+    };
+
     const [requestInput, setRequestInput] = useState('');
     const [selectedQuality, setSelectedQuality] = useState('Konfor');
     const scrollX = useRef(new Animated.Value(0)).current;
@@ -274,36 +316,36 @@ export default function RenovationScreen({ navigation }) {
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="#000" />
+        <View style={[styles.container, { backgroundColor: T.bg }]}>
+            <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
 
             <LinearGradient
-                colors={['#000000', '#121212', '#000000']}
+                colors={isDarkMode ? ['#000000', '#121212', '#000000'] : ['#EDE5D5', '#FAF8F3', '#E0D4BF']}
                 style={StyleSheet.absoluteFillObject}
             />
 
             <SafeAreaView style={{ flex: 1 }}>
 
                 {/* CUSTOM HEADER */}
-                <View style={styles.header}>
+                <View style={[styles.header, { borderBottomColor: T.border }]}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
-                        <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
+                        <MaterialCommunityIcons name="arrow-left" size={24} color={T.text} />
                     </TouchableOpacity>
                     <View style={{ alignItems: 'center' }}>
-                        <Text allowFontScaling={false} style={styles.headerTitle}>MİMARLIK OFİSİ</Text>
-                        <Text allowFontScaling={false} style={styles.headerSubtitle}>Yaşam Alanınızı Yeniden Keşfedin</Text>
+                        <Text allowFontScaling={false} style={[styles.headerTitle, { color: T.goldAccent }]}>MİMARLIK OFİSİ</Text>
+                        <Text allowFontScaling={false} style={[styles.headerSubtitle, { color: T.text }]}>Yaşam Alanınızı Yeniden Keşfedin</Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                         {isAdmin && (
                             <TouchableOpacity 
-                                style={[styles.headerIconBtn, isEditMode && { borderColor: GOLD_MAIN, backgroundColor: 'rgba(255, 215, 0, 0.1)' }]}
+                                style={[styles.headerIconBtn, { backgroundColor: T.surface2, borderColor: T.border, shadowColor: isDarkMode ? T.goldAccent : '#000' }, isEditMode && { borderColor: T.goldAccent, backgroundColor: T.iconBg }]}
                                 onPress={() => setIsEditMode(!isEditMode)}
                             >
-                                <MaterialCommunityIcons name={isEditMode ? "check-circle" : "cog-outline"} size={22} color={GOLD_MAIN} />
+                                <MaterialCommunityIcons name={isEditMode ? "check-circle" : "cog-outline"} size={22} color={T.goldAccent} />
                             </TouchableOpacity>
                         )}
                         <TouchableOpacity
-                            style={[styles.headerIconBtn, !hasRenovationAccess && !isAdmin && { opacity: 0.5 }]}
+                            style={[styles.headerIconBtn, { backgroundColor: T.surface2, borderColor: T.border, shadowColor: isDarkMode ? T.goldAccent : '#000' }, !hasRenovationAccess && !isAdmin && { opacity: 0.5 }]}
                             onPress={() => {
                                 if (isAdmin || hasRenovationAccess) {
                                     navigation.navigate('RenovationProvider');
@@ -313,7 +355,7 @@ export default function RenovationScreen({ navigation }) {
                             }}
                             activeOpacity={isAdmin || hasRenovationAccess ? 0.7 : 1}
                         >
-                            <MaterialCommunityIcons name="hammer-wrench" size={24} color={isAdmin || hasRenovationAccess ? "#D4AF37" : "#666"} />
+                            <MaterialCommunityIcons name="hammer-wrench" size={24} color={isAdmin || hasRenovationAccess ? T.goldAccent : T.textSub} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -399,13 +441,13 @@ export default function RenovationScreen({ navigation }) {
                     {isAdmin && (
                         <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
                             <TouchableOpacity 
-                                style={styles.adminSliderBtn}
+                                style={[styles.adminSliderBtn, { borderColor: T.border }]}
                                 onPress={() => setIsShowcaseManagerVisible(true)}
                             >
-                                <LinearGradient colors={['#1A1A1A', '#111']} style={StyleSheet.absoluteFillObject} />
-                                <MaterialCommunityIcons name="view-carousel-outline" size={20} color={GOLD_MAIN} />
-                                <Text allowFontScaling={false} style={styles.adminSliderBtnText}>SLIDER AYARLARI</Text>
-                                <MaterialCommunityIcons name="cog-outline" size={16} color="#666" />
+                                <LinearGradient colors={isDarkMode ? ['#1A1A1A', '#111'] : [T.surface, T.surface2]} style={StyleSheet.absoluteFillObject} />
+                                <MaterialCommunityIcons name="view-carousel-outline" size={20} color={T.goldAccent} />
+                                <Text allowFontScaling={false} style={[styles.adminSliderBtnText, { color: T.goldAccent }]}>SLIDER AYARLARI</Text>
+                                <MaterialCommunityIcons name="cog-outline" size={16} color={T.textSub} />
                             </TouchableOpacity>
                         </View>
                     )}
@@ -413,8 +455,8 @@ export default function RenovationScreen({ navigation }) {
                     {/* SERVICE GRID — Sayfalı slider */}
                     <View style={styles.sectionContainer}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
-                            <Text allowFontScaling={false} style={[styles.sectionTitle, { marginBottom: 0 }]}>HİZMETLERİMİZ</Text>
-                            {isEditMode && <Text allowFontScaling={false} style={{ color: GOLD_MAIN, fontSize: 10, fontWeight: 'bold' }}>DÜZENLEME MODU AKTİF</Text>}
+                            <Text allowFontScaling={false} style={[styles.sectionTitle, { marginBottom: 0, color: T.textSub }]}>HİZMETLERİMİZ</Text>
+                            {isEditMode && <Text allowFontScaling={false} style={{ color: T.goldAccent, fontSize: 10, fontWeight: 'bold' }}>DÜZENLEME MODU AKTİF</Text>}
                         </View>
                         
                         <ScrollView
@@ -444,28 +486,28 @@ export default function RenovationScreen({ navigation }) {
                                                         <View style={styles.adminControlsOverlay}>
                                                             <View style={styles.adminActionRow}>
                                                                 <TouchableOpacity onPress={() => moveService(globalIdx, 'up')} disabled={globalIdx === 0}>
-                                                                    <MaterialCommunityIcons name="chevron-up" size={22} color={globalIdx === 0 ? "#444" : GOLD_MAIN} />
+                                                                    <MaterialCommunityIcons name="chevron-up" size={22} color={globalIdx === 0 ? T.textSub : T.goldAccent} />
                                                                 </TouchableOpacity>
                                                                 <TouchableOpacity onPress={() => moveService(globalIdx, 'down')} disabled={globalIdx === filteredServices.length - 1}>
-                                                                    <MaterialCommunityIcons name="chevron-down" size={22} color={globalIdx === filteredServices.length - 1 ? "#444" : GOLD_MAIN} />
+                                                                    <MaterialCommunityIcons name="chevron-down" size={22} color={globalIdx === filteredServices.length - 1 ? T.textSub : T.goldAccent} />
                                                                 </TouchableOpacity>
                                                             </View>
                                                             <TouchableOpacity style={styles.eyeBtn} onPress={() => toggleServiceVisibility(item)}>
-                                                                <MaterialCommunityIcons name={item.is_active ? "eye" : "eye-off"} size={20} color={item.is_active ? GOLD_MAIN : "#ef4444"} />
+                                                                <MaterialCommunityIcons name={item.is_active ? "eye" : "eye-off"} size={20} color={item.is_active ? T.goldAccent : "#ef4444"} />
                                                             </TouchableOpacity>
                                                         </View>
                                                     )}
 
-                                                    <View style={styles.iconCircle}>
+                                                    <View style={[styles.iconCircle, { backgroundColor: T.iconBg }]}>
                                                         {item.lib === 'Ionicons' ? (
-                                                            <Ionicons name={item.icon} size={26} color={GOLD_MAIN} />
+                                                            <Ionicons name={item.icon} size={26} color={T.goldAccent} />
                                                         ) : (
-                                                            <MaterialCommunityIcons name={item.icon} size={28} color={GOLD_MAIN} />
+                                                            <MaterialCommunityIcons name={item.icon} size={28} color={T.goldAccent} />
                                                         )}
                                                     </View>
                                                     <View style={{ alignItems: 'center' }}>
-                                                        <Text allowFontScaling={false} style={styles.gridItemTitle}>{item.title.replace(/\\n/g, '\n')}</Text>
-                                                        <Text allowFontScaling={false} style={styles.gridItemSubtitle} numberOfLines={2}>{item.subtitle}</Text>
+                                                        <Text allowFontScaling={false} style={[styles.gridItemTitle, { color: T.text }]}>{item.title.replace(/\\n/g, '\n')}</Text>
+                                                        <Text allowFontScaling={false} style={[styles.gridItemSubtitle, { color: T.textSub }]} numberOfLines={2}>{item.subtitle}</Text>
                                                     </View>
                                                 </GoldCard>
                                             );
@@ -481,7 +523,7 @@ export default function RenovationScreen({ navigation }) {
                                 const filteredServices = isEditMode ? services : services.filter(s => s.is_active);
                                 const pagesCount = Math.ceil(filteredServices.length / 4);
                                 return Array.from({ length: pagesCount }).map((_, i) => (
-                                    <View key={i} style={[styles.serviceDot, servicePage === i && styles.serviceDotActive]} />
+                                    <View key={i} style={[styles.serviceDot, { backgroundColor: isDarkMode ? '#333' : '#D4C4A8' }, servicePage === i && [styles.serviceDotActive, { backgroundColor: T.goldAccent }]]} />
                                 ));
                             })()}
                         </View>
@@ -489,18 +531,18 @@ export default function RenovationScreen({ navigation }) {
 
 
                     {/* MIMARIM - SANAL TASARIM STÜDYOSU */}
-                    <View style={styles.smartSection}>
+                    <View style={[styles.smartSection, { backgroundColor: isDarkMode ? '#111' : T.surface, borderColor: T.border }]}>
                         <LinearGradient
-                            colors={['rgba(255, 215, 0, 0.05)', 'transparent']}
+                            colors={isDarkMode ? ['rgba(255, 215, 0, 0.05)', 'transparent'] : ['rgba(140, 98, 0, 0.04)', 'transparent']}
                             style={StyleSheet.absoluteFill}
                         />
                         <View style={styles.smartHeader}>
-                            <MaterialCommunityIcons name="cube-scan" size={24} color={GOLD_MAIN} />
-                            <Text allowFontScaling={false} style={styles.smartTitle}>Mimarım - Sanal Tasarım Stüdyosu</Text>
+                            <MaterialCommunityIcons name="cube-scan" size={24} color={T.goldAccent} />
+                            <Text allowFontScaling={false} style={[styles.smartTitle, { color: T.goldAccent }]}>Mimarım - Sanal Tasarım Stüdyosu</Text>
                         </View>
 
-                        <Text allowFontScaling={false} style={styles.smartDesc}>
-                            Mevcut alanın fotoğrafını yükleyin; seçtiğiniz kalite sınıfına uygun olarak <Text allowFontScaling={false} style={{ color: GOLD_MAIN }}>3D tasarımınızı ve maliyet teklifinizi</Text> hazırlansın.
+                        <Text allowFontScaling={false} style={[styles.smartDesc, { color: T.textSub }]}>
+                            Mevcut alanın fotoğrafını yükleyin; seçtiğiniz kalite sınıfına uygun olarak <Text allowFontScaling={false} style={{ color: T.goldAccent }}>3D tasarımınızı ve maliyet teklifinizi</Text> hazırlansın.
                         </Text>
 
                         {/* Mood Tags (Radio Selection) */}
@@ -510,20 +552,28 @@ export default function RenovationScreen({ navigation }) {
                                 return (
                                     <TouchableOpacity
                                         key={index}
-                                        style={[styles.moodTag, isSelected ? styles.moodTagActive : {}]}
+                                        style={[
+                                            styles.moodTag, 
+                                            { backgroundColor: isDarkMode ? '#111' : T.bg, borderColor: isDarkMode ? '#333' : T.border },
+                                            isSelected ? { backgroundColor: T.goldAccent, borderColor: T.goldAccent } : {}
+                                        ]}
                                         onPress={() => setSelectedQuality(tag)}
                                     >
-                                        <Text allowFontScaling={false} style={[styles.moodTagText, isSelected ? styles.moodTagTextActive : {}]}>{tag}</Text>
+                                        <Text allowFontScaling={false} style={[
+                                            styles.moodTagText, 
+                                            { color: isDarkMode ? '#888' : T.textSub },
+                                            isSelected ? { color: isDarkMode ? '#000' : '#FFF', fontWeight: '900' } : {}
+                                        ]}>{tag}</Text>
                                     </TouchableOpacity>
                                 )
                             })}
                         </View>
 
-                        <View style={styles.inputContainer}>
+                        <View style={[styles.inputContainer, { backgroundColor: isDarkMode ? '#000' : T.bg, borderColor: T.border }]}>
                             <TextInput allowFontScaling={false}
-                                style={styles.textInput}
+                                style={[styles.textInput, { color: T.text }]}
                                 placeholder="Dönüşümünüzdeki beklentilerinizi ve alanın fotoğrafını belirtin..."
-                                placeholderTextColor="#666"
+                                placeholderTextColor={T.textSub}
                                 multiline
                                 value={requestInput}
                                 onChangeText={setRequestInput}
@@ -531,94 +581,91 @@ export default function RenovationScreen({ navigation }) {
                         </View>
 
                         {/* Photo Upload Button (Large Card Style) */}
-                        <TouchableOpacity style={styles.photoUploadCard} onPress={() => handleAction('Fotoğraf Yükle')}>
-                            <View style={styles.photoIconCircle}>
-                                <MaterialCommunityIcons name="camera-plus" size={24} color="#000" />
-                                <View style={{ position: 'absolute', top: -2, right: -2, width: 8, height: 8, borderRadius: 4, backgroundColor: GOLD_MAIN }} />
+                        <TouchableOpacity style={[styles.photoUploadCard, { backgroundColor: isDarkMode ? '#000' : T.bg, borderColor: T.border }]} onPress={() => handleAction('Fotoğraf Yükle')}>
+                            <View style={[styles.photoIconCircle, { backgroundColor: T.goldAccent }]}>
+                                <MaterialCommunityIcons name="camera-plus" size={24} color={isDarkMode ? '#000' : '#FFF'} />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text allowFontScaling={false} style={styles.photoUploadTitle}>Mevcut Alanın Fotoğrafını Yükle</Text>
-                                <Text allowFontScaling={false} style={styles.photoUploadSub}>Mimarlarımız dönüşümü başlatsın</Text>
+                                <Text allowFontScaling={false} style={[styles.photoUploadTitle, { color: T.text }]}>Mevcut Alanın Fotoğrafını Yükle</Text>
+                                <Text allowFontScaling={false} style={[styles.photoUploadSub, { color: T.textSub }]}>Mimarlarımız dönüşümü başlatsın</Text>
                             </View>
-                            <MaterialCommunityIcons name="chevron-right" size={24} color="#666" />
+                            <MaterialCommunityIcons name="chevron-right" size={24} color={T.textSub} />
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.submitBtn} onPress={() => handleAction('Analiz Başlat')}>
                             <LinearGradient
-                                colors={[GOLD_MAIN, '#B8860B']}
+                                colors={isDarkMode ? ['#FFD700', '#B8860B'] : [T.goldAccent, T.gold]}
                                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                                 style={styles.submitGradient}
                             >
-                                <Text allowFontScaling={false} style={styles.submitText}>TASARIM VE TEKLİF İSTE</Text>
-                                <MaterialCommunityIcons name="magic-staff" size={24} color="#000" />
+                                <Text allowFontScaling={false} style={[styles.submitText, { color: isDarkMode ? '#000' : '#FFF' }]}>TASARIM VE TEKLİF İSTE</Text>
+                                <MaterialCommunityIcons name="magic-staff" size={24} color={isDarkMode ? '#000' : '#FFF'} />
                             </LinearGradient>
                         </TouchableOpacity>
 
                         {/* Consultant CTA (Premium) */}
                         <TouchableOpacity activeOpacity={0.9} onPress={() => handleAction('Mimar Görüşmesi')}>
                             <LinearGradient
-                                colors={['#1c1917', '#292524']}
+                                colors={isDarkMode ? ['#1c1917', '#292524'] : [T.surface, T.surface2]}
                                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                                style={styles.consultantCard}
+                                style={[styles.consultantCard, { borderColor: isDarkMode ? '#44403c' : T.border }]}
                             >
                                 <View style={styles.consultantContent}>
-                                    <View style={styles.consultantIconBox}>
-                                        <MaterialCommunityIcons name="face-agent" size={24} color={GOLD_MAIN} />
+                                    <View style={[styles.consultantIconBox, { backgroundColor: T.iconBg }]}>
+                                        <MaterialCommunityIcons name="face-agent" size={24} color={T.goldAccent} />
                                     </View>
                                     <View style={{ flex: 1 }}>
-                                        <Text allowFontScaling={false} style={styles.consultantTitle}>Karar veremediniz mi?</Text>
-                                        <Text allowFontScaling={false} style={styles.consultantSub}>Profesyonel destek için tıklayın.</Text>
+                                        <Text allowFontScaling={false} style={[styles.consultantTitle, { color: T.text }]}>Karar veremediniz mi?</Text>
+                                        <Text allowFontScaling={false} style={[styles.consultantSub, { color: T.textSub }]}>Profesyonel destek için tıklayın.</Text>
                                     </View>
-                                    <View style={styles.consultantBtn}>
-                                        <Text allowFontScaling={false} style={styles.consultantBtnText}>Mimarınızla Görüş</Text>
-                                        <MaterialCommunityIcons name="chevron-right" size={16} color="#000" />
+                                    <View style={[styles.consultantBtn, { backgroundColor: T.goldAccent }]}>
+                                        <Text allowFontScaling={false} style={[styles.consultantBtnText, { color: isDarkMode ? '#000' : '#FFF' }]}>Mimarınızla Görüş</Text>
+                                        <MaterialCommunityIcons name="chevron-right" size={16} color={isDarkMode ? '#000' : '#FFF'} />
                                     </View>
                                 </View>
                             </LinearGradient>
                         </TouchableOpacity>
-
-
                     </View>
 
 
                     {/* ═══ AI TADİLAT ASİSTANI ═══════════════════════════ */}
                     <TouchableOpacity
-                        style={styles.aiCard}
+                        style={[styles.aiCard, { borderColor: isDarkMode ? 'rgba(212,175,55,0.35)' : T.border, backgroundColor: isDarkMode ? 'transparent' : T.surface }]}
                         onPress={() => navigation.navigate('AIRenovationAssistant')}
                         activeOpacity={0.88}
                     >
                         <LinearGradient
-                            colors={['#0a0900', '#1a1400', '#0a0900']}
+                            colors={isDarkMode ? ['#0a0900', '#1a1400', '#0a0900'] : [T.surface, T.surface2, T.surface]}
                             style={StyleSheet.absoluteFillObject}
                             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                         />
                         {/* Subtle gold glow in corner */}
                         <LinearGradient
-                            colors={['rgba(212,175,55,0.18)', 'transparent']}
+                            colors={isDarkMode ? ['rgba(212,175,55,0.18)', 'transparent'] : ['rgba(140, 98, 0, 0.08)', 'transparent']}
                             style={[StyleSheet.absoluteFillObject, { borderRadius: 24 }]}
                             start={{ x: 0, y: 0 }} end={{ x: 0.6, y: 1 }}
                         />
-                        <View style={styles.aiCardBorder} />
+                        <View style={[styles.aiCardBorder, { backgroundColor: isDarkMode ? 'rgba(212,175,55,0.5)' : 'rgba(140, 98, 0, 0.2)' }]} />
 
                         <View style={styles.aiCardLeft}>
-                            <View style={styles.aiTagRow}>
-                                <MaterialCommunityIcons name="chef-hat" size={13} color="#000" />
-                                <Text allowFontScaling={false} style={styles.aiTagText}>CepteŞef AI</Text>
+                            <View style={[styles.aiTagRow, { backgroundColor: T.goldAccent }]}>
+                                <MaterialCommunityIcons name="chef-hat" size={13} color={isDarkMode ? '#000' : '#FFF'} />
+                                <Text allowFontScaling={false} style={[styles.aiTagText, { color: isDarkMode ? '#000' : '#FFF' }]}>CepteŞef AI</Text>
                             </View>
-                            <Text allowFontScaling={false} style={styles.aiCardTitle}>İstediğini Bulamadın mı?</Text>
-                            <Text allowFontScaling={false} style={styles.aiCardSub}>Mekanının fotoğrafını yükle ve hayalini anlat — yapay zeka teknik listeni çıkarsın.</Text>
+                            <Text allowFontScaling={false} style={[styles.aiCardTitle, { color: T.text }]}>İstediğini Bulamadın mı?</Text>
+                            <Text allowFontScaling={false} style={[styles.aiCardSub, { color: T.textSub }]}>Mekanının fotoğrafını yükle ve hayalini anlat — yapay zeka teknik listeni çıkarsın.</Text>
                             <View style={styles.aiBtn}>
-                                <Text allowFontScaling={false} style={styles.aiBtnText}>Şefle Konuş</Text>
-                                <MaterialCommunityIcons name="arrow-right" size={14} color={GOLD_MAIN} />
+                                <Text allowFontScaling={false} style={[styles.aiBtnText, { color: T.goldAccent }]}>Şefle Konuş</Text>
+                                <MaterialCommunityIcons name="arrow-right" size={14} color={T.goldAccent} />
                             </View>
                         </View>
 
                         <View style={styles.aiCardRight}>
                             {/* Animated-looking concentric rings */}
-                            <View style={styles.aiRingOuter}>
-                                <View style={styles.aiRingMid}>
-                                    <View style={styles.aiRingInner}>
-                                        <MaterialCommunityIcons name="magic-staff" size={28} color={GOLD_MAIN} />
+                            <View style={[styles.aiRingOuter, { borderColor: isDarkMode ? 'rgba(212,175,55,0.2)' : 'rgba(140, 98, 0, 0.1)' }]}>
+                                <View style={[styles.aiRingMid, { borderColor: isDarkMode ? 'rgba(212,175,55,0.35)' : 'rgba(140, 98, 0, 0.2)' }]}>
+                                    <View style={[styles.aiRingInner, { backgroundColor: isDarkMode ? 'rgba(212,175,55,0.12)' : 'rgba(140, 98, 0, 0.05)', borderColor: T.goldAccent }]}>
+                                        <MaterialCommunityIcons name="magic-staff" size={28} color={T.goldAccent} />
                                     </View>
                                 </View>
                             </View>

@@ -76,19 +76,19 @@ export default function ProfileScreen() {
 
     // Dynamic Theme System — powered by ThemeContext
     const theme = {
-        background: isDarkMode ? '#000000' : '#F4F1EB',
-        card: isDarkMode ? '#1C1C1E' : '#FFFFFF',
-        text: isDarkMode ? '#FFFFFF' : '#1A1A1A',
-        subText: isDarkMode ? '#8E8E93' : '#5C5C5C',
-        icon: isDarkMode ? '#FDCB58' : '#9A6F00',
-        border: isDarkMode ? '#333333' : '#D6CEBC',
-        iconBg: isDarkMode ? '#2C2C2E' : '#EDE8DC',
-        placeholder: isDarkMode ? '#2C2C2E' : '#F0ECE4',
-        shadow: isDarkMode ? '#000' : '#A09070',
-        sectionBg: isDarkMode ? '#000000' : '#F4F1EB',
-        switchTrackActive: isDarkMode ? '#FDCB58' : '#9A6F00',
-        editBtn: isDarkMode ? '#2C2C2E' : '#EDE8DC',
-        avatarBorder: isDarkMode ? '#333333' : '#D6CEBC',
+        background:        isDarkMode ? '#000000' : '#EDE5D5',
+        card:              isDarkMode ? '#1C1C1E' : '#FAF8F3',
+        text:              isDarkMode ? '#FFFFFF' : '#1C1208',
+        subText:           isDarkMode ? '#8E8E93' : '#4A3D28',
+        icon:              isDarkMode ? '#FDCB58' : '#8C6200',
+        border:            isDarkMode ? '#333333' : '#D4C4A8',
+        iconBg:            isDarkMode ? '#2C2C2E' : '#EDE0CA',
+        placeholder:       isDarkMode ? '#2C2C2E' : '#F0E8D8',
+        shadow:            isDarkMode ? '#000'    : '#8C7050',
+        sectionBg:         isDarkMode ? '#000000' : '#EDE5D5',
+        switchTrackActive: isDarkMode ? '#FDCB58' : '#8C6200',
+        editBtn:           isDarkMode ? '#2C2C2E' : '#EDE0CA',
+        avatarBorder:      isDarkMode ? '#333333' : '#D4C4A8',
     };
 
     // The Corporate Card ALWAYS keeps this Dark/Gold scheme

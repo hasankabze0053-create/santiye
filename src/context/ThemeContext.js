@@ -3,8 +3,16 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { StatusBar } from 'react-native';
 import { COLORS_DARK, COLORS_LIGHT, LAYOUT, SHADOWS, SIZES } from '../constants/theme';
 
-// Create Context
-const ThemeContext = createContext();
+// Default context value (dark mode fallback — prevents undefined errors)
+const defaultTheme = {
+    ...require('../constants/theme').COLORS_DARK,
+    SIZES: require('../constants/theme').SIZES,
+    SHADOWS: require('../constants/theme').SHADOWS,
+    LAYOUT: require('../constants/theme').LAYOUT,
+    isDarkMode: true,
+    toggleTheme: () => {},
+};
+const ThemeContext = createContext(defaultTheme);
 
 // Theme Provider Component
 export const ThemeProvider = ({ children }) => {
@@ -74,5 +82,12 @@ export const ThemeProvider = ({ children }) => {
     );
 };
 
-// Custom Hook for easier usage
-export const useTheme = () => useContext(ThemeContext);
+// Custom Hook for easier usage — with safety guard
+export const useTheme = () => {
+    const context = useContext(ThemeContext);
+    if (!context) {
+        console.warn('useTheme called outside of ThemeProvider — using dark mode defaults');
+        return defaultTheme;
+    }
+    return context;
+};

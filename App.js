@@ -3,6 +3,7 @@ import { Text, TextInput } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './src/context/AuthContext';
 import { MarketCartProvider } from './src/context/MarketCartContext';
+import { ThemeProvider } from './src/context/ThemeContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
 // Uygulama genelinde sistemin font büyütme/küçültme ayarlarını ezerek 
@@ -16,13 +17,15 @@ TextInput.defaultProps.allowFontScaling = false;
 export default function App() {
     return (
         <AuthProvider>
-            <MarketCartProvider>
-                <SafeAreaProvider>
-                    <NavigationContainer>
-                        <AppNavigator />
-                    </NavigationContainer>
-                </SafeAreaProvider>
-            </MarketCartProvider>
+            <ThemeProvider>
+                <MarketCartProvider>
+                    <SafeAreaProvider>
+                        <NavigationContainer>
+                            <AppNavigator />
+                        </NavigationContainer>
+                    </SafeAreaProvider>
+                </MarketCartProvider>
+            </ThemeProvider>
         </AuthProvider>
     );
 }

@@ -51,18 +51,18 @@ export const COLORS_DARK = {
 };
 
 // ---- LIGHT MODE PALETTE (Premium İnşaat Aydınlık Teması) ----
-// Felsefe: "Güneş altındaki şantiye" — Sıcak beton, doğal taş ve altın aksan
+// Felsefe: "Güneş altındaki şantiye" — Sıcak kum taşı, bronz altın, taş beyazı
 export const COLORS_LIGHT = {
-    // Backgrounds
-    background: '#F4F1EB',       // Sıcak beton beyazı (ham beton hissi)
-    surface: '#FFFFFF',          // Kart yüzeyi (parlak)
-    surfaceSecondary: '#EDE8DC', // İkincil yüzey (krem)
-    surfaceElevated: '#F9F7F2',  // Yükseltilmiş yüzey
+    // Backgrounds  (arka plan: #E8DFD0 → #FAF8F3 gradyanı)
+    background: '#EDE5D5',       // Sıcak kum — ana zemin
+    surface: '#FAF8F3',          // Kart yüzeyi — fildişi beyaz
+    surfaceSecondary: '#F2EBE0', // İkincil kart — sıcak bej
+    surfaceElevated: '#FFFDF9',  // Yüksek yüzey — neredeyse saf beyaz
 
-    // Accents (Aydınlıkta altını daha koyu tutuyoruz — kontrast için)
-    accent: '#9A6F00',           // Koyu Altın (aydınlık üzerinde okunabilir)
-    accentBright: '#C8930A',     // Parlak Altın (vurgu)
-    accentSecondary: '#7A5500',  // Bronz
+    // Accents
+    accent: '#8C6200',           // Koyu bronz altın — yüksek kontrast
+    accentBright: '#B8820F',     // Sıcak altın parlama
+    accentSecondary: '#6B4C00',  // Derin bronz
 
     // Status
     success: '#16A34A',
@@ -71,32 +71,32 @@ export const COLORS_LIGHT = {
     info: '#0284C7',
 
     // Text
-    text: '#1A1A1A',             // Neredeyse siyah (okunabilirlik)
-    textSecondary: '#5C5C5C',    // Orta gri
-    textTertiary: '#8A8A8A',     // Açık gri
-    textGold: '#9A6F00',         // Koyu altın metin
+    text: '#1C1208',             // Sıcak siyah (soğuk değil)
+    textSecondary: '#4A3D28',    // Koyu kahve-gri
+    textTertiary: '#8A7A65',     // Sıcak orta ton
+    textGold: '#8C6200',         // Bronz altın metin
 
     // UI Elements
-    border: '#D6CEBC',           // Sıcak gri/bej kenarlık
-    borderLight: 'rgba(0,0,0,0.06)',
-    iconBg: '#EDE8DC',           // Krem ikon arka planı
-    placeholder: '#F0ECE4',
-    shadow: '#A09070',           // Sıcak kahverengi gölge (beton tonu)
+    border: '#D4C4A8',           // Sıcak kumlu kenarlık
+    borderLight: 'rgba(140,98,0,0.08)',
+    iconBg: '#EDE0CA',           // Kum ikonu zemin
+    placeholder: '#F0E8D8',
+    shadow: '#8C7050',           // Sıcak taş gölgesi
 
-    // Glass (aydınlık glass efekti)
-    glassBorder: 'rgba(154, 111, 0, 0.2)',
-    glassBackground: 'rgba(255, 252, 245, 0.85)',
-    glassHighlight: 'rgba(255, 255, 255, 0.6)',
+    // Glass
+    glassBorder: 'rgba(140, 98, 0, 0.18)',
+    glassBackground: 'rgba(255, 252, 244, 0.90)',
+    glassHighlight: 'rgba(255, 255, 255, 0.65)',
 
     // Gradients
-    gradientStart: '#F4F1EB',
-    gradientEnd: '#E8E1D3',
+    gradientStart: '#EDE5D5',
+    gradientEnd: '#E0D4BF',
 
     // Tab Bar
-    tabBar: '#FFFFFF',
-    tabBarBorder: '#E5DFD3',
-    tabBarActive: '#9A6F00',
-    tabBarInactive: '#8A8A8A',
+    tabBar: '#F8F3EA',
+    tabBarBorder: '#D4C4A8',
+    tabBarActive: '#8C6200',
+    tabBarInactive: '#8A7A65',
 };
 
 // ---- LEGACY (Geriye dönük uyumluluk — eski COLORS importlarını kırmamak için) ----

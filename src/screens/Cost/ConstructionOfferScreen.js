@@ -25,6 +25,7 @@ import {
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../../context/ThemeContext';
 import GlassCard from '../../components/GlassCard';
 import PremiumBackground from '../../components/PremiumBackground';
 import { DISTRICTS as ALL_DISTRICTS, getSortedCities } from '../../constants/TurkeyLocations';
@@ -138,6 +139,21 @@ const KeyboardDoneBar = () => {
 export default function ConstructionOfferScreen() {
     const navigation = useNavigation();
     const route = useRoute();
+    const { isDarkMode } = useTheme();
+    const T = {
+        bg:          isDarkMode ? '#0F0F0F' : '#EDE5D5',
+        surface:     isDarkMode ? 'rgba(255,255,255,0.05)' : '#FAF8F3',
+        border:      isDarkMode ? 'rgba(255,255,255,0.1)' : '#D4C4A8',
+        text:        isDarkMode ? '#FFFFFF' : '#1C1208',
+        textSub:     isDarkMode ? '#888888' : '#4A3D28',
+        gold:        isDarkMode ? '#D4AF37' : '#8C6200',
+        goldBg:      isDarkMode ? 'rgba(212,175,55,0.1)' : 'rgba(140,98,0,0.08)',
+        input:       isDarkMode ? 'rgba(0,0,0,0.3)' : 'rgba(140,98,0,0.04)',
+        inputBorder: isDarkMode ? 'rgba(255,255,255,0.1)' : '#D4C4A8',
+        hdr:         isDarkMode ? '#222' : '#EDE0CA',
+        divider:     isDarkMode ? 'rgba(255,255,255,0.1)' : '#D4C4A8',
+        ctrBg:       isDarkMode ? '#1a1a1a' : '#F2EBE0',
+    };
     const [location, setLocation] = useState(route.params?.location || { city: 'İstanbul', district: 'Tümü' });
 
     // Modal State
@@ -385,11 +401,11 @@ export default function ConstructionOfferScreen() {
         <PremiumBackground>
             <SafeAreaView style={{ flex: 1 }}>
                 {/* Fixed Header */}
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={24} color="#FFF" />
+                <View style={[styles.header, { borderBottomColor: T.border }]}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backButton, { backgroundColor: T.hdr }]}>
+                        <Ionicons name="arrow-back" size={24} color={T.text} />
                     </TouchableOpacity>
-                    <Text allowFontScaling={false} style={styles.headerTitle}>PROJE KÜNYESİ</Text>
+                    <Text allowFontScaling={false} style={[styles.headerTitle, { color: T.gold }]}>PROJE KÜNYESİ</Text>
                     <View style={{ width: 44 }} />
                 </View>
 
@@ -411,9 +427,9 @@ export default function ConstructionOfferScreen() {
 
                             {/* 0. YARISI BİZDEN KAMPANYASI */}
                             <View style={styles.sectionContainer}>
-                                <GlassCard style={[styles.card, hasYarisiBizden && { borderColor: '#D4AF37', borderWidth: 1 }]}>
-                                    <Text allowFontScaling={false} style={styles.campaignTitle}>"Yarısı Bizden" Kampanyasından Faydalanacak mısınız?</Text>
-                                    <Text allowFontScaling={false} style={styles.campaignSub}>Resmi hibe ve kredi desteği hesaplamaya dahil edilir.</Text>
+                                <GlassCard style={[styles.card, { backgroundColor: T.surface, borderColor: hasYarisiBizden ? T.gold : T.border, borderWidth: 1 }]}>
+                                    <Text allowFontScaling={false} style={[styles.campaignTitle, { color: T.text }]}>"Yarısı Bizden" Kampanyasından Faydalanacak mısınız?</Text>
+                                    <Text allowFontScaling={false} style={[styles.campaignSub, { color: T.textSub }]}>Resmi hibe ve kredi desteği hesaplamaya dahil edilir.</Text>
 
                                     <View style={styles.toggleRow}>
                                         <TouchableOpacity
@@ -439,34 +455,34 @@ export default function ConstructionOfferScreen() {
                                         <View style={styles.campaignDetails}>
                                             <View style={styles.counterRow}>
                                                 <View style={{ flex: 1 }}>
-                                                    <Text allowFontScaling={false} style={styles.counterLabel}>Konut Sayısı</Text>
-                                                    <Text allowFontScaling={false} style={styles.counterDesc}>1.750.000 TL Hibe + Kredi</Text>
+                                                    <Text allowFontScaling={false} style={[styles.counterLabel, { color: T.text }]}>Konut Sayısı</Text>
+                                                    <Text allowFontScaling={false} style={[styles.counterDesc, { color: T.gold }]}>1.750.000 TL Hibe + Kredi</Text>
                                                 </View>
-                                                <View style={styles.counterControls}>
+                                                <View style={[styles.counterControls, { backgroundColor: T.ctrBg, borderColor: T.border }]}>
                                                     <TouchableOpacity onPress={() => updateCount('apartment', 'dec')} style={styles.countBtn}>
-                                                        <MaterialCommunityIcons name="minus" size={20} color="#D4AF37" />
+                                                        <MaterialCommunityIcons name="minus" size={20} color={T.gold} />
                                                     </TouchableOpacity>
-                                                    <Text allowFontScaling={false} style={styles.countVal}>{apartmentCount}</Text>
+                                                    <Text allowFontScaling={false} style={[styles.countVal, { color: T.text }]}>{apartmentCount}</Text>
                                                     <TouchableOpacity onPress={() => updateCount('apartment', 'inc')} style={styles.countBtn}>
-                                                        <MaterialCommunityIcons name="plus" size={20} color="#D4AF37" />
+                                                        <MaterialCommunityIcons name="plus" size={20} color={T.gold} />
                                                     </TouchableOpacity>
                                                 </View>
                                             </View>
 
-                                            <View style={[styles.divider, { marginVertical: 12 }]} />
+                                            <View style={[styles.divider, { marginVertical: 12, backgroundColor: T.divider }]} />
 
                                             <View style={styles.counterRow}>
                                                 <View style={{ flex: 1 }}>
-                                                    <Text allowFontScaling={false} style={styles.counterLabel}>Ticari Alan Sayısı</Text>
-                                                    <Text allowFontScaling={false} style={styles.counterDesc}>875.000 TL Hibe + Kredi</Text>
+                                                    <Text allowFontScaling={false} style={[styles.counterLabel, { color: T.text }]}>Ticari Alan Sayısı</Text>
+                                                    <Text allowFontScaling={false} style={[styles.counterDesc, { color: T.gold }]}>875.000 TL Hibe + Kredi</Text>
                                                 </View>
-                                                <View style={styles.counterControls}>
+                                                <View style={[styles.counterControls, { backgroundColor: T.ctrBg, borderColor: T.border }]}>
                                                     <TouchableOpacity onPress={() => updateCount('commercial', 'dec')} style={styles.countBtn}>
-                                                        <MaterialCommunityIcons name="minus" size={20} color="#D4AF37" />
+                                                        <MaterialCommunityIcons name="minus" size={20} color={T.gold} />
                                                     </TouchableOpacity>
-                                                    <Text allowFontScaling={false} style={styles.countVal}>{commercialCount}</Text>
+                                                    <Text allowFontScaling={false} style={[styles.countVal, { color: T.text }]}>{commercialCount}</Text>
                                                     <TouchableOpacity onPress={() => updateCount('commercial', 'inc')} style={styles.countBtn}>
-                                                        <MaterialCommunityIcons name="plus" size={20} color="#D4AF37" />
+                                                        <MaterialCommunityIcons name="plus" size={20} color={T.gold} />
                                                     </TouchableOpacity>
                                                 </View>
                                             </View>
@@ -478,43 +494,43 @@ export default function ConstructionOfferScreen() {
                             {/* 0.5 TEKLİF TÜRÜ SEÇİMİ */}
                             <View style={styles.sectionContainer}>
                                 <View style={styles.sectionHeader}>
-                                    <MaterialCommunityIcons name="briefcase-edit-outline" size={20} color="#D4AF37" />
-                                    <Text allowFontScaling={false} style={styles.sectionTitle}>TEKLİF TÜRÜ SEÇİMİ</Text>
+                                    <MaterialCommunityIcons name="briefcase-edit-outline" size={20} color={T.gold} />
+                                    <Text allowFontScaling={false} style={[styles.sectionTitle, { color: T.gold }]}>TEKLİF TÜRÜ SEÇİMİ</Text>
                                 </View>
 
                                 {/* Option 1: Anahtar Teslim */}
                                 <GlassCard
-                                    style={[styles.offerCard, offerType === 'anahtar_teslim' && styles.offerCardActive]}
+                                    style={[styles.offerCard, { backgroundColor: T.surface, borderColor: offerType === 'anahtar_teslim' ? T.gold : T.border }, offerType === 'anahtar_teslim' && { backgroundColor: T.goldBg }]}
                                     onPress={() => handleOfferTypeSelect('anahtar_teslim')}
                                 >
                                     <View style={styles.offerHeader}>
                                         <MaterialCommunityIcons
                                             name={offerType === 'anahtar_teslim' ? "radiobox-marked" : "radiobox-blank"}
                                             size={24}
-                                            color={offerType === 'anahtar_teslim' ? "#D4AF37" : "#666"}
+                                            color={offerType === 'anahtar_teslim' ? T.gold : '#888'}
                                             style={{ marginTop: 2 }}
                                         />
-                                        <Text allowFontScaling={false} style={[styles.offerTitle, offerType === 'anahtar_teslim' && styles.textActive]}>Komple Bina Yapım Teklifi{'\n'}(Anahtar Teslim Hizmet Bedeli)</Text>
+                                        <Text allowFontScaling={false} style={[styles.offerTitle, { color: offerType === 'anahtar_teslim' ? T.gold : T.text }]}>Komple Bina Yapım Teklifi{'\n'}(Anahtar Teslim Hizmet Bedeli)</Text>
                                     </View>
-                                    <Text allowFontScaling={false} style={styles.offerDesc}>Maliyetin tamamı mülk sahibi tarafından karşılanır, inşaat firmasına herhangi bir taşınmaz (daire/dükkan) kalmaz.</Text>
+                                    <Text allowFontScaling={false} style={[styles.offerDesc, { color: T.textSub }]}>Maliyetin tamamı mülk sahibi tarafından karşılanır, inşaat firmasına herhangi bir taşınmaz (daire/dükkan) kalmaz.</Text>
                                 </GlassCard>
 
                                 <View style={{ height: 12 }} />
 
                                 {/* Option 2: Kat Karşılığı */}
                                 <GlassCard
-                                    style={[styles.offerCard, offerType === 'kat_karsiligi' && styles.offerCardActive]}
+                                    style={[styles.offerCard, { backgroundColor: T.surface, borderColor: offerType === 'kat_karsiligi' ? T.gold : T.border }, offerType === 'kat_karsiligi' && { backgroundColor: T.goldBg }]}
                                     onPress={() => handleOfferTypeSelect('kat_karsiligi')}
                                 >
                                     <View style={styles.offerHeader}>
                                         <MaterialCommunityIcons
                                             name={offerType === 'kat_karsiligi' ? "radiobox-marked" : "radiobox-blank"}
                                             size={24}
-                                            color={offerType === 'kat_karsiligi' ? "#D4AF37" : "#666"}
+                                            color={offerType === 'kat_karsiligi' ? T.gold : '#888'}
                                         />
-                                        <Text allowFontScaling={false} style={[styles.offerTitle, offerType === 'kat_karsiligi' && styles.textActive]}>Kat Karşılığı Yapım Teklifi</Text>
+                                        <Text allowFontScaling={false} style={[styles.offerTitle, { color: offerType === 'kat_karsiligi' ? T.gold : T.text }]}>Kat Karşılığı Yapım Teklifi</Text>
                                     </View>
-                                    <Text allowFontScaling={false} style={styles.offerDesc}>İnşaat maliyeti karşılığında firmaya arsa payı/daire verilir.</Text>
+                                    <Text allowFontScaling={false} style={[styles.offerDesc, { color: T.textSub }]}>İnşaat maliyeti karşılığında firmaya arsa payı/daire verilir.</Text>
                                 </GlassCard>
                             </View>
 
@@ -523,30 +539,32 @@ export default function ConstructionOfferScreen() {
                             {/* 0.8 EKLEMEK İSTEDİĞİNİZ DETAYLAR */}
                             <View style={styles.sectionContainer}>
                                 <View style={styles.sectionHeader}>
-                                    <MaterialCommunityIcons name="text-box-plus-outline" size={20} color="#D4AF37" />
-                                    <Text allowFontScaling={false} style={styles.sectionTitle}>EKLEMEK İSTEDİĞİNİZ DETAYLAR</Text>
+                                    <MaterialCommunityIcons name="text-box-plus-outline" size={20} color={T.gold} />
+                                    <Text allowFontScaling={false} style={[styles.sectionTitle, { color: T.gold }]}>EKLEMEK İSTEDİĞİNİZ DETAYLAR</Text>
                                 </View>
 
                                 <GlassCard style={styles.card}>
-                                    <TextInput allowFontScaling={false}
-                                        style={[styles.input, { height: 160, textAlignVertical: 'top', backgroundColor: 'rgba(255,255,255,0.08)', fontSize: 16 }]}
-                                        placeholder="Örn: 'Bodrum ve Giriş daire müteahhite, diğerleri mal sahiplerine kalacak şekilde...' veya arsa durumu, özel istekleriniz gibi durumları yazabilirsiniz."
-                                        placeholderTextColor="#999"
-                                        multiline
-                                        value={details}
-                                        onChangeText={setDetails}
-                                        inputAccessoryViewID="done_toolbar"
-                                        scrollEnabled={false} // Let container handle scroll
-                                    />
-                                    <Text allowFontScaling={false} style={styles.hintText}>* Müteahhitler teklif verirken bu notları dikkate alacaktır.</Text>
+                                    <View style={styles.toggleRow}>
+                                        <TextInput allowFontScaling={false}
+                                            style={[styles.input, { height: 160, textAlignVertical: 'top', backgroundColor: T.input, borderColor: T.inputBorder, color: T.text, fontSize: 16 }]}
+                                            placeholder="Örn: 'Bodrum ve Giriş daire müteahhite, diğerleri mal sahiplerine kalacak şekilde...' veya arsa durumu, özel istekleriniz gibi durumları yazabilirsiniz."
+                                            placeholderTextColor={isDarkMode ? '#999' : '#AAA'}
+                                            multiline
+                                            value={details}
+                                            onChangeText={setDetails}
+                                            inputAccessoryViewID="done_toolbar"
+                                            scrollEnabled={false}
+                                        />
+                                        <Text allowFontScaling={false} style={[styles.hintText, { color: T.textSub }]}>* Müteahhitler teklif verirken bu notları dikkate alacaktır.</Text>
+                                    </View>
                                 </GlassCard>
                             </View>
 
                             {/* TAPU / İMAR / LOKASYON BİLGİLERİ (HEPSİ TEK PARÇA) */}
                             <View style={styles.sectionContainer}>
                                 <View style={styles.sectionHeader}>
-                                    <MaterialCommunityIcons name="land-plots" size={20} color="#D4AF37" />
-                                    <Text allowFontScaling={false} style={styles.sectionTitle}>TAPU / İMAR BİLGİLERİ</Text>
+                                    <MaterialCommunityIcons name="land-plots" size={20} color={T.gold} />
+                                    <Text allowFontScaling={false} style={[styles.sectionTitle, { color: T.gold }]}>TAPU / İMAR BİLGİLERİ</Text>
                                 </View>
 
                                 <GlassCard style={styles.card}>
@@ -559,10 +577,10 @@ export default function ConstructionOfferScreen() {
                                                 setModalVisible(true);
                                             }}
                                         >
-                                            <Text allowFontScaling={false} style={styles.label}>İL</Text>
+                                            <Text allowFontScaling={false} style={[styles.label, { color: T.gold }]}>İL</Text>
                                             <View style={styles.selectValueRow}>
-                                                <Text allowFontScaling={false} style={styles.cityValueText}>{location.city}</Text>
-                                                <MaterialCommunityIcons name="map-marker-outline" size={14} color="#D4AF37" />
+                                                <Text allowFontScaling={false} style={[styles.cityValueText, { color: T.text }]}>{location.city}</Text>
+                                                <MaterialCommunityIcons name="map-marker-outline" size={14} color={T.gold} />
                                             </View>
                                         </TouchableOpacity>
 
@@ -578,21 +596,21 @@ export default function ConstructionOfferScreen() {
                                                 setModalVisible(true);
                                             }}
                                         >
-                                            <Text allowFontScaling={false} style={styles.label}>İLÇE</Text>
+                                            <Text allowFontScaling={false} style={[styles.label, { color: T.gold }]}>İLÇE</Text>
                                             <View style={styles.selectValueRow}>
-                                                <Text allowFontScaling={false} style={[styles.districtValueText, { color: location.district === 'Tümü' ? '#666' : '#fff' }]}>
+                                                <Text allowFontScaling={false} style={[styles.districtValueText, { color: location.district === 'Tümü' ? T.textSub : T.text }]}>
                                                     {location.district}
                                                 </Text>
-                                                <MaterialCommunityIcons name="chevron-down" size={20} color="rgba(255,255,255,0.3)" />
+                                                <MaterialCommunityIcons name="chevron-down" size={20} color={T.textSub} />
                                             </View>
                                         </TouchableOpacity>
                                     </View>
 
                                     <View style={[styles.divider, { marginVertical: 12 }]} />
 
-                                    <Text allowFontScaling={false} style={styles.label}>MAHALLE</Text>
+                                    <Text allowFontScaling={false} style={[styles.label, { color: T.gold }]}>MAHALLE</Text>
                                     <TextInput allowFontScaling={false}
-                                        style={styles.input}
+                                        style={[styles.input, { backgroundColor: T.input, borderColor: T.inputBorder, color: T.text }]}
                                         placeholder="Örn: Cumhuriyet Mah."
                                         placeholderTextColor="#666"
                                         value={neighborhood}
@@ -602,17 +620,17 @@ export default function ConstructionOfferScreen() {
                                         blurOnSubmit={false}
                                     />
 
-                                    <View style={[styles.divider, { marginVertical: 12 }]} />
+                                    <View style={[styles.divider, { marginVertical: 12, backgroundColor: T.divider }]} />
 
                                     {/* Tapu İmar Parçası */}
                                     <View style={styles.rowTwo}>
                                         <View style={{ flex: 1, marginRight: 8 }}>
-                                            <Text allowFontScaling={false} style={styles.label}>ADA NO</Text>
+                                            <Text allowFontScaling={false} style={[styles.label, { color: T.gold }]}>ADA NO</Text>
                                             <TextInput allowFontScaling={false}
                                                 ref={adaRef}
-                                                style={[styles.input, styles.numberInput]}
+                                                style={[styles.input, styles.numberInput, { backgroundColor: T.input, borderColor: T.inputBorder, color: T.text }]}
                                                 placeholder="000"
-                                                placeholderTextColor="#444"
+                                                placeholderTextColor={isDarkMode ? '#444' : '#C0B090'}
                                                 keyboardType="numeric"
                                                 value={ada}
                                                 onChangeText={(t) => setAda(t.replace(/[^0-9]/g, ''))}
@@ -623,12 +641,12 @@ export default function ConstructionOfferScreen() {
                                             />
                                         </View>
                                         <View style={{ flex: 1, marginLeft: 8 }}>
-                                            <Text allowFontScaling={false} style={styles.label}>PARSEL NO</Text>
+                                            <Text allowFontScaling={false} style={[styles.label, { color: T.gold }]}>PARSEL NO</Text>
                                             <TextInput allowFontScaling={false}
                                                 ref={parselRef}
-                                                style={[styles.input, styles.numberInput]}
+                                                style={[styles.input, styles.numberInput, { backgroundColor: T.input, borderColor: T.inputBorder, color: T.text }]}
                                                 placeholder="00"
-                                                placeholderTextColor="#444"
+                                                placeholderTextColor={isDarkMode ? '#444' : '#C0B090'}
                                                 keyboardType="numeric"
                                                 value={parsel}
                                                 onChangeText={(t) => setParsel(t.replace(/[^0-9]/g, ''))}
@@ -641,12 +659,12 @@ export default function ConstructionOfferScreen() {
                                     </View>
 
                                     <View style={{ marginTop: 12 }}>
-                                        <Text allowFontScaling={false} style={styles.label}>PAFTA (Opsiyonel)</Text>
+                                        <Text allowFontScaling={false} style={[styles.label, { color: T.gold }]}>PAFTA (Opsiyonel)</Text>
                                         <TextInput allowFontScaling={false}
                                             ref={paftaRef}
-                                            style={[styles.input, styles.numberInput, { fontSize: 16 }]}
+                                            style={[styles.input, styles.numberInput, { fontSize: 16, backgroundColor: T.input, borderColor: T.inputBorder, color: T.gold }]}
                                             placeholder="Varsa pafta no"
-                                            placeholderTextColor="#666"
+                                            placeholderTextColor={isDarkMode ? '#666' : '#C0B090'}
                                             keyboardType="numeric"
                                             value={pafta}
                                             onChangeText={(t) => setPafta(t.replace(/[^0-9]/g, ''))}
@@ -657,10 +675,10 @@ export default function ConstructionOfferScreen() {
                                         />
                                     </View>
 
-                                    <View style={styles.infoBox}>
-                                        <Ionicons name="information-circle" size={18} color="#FFD700" style={{ marginTop: 2 }} />
-                                        <Text allowFontScaling={false} style={styles.infoText}>
-                                            Bu bilgiler, müteahhitlerin belediye sisteminden imar durumunu (KAKS/TAKS) sorgulayıp size <Text allowFontScaling={false} style={{ fontWeight: 'bold', color: '#fff' }}>net teklif</Text> verebilmesi için zorunludur.
+                                    <View style={[styles.infoBox, { backgroundColor: T.goldBg, borderColor: isDarkMode ? 'rgba(255,215,0,0.2)' : 'rgba(154,111,0,0.2)' }]}>
+                                        <Ionicons name="information-circle" size={18} color={T.gold} style={{ marginTop: 2 }} />
+                                        <Text allowFontScaling={false} style={[styles.infoText, { color: T.textSub }]}>
+                                            Bu bilgiler, müteahhitlerin belediye sisteminden imar durumunu (KAKS/TAKS) sorgulayıp size <Text allowFontScaling={false} style={{ fontWeight: 'bold', color: T.text }}>net teklif</Text> verebilmesi için zorunludur.
                                         </Text>
                                     </View>
                                 </GlassCard>
@@ -669,15 +687,15 @@ export default function ConstructionOfferScreen() {
                             {/* 3. ADRES DOĞRULAMA */}
                             <View style={styles.sectionContainer}>
                                 <View style={styles.sectionHeader}>
-                                    <MaterialCommunityIcons name="sign-direction" size={20} color="#D4AF37" />
-                                    <Text allowFontScaling={false} style={styles.sectionTitle}>AÇIK ADRES</Text>
+                                    <MaterialCommunityIcons name="sign-direction" size={20} color={T.gold} />
+                                    <Text allowFontScaling={false} style={[styles.sectionTitle, { color: T.gold }]}>AÇIK ADRES</Text>
                                 </View>
                                 <GlassCard style={styles.card}>
                                     <TextInput allowFontScaling={false}
                                         ref={addressRef}
-                                        style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
+                                        style={[styles.input, { height: 80, textAlignVertical: 'top', backgroundColor: T.input, borderColor: T.inputBorder, color: T.text }]}
                                         placeholder="Cadde, Sokak, Kapı No detaylarını yazınız..."
-                                        placeholderTextColor="#666"
+                                        placeholderTextColor={isDarkMode ? '#666' : '#AAA'}
                                         multiline
                                         value={address}
                                         onChangeText={setAddress}
@@ -689,8 +707,8 @@ export default function ConstructionOfferScreen() {
                             {/* 4. BELGE YÜKLEME */}
                             <View style={styles.sectionContainer}>
                                 <View style={styles.sectionHeader}>
-                                    <MaterialCommunityIcons name="file-document-outline" size={20} color="#D4AF37" />
-                                    <Text allowFontScaling={false} style={styles.sectionTitle}>BELGE VE GÖRSEL</Text>
+                                    <MaterialCommunityIcons name="file-document-outline" size={20} color={T.gold} />
+                                    <Text allowFontScaling={false} style={[styles.sectionTitle, { color: T.gold }]}>BELGE VE GÖRSEL</Text>
                                 </View>
 
                                 <GlassCard style={styles.uploadCardContainer}>
@@ -736,19 +754,55 @@ export default function ConstructionOfferScreen() {
 
                             {/* SUBMIT BUTTON */}
                             <TouchableOpacity
-                                style={[styles.submitButton, loading && { opacity: 0.7 }]}
-                                activeOpacity={0.9}
+                                style={[
+                                    styles.submitButton,
+                                    loading && { opacity: 0.7 },
+                                    isDarkMode ? {
+                                        shadowColor: '#FFD700',
+                                        shadowOpacity: 0.35,
+                                        shadowRadius: 20,
+                                        elevation: 12,
+                                    } : {
+                                        shadowColor: '#6B4C00',
+                                        shadowOpacity: 0.30,
+                                        shadowRadius: 16,
+                                        elevation: 10,
+                                    }
+                                ]}
+                                activeOpacity={0.85}
                                 onPress={handleSubmit}
                                 disabled={loading}
                             >
                                 <LinearGradient
-                                    colors={['#996515', '#FFD700', '#FDB931', '#996515']}
+                                    colors={
+                                        isDarkMode
+                                            ? ['#996515', '#FFD700', '#FDB931', '#996515']
+                                            : ['#5C3D00', '#8C6200', '#B8820F', '#8C6200', '#5C3D00']
+                                    }
                                     start={{ x: 0, y: 0.5 }}
                                     end={{ x: 1, y: 0.5 }}
-                                    style={styles.submitGradient}
+                                    style={[
+                                        styles.submitGradient,
+                                        !isDarkMode && {
+                                            borderWidth: 1,
+                                            borderColor: 'rgba(255,220,100,0.25)',
+                                        }
+                                    ]}
                                 >
-                                    <Text allowFontScaling={false} style={styles.submitText}>{loading ? 'GÖNDERİLİYOR...' : 'PROJEYİ MÜTEAHHİTLERE SUN'}</Text>
-                                    <MaterialCommunityIcons name="briefcase-check" size={24} color="#000" />
+                                    <Text
+                                        allowFontScaling={false}
+                                        style={[
+                                            styles.submitText,
+                                            { color: isDarkMode ? '#000000' : '#FFFFFF' }
+                                        ]}
+                                    >
+                                        {loading ? 'GÖNDERİLİYOR...' : 'PROJEYİ MÜTEAHHİTLERE SUN'}
+                                    </Text>
+                                    <MaterialCommunityIcons
+                                        name="briefcase-check"
+                                        size={22}
+                                        color={isDarkMode ? '#000' : '#FFE580'}
+                                    />
                                 </LinearGradient>
                             </TouchableOpacity>
 

@@ -1,7 +1,8 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Platform, useColorScheme } from 'react-native';
+import { Platform, useColorScheme, TouchableOpacity, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import RequestDetailScreen from '../screens/Market/RequestDetailScreen';
 
 // Screens
@@ -185,10 +186,10 @@ function BottomTabNavigator() {
 
     // Theme Colors — from ThemeContext
     const theme = {
-        barBg: isDarkMode ? '#000000' : '#FFFFFF',
-        active: isDarkMode ? '#FDCB58' : '#9A6F00',
-        inactive: isDarkMode ? '#636366' : '#8A8A8A',
-        border: isDarkMode ? '#1C1C1E' : '#E5DFD3',
+        barBg:   isDarkMode ? '#0A0A0A' : '#F7F1E4',
+        active:  isDarkMode ? '#D4AF37' : '#B8820F', // Premium Gold matching Renovation
+        inactive: isDarkMode ? '#999999' : '#A09686', // Passive
+        border:  isDarkMode ? '#1C1C1E' : '#E8E0D0',
     };
 
     return (
@@ -209,7 +210,7 @@ function BottomTabNavigator() {
                     elevation: 0,
                 },
                 tabBarLabelStyle: {
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: '600',
                     marginTop: 4,
                 },
@@ -225,7 +226,7 @@ function BottomTabNavigator() {
                     tabBarIcon: ({ color, focused }) => (
                         <MaterialCommunityIcons
                             name={focused ? "home-variant" : "home-variant-outline"}
-                            size={28}
+                            size={24}
                             color={color}
                         />
                     ),
@@ -248,9 +249,59 @@ function BottomTabNavigator() {
                     tabBarIcon: ({ color, focused }) => (
                         <MaterialCommunityIcons
                             name={focused ? "clipboard-list" : "clipboard-list-outline"}
-                            size={28}
+                            size={24}
                             color={color}
                         />
+                    ),
+                }}
+            />
+
+            {/* FLOATING ACTION BUTTON */}
+            <Tab.Screen
+                name="NewRequest"
+                component={View} // Dummy component, won't be rendered because of listener
+                listeners={({ navigation }) => ({
+                    tabPress: (e) => {
+                        // Prevent default action
+                        e.preventDefault();
+                        // Navigate to a request creation flow (using MarketRequest as placeholder)
+                        navigation.navigate('MarketRequest');
+                    },
+                })}
+                options={{
+                    tabBarLabel: '',
+                    tabBarIcon: () => null,
+                    tabBarButton: (props) => (
+                        <View style={{ position: 'relative', width: 70, alignItems: 'center' }}>
+                            <TouchableOpacity
+                                activeOpacity={0.9}
+                                onPress={props.onPress}
+                                style={{
+                                    top: -30,
+                                    width: 64,
+                                    height: 64,
+                                    borderRadius: 32,
+                                    // Strong Gold Aura Shadow
+                                    shadowColor: isDarkMode ? '#D4AF37' : '#B8820F',
+                                    shadowOffset: { width: 0, height: 10 },
+                                    shadowOpacity: 0.5,
+                                    shadowRadius: 30,
+                                    elevation: 12,
+                                }}
+                            >
+                                <LinearGradient
+                                    colors={isDarkMode ? ['#F4D03F', '#D4AF37', '#B8962E'] : ['#E2B750', '#B8820F', '#8C6200']}
+                                    start={{x: 0, y: 0}} end={{x: 1, y: 1}}
+                                    style={{ 
+                                        width: '100%', height: '100%', borderRadius: 32, 
+                                        alignItems: 'center', justifyContent: 'center',
+                                        borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.4)'
+                                    }}
+                                >
+                                    <MaterialCommunityIcons name="plus" size={36} color="#FFF" />
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
                     ),
                 }}
             />
@@ -271,7 +322,7 @@ function BottomTabNavigator() {
                     tabBarIcon: ({ color, focused }) => (
                         <MaterialCommunityIcons
                             name={focused ? "message-text" : "message-text-outline"}
-                            size={28}
+                            size={24}
                             color={color}
                         />
                     ),
@@ -287,7 +338,7 @@ function BottomTabNavigator() {
                     tabBarIcon: ({ color, focused }) => (
                         <MaterialCommunityIcons
                             name={focused ? "account" : "account-outline"}
-                            size={28}
+                            size={24}
                             color={color}
                         />
                     ),
