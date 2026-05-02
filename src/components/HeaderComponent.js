@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Svg, { Defs, LinearGradient as SvgGradient, Stop, Text as SvgText, TSpan } from 'react-native-svg';
 import { useAuth } from '../context/AuthContext';
 import { COLORS, FONTS } from '../theme';
 
@@ -11,10 +12,26 @@ const HeaderComponent = ({ navigation }) => {
     <View style={styles.headerContainer}>
       <View style={styles.brandGroup}>
         <View style={styles.logoRow}>
-          <Text style={styles.brandTitle}>
-            <Text style={{ color: '#FFF' }}>Cepte</Text>
-            <Text style={{ color: COLORS.gold }}>Şef</Text>
-          </Text>
+          <Svg height="35" width="150">
+            <Defs>
+              <SvgGradient id="logoGoldGradient" x1="0" y1="0" x2="0" y2="1">
+                <Stop offset="0" stopColor="#F6D88B" />
+                <Stop offset="0.5" stopColor="#D6A23A" />
+                <Stop offset="1" stopColor="#9A6A12" />
+              </SvgGradient>
+            </Defs>
+            <SvgText
+              x="0"
+              y="25"
+              fontSize="28"
+              fontWeight="bold"
+              fontFamily={FONTS.bold}
+              letterSpacing="-0.5"
+            >
+              <TSpan fill="#F3F1EC">Cepte</TSpan>
+              <TSpan fill="url(#logoGoldGradient)">Şef</TSpan>
+            </SvgText>
+          </Svg>
         </View>
         <Text style={styles.brandSubtitle}>İNŞAAT & HİZMET PLATFORMU</Text>
       </View>
@@ -60,18 +77,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  brandTitle: {
-    color: '#FFF',
-    fontSize: 28,
-    fontFamily: FONTS.bold,
-    letterSpacing: -0.5,
-  },
   brandSubtitle: {
     color: '#999',
     fontSize: 9,
     fontFamily: FONTS.bold,
     letterSpacing: 0.5,
-    marginTop: -2,
+    marginTop: -4, // Adjusted for SVG text alignment
   },
   actionGroup: {
     flexDirection: 'row',
