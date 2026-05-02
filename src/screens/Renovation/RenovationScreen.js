@@ -34,23 +34,26 @@ const GOLD_ACCENT = '#D4AF37';
 // Data
 const HERO_SLIDES = [
     {
-        id: 1,
-        title: "Modern Salon\nYenileme",
-        image: { uri: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=800&auto=format&fit=crop' },
-        tag: "Minimalist"
-    },
-    {
-        id: 2,
-        title: "Lüks Mutfak\nTasarımı",
-        image: { uri: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=800&auto=format&fit=crop' },
-        tag: "Avant-Garde"
-    },
-    {
         id: 3,
         title: "Asansör Revizyon\n& Bakım",
         image: { uri: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=800&auto=format&fit=crop' },
         tag: "Premium"
     }
+];
+
+const ICON_POOL = [
+    // Genel & Tadilat
+    'hammer-wrench', 'brush', 'paint-roll', 'format-paint', 'tools', 'screwdriver', 'wrench',
+    // Alanlar
+    'balcony', 'sofa', 'bed', 'shower', 'countertop', 'bathtub-outline', 'table-chair',
+    // Dış Cephe & Bahçe
+    'fence', 'gate', 'garage', 'pool', 'grass', 'tree', 'flower', 'patio-heater',
+    // Teknik & Altyapı
+    'lightning-bolt', 'water-pump', 'pipe-wrench', 'flash', 'radiator', 'air-conditioner', 'solar-power',
+    // Güvenlik & Otomasyon
+    'cctv', 'shield-lock', 'door-closed', 'window-closed-variant', 'shield-camera', 'smart-home',
+    // Mimari & Yapı
+    'floor-plan', 'pillar', 'wall', 'stairs', 'elevator', 'crane', 'office-building', 'home-modern'
 ];
 
 const GoldCard = ({ children, style, onPress }) => {
@@ -140,6 +143,11 @@ export default function RenovationScreen({ navigation }) {
         fetchServices();
         fetchShowcase();
     }, []);
+
+    // Service Management State
+    const [isServiceModalVisible, setIsServiceModalVisible] = useState(false);
+    const [editingService, setEditingService] = useState(null);
+    const [isSavingService, setIsSavingService] = useState(false);
 
     // Showcase State
     const [showcaseItems, setShowcaseItems] = useState([]);
@@ -274,6 +282,61 @@ export default function RenovationScreen({ navigation }) {
         }
     };
 
+    const handleSaveService = async () => {
+        if (!editingService?.title) {
+            Alert.alert("Hata", "Lütfen en azından bir başlık girin.");
+            return;
+        }
+
+        setIsSavingService(true);
+        try {
+            const isNew = !editingService.id;
+            const serviceData = {
+                title: editingService.title,
+                subtitle: editingService.subtitle || '',
+                icon: editingService.icon || 'hammer-wrench',
+                is_active: editingService.is_active ?? true,
+                display_order: editingService.display_order ?? (services.length + 1),
+                service_id: editingService.service_id || 'custom'
+            };
+
+            let res;
+            if (isNew) {
+                res = await supabase.from('renovation_services').insert([serviceData]);
+            } else {
+                res = await supabase.from('renovation_services').update(serviceData).eq('id', editingService.id);
+            }
+
+            if (res.error) throw res.error;
+
+            Alert.alert("Başarılı", `Hizmet ${isNew ? 'eklendi' : 'güncellendi'}.`);
+            setIsServiceModalVisible(false);
+            setEditingService(null);
+            fetchServices();
+        } catch (error) {
+            console.error('Service save failed:', error.message);
+            Alert.alert("Hata", "Hizmet kaydedilemedi.");
+        } finally {
+            setIsSavingService(false);
+        }
+    };
+
+    const handleDeleteService = async (id) => {
+        Alert.alert("Sil", "Bu hizmeti tamamen silmek istediğinize emin misiniz?", [
+            { text: "Vazgeç", style: "cancel" },
+            { 
+                text: "Sil", style: "destructive", onPress: async () => {
+                    const { error } = await supabase.from('renovation_services').delete().eq('id', id);
+                    if (!error) {
+                        setServices(services.filter(s => s.id !== id));
+                    } else {
+                        Alert.alert("Hata", "Silme işlemi başarısız.");
+                    }
+                }
+            }
+        ]);
+    };
+
     const [hasRenovationAccess, setHasRenovationAccess] = useState(false);
 
     const checkUserStatus = async () => {
@@ -306,6 +369,9 @@ export default function RenovationScreen({ navigation }) {
             return;
         } else if (sId === 'elevator_maintenance') {
             navigation.navigate('ElevatorWizard');
+            return;
+        } else if (service.title.toLowerCase().includes('garaj') || service.title.toLowerCase().includes('bahçe kapısı')) {
+            navigation.navigate('GarageWizard');
             return;
         }
         Alert.alert(service.title.replace(/\\n/g, ' '), `${service.subtitle}\n\nBu modül yakında aktif olacak.`);
@@ -480,7 +546,7 @@ export default function RenovationScreen({ navigation }) {
                                                 <GoldCard
                                                     key={item.id}
                                                     style={[styles.gridItem, !item.is_active && { opacity: 0.5 }]}
-                                                    onPress={() => !isEditMode && handleServicePress(item)}
+                                                    onPress={() => isEditMode ? setEditingService(item) || setIsServiceModalVisible(true) : handleServicePress(item)}
                                                 >
                                                     {isEditMode && (
                                                         <View style={styles.adminControlsOverlay}>
@@ -492,9 +558,14 @@ export default function RenovationScreen({ navigation }) {
                                                                     <MaterialCommunityIcons name="chevron-down" size={22} color={globalIdx === filteredServices.length - 1 ? T.textSub : T.goldAccent} />
                                                                 </TouchableOpacity>
                                                             </View>
-                                                            <TouchableOpacity style={styles.eyeBtn} onPress={() => toggleServiceVisibility(item)}>
-                                                                <MaterialCommunityIcons name={item.is_active ? "eye" : "eye-off"} size={20} color={item.is_active ? T.goldAccent : "#ef4444"} />
-                                                            </TouchableOpacity>
+                                                            <View style={{ flexDirection: 'row', gap: 6 }}>
+                                                                <TouchableOpacity style={styles.eyeBtn} onPress={() => toggleServiceVisibility(item)}>
+                                                                    <MaterialCommunityIcons name={item.is_active ? "eye" : "eye-off"} size={20} color={item.is_active ? T.goldAccent : "#ef4444"} />
+                                                                </TouchableOpacity>
+                                                                <TouchableOpacity style={styles.eyeBtn} onPress={() => handleDeleteService(item.id)}>
+                                                                    <MaterialCommunityIcons name="trash-can-outline" size={20} color="#ef4444" />
+                                                                </TouchableOpacity>
+                                                            </View>
                                                         </View>
                                                     )}
 
@@ -512,6 +583,20 @@ export default function RenovationScreen({ navigation }) {
                                                 </GoldCard>
                                             );
                                         })}
+
+                                        {/* ADD NEW SERVICE BUTTON (ONLY IN EDIT MODE AND ON LAST PAGE) */}
+                                        {isEditMode && pageIdx === pagesCount - 1 && filteredServices.length % 4 !== 0 && (
+                                            <TouchableOpacity 
+                                                style={[styles.addNewServiceBtn, { borderColor: T.goldAccent, backgroundColor: T.iconBg }]}
+                                                onPress={() => {
+                                                    setEditingService({ title: '', subtitle: '', icon: 'plus', is_active: true });
+                                                    setIsServiceModalVisible(true);
+                                                }}
+                                            >
+                                                <MaterialCommunityIcons name="plus" size={32} color={T.goldAccent} />
+                                                <Text style={{ color: T.goldAccent, fontSize: 10, fontWeight: 'bold', marginTop: 4 }}>YENİ EKLE</Text>
+                                            </TouchableOpacity>
+                                        )}
                                     </View>
                                 ));
                             })()}
@@ -871,6 +956,77 @@ export default function RenovationScreen({ navigation }) {
                         </View>
                     </View>
                 </Modal>
+
+                {/* SERVICE ADD/EDIT MODAL */}
+                <Modal visible={isServiceModalVisible} animationType="slide" transparent>
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.editModalContent}>
+                            <View style={styles.modalHeader}>
+                                <Text allowFontScaling={false} style={styles.modalTitle}>
+                                    {editingService?.id ? 'Hizmeti Düzenle' : 'Yeni Hizmet Ekle'}
+                                </Text>
+                                <TouchableOpacity onPress={() => setIsServiceModalVisible(false)}>
+                                    <MaterialCommunityIcons name="close" size={24} color="#FFF" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <ScrollView style={{ flex: 1, padding: 16 }}>
+                                <Text allowFontScaling={false} style={styles.inputLabel}>HİZMET BAŞLIĞI</Text>
+                                <TextInput
+                                    style={styles.modalInput}
+                                    value={editingService?.title}
+                                    onChangeText={t => setEditingService(prev => ({ ...prev, title: t }))}
+                                    placeholder="Örn: Teras & Balkon Yenileme"
+                                    placeholderTextColor="#666"
+                                />
+
+                                <Text allowFontScaling={false} style={styles.inputLabel}>ALT BAŞLIK / AÇIKLAMA</Text>
+                                <TextInput
+                                    style={styles.modalInput}
+                                    value={editingService?.subtitle}
+                                    onChangeText={t => setEditingService(prev => ({ ...prev, subtitle: t }))}
+                                    placeholder="Örn: Su yalıtımı ve dekorasyon çözümleri"
+                                    placeholderTextColor="#666"
+                                    multiline
+                                />
+
+                                <Text allowFontScaling={false} style={styles.inputLabel}>İKON SEÇİN</Text>
+                                <ScrollView 
+                                    horizontal 
+                                    showsHorizontalScrollIndicator={false} 
+                                    contentContainerStyle={styles.iconPoolContainer}
+                                >
+                                    {ICON_POOL.map(iconName => (
+                                        <TouchableOpacity 
+                                            key={iconName}
+                                            style={[
+                                                styles.poolIconBtn, 
+                                                { backgroundColor: T.surface2, borderColor: editingService?.icon === iconName ? T.goldAccent : 'transparent' }
+                                            ]}
+                                            onPress={() => setEditingService(prev => ({ ...prev, icon: iconName }))}
+                                        >
+                                            <MaterialCommunityIcons name={iconName} size={24} color={editingService?.icon === iconName ? T.goldAccent : '#666'} />
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
+
+                                <View style={{ height: 20 }} />
+
+                                <TouchableOpacity 
+                                    style={[styles.saveBtn, isSavingService && { opacity: 0.7 }]} 
+                                    onPress={handleSaveService}
+                                    disabled={isSavingService}
+                                >
+                                    {isSavingService ? (
+                                        <ActivityIndicator color="#000" />
+                                    ) : (
+                                        <Text allowFontScaling={false} style={styles.saveBtnText}>HİZMETİ KAYDET</Text>
+                                    )}
+                                </TouchableOpacity>
+                            </ScrollView>
+                        </View>
+                    </View>
+                </Modal>
             </SafeAreaView>
         </View>
     );
@@ -1224,5 +1380,49 @@ const styles = StyleSheet.create({
         marginRight: 12,
         borderWidth: 1,
         borderColor: '#444'
-    }
+    },
+    addNewServiceBtn: {
+        width: (width - 60) / 2,
+        height: 180,
+        borderRadius: 24,
+        borderWidth: 2,
+        borderColor: 'rgba(255, 215, 0, 0.3)',
+        borderStyle: 'dashed',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 15,
+    },
+    iconPreview: {
+        width: 48,
+        height: 48,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    saveBtn: {
+        backgroundColor: GOLD_MAIN,
+        borderRadius: 12,
+        padding: 16,
+        alignItems: 'center',
+        marginTop: 10,
+        marginBottom: 30,
+    },
+    saveBtnText: {
+        color: '#000',
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
+    iconPoolContainer: {
+        paddingVertical: 10,
+        gap: 12,
+    },
+    poolIconBtn: {
+        width: 54,
+        height: 54,
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 2,
+    },
 });

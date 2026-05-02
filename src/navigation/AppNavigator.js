@@ -77,6 +77,7 @@ import AIRenovationAssistantScreen from '../screens/Renovation/AIRenovationAssis
 import CustomRequestScreen from '../screens/Renovation/CustomRequestScreen';
 import ElevatorSuccessScreen from '../screens/Renovation/ElevatorSuccessScreen';
 import ElevatorWizardScreen from '../screens/Renovation/ElevatorWizardScreen';
+import GarageWizardScreen from '../screens/Renovation/GarageWizardScreen';
 import KitchenBathWizardScreen from '../screens/Renovation/KitchenBathWizardScreen';
 import PaintDecorWizardScreen from '../screens/Renovation/PaintDecorWizardScreen';
 import RenovationProjectSelectionScreen from '../screens/Renovation/RenovationProjectSelectionScreen';
@@ -208,6 +209,8 @@ function BottomTabNavigator() {
                     left: 0,
                     right: 0,
                     elevation: 0,
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
                 },
                 tabBarLabelStyle: {
                     fontSize: 12,
@@ -290,15 +293,25 @@ function BottomTabNavigator() {
                                 }}
                             >
                                 <LinearGradient
-                                    colors={isDarkMode ? ['#F4D03F', '#D4AF37', '#B8962E'] : ['#E2B750', '#B8820F', '#8C6200']}
-                                    start={{x: 0, y: 0}} end={{x: 1, y: 1}}
-                                    style={{ 
-                                        width: '100%', height: '100%', borderRadius: 32, 
-                                        alignItems: 'center', justifyContent: 'center',
-                                        borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.4)'
+                                    colors={['#EAB64E', '#A3792E']}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 1 }}
+                                    style={{
+                                        width: 60,
+                                        height: 60,
+                                        borderRadius: 30,
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        borderWidth: 1,
+                                        borderColor: '#F9CE6D',
+                                        shadowColor: '#EAB64E',
+                                        shadowOffset: { width: 0, height: 4 },
+                                        shadowOpacity: 0.3,
+                                        shadowRadius: 10,
+                                        elevation: 8,
                                     }}
                                 >
-                                    <MaterialCommunityIcons name="plus" size={36} color="#FFF" />
+                                    <MaterialCommunityIcons name="plus" size={32} color="#000" />
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>
@@ -320,8 +333,8 @@ function BottomTabNavigator() {
                         fontWeight: 'bold',
                     },
                     tabBarIcon: ({ color, focused }) => (
-                        <MaterialCommunityIcons
-                            name={focused ? "message-text" : "message-text-outline"}
+                                                <MaterialCommunityIcons
+                            name={focused ? "bell" : "bell-outline"}
                             size={24}
                             color={color}
                         />
@@ -384,6 +397,7 @@ export default function AppNavigator() {
             <Stack.Screen name="RenovationSuccess" component={RenovationSuccessScreen} />
             <Stack.Screen name="ElevatorWizard" component={ElevatorWizardScreen} options={{ headerShown: false, gestureEnabled: true, animation: 'slide_from_bottom' }} />
             <Stack.Screen name="ElevatorSuccess" component={ElevatorSuccessScreen} options={{ headerShown: false, gestureEnabled: false }} />
+            <Stack.Screen name="GarageWizard" component={GarageWizardScreen} options={{ headerShown: false, gestureEnabled: true, animation: 'slide_from_bottom' }} />
 
             {/* Engineering & AI */}
             <Stack.Screen name="Mühendislik" component={EngineeringScreen} />
