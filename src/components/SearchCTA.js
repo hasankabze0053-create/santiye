@@ -24,7 +24,7 @@ const SearchCTA = ({ navigation }) => {
         activeOpacity={0.8}
       >
         <LinearGradient
-          colors={['#EAB64E', '#A3792E']}
+          colors={['#B8820F', '#8C6200']}
           style={styles.ctaGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     borderColor: '#F9CE6D',
     backgroundColor: 'transparent', // Explicitly transparent
     // Clean shadow following the capsule
-    shadowColor: '#EAB64E',
+    shadowColor: '#B8820F',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

@@ -293,7 +293,7 @@ function BottomTabNavigator() {
                                 }}
                             >
                                 <LinearGradient
-                                    colors={['#EAB64E', '#A3792E']}
+                                    colors={['#B8820F', '#8C6200']}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 1 }}
                                     style={{
@@ -304,14 +304,14 @@ function BottomTabNavigator() {
                                         alignItems: 'center',
                                         borderWidth: 1,
                                         borderColor: '#F9CE6D',
-                                        shadowColor: '#EAB64E',
+                                        shadowColor: '#B8820F',
                                         shadowOffset: { width: 0, height: 4 },
                                         shadowOpacity: 0.3,
                                         shadowRadius: 10,
                                         elevation: 8,
                                     }}
                                 >
-                                    <MaterialCommunityIcons name="plus" size={32} color="#000" />
+                                    <MaterialCommunityIcons name="plus" size={32} color="#FFF" />
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>

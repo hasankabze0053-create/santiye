@@ -97,8 +97,8 @@ export default function HomeScreen({ navigation }) {
                     {/* Highlight Section */}
                     <HighlightCard 
                         title="KENTSEL DÖNÜŞÜM"
-                        description="Kentsel dönüşüm sürecinizi CepteŞef uzmanlığıyla yönetin."
-                        onPress={() => navigation.navigate('UrbanTransformation')}
+                        description="Arsa veya binanız için müteahhitlerden teklif toplayın."
+                        onPress={() => navigation.navigate('KentselDonusum')}
                     />
 
                     {/* Service List Section */}
