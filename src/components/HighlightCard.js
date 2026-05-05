@@ -7,7 +7,7 @@ import { COLORS, FONTS } from '../theme';
 
 const { width } = Dimensions.get('window');
 
-const HighlightCard = ({ title, description, onPress }) => {
+const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, isDarkMode, type = 'urban' }) => {
   const CARD_HEIGHT = 220;
   const CARD_WIDTH = width - 40; 
   const CURVE_X = CARD_WIDTH * 0.48; 
@@ -17,18 +17,51 @@ const HighlightCard = ({ title, description, onPress }) => {
 
   const titleFont = Platform.OS === 'ios' ? 'Manrope-ExtraBold' : 'sans-serif-condensed';
 
+  // Dynamic Image Logic
+  const activeImage = isDarkMode ? config?.image_dark : config?.image_light;
+  let imageSource;
+  if (activeImage) {
+      imageSource = { uri: activeImage };
+  } else if (type === 'renovation') {
+      imageSource = require('../assets/highlight/tadilat_premium.jpg');
+  } else if (type === 'market') {
+      imageSource = require('../assets/highlight/market_premium.jpg');
+  } else if (type === 'law') {
+      imageSource = require('../assets/highlight/hukuk_premium.jpg');
+  } else {
+      imageSource = require('../assets/highlight/kentsel_donusum_premium.png');
+  }
+
+  // Theme Colors
+  const themeTitle = config?.themeColors?.title || (isDarkMode ? '#FFF' : '#1C1208');
+  const themePillsBorder = config?.themeColors?.pillsBorder || '#B8820F';
+  const themePillsText = config?.themeColors?.pillsText || '#B8820F';
+  const themeBtnStart = config?.themeColors?.buttonGradientStart || '#B8820F';
+  const themeBtnEnd = config?.themeColors?.buttonGradientEnd || '#8C6200';
+  const align = config?.textAlignment || 'flex-start';
+  const justify = config?.textPositionVertical === 'top' ? 'flex-start' : (config?.textPositionVertical === 'bottom' ? 'flex-end' : 'center');
+
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.95}>
       
       {/* 1. BACKGROUND IMAGE */}
       <View style={StyleSheet.absoluteFill}>
         <Image
-          source={require('../assets/highlight/kentsel_donusum_premium.png')}
-          style={styles.backgroundImage}
+          source={imageSource}
+          style={[
+            styles.backgroundImage,
+            {
+              transform: [
+                { scale: config?.scale || 1 },
+                { translateX: config?.translateX || 20 },
+                { translateY: config?.translateY || 0 }
+              ]
+            }
+          ]}
           resizeMode="cover"
         />
         <LinearGradient
-          colors={['transparent', 'rgba(11,11,12,0.5)']}
+          colors={['transparent', isDarkMode ? 'rgba(11,11,12,0.6)' : 'rgba(250,248,243,0.4)']}
           style={StyleSheet.absoluteFill}
           start={{ x: 0.8, y: 0 }}
           end={{ x: 0.5, y: 0 }}
@@ -53,54 +86,84 @@ const HighlightCard = ({ title, description, onPress }) => {
             </SvgGradient>
           </Defs>
 
-          <Path d={curvePath} fill="#0B0B0C" />
-          
+          <Path d={curvePath} fill={isDarkMode ? "#0B0B0C" : "#FAF8F3"} />
           <Path d={strokePath} fill="none" stroke="rgba(184,130,15,0.3)" strokeWidth="4" />
           <Path d={strokePath} fill="none" stroke="url(#goldGradient)" strokeWidth="1.5" />
 
-          {/* ASYMMETRIC STEPPED TITLE */}
-          <SvgText
-            x="8"
-            y="35"
-            fontSize="21"
-            fontWeight="900"
-            fontFamily={titleFont}
-            letterSpacing="0.3"
-          >
-            <TSpan fill="#F3F1EC" x="8" dy="0">KENTSEL</TSpan>
-            <TSpan fill="url(#textGoldGradient)" x="28" dy="26">DÖNÜŞÜM</TSpan>
-          </SvgText>
+          {/* Backward compatibility for Urban Stepped Title */}
+          {(config?.type === 'urban' || config?.id === 'highlight_card_urban' || type === 'urban') && (
+            <SvgText x="8" y="35" fontSize="21" fontWeight="900" fontFamily={titleFont} letterSpacing="0.3">
+              <TSpan fill={isDarkMode ? "#F3F1EC" : "#1C1208"} x="8" dy="0">KENTSEL</TSpan>
+              <TSpan fill="url(#textGoldGradient)" x="28" dy="26">DÖNÜŞÜM</TSpan>
+            </SvgText>
+          )}
         </Svg>
       </View>
 
       {/* 3. CONTENT AREA */}
-      <View style={styles.overlayContent}>
-        <View style={styles.textContainer}>
-          <View style={{ height: 65 }} /> 
+      <View style={[styles.overlayContent, { justifyContent: justify }]}>
+        <View style={[styles.textContainer, { alignItems: align }]}>
           
-          <Text style={styles.description} numberOfLines={3}>
-            Arsa veya binanız için{"\n"}müteahhitlerden teklif alın.
+          {(config?.type !== 'urban' && config?.id !== 'highlight_card_urban' && type !== 'urban') && config?.title && (
+              <Text style={[styles.plainTitle, { color: themeTitle, fontFamily: titleFont, textAlign: align === 'center' ? 'center' : 'left' }]}>
+                  {config.title}
+              </Text>
+          )}
+          {(config?.type === 'urban' || config?.id === 'highlight_card_urban' || type === 'urban') && <View style={{ height: 65 }} />}
+          
+          <Text style={[styles.description, { color: isDarkMode ? '#888' : '#4A3D28', textAlign: align === 'center' ? 'center' : 'left' }]} numberOfLines={3}>
+            {config?.description}
           </Text>
           
-          <View style={styles.infoChip}>
-            <MaterialCommunityIcons name="map-marker" size={10} color="#B8820F" />
-            <Text style={styles.infoText}>Ada • Parsel • Adres</Text>
-          </View>
+          {/* Pills / Tags */}
+          {config?.pills && config.pills.length > 0 && (
+              <View style={[styles.pillsContainer, { justifyContent: align }]}>
+                  {config.pills.map((pill, idx) => (
+                      <View key={idx} style={[styles.renovationPill, { borderColor: themePillsBorder }]}>
+                          <Text style={[styles.renovationPillText, { color: themePillsText }]}>{pill}</Text>
+                      </View>
+                  ))}
+              </View>
+          )}
+
+          {/* Info Chip fallback for Urban */}
+          {(config?.type === 'urban' || config?.id === 'highlight_card_urban' || type === 'urban') && (!config.pills || config.pills.length === 0) && (
+              <View style={[styles.infoChip, !isDarkMode && { backgroundColor: 'rgba(140, 98, 0, 0.05)' }]}>
+                <MaterialCommunityIcons name="map-marker" size={10} color="#B8820F" />
+                <Text style={[styles.infoText, !isDarkMode && { color: '#8A7A65' }]}>Ada • Parsel • Adres</Text>
+              </View>
+          )}
         </View>
 
-        {/* Integrated Premium Gold Button */}
-        <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={styles.ctaWrapper}>
+        {/* Dynamic CTA Button */}
+        <View style={[styles.ctaWrapper, align === 'center' ? { left: CARD_WIDTH * 0.25 - 65 } : { left: 0 }]}>
           <LinearGradient
-            colors={['#B8820F', '#8C6200']}
+            colors={[themeBtnStart, themeBtnEnd]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.cta}
           >
-            <Text style={styles.ctaText}>Teklif Al</Text>
+            <Text style={styles.ctaText}>{config?.buttonText || 'Teklif Al'}</Text>
             <MaterialCommunityIcons name="arrow-right" size={16} color="#FFF" />
           </LinearGradient>
-        </TouchableOpacity>
+        </View>
       </View>
+
+      {/* 4. ADMIN EDIT ICON */}
+      {isAdmin && (
+        <TouchableOpacity 
+          style={styles.adminEditBtn} 
+          onPress={onEdit}
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+        >
+          <LinearGradient
+            colors={['#D4AF37', '#8C6200']}
+            style={styles.adminEditIconCircle}
+          >
+            <MaterialCommunityIcons name="pencil" size={16} color="#000" />
+          </LinearGradient>
+        </TouchableOpacity>
+      )}
     </TouchableOpacity>
   );
 };
@@ -108,6 +171,7 @@ const HighlightCard = ({ title, description, onPress }) => {
 const styles = StyleSheet.create({
   card: {
     marginHorizontal: 20,
+    width: width - 40,
     marginBottom: 20,
     borderRadius: 22,
     overflow: 'hidden',
@@ -120,7 +184,6 @@ const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
     width: '100%',
-    left: '20%',
   },
   overlayContent: {
     position: 'absolute',
@@ -161,6 +224,32 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
     marginLeft: 4,
   },
+  plainTitle: {
+    fontSize: 26,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+    marginTop: 10,
+    marginBottom: 8,
+  },
+  pillsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 8,
+    width: '95%',
+    gap: 6,
+  },
+  renovationPill: {
+    borderWidth: 1,
+    borderColor: '#B8820F',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  renovationPillText: {
+    color: '#B8820F',
+    fontSize: 9,
+    fontFamily: FONTS.medium,
+  },
   ctaWrapper: {
     position: 'absolute',
     bottom: 0,
@@ -180,6 +269,27 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
     marginRight: 6,
   },
+  adminEditBtn: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 100,
+  },
+  adminEditIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
 });
+
 
 export default HighlightCard;

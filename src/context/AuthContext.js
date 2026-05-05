@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }) => {
             session,
             loading,
             signOut,
-            isAdmin: profile?.user_type === 'admin', // Future proofing
+            isAdmin: profile?.user_type === 'admin' || profile?.is_admin === true,
             isCorporate: profile?.user_type === 'corporate',
             refreshProfile: () => user && fetchProfile(user.id)
         }}>
