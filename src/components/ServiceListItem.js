@@ -3,9 +3,13 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, FONTS } from '../theme';
 
-const ServiceListItem = ({ title, subtitle, icon, onPress }) => {
+const ServiceListItem = ({ title, subtitle, icon, onPress, onEdit, isAdmin, isHidden }) => {
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity 
+      style={[styles.container, isHidden && styles.hiddenContainer]} 
+      onPress={onPress} 
+      activeOpacity={0.7}
+    >
       <View style={styles.leftSection}>
         {/* 1. Far Left Gold Line */}
         <View style={styles.goldLine} />
@@ -22,8 +26,19 @@ const ServiceListItem = ({ title, subtitle, icon, onPress }) => {
         </View>
       </View>
 
-      {/* 4. Right Chevron */}
-      <MaterialCommunityIcons name="chevron-right" size={20} color="#333" />
+      {/* 4. Right Section (Chevron / Edit) */}
+      <View style={styles.rightSection}>
+        {isAdmin && onEdit && (
+          <TouchableOpacity 
+            style={styles.editBtn} 
+            onPress={onEdit}
+            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+          >
+            <MaterialCommunityIcons name="pencil" size={18} color="#D4AF37" />
+          </TouchableOpacity>
+        )}
+        <MaterialCommunityIcons name="chevron-right" size={20} color="#333" />
+      </View>
     </TouchableOpacity>
   );
 };
@@ -80,6 +95,26 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
     marginTop: 2,
   },
+  rightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  editBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(212, 175, 55, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.3)',
+    marginRight: 4,
+  },
+  hiddenContainer: {
+    opacity: 0.4,
+    borderStyle: 'dashed',
+  }
 });
 
 export default ServiceListItem;

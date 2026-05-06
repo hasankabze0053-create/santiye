@@ -36,10 +36,32 @@ const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, i
   const themeTitle = config?.themeColors?.title || (isDarkMode ? '#FFF' : '#1C1208');
   const themePillsBorder = config?.themeColors?.pillsBorder || '#B8820F';
   const themePillsText = config?.themeColors?.pillsText || '#B8820F';
+  const themePillsBg = config?.themeColors?.pillsBg || 'transparent';
+  const themeDescText = config?.themeColors?.descText || (isDarkMode ? '#888' : '#4A3D28');
+  const themeInfoText = config?.themeColors?.infoText || (isDarkMode ? '#888' : '#8A7A65');
   const themeBtnStart = config?.themeColors?.buttonGradientStart || '#B8820F';
   const themeBtnEnd = config?.themeColors?.buttonGradientEnd || '#8C6200';
   const align = config?.textAlignment || 'flex-start';
   const justify = config?.textPositionVertical === 'top' ? 'flex-start' : (config?.textPositionVertical === 'bottom' ? 'flex-end' : 'center');
+
+  // Title Splitting Logic
+  let displayTitle1 = config?.title1 || '';
+  let displayTitle2 = config?.title2 || '';
+  if (!config?.title1 && !config?.title2 && config?.title) {
+      const parts = config.title.split(' ');
+      if (parts.length === 1) {
+          displayTitle2 = parts[0];
+      } else {
+          displayTitle1 = parts[0];
+          displayTitle2 = parts.slice(1).join(' ');
+      }
+  }
+
+  // Positioning Offsets
+  const descOffsetX = config?.descTranslateX || 0;
+  const descOffsetY = config?.descTranslateY || 0;
+  const pillsOffsetX = config?.pillsTranslateX || 0;
+  const pillsOffsetY = config?.pillsTranslateY || 0;
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.95}>
@@ -90,13 +112,11 @@ const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, i
           <Path d={strokePath} fill="none" stroke="rgba(184,130,15,0.3)" strokeWidth="4" />
           <Path d={strokePath} fill="none" stroke="url(#goldGradient)" strokeWidth="1.5" />
 
-          {/* Backward compatibility for Urban Stepped Title */}
-          {(config?.type === 'urban' || config?.id === 'highlight_card_urban' || type === 'urban') && (
-            <SvgText x="8" y="35" fontSize="21" fontWeight="900" fontFamily={titleFont} letterSpacing="0.3">
-              <TSpan fill={isDarkMode ? "#F3F1EC" : "#1C1208"} x="8" dy="0">KENTSEL</TSpan>
-              <TSpan fill="url(#textGoldGradient)" x="28" dy="26">DÖNÜŞÜM</TSpan>
-            </SvgText>
-          )}
+          {/* Generic SVG Title */}
+          <SvgText x="8" y="35" fontSize="21" fontWeight="900" fontFamily={titleFont} letterSpacing="0.3">
+            {displayTitle1 ? <TSpan fill={isDarkMode ? "#F3F1EC" : "#1C1208"} x="8" dy="0">{displayTitle1.toUpperCase()}</TSpan> : null}
+            {displayTitle2 ? <TSpan fill="url(#textGoldGradient)" x={displayTitle1 ? "28" : "8"} dy={displayTitle1 ? "26" : "0"}>{displayTitle2.toUpperCase()}</TSpan> : null}
+          </SvgText>
         </Svg>
       </View>
 
@@ -104,33 +124,30 @@ const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, i
       <View style={[styles.overlayContent, { justifyContent: justify }]}>
         <View style={[styles.textContainer, { alignItems: align }]}>
           
-          {(config?.type !== 'urban' && config?.id !== 'highlight_card_urban' && type !== 'urban') && config?.title && (
-              <Text style={[styles.plainTitle, { color: themeTitle, fontFamily: titleFont, textAlign: align === 'center' ? 'center' : 'left' }]}>
-                  {config.title}
-              </Text>
-          )}
-          {(config?.type === 'urban' || config?.id === 'highlight_card_urban' || type === 'urban') && <View style={{ height: 65 }} />}
+          <View style={{ height: 65 }} />
           
-          <Text style={[styles.description, { color: isDarkMode ? '#888' : '#4A3D28', textAlign: align === 'center' ? 'center' : 'left' }]} numberOfLines={3}>
+          <Text 
+              style={[
+                  styles.description, 
+                  { 
+                      color: themeDescText, 
+                      textAlign: align === 'center' ? 'center' : 'left',
+                      transform: [{ translateX: descOffsetX }, { translateY: descOffsetY }]
+                  }
+              ]} 
+              numberOfLines={3}
+          >
             {config?.description}
           </Text>
           
           {/* Pills / Tags */}
           {config?.pills && config.pills.length > 0 && (
-              <View style={[styles.pillsContainer, { justifyContent: align }]}>
+              <View style={[styles.pillsContainer, { justifyContent: align, transform: [{ translateX: pillsOffsetX }, { translateY: pillsOffsetY }] }]}>
                   {config.pills.map((pill, idx) => (
-                      <View key={idx} style={[styles.renovationPill, { borderColor: themePillsBorder }]}>
+                      <View key={idx} style={[styles.renovationPill, { borderColor: themePillsBorder, backgroundColor: themePillsBg }]}>
                           <Text style={[styles.renovationPillText, { color: themePillsText }]}>{pill}</Text>
                       </View>
                   ))}
-              </View>
-          )}
-
-          {/* Info Chip fallback for Urban */}
-          {(config?.type === 'urban' || config?.id === 'highlight_card_urban' || type === 'urban') && (!config.pills || config.pills.length === 0) && (
-              <View style={[styles.infoChip, !isDarkMode && { backgroundColor: 'rgba(140, 98, 0, 0.05)' }]}>
-                <MaterialCommunityIcons name="map-marker" size={10} color="#B8820F" />
-                <Text style={[styles.infoText, !isDarkMode && { color: '#8A7A65' }]}>Ada • Parsel • Adres</Text>
               </View>
           )}
         </View>

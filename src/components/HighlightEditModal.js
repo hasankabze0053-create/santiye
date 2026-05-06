@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, ActivityIndicator, Alert, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+    View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView,
+    ActivityIndicator, Alert, TextInput, Pressable, Keyboard,
+    KeyboardAvoidingView, Platform
+} from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import Slider from '@react-native-community/slider';
 import { AppAssetService } from '../services/AppAssetService';
-import { COLORS, FONTS } from '../theme';
+import { FONTS } from '../theme';
 
 const THEMES = [
     { id: 'gold', name: 'Gold Premium', colors: { title: '#FFFFFF', pillsBorder: '#B8820F', pillsText: '#B8820F', buttonGradientStart: '#B8820F', buttonGradientEnd: '#8C6200' } },
@@ -26,312 +30,281 @@ const MODULES = [
     { id: 'TeknikOfis', name: 'Teknik Ofis' }
 ];
 
-const HighlightEditModal = ({ visible, onClose, initialConfig, onSaveSuccess, type = 'urban' }) => {
+const splitTitle = (title) => {
+    if (!title) return { title1: '', title2: '' };
+    const parts = title.trim().split(' ');
+    if (parts.length === 1) return { title1: '', title2: parts[0] };
+    return { title1: parts[0], title2: parts.slice(1).join(' ') };
+};
+
+const DEFAULT = {
+    title1: '', title2: '', description: '', buttonText: 'Talep Oluştur',
+    pills: [], linkedModule: 'KentselDonusum',
+    image_dark: null, image_light: null,
+    scale: 1, translateX: 20, translateY: 0,
+    descTranslateX: 0, descTranslateY: 0,
+    pillsTranslateX: 0, pillsTranslateY: 0,
+    textAlignment: 'flex-start', textPositionVertical: 'center',
+    themeColors: THEMES[0].colors,
+};
+
+export default function HighlightEditModal({ visible, onClose, initialConfig, onSaveSuccess, type = 'urban' }) {
     const isNew = type === 'new_card';
-    const [activeTab, setActiveTab] = useState('content'); // content, visuals, layout, route
+    const [activeTab, setActiveTab] = useState('content');
     const [loading, setLoading] = useState(false);
-
-    const [config, setConfig] = useState({
-        title: '',
-        description: '',
-        buttonText: 'Talep Oluştur',
-        pills: [],
-        type: isNew ? `custom_${Date.now()}` : type,
-        linkedModule: 'KentselDonusum',
-        image_dark: null,
-        image_light: null,
-        scale: 1,
-        translateX: 20,
-        translateY: 0,
-        textAlignment: 'flex-start',
-        textPositionVertical: 'center',
-        themeColors: THEMES[0].colors,
-        ...initialConfig
-    });
-
-    const [pillsInput, setPillsInput] = useState(config.pills ? config.pills.join(', ') : '');
+    const [config, setConfig] = useState(DEFAULT);
+    const [pillsInput, setPillsInput] = useState('');
 
     useEffect(() => {
-        if (visible) {
-            const mergedConfig = { ...config, ...initialConfig };
-            setConfig(mergedConfig);
-            setPillsInput(mergedConfig.pills ? mergedConfig.pills.join(', ') : '');
-            setActiveTab('content');
+        if (!visible) return;
+        setActiveTab('content');
+        const base = { ...DEFAULT, ...initialConfig };
+        if (!base.title1 && !base.title2 && base.title) {
+            const { title1, title2 } = splitTitle(base.title);
+            base.title1 = title1;
+            base.title2 = title2;
         }
+        if (!Array.isArray(base.pills)) base.pills = [];
+        setConfig(base);
+        setPillsInput(base.pills.join(', '));
     }, [initialConfig, visible]);
 
-    const handlePickImage = async (theme) => {
+    const handlePickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [16, 9],
-            quality: 0.8,
+            allowsEditing: true, aspect: [16, 9], quality: 0.8,
         });
-
         if (!result.canceled) {
             setLoading(true);
             try {
-                const publicUrl = await AppAssetService.uploadHighlightImage(result.assets[0].uri, theme);
-                if (publicUrl) {
-                    setConfig(prev => ({ ...prev, [theme === 'dark' ? 'image_dark' : 'image_light']: publicUrl }));
-                }
-            } catch (error) {
-                Alert.alert("Hata", "Resim yüklenemedi.");
-            } finally {
-                setLoading(false);
-            }
+                const url = await AppAssetService.uploadHighlightImage(result.assets[0].uri, 'dark');
+                if (url) setConfig(prev => ({ ...prev, image_dark: url }));
+            } catch { Alert.alert('Hata', 'Resim yüklenemedi.'); }
+            finally { setLoading(false); }
         }
     };
 
     const handleSave = async () => {
         setLoading(true);
-        const finalPills = pillsInput.split(',').map(p => p.trim()).filter(p => p.length > 0);
-        const finalConfig = { ...config, pills: finalPills };
-        
-        // If it's a new card, we pass isNew=true
-        const targetType = isNew ? finalConfig.type : type;
-        const res = await AppAssetService.updateHighlightConfig(targetType, finalConfig, isNew, 99); // sort_order 99 puts it at the end
-        
+        const finalPills = pillsInput.split(',').map(p => p.trim()).filter(Boolean);
+        const finalConfig = { ...config, pills: finalPills, type: isNew ? (config.type || `custom_${Date.now()}`) : type };
+        const res = await AppAssetService.updateHighlightConfig(isNew ? finalConfig.type : type, finalConfig, isNew, 99);
         setLoading(false);
-        if (res.success) {
-            onSaveSuccess(finalConfig);
-            onClose();
-            Alert.alert("Başarılı", `Ayar kaydedildi.`);
-        } else {
-            Alert.alert("Hata", "Ayarlar kaydedilemedi.");
-        }
+        if (res.success) { onSaveSuccess(finalConfig); onClose(); Alert.alert('Başarılı', 'Kaydedildi.'); }
+        else Alert.alert('Hata', 'Kaydedilemedi.');
     };
 
-    const renderTabs = () => (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsScroll}>
-            {[
-                { id: 'content', icon: 'text', label: 'İçerik' },
-                { id: 'visuals', icon: 'image', label: 'Görsel & Tema' },
-                { id: 'layout', icon: 'format-align-left', label: 'Hizalama' },
-                { id: 'route', icon: 'link', label: 'Bağlantı' }
-            ].map(tab => (
-                <TouchableOpacity 
-                    key={tab.id} 
-                    style={[styles.tabBtn, activeTab === tab.id && styles.activeTabBtn]}
-                    onPress={() => setActiveTab(tab.id)}
-                >
-                    <MaterialCommunityIcons name={tab.icon} size={20} color={activeTab === tab.id ? '#111' : '#D4AF37'} />
-                    <Text style={[styles.tabText, activeTab === tab.id && { color: '#111' }]}>{tab.label}</Text>
-                </TouchableOpacity>
-            ))}
-        </ScrollView>
-    );
+    const TABS = [
+        { id: 'content', icon: 'text', label: 'İçerik' },
+        { id: 'visuals', icon: 'image', label: 'Görsel & Tema' },
+        { id: 'layout', icon: 'format-align-left', label: 'Hizalama' },
+        { id: 'route', icon: 'link', label: 'Bağlantı' },
+    ];
 
     return (
-        <Modal visible={visible} animationType="slide" transparent>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.overlay}>
-                <View style={styles.content}>
-                    <View style={styles.header}>
-                        <Text style={styles.title}>{isNew ? 'Yeni Kart Ekle' : 'Kart Düzenle'}</Text>
+        <Modal visible={visible} animationType="slide" transparent statusBarTranslucent>
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.overlay}>
+                <Pressable style={StyleSheet.absoluteFill} onPress={Keyboard.dismiss} />
+                
+                {/* Panel */}
+                <View style={s.panel}>
+
+                    {/* ── Header ── */}
+                    <View style={s.header}>
+                        <Text style={s.title}>{isNew ? 'Yeni Kart Ekle' : 'Kart Düzenle'}</Text>
                         <TouchableOpacity onPress={onClose}>
                             <Ionicons name="close-circle" size={32} color="#666" />
                         </TouchableOpacity>
                     </View>
 
-                    <View style={{ height: 60 }}>
-                        {renderTabs()}
-                    </View>
+                    {/* ── Tabs ── */}
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ height: 52, flexGrow: 0 }}>
+                        {TABS.map(tab => (
+                            <TouchableOpacity
+                                key={tab.id}
+                                style={[s.tabBtn, activeTab === tab.id && s.activeTabBtn]}
+                                onPress={() => setActiveTab(tab.id)}
+                            >
+                                <MaterialCommunityIcons name={tab.icon} size={18} color={activeTab === tab.id ? '#111' : '#D4AF37'} />
+                                <Text style={[s.tabText, activeTab === tab.id && { color: '#111' }]}>{tab.label}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
 
-                    <ScrollView style={styles.scroll}>
-                        
+                    {/* ── Tab Content (scrollable) ── */}
+                    <ScrollView
+                        style={s.scroll}
+                        contentContainerStyle={{ paddingBottom: 20 }}
+                        keyboardShouldPersistTaps="handled"
+                        showsVerticalScrollIndicator={false}
+                    >
+                        {/* CONTENT TAB */}
                         {activeTab === 'content' && (
-                            <View style={styles.tabContainer}>
-                                <Text style={styles.label}>Başlık (Büyük Yazı)</Text>
-                                <TextInput 
-                                    style={styles.input} 
-                                    value={config.title}
-                                    onChangeText={t => setConfig(prev => ({...prev, title: t}))}
-                                    placeholderTextColor="#666"
-                                    placeholder="Örn: LOJİSTİK"
-                                />
+                            <View>
+                                <Text style={s.label}>Başlık 1. Satır (Açık Renk)</Text>
+                                <TextInput style={s.input} value={config.title1} onChangeText={t => setConfig(p => ({ ...p, title1: t }))} placeholderTextColor="#555" placeholder="Örn: İNŞAAT" returnKeyType="next" />
 
-                                <Text style={styles.label}>Açıklama Metni</Text>
-                                <TextInput 
-                                    style={[styles.input, { height: 80, textAlignVertical: 'top' }]} 
-                                    value={config.description}
-                                    onChangeText={t => setConfig(prev => ({...prev, description: t}))}
-                                    placeholderTextColor="#666"
-                                    placeholder="Açıklama girin..."
-                                    multiline
-                                />
+                                <Text style={s.label}>Başlık 2. Satır (Altın Renk)</Text>
+                                <TextInput style={s.input} value={config.title2} onChangeText={t => setConfig(p => ({ ...p, title2: t }))} placeholderTextColor="#555" placeholder="Örn: MARKETİ" returnKeyType="next" />
 
-                                <Text style={styles.label}>Buton Metni</Text>
-                                <TextInput 
-                                    style={styles.input} 
-                                    value={config.buttonText}
-                                    onChangeText={t => setConfig(prev => ({...prev, buttonText: t}))}
-                                    placeholderTextColor="#666"
-                                    placeholder="Örn: Talep Oluştur"
-                                />
+                                <Text style={s.label}>Açıklama Metni</Text>
+                                <TextInput style={[s.input, { height: 80, textAlignVertical: 'top' }]} value={config.description} onChangeText={t => setConfig(p => ({ ...p, description: t }))} placeholderTextColor="#555" placeholder="Açıklama girin..." multiline />
 
-                                <Text style={styles.label}>Etiketler (Virgülle Ayırın)</Text>
-                                <TextInput 
-                                    style={styles.input} 
-                                    value={pillsInput}
-                                    onChangeText={setPillsInput}
-                                    placeholderTextColor="#666"
-                                    placeholder="Örn: Kepçe, Kamyon, Vinç"
-                                />
+                                <Text style={s.label}>Buton Metni</Text>
+                                <TextInput style={s.input} value={config.buttonText} onChangeText={t => setConfig(p => ({ ...p, buttonText: t }))} placeholderTextColor="#555" placeholder="Örn: Talep Oluştur" returnKeyType="next" />
+
+                                <Text style={s.label}>Etiketler (Virgülle Ayırın)</Text>
+                                <TextInput style={s.input} value={pillsInput} onChangeText={setPillsInput} placeholderTextColor="#555" placeholder="Örn: Kepçe, Kamyon" returnKeyType="done" />
                             </View>
                         )}
 
+                        {/* VISUALS TAB */}
                         {activeTab === 'visuals' && (
-                            <View style={styles.tabContainer}>
-                                <Text style={styles.sectionTitle}>FOTOĞRAF YÜKLE</Text>
-                                <View style={styles.themeRow}>
-                                    <TouchableOpacity style={[styles.imageBtn, { backgroundColor: '#111' }]} onPress={() => handlePickImage('dark')}>
-                                        <MaterialCommunityIcons name="image-plus" size={24} color="#D4AF37" />
-                                        <Text style={styles.imageBtnText}>Resim Seç</Text>
-                                        {config.image_dark && <MaterialCommunityIcons name="check-circle" size={16} color="#4CAF50" style={styles.check} />}
-                                    </TouchableOpacity>
-                                </View>
+                            <View>
+                                <Text style={s.sectionTitle}>FOTOĞRAF YÜKLE</Text>
+                                <TouchableOpacity style={s.imageBtn} onPress={handlePickImage}>
+                                    <MaterialCommunityIcons name="image-plus" size={24} color="#D4AF37" />
+                                    <Text style={s.imageBtnText}>Resim Seç</Text>
+                                    {config.image_dark && <MaterialCommunityIcons name="check-circle" size={16} color="#4CAF50" style={s.check} />}
+                                </TouchableOpacity>
 
-                                <Text style={styles.sectionTitle}>KADRAJ (BÜYÜTME & KAYDIRMA)</Text>
-                                <View style={styles.sliderContainer}>
-                                    <Text style={styles.sliderLabel}>Büyütme: {config.scale?.toFixed(2)}</Text>
-                                    <Slider style={styles.slider} minimumValue={0.5} maximumValue={3} value={config.scale} onValueChange={v => setConfig(prev => ({ ...prev, scale: v }))} minimumTrackTintColor="#D4AF37" thumbTintColor="#D4AF37" />
-                                </View>
-                                <View style={styles.sliderContainer}>
-                                    <Text style={styles.sliderLabel}>Yatay Kaydırma (X): {config.translateX?.toFixed(0)}</Text>
-                                    <Slider style={styles.slider} minimumValue={-200} maximumValue={200} value={config.translateX} onValueChange={v => setConfig(prev => ({ ...prev, translateX: v }))} minimumTrackTintColor="#D4AF37" thumbTintColor="#D4AF37" />
-                                </View>
-                                <View style={styles.sliderContainer}>
-                                    <Text style={styles.sliderLabel}>Dikey Kaydırma (Y): {config.translateY?.toFixed(0)}</Text>
-                                    <Slider style={styles.slider} minimumValue={-200} maximumValue={200} value={config.translateY} onValueChange={v => setConfig(prev => ({ ...prev, translateY: v }))} minimumTrackTintColor="#D4AF37" thumbTintColor="#D4AF37" />
-                                </View>
+                                <Text style={s.sectionTitle}>KADRAJ</Text>
+                                {[
+                                    { label: 'Büyütme', key: 'scale', min: 0.5, max: 3, fixed: 2 },
+                                    { label: 'Yatay (X)', key: 'translateX', min: -200, max: 200, fixed: 0 },
+                                    { label: 'Dikey (Y)', key: 'translateY', min: -200, max: 200, fixed: 0 },
+                                ].map(item => (
+                                    <View key={item.key} style={s.sliderWrap}>
+                                        <Text style={s.sliderLabel}>{item.label}: {(config[item.key] || 0).toFixed(item.fixed)}</Text>
+                                        <Slider style={s.slider} minimumValue={item.min} maximumValue={item.max} value={config[item.key] || 0} onValueChange={v => setConfig(p => ({ ...p, [item.key]: v }))} minimumTrackTintColor="#D4AF37" thumbTintColor="#D4AF37" />
+                                    </View>
+                                ))}
 
-                                <Text style={styles.sectionTitle}>PREMIUM TEMA RENGİ</Text>
+                                <Text style={s.sectionTitle}>TEMA RENKLERİ</Text>
                                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
                                     {THEMES.map(theme => (
-                                        <TouchableOpacity 
+                                        <TouchableOpacity
                                             key={theme.id}
-                                            style={[styles.themeChip, config.themeColors?.pillsBorder === theme.colors.pillsBorder && styles.activeThemeChip]}
-                                            onPress={() => setConfig(prev => ({ ...prev, themeColors: theme.colors }))}
+                                            style={[s.themeChip, config.themeColors?.pillsBorder === theme.colors.pillsBorder && s.activeThemeChip]}
+                                            onPress={() => setConfig(p => ({ ...p, themeColors: theme.colors }))}
                                         >
-                                            <View style={[styles.colorDot, { backgroundColor: theme.colors.pillsBorder }]} />
-                                            <Text style={[styles.themeChipText, config.themeColors?.pillsBorder === theme.colors.pillsBorder && { color: '#111' }]}>{theme.name}</Text>
+                                            <View style={[s.colorDot, { backgroundColor: theme.colors.pillsBorder }]} />
+                                            <Text style={[s.themeChipText, config.themeColors?.pillsBorder === theme.colors.pillsBorder && { color: '#111' }]}>{theme.name}</Text>
                                         </TouchableOpacity>
                                     ))}
+                                </View>
+
+                                <Text style={[s.label, { marginTop: 20 }]}>Özel Renk Girdileri</Text>
+                                <View style={{ gap: 10 }}>
+                                    <TextInput style={s.input} placeholder="Açıklama rengi (#888)" placeholderTextColor="#555" value={config.themeColors?.descText || ''} onChangeText={t => setConfig(p => ({ ...p, themeColors: { ...p.themeColors, descText: t } }))} />
+                                    <TextInput style={s.input} placeholder="Pill arka plan rengi" placeholderTextColor="#555" value={config.themeColors?.pillsBg || ''} onChangeText={t => setConfig(p => ({ ...p, themeColors: { ...p.themeColors, pillsBg: t } }))} />
+                                    <TextInput style={s.input} placeholder="Bilgi ikonu rengi (#8A7A65)" placeholderTextColor="#555" value={config.themeColors?.infoText || ''} onChangeText={t => setConfig(p => ({ ...p, themeColors: { ...p.themeColors, infoText: t } }))} />
                                 </View>
                             </View>
                         )}
 
+                        {/* LAYOUT TAB */}
                         {activeTab === 'layout' && (
-                            <View style={styles.tabContainer}>
-                                <Text style={styles.sectionTitle}>YATAY HİZALAMA (X EKSENİ)</Text>
-                                <View style={styles.alignRow}>
+                            <View>
+                                <Text style={s.sectionTitle}>YATAY HİZALAMA</Text>
+                                <View style={s.alignRow}>
                                     {['flex-start', 'center', 'flex-end'].map(align => (
-                                        <TouchableOpacity 
-                                            key={align}
-                                            style={[styles.alignBtn, config.textAlignment === align && styles.activeAlignBtn]}
-                                            onPress={() => setConfig(prev => ({ ...prev, textAlignment: align }))}
-                                        >
-                                            <MaterialCommunityIcons 
-                                                name={align === 'flex-start' ? 'format-align-left' : align === 'center' ? 'format-align-center' : 'format-align-right'} 
-                                                size={24} 
-                                                color={config.textAlignment === align ? '#111' : '#D4AF37'} 
-                                            />
+                                        <TouchableOpacity key={align} style={[s.alignBtn, config.textAlignment === align && s.activeAlignBtn]} onPress={() => setConfig(p => ({ ...p, textAlignment: align }))}>
+                                            <MaterialCommunityIcons name={align === 'flex-start' ? 'format-align-left' : align === 'center' ? 'format-align-center' : 'format-align-right'} size={24} color={config.textAlignment === align ? '#111' : '#D4AF37'} />
                                         </TouchableOpacity>
                                     ))}
                                 </View>
 
-                                <Text style={styles.sectionTitle}>DİKEY HİZALAMA (Y EKSENİ)</Text>
-                                <View style={styles.alignRow}>
+                                <Text style={s.sectionTitle}>DİKEY HİZALAMA</Text>
+                                <View style={s.alignRow}>
                                     {['top', 'center', 'bottom'].map(align => (
-                                        <TouchableOpacity 
-                                            key={align}
-                                            style={[styles.alignBtn, config.textPositionVertical === align && styles.activeAlignBtn]}
-                                            onPress={() => setConfig(prev => ({ ...prev, textPositionVertical: align }))}
-                                        >
-                                            <MaterialCommunityIcons 
-                                                name={align === 'top' ? 'format-align-top' : align === 'center' ? 'format-align-middle' : 'format-align-bottom'} 
-                                                size={24} 
-                                                color={config.textPositionVertical === align ? '#111' : '#D4AF37'} 
-                                            />
+                                        <TouchableOpacity key={align} style={[s.alignBtn, config.textPositionVertical === align && s.activeAlignBtn]} onPress={() => setConfig(p => ({ ...p, textPositionVertical: align }))}>
+                                            <MaterialCommunityIcons name={align === 'top' ? 'format-align-top' : align === 'center' ? 'format-align-middle' : 'format-align-bottom'} size={24} color={config.textPositionVertical === align ? '#111' : '#D4AF37'} />
                                         </TouchableOpacity>
                                     ))}
                                 </View>
-                            </View>
-                        )}
 
-                        {activeTab === 'route' && (
-                            <View style={styles.tabContainer}>
-                                <Text style={styles.sectionTitle}>BU KART HANGİ SAYFAYA GİDECEK?</Text>
-                                <Text style={[styles.label, { marginBottom: 15, fontSize: 12 }]}>
-                                    Kullanıcı bu sayfadan geri döndüğünde ana ekran otomatik olarak bu karta kayacaktır.
-                                </Text>
-                                
-                                {MODULES.map(mod => (
-                                    <TouchableOpacity 
-                                        key={mod.id}
-                                        style={[styles.moduleRow, config.linkedModule === mod.id && styles.activeModuleRow]}
-                                        onPress={() => setConfig(prev => ({ ...prev, linkedModule: mod.id }))}
-                                    >
-                                        <MaterialCommunityIcons 
-                                            name={config.linkedModule === mod.id ? "radiobox-marked" : "radiobox-blank"} 
-                                            size={24} 
-                                            color={config.linkedModule === mod.id ? "#D4AF37" : "#666"} 
-                                        />
-                                        <Text style={[styles.moduleText, config.linkedModule === mod.id && { color: '#FFF', fontFamily: FONTS.bold }]}>
-                                            {mod.name}
-                                        </Text>
-                                    </TouchableOpacity>
+                                <Text style={[s.sectionTitle, { marginTop: 30 }]}>HASSAS KONUMLANDIRMA</Text>
+                                {[
+                                    { label: 'Açıklama X', key: 'descTranslateX', min: -200, max: 200 },
+                                    { label: 'Açıklama Y', key: 'descTranslateY', min: -150, max: 150 },
+                                    { label: 'Etiketler X', key: 'pillsTranslateX', min: -200, max: 200 },
+                                    { label: 'Etiketler Y', key: 'pillsTranslateY', min: -150, max: 150 },
+                                ].map(item => (
+                                    <View key={item.key} style={s.sliderWrap}>
+                                        <Text style={s.sliderLabel}>{item.label}: {(config[item.key] || 0).toFixed(0)}</Text>
+                                        <Slider style={s.slider} minimumValue={item.min} maximumValue={item.max} value={config[item.key] || 0} onValueChange={v => setConfig(p => ({ ...p, [item.key]: v }))} minimumTrackTintColor="#D4AF37" thumbTintColor="#D4AF37" />
+                                    </View>
                                 ))}
                             </View>
                         )}
 
-                        <View style={{ height: 40 }} />
+                        {/* ROUTE TAB */}
+                        {activeTab === 'route' && (
+                            <View>
+                                <Text style={s.sectionTitle}>BU KART HANGİ SAYFAYA GİDECEK?</Text>
+                                <Text style={[s.label, { marginBottom: 15 }]}>Kullanıcı geri döndüğünde ana ekran bu karta kayacaktır.</Text>
+                                {MODULES.map(mod => (
+                                    <TouchableOpacity key={mod.id} style={[s.moduleRow, config.linkedModule === mod.id && s.activeModuleRow]} onPress={() => setConfig(p => ({ ...p, linkedModule: mod.id }))}>
+                                        <MaterialCommunityIcons name={config.linkedModule === mod.id ? 'radiobox-marked' : 'radiobox-blank'} size={24} color={config.linkedModule === mod.id ? '#D4AF37' : '#666'} />
+                                        <Text style={[s.moduleText, config.linkedModule === mod.id && { color: '#FFF', fontFamily: FONTS.bold }]}>{mod.name}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
                     </ScrollView>
 
-                    <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={loading}>
-                        <LinearGradient colors={['#D4AF37', '#8C6200']} style={styles.saveGradient}>
-                            {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.saveText}>AYARLARI KAYDET</Text>}
+                    {/* ── Save Button ── */}
+                    <TouchableOpacity style={s.saveBtn} onPress={handleSave} disabled={loading}>
+                        <LinearGradient colors={['#D4AF37', '#8C6200']} style={s.saveGradient}>
+                            {loading ? <ActivityIndicator color="#FFF" /> : <Text style={s.saveText}>AYARLARI KAYDET</Text>}
                         </LinearGradient>
                     </TouchableOpacity>
+
                 </View>
             </KeyboardAvoidingView>
         </Modal>
     );
-};
+}
 
-const styles = StyleSheet.create({
-    overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
-    content: { backgroundColor: '#1C1C1E', borderTopLeftRadius: 30, borderTopRightRadius: 30, height: '85%', padding: 20 },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+const s = StyleSheet.create({
+    overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)' },
+    panel: {
+        flex: 1,
+        marginTop: Platform.OS === 'ios' ? 80 : 60,
+        backgroundColor: '#1C1C1E',
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
+        paddingTop: 20,
+        paddingHorizontal: 20,
+        paddingBottom: 0,
+    },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
     title: { color: '#D4AF37', fontSize: 20, fontFamily: FONTS.bold },
-    scroll: { flex: 1, marginTop: 10 },
-    tabsScroll: { flexDirection: 'row', marginBottom: 10 },
-    tabBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: '#D4AF37', marginRight: 10, height: 40 },
+    scroll: { flex: 1 },
+    tabBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, borderWidth: 1, borderColor: '#D4AF37', marginRight: 10, height: 38 },
     activeTabBtn: { backgroundColor: '#D4AF37' },
-    tabText: { color: '#D4AF37', fontFamily: FONTS.bold, marginLeft: 6, fontSize: 12 },
-    tabContainer: { paddingBottom: 20 },
+    tabText: { color: '#D4AF37', fontFamily: FONTS.bold, marginLeft: 5, fontSize: 12 },
     label: { color: '#AAA', fontFamily: FONTS.bold, fontSize: 12, marginBottom: 8, marginTop: 15 },
-    input: { backgroundColor: '#2C2C2E', color: '#FFF', borderRadius: 12, padding: 15, fontFamily: FONTS.medium, fontSize: 14, borderWidth: 1, borderColor: '#3A3A3C' },
-    sectionTitle: { color: '#888', fontSize: 12, fontFamily: FONTS.bold, marginTop: 25, marginBottom: 15, letterSpacing: 1 },
-    themeRow: { flexDirection: 'row', gap: 15 },
-    imageBtn: { flex: 1, height: 80, borderRadius: 15, justifyContent: 'center', alignItems: 'center', position: 'relative', borderWidth: 1, borderColor: '#333' },
-    imageBtnText: { color: '#FFF', fontSize: 12, marginTop: 8, fontFamily: FONTS.medium },
+    input: { backgroundColor: '#2C2C2E', color: '#FFF', borderRadius: 12, padding: 14, fontFamily: FONTS.medium, fontSize: 14, borderWidth: 1, borderColor: '#3A3A3C' },
+    sectionTitle: { color: '#888', fontSize: 12, fontFamily: FONTS.bold, marginTop: 25, marginBottom: 12, letterSpacing: 1 },
+    imageBtn: { height: 80, borderRadius: 15, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#333', backgroundColor: '#111' },
+    imageBtnText: { color: '#FFF', fontSize: 12, marginTop: 6, fontFamily: FONTS.medium },
     check: { position: 'absolute', top: 8, right: 8 },
-    sliderContainer: { marginBottom: 15 },
-    sliderLabel: { color: '#FFF', fontSize: 14, fontFamily: FONTS.medium, marginBottom: 5 },
+    sliderWrap: { marginBottom: 14 },
+    sliderLabel: { color: '#FFF', fontSize: 13, fontFamily: FONTS.medium, marginBottom: 4 },
     slider: { width: '100%', height: 40 },
     themeChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: '#333', backgroundColor: '#222' },
     activeThemeChip: { backgroundColor: '#D4AF37', borderColor: '#D4AF37' },
     colorDot: { width: 12, height: 12, borderRadius: 6, marginRight: 8 },
     themeChipText: { color: '#AAA', fontFamily: FONTS.bold, fontSize: 12 },
-    alignRow: { flexDirection: 'row', gap: 15 },
+    alignRow: { flexDirection: 'row', gap: 15, marginBottom: 10 },
     alignBtn: { flex: 1, height: 50, borderRadius: 12, borderWidth: 1, borderColor: '#444', alignItems: 'center', justifyContent: 'center' },
     activeAlignBtn: { backgroundColor: '#D4AF37', borderColor: '#D4AF37' },
-    moduleRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#333' },
-    moduleText: { color: '#888', fontFamily: FONTS.medium, fontSize: 16, marginLeft: 15 },
-    saveBtn: { marginTop: 10, borderRadius: 15, overflow: 'hidden' },
-    saveGradient: { height: 55, justifyContent: 'center', alignItems: 'center' },
-    saveText: { color: '#FFF', fontSize: 16, fontFamily: FONTS.bold }
+    moduleRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#2A2A2A' },
+    activeModuleRow: { borderBottomColor: '#D4AF3740' },
+    moduleText: { color: '#888', fontFamily: FONTS.medium, fontSize: 15, marginLeft: 14 },
+    saveBtn: { marginTop: 12, marginBottom: 28, borderRadius: 15, overflow: 'hidden' },
+    saveGradient: { height: 54, justifyContent: 'center', alignItems: 'center' },
+    saveText: { color: '#FFF', fontSize: 16, fontFamily: FONTS.bold },
 });
-
-export default HighlightEditModal;

@@ -16,6 +16,8 @@ import HeaderComponent from '../../components/HeaderComponent';
 import SearchCTA from '../../components/SearchCTA';
 import HighlightCard from '../../components/HighlightCard';
 import HighlightEditModal from '../../components/HighlightEditModal';
+import ModuleEditModal from '../../components/ModuleEditModal';
+import CategoryChipEditModal from '../../components/CategoryChipEditModal';
 import CategoryChip from '../../components/CategoryChip';
 import InfoCard from '../../components/InfoCard';
 import ServiceListItem from '../../components/ServiceListItem';
@@ -39,6 +41,16 @@ export default function HomeScreen({ navigation }) {
     const [editType, setEditType] = useState('urban');
     const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
+    // Module Edit State (Vertical List)
+    const [isModuleEditVisible, setIsModuleEditVisible] = useState(false);
+    const [editingModule, setEditingModule] = useState(null);
+
+    // Category Chip Edit State (Horizontal Chips)
+    const [categoryChips, setCategoryChips] = useState([]);
+    const [isChipEditModalVisible, setIsChipEditModalVisible] = useState(false);
+    const [chipEditType, setChipEditType] = useState('edit');
+    const [editingChip, setEditingChip] = useState(null);
+
     useEffect(() => {
         const fetchConfig = async () => {
             const CACHE_KEY = 'app_module_config_cache';
@@ -52,7 +64,6 @@ export default function HomeScreen({ navigation }) {
                 const { data, error } = await supabase
                     .from('app_module_config')
                     .select('*')
-                    .eq('is_active', true)
                     .order('sort_order', { ascending: true });
 
                 if (data) {
@@ -77,9 +88,15 @@ export default function HomeScreen({ navigation }) {
             return allConfigs;
         };
 
+        const fetchAllChips = async () => {
+            const chips = await AppAssetService.getAllCategoryChips();
+            setCategoryChips(chips);
+        };
+
         fetchConfig();
         loadInternalData();
         fetchAllHighlights();
+        fetchAllChips();
 
         const unsubscribe = navigation.addListener('focus', async () => {
             const freshConfigs = await fetchAllHighlights();
@@ -111,6 +128,8 @@ export default function HomeScreen({ navigation }) {
         setIsEditModalVisible(true);
     };
 
+    const visibleCategories = categories.filter(c => isAdmin || c.is_active);
+
     return (
         <View style={[styles.container, { backgroundColor: COLORS.pageBackground }]}>
             <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
@@ -127,9 +146,32 @@ export default function HomeScreen({ navigation }) {
 
                     {/* Category Chips Section */}
                     <CategoryChip 
-                        categories={categories.map(c => ({ key: c.id, title: c.title }))}
+                        categories={categoryChips.filter(c => c.is_visible || isAdmin).map(c => ({ ...c, key: c.id, title: c.title }))}
                         activeCategory={activeCategory}
-                        onSelect={(key) => setActiveCategory(key)}
+                        isAdmin={isAdmin}
+                        onSelect={(cat) => {
+                            if (cat === 'all') {
+                                setActiveCategory('all');
+                            } else {
+                                setActiveCategory(cat.key);
+                                // Navigate using route from chip
+                                if (cat.metadata?.route) {
+                                    navigation.navigate(cat.metadata.route);
+                                }
+                            }
+                        }}
+                        onLongPress={(cat) => {
+                            if (isAdmin && cat !== 'all') {
+                                setEditingChip(cat);
+                                setChipEditType('edit');
+                                setIsChipEditModalVisible(true);
+                            }
+                        }}
+                        onAddNew={() => {
+                            setEditingChip(null);
+                            setChipEditType('new');
+                            setIsChipEditModalVisible(true);
+                        }}
                     />
 
                     {/* Ticker Section */}
@@ -152,6 +194,7 @@ export default function HomeScreen({ navigation }) {
                                 <HighlightCard 
                                     key={configItem.id}
                                     config={configItem.metadata}
+                                    type={configItem.metadata?.type || 'urban'}
                                     onPress={() => {
                                         if (configItem.metadata?.linkedModule) {
                                             navigation.navigate(configItem.metadata.linkedModule);
@@ -182,13 +225,19 @@ export default function HomeScreen({ navigation }) {
                         {loadingConfig ? (
                             <ActivityIndicator color={COLORS.gold} style={{ marginTop: 20 }} />
                         ) : (
-                            categories.map((cat) => (
+                            visibleCategories.map((cat) => (
                                 <ServiceListItem 
                                     key={cat.id}
                                     title={cat.title}
                                     subtitle={cat.id === 'market' && marketCount > 0 ? `${marketCount} Aktif Talep` : cat.subtitle}
                                     icon={getIconForCategory(cat.title)}
                                     onPress={() => handleCategoryPress(cat)}
+                                    isAdmin={isAdmin}
+                                    isHidden={!cat.is_active}
+                                    onEdit={() => {
+                                        setEditingModule(cat);
+                                        setIsModuleEditVisible(true);
+                                    }}
                                 />
                             ))
                         )}
@@ -201,8 +250,40 @@ export default function HomeScreen({ navigation }) {
                 visible={isEditModalVisible}
                 onClose={() => setIsEditModalVisible(false)}
                 type={editType}
-                initialConfig={configs[editType]}
-                onSaveSuccess={(newConfig) => setConfigs(prev => ({ ...prev, [editType]: newConfig }))}
+                initialConfig={configs.find(c => c.id === editType)?.metadata || {}}
+                onSaveSuccess={(newConfig) => {
+                    if (editType === 'new_card') {
+                        const dbId = newConfig.type.startsWith('highlight_card_') ? newConfig.type : `highlight_card_${newConfig.type}`;
+                        setConfigs(prev => [...prev, { id: dbId, metadata: newConfig }]);
+                    } else {
+                        setConfigs(prev => prev.map(c => c.id === editType ? { ...c, metadata: newConfig } : c));
+                    }
+                }}
+            />
+
+            {/* Admin Module Edit Modal (Vertical List) */}
+            <ModuleEditModal 
+                visible={isModuleEditVisible}
+                onClose={() => setIsModuleEditVisible(false)}
+                initialConfig={editingModule}
+                onSaveSuccess={(newConfig) => {
+                    setCategories(prev => prev.map(c => c.id === newConfig.id ? newConfig : c));
+                }}
+            />
+
+            {/* Admin Category Chip Edit Modal (Horizontal Chips) */}
+            <CategoryChipEditModal 
+                visible={isChipEditModalVisible}
+                onClose={() => setIsChipEditModalVisible(false)}
+                initialConfig={editingChip}
+                type={chipEditType}
+                onSaveSuccess={(newChip, isNew) => {
+                    if (isNew) {
+                        setCategoryChips(prev => [...prev, newChip].sort((a,b) => a.sort_order - b.sort_order));
+                    } else {
+                        setCategoryChips(prev => prev.map(c => c.id === newChip.id ? newChip : c));
+                    }
+                }}
             />
         </View>
     );

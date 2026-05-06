@@ -25,7 +25,34 @@ export const AppAssetService = {
 
             return data;
         } catch (error) {
-            console.error('AppAssetService.getAllHighlightConfigs error:', error);
+            return [];
+        }
+    },
+
+    // Fetch all category chips
+    async getAllCategoryChips() {
+        try {
+            const { data, error } = await supabase
+                .from('screen_section_config')
+                .select('*')
+                .like('id', 'category_chip_%')
+                .order('sort_order', { ascending: true });
+
+            if (error) throw error;
+
+            if (!data || data.length === 0) {
+                const defaults = [
+                    { id: 'category_chip_urban', title: 'KENTSEL DÖNÜŞÜM', metadata: { route: 'KentselDonusum' }, is_visible: true, sort_order: 1 },
+                    { id: 'category_chip_renovation', title: 'TADİLAT', metadata: { route: 'Renovation' }, is_visible: true, sort_order: 2 },
+                    { id: 'category_chip_market', title: 'MARKET', metadata: { route: 'Market' }, is_visible: true, sort_order: 3 },
+                    { id: 'category_chip_law', title: 'HUKUK', metadata: { route: 'Hukuk' }, is_visible: true, sort_order: 4 }
+                ];
+                return defaults;
+            }
+
+            return data;
+        } catch (error) {
+            console.error('AppAssetService.getAllCategoryChips error:', error);
             return [];
         }
     },
@@ -62,7 +89,7 @@ export const AppAssetService = {
 
     // Update or Create Highlight Card Config (Admin Only)
     async updateHighlightConfig(type, updates, isNew = false, sortOrder = 1) {
-        const configId = `highlight_card_${type}`;
+        const configId = type.startsWith('highlight_card_') ? type : `highlight_card_${type}`;
         try {
             const { data: existing } = await supabase
                 .from('screen_section_config')
@@ -115,6 +142,46 @@ export const AppAssetService = {
         } catch (error) {
             console.error('AppAssetService.uploadHighlightImage error:', error);
             return null;
+        }
+    },
+
+    // Update Category Chip
+    async updateCategoryChip(id, title, route, isVisible, isNew = false, sortOrder = 10) {
+        try {
+            const payload = {
+                id: id,
+                screen_id: 'HomeScreen',
+                title: title,
+                metadata: { route },
+                is_visible: isVisible
+            };
+            if (isNew) payload.sort_order = sortOrder;
+
+            const { error } = await supabase
+                .from('screen_section_config')
+                .upsert(payload);
+
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error(`AppAssetService.updateCategoryChip error:`, error);
+            return { success: false, error };
+        }
+    },
+
+    // Update Module Config (Admin Only)
+    async updateModuleConfig(id, updates) {
+        try {
+            const { error } = await supabase
+                .from('app_module_config')
+                .update(updates)
+                .eq('id', id);
+
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error(`AppAssetService.updateModuleConfig error:`, error);
+            return { success: false, error };
         }
     }
 };
