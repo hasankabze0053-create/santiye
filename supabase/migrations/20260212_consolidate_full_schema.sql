@@ -49,7 +49,7 @@ CREATE POLICY "Public Read Products" ON public.market_products FOR SELECT USING 
 -- 2. CONSTRUCTION REQUESTS SCHEMA
 CREATE TABLE IF NOT EXISTS public.construction_requests (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id uuid REFERENCES auth.users(id) NOT NULL,
+    user_id uuid REFERENCES public.profiles(id) NOT NULL,
     city text,
     district text,
     neighborhood text,
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS public.construction_requests (
 CREATE TABLE IF NOT EXISTS public.construction_offers (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     request_id uuid REFERENCES public.construction_requests(id) ON DELETE CASCADE,
-    contractor_id uuid REFERENCES auth.users(id) NOT NULL,
+    contractor_id uuid REFERENCES public.profiles(id) NOT NULL,
     price_estimate numeric,
     offer_details text,
     status text DEFAULT 'pending',
@@ -94,7 +94,7 @@ USING (bucket_id = 'market-images');
 -- 5. COMPANY SCHEMA
 CREATE TABLE IF NOT EXISTS public.companies (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    owner_id uuid REFERENCES auth.users(id) NOT NULL,
+    owner_id uuid REFERENCES public.profiles(id) NOT NULL,
     company_name text NOT NULL,
     tax_number text,
     tax_office text,

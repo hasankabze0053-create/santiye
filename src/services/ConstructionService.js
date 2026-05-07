@@ -21,7 +21,73 @@ export const ConstructionService = {
         }
     },
 
-    // 2. Müteahhitler için açık talepleri getir (Teklif VERMEDİKLERİ)
+    // 1.5. Admin için TÜM inşaat taleplerini getir (İletişim bilgileri dahil)
+    getAllRequestsForAdmin: async () => {
+        try {
+            const { data, error } = await supabase
+                .from('construction_requests')
+                .select('*, profiles!user_id(full_name, phone, email, avatar_url), bids:construction_offers(id)')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            console.error('ConstructionService.getAllRequestsForAdmin Error:', error);
+            return [];
+        }
+    },
+
+    // 1.6. Admin için TÜM platform tekliflerini getir
+    getAllOffersForAdmin: async () => {
+        try {
+            const { data, error } = await supabase
+                .from('construction_offers')
+                .select('*, request:construction_requests(*, profiles:user_id(full_name)), contractor:profiles!contractor_id(full_name, company_name, avatar_url)')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            console.error('ConstructionService.getAllOffersForAdmin Error:', error);
+            return [];
+        }
+    },
+
+    // 1.7. Admin: Talebi müteahhitlere yönlendir
+    routeRequestToContractors: async (requestId, newContractorIds) => {
+        try {
+            // Fetch current assigned IDs
+            const { data: req, error: fetchErr } = await supabase
+                .from('construction_requests')
+                .select('assigned_provider_ids')
+                .eq('id', requestId)
+                .single();
+            
+            if (fetchErr) throw fetchErr;
+
+            let currentIds = req.assigned_provider_ids || [];
+            if (typeof currentIds === 'string') {
+                try { currentIds = JSON.parse(currentIds); } catch(e) { currentIds = []; }
+            }
+            if (!Array.isArray(currentIds)) currentIds = [];
+
+            // Merge unique IDs
+            const updatedIds = [...new Set([...currentIds, ...newContractorIds])];
+
+            const { error: updateErr } = await supabase
+                .from('construction_requests')
+                .update({ assigned_provider_ids: updatedIds })
+                .eq('id', requestId);
+
+            if (updateErr) throw updateErr;
+            return { success: true, updatedIds };
+        } catch (error) {
+            console.error('ConstructionService.routeRequestToContractors Error:', error);
+            return { success: false, error };
+        }
+    },
+
+    // 2. Müteahhitler için SADECE onlara yönlendirilmiş açık talepleri getir
     getOpenRequestsForContractor: async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
@@ -37,12 +103,13 @@ export const ConstructionService = {
 
             const bidRequestIds = existingBids.map(b => b.request_id);
 
-            // 2. Fetch requests that are pending/offers_received AND NOT in the bid list
+            // 2. Fetch requests that are pending/offers_received AND assigned to this contractor
             let query = supabase
                 .from('construction_requests')
                 .select('*')
                 .in('status', ['pending', 'offers_received'])
                 .neq('offer_type', 'anahtar_teslim_tadilat') // EXCLUDE TADILAT
+                .contains('assigned_provider_ids', [user.id]) // SADECE yönlendirilenler
                 .order('created_at', { ascending: false });
 
             if (bidRequestIds.length > 0) {
@@ -109,7 +176,7 @@ export const ConstructionService = {
             // Supabase join syntax: Fetch offers where the related request's user_id is the current user
             const { data, error } = await supabase
                 .from('construction_offers')
-                .select('*, request:construction_requests!inner(id, district, neighborhood, city, user_id, is_campaign_active, campaign_unit_count, campaign_commercial_count, offer_type, description), profiles:contractor_id(full_name, avatar_url, company_name)')
+                .select('*, request:construction_requests!inner(id, district, neighborhood, city, user_id, is_campaign_active, campaign_unit_count, campaign_commercial_count, offer_type, description), profiles!contractor_id(full_name, avatar_url, company_name)')
                 .eq('request.user_id', user.id)
                 .neq('status', 'draft') // Filter drafts
                 .order('created_at', { ascending: false });

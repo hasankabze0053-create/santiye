@@ -19,6 +19,17 @@ export const AuthService = {
 
     // 2. Sign Up
     async signUp(email, password, fullName, phone) {
+        // First check if a profile with this email already exists
+        const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', email)
+            .maybeSingle();
+
+        if (existingProfile) {
+            throw new Error('already registered');
+        }
+
         const { data, error } = await supabase.auth.signUp({
             email,
             password,

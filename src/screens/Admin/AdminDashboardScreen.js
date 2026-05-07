@@ -114,6 +114,10 @@ const AdminDashboardScreen = () => {
     const [dashboardSubView, setDashboardSubView] = useState('menu'); // 'menu' | 'modules'
     const [offers, setOffers] = useState([]); // Store offers/bids
 
+    // Offer Filter State
+    const [offerFilterMode, setOfferFilterMode] = useState('request'); // 'request' | 'contractor'
+    const [offerSearchQuery, setOfferSearchQuery] = useState('');
+
     // Location Filters
     const [filterCity, setFilterCity] = useState('');
     const [filterDistrict, setFilterDistrict] = useState('');
@@ -136,6 +140,33 @@ const AdminDashboardScreen = () => {
     const [assignableProviders, setAssignableProviders] = useState([]);
     const [selectedProviderIds, setSelectedProviderIds] = useState([]);
     const [assignLoading, setAssignLoading] = useState(false);
+
+    // --- MANUAL CORPORATE UPGRADE STATE ---
+    const [upgradeModalVisible, setUpgradeModalVisible] = useState(false);
+    const [upgradeTargetUser, setUpgradeTargetUser] = useState(null);
+    const [upgradeLoading, setUpgradeLoading] = useState(false);
+    const [upgradeForm, setUpgradeForm] = useState({
+        company_name: '',
+        tax_number: '',
+        tax_office: '',
+        phone: '',
+        address: '',
+        service_types: [],
+        subscription_months: 12 // Default 1 year
+    });
+
+    const [editingSubscription, setEditingSubscription] = useState(false);
+    const [expiryInput, setExpiryInput] = useState({ day: '', month: '', year: '' });
+
+    const SERVICE_TYPES = [
+        { id: 'urban_transformation', label: 'Kentsel Dönüşüm / Müteahhit' },
+        { id: 'renovation_office', label: 'Tadilat Ofisi / Mimar' },
+        { id: 'market_seller', label: 'Malzeme Satıcısı / Market' },
+        { id: 'logistics_company', label: 'Nakliye / Lojistik' },
+        { id: 'machine_renter', label: 'İş Makinesi Kiralama' },
+        { id: 'lawyer', label: 'Avukat / Hukuk' },
+        { id: 'technical_office', label: 'Teknik Ofis / Mühendis' },
+    ];
 
     // Reuse ASSET_MAP for admin display if needed, or just use icons
     // We will use the list from DB for the grid when in Edit Mode
@@ -353,27 +384,33 @@ const AdminDashboardScreen = () => {
     const fetchOffers = async (tableName) => {
         // Determine offer table based on request table
         let offerTable = '';
-        let foreignKey = '';
+        let selectQuery = '';
 
-        if (tableName === 'construction_requests') { offerTable = 'construction_offers'; foreignKey = 'request_id'; }
-        else if (tableName === 'market_requests') { offerTable = 'market_bids'; foreignKey = 'request_id'; }
-        else if (tableName === 'transport_requests') { offerTable = 'transport_bids'; foreignKey = 'request_id'; }
+        if (tableName === 'construction_requests') {
+            offerTable = 'construction_offers';
+            // construction_offers uses contractor_id (not provider_id)
+            selectQuery = `*, contractor:profiles!contractor_id(full_name, company_name, email, phone), request:construction_requests(city, district, offer_type)`;
+        } else if (tableName === 'market_requests') {
+            offerTable = 'market_bids';
+            selectQuery = `*, profiles:provider_id(full_name, email, phone), request:market_requests(location)`;
+        } else if (tableName === 'transport_requests') {
+            offerTable = 'transport_bids';
+            selectQuery = `*, profiles:provider_id(full_name, email, phone), request:transport_requests(city, district)`;
+        }
 
         if (!offerTable) return;
 
         try {
             const { data, error } = await supabase
                 .from(offerTable)
-                .select(`
-                    *,
-                    profiles:provider_id(full_name, email, phone),
-                    request:${tableName}(*)
-                `)
+                .select(selectQuery)
                 .order('created_at', { ascending: false })
-                .limit(50); // Initial limit
+                .limit(100);
 
             if (!error) {
-                setOffers(data);
+                setOffers(data || []);
+            } else {
+                console.error('fetchOffers error:', error);
             }
         } catch (err) {
             console.error("Error fetching offers:", err);
@@ -421,8 +458,8 @@ const AdminDashboardScreen = () => {
             const { data: profiles, error } = await query;
             if (error) throw error;
 
-            // Fetch Companies to map phones and get company_id
-            const { data: companies } = await supabase.from('companies').select('id, owner_id, phone');
+            // Fetch Companies with ALL details
+            const { data: companies } = await supabase.from('companies').select('*');
 
             // Fetch Company Services to map active roles
             const { data: services } = await supabase.from('company_services').select('*');
@@ -435,7 +472,13 @@ const AdminDashboardScreen = () => {
                 return {
                     ...p,
                     company_id: company?.id,
-                    phone: company ? company.phone : p.phone,
+                    company_name: company?.company_name,
+                    tax_number: company?.tax_number,
+                    tax_office: company?.tax_office,
+                    address: company?.address,
+                    phone: company?.phone || p.phone,
+                    subscription_start_date: company?.subscription_start_date,
+                    subscription_expires_at: company?.subscription_expires_at,
                     active_services: companyServices.map(s => s.service_type)
                 };
             });
@@ -477,21 +520,28 @@ const AdminDashboardScreen = () => {
 
     const handleAssignProviders = async () => {
         if (!assignTargetRequest) return;
-        const targetTable = assignTargetRequest._tableName || selectedModule.table;
         try {
+            // Mevcut listeden seçilenler çıkarılıp, yeni eklenen ID'ler merge ediliyor (üzerine YAZILMIYOR)
+            const currentAssigned = assignTargetRequest.assigned_provider_ids || [];
+            const merged = [...new Set([...currentAssigned, ...selectedProviderIds])];
+            const newlyAdded = selectedProviderIds.filter(id => !currentAssigned.includes(id));
+
             const { error } = await supabase
-                .from(targetTable)
-                .update({ assigned_provider_ids: selectedProviderIds })
+                .from('construction_requests')
+                .update({ assigned_provider_ids: merged })
                 .eq('id', assignTargetRequest.id);
-            
+
             if (error) throw error;
-            
-            Alert.alert("Başarılı", "Talep seçili firmalara yönlendirildi. Artık o firmalar panellerinde bu talebi görebilecekler.");
+
+            Alert.alert(
+                "Yönlendirme Başarılı ✅",
+                `${newlyAdded.length} yeni firmaya yönlendirildi. Toplam ${merged.length} firmaya iletilmiş durumda.`
+            );
             setAssignModalVisible(false);
             setAssignTargetRequest(null);
             setSelectedProviderIds([]);
-            
-            // Refresh requests
+
+            // Refresh requests to update stats
             fetchModuleData(selectedModule.table);
         } catch (err) {
             console.error(err);
@@ -626,51 +676,69 @@ const AdminDashboardScreen = () => {
 
 
     const handleToggleCompanyService = async (user, serviceType, newValue) => {
-        if (!user.company_id) {
-            Alert.alert("Hata", "Bu kullanıcının bir firma kaydı bulunamadı.");
-            return;
-        }
-
-        const status = newValue ? 'active' : 'inactive';
-
         try {
-            // Update company_services table
-            const { error: serviceError } = await supabase
-                .from('company_services')
-                .upsert({ 
-                    company_id: user.company_id, 
-                    service_type: serviceType, 
-                    status: status 
-                }, { onConflict: 'company_id, service_type' });
+            // 1. Update company_services table
+            if (newValue) {
+                // ADD SERVICE
+                const { error: insertError } = await supabase
+                    .from('company_services')
+                    .upsert({
+                        company_id: user.company_id,
+                        service_type: serviceType,
+                        status: 'active'
+                    }, { onConflict: ['company_id', 'service_type'] });
+                
+                if (insertError) throw insertError;
+            } else {
+                // REMOVE SERVICE
+                const { error: deleteError } = await supabase
+                    .from('company_services')
+                    .delete()
+                    .match({ company_id: user.company_id, service_type: serviceType });
+                
+                if (deleteError) throw deleteError;
+            }
 
-            if (serviceError) throw serviceError;
-
-            // Also update the legacy profile flags to maintain compatibility if necessary
-            // Mapping new service types to legacy profile columns if they exist
-            let profileUpdate = {};
-            if (serviceType === 'urban_transformation') profileUpdate.is_contractor = newValue; // Closest match
-            if (serviceType === 'renovation_office') profileUpdate.is_architect = newValue; // Closest match
+            // 2. Sync Legacy Flags in Profiles for immediate UI/Access control across the app
+            const profileUpdate = {};
+            if (serviceType === 'urban_transformation') profileUpdate.is_contractor = newValue;
+            if (serviceType === 'renovation_office') profileUpdate.is_architect = newValue;
             if (serviceType === 'market_seller') profileUpdate.is_seller = newValue;
             if (serviceType === 'logistics_company') profileUpdate.is_transporter = newValue;
             if (serviceType === 'lawyer') profileUpdate.is_lawyer = newValue;
             if (serviceType === 'technical_office') profileUpdate.is_engineer = newValue;
 
             if (Object.keys(profileUpdate).length > 0) {
-                await supabase.from('profiles').update(profileUpdate).eq('id', user.id);
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .update(profileUpdate)
+                    .eq('id', user.id);
+                
+                if (profileError) throw profileError;
             }
 
-            // Update UI State optimistically
+            // 3. Update UI State optimistically
+            const currentServices = user.active_services || [];
             const updatedServices = newValue 
-                ? [...(user.active_services || []), serviceType]
-                : (user.active_services || []).filter(s => s !== serviceType);
+                ? [...currentServices, serviceType]
+                : currentServices.filter(s => s !== serviceType);
 
-            const updatedUser = { ...user, active_services: updatedServices, ...profileUpdate };
+            const updatedUser = { 
+                ...user, 
+                active_services: updatedServices,
+                ...profileUpdate 
+            };
+
+            // Update both the list and the open modal detail
             setSelectedUserDetail(updatedUser);
             setUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
 
+            // Success feedback
+            // console.log(`Service ${serviceType} set to ${newValue} for user ${user.id}`);
+
         } catch (err) {
-            console.error(err);
-            Alert.alert("Hata", "Hizmet yetkisi güncellenemedi.");
+            console.error("Toggle Service Error:", err);
+            Alert.alert("Hata", "Yetki güncellenirken bir sorun oluştu: " + err.message);
         }
     };
 
@@ -767,54 +835,165 @@ const AdminDashboardScreen = () => {
         }
     };
 
-    const renderOfferItem = ({ item }) => (
-        <TouchableOpacity
-            style={styles.offerCard}
-            activeOpacity={0.8}
-            onPress={() => {
-                if (item.request) {
-                    // Show request details and THIS offer in the list
-                    // We attach the offer to the request so the modal list serves it
-                    const requestWithOffer = { ...item.request, bids: [item] };
-                    setSelectedRequest(requestWithOffer);
-                } else {
-                    Alert.alert('Hata', 'Talep detaylarına ulaşılamadı.');
-                }
-            }}
-        >
-            <View style={styles.offerHeader}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    <View style={styles.offerIconBox}>
-                        <MaterialCommunityIcons name="tag-text-outline" size={20} color="#34D399" />
+    // --- MANUAL CORPORATE UPGRADE LOGIC ---
+    const handleManualUpgrade = async () => {
+        const { company_name, tax_number, tax_office, phone, address, service_types, subscription_months } = upgradeForm;
+
+        if (!company_name || !phone || service_types.length === 0) {
+            Alert.alert("Eksik Bilgi", "Firma adı, telefon ve en az bir hizmet alanı zorunludur.");
+            return;
+        }
+
+        try {
+            setUpgradeLoading(true);
+
+            // Calculate Expiry Date
+            const expiryDate = new Date();
+            expiryDate.setMonth(expiryDate.getMonth() + parseInt(subscription_months));
+
+            // 1. Create/Update Company
+            const { data: company, error: companyError } = await supabase
+                .from('companies')
+                .upsert({
+                    owner_id: upgradeTargetUser.id,
+                    company_name,
+                    tax_number,
+                    tax_office,
+                    phone,
+                    address,
+                    subscription_start_date: new Date().toISOString(),
+                    subscription_expires_at: expiryDate.toISOString()
+                }, { onConflict: 'owner_id' })
+                .select()
+                .single();
+
+            if (companyError) throw companyError;
+
+            // 2. Set Services
+            const servicesToInsert = service_types.map(type => ({
+                company_id: company.id,
+                service_type: type,
+                status: 'active'
+            }));
+
+            // Delete old services first to ensure clean state
+            await supabase.from('company_services').delete().eq('company_id', company.id);
+            
+            const { error: servicesError } = await supabase
+                .from('company_services')
+                .insert(servicesToInsert);
+
+            if (servicesError) throw servicesError;
+
+            // 3. Update Profile & Legacy Flags
+            const profileUpdate = {
+                user_type: 'corporate',
+                approval_status: 'approved',
+                rejection_reason: null,
+                // Legacy Flags for backward compatibility
+                is_contractor: service_types.includes('urban_transformation'),
+                is_architect: service_types.includes('renovation_office'),
+                is_seller: service_types.includes('market_seller'),
+                is_transporter: service_types.includes('logistics_company'),
+                is_lawyer: service_types.includes('lawyer'),
+                is_engineer: service_types.includes('technical_office'),
+            };
+
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .update(profileUpdate)
+                .eq('id', upgradeTargetUser.id);
+
+            if (profileError) throw profileError;
+
+            Alert.alert("Başarılı ✅", `${upgradeTargetUser.full_name || upgradeTargetUser.email} kurumsal hesaba yükseltildi ve tüm yetkileri tanımlandı.`);
+            
+            setUpgradeModalVisible(false);
+            setUpgradeTargetUser(null);
+            setUpgradeForm({ company_name: '', tax_number: '', tax_office: '', phone: '', address: '', service_types: [] });
+            
+            // Refresh User List
+            fetchUsers();
+
+        } catch (err) {
+            console.error(err);
+            Alert.alert("Hata", "Yükseltme işlemi başarısız oldu: " + err.message);
+        } finally {
+            setUpgradeLoading(false);
+        }
+    };
+
+    const renderOfferItem = ({ item }) => {
+        // construction_offers uses contractor field (not profiles), others use profiles
+        const providerProfile = item.contractor || item.profiles;
+        const providerName = providerProfile?.company_name || providerProfile?.full_name || 'Bilinmeyen Firma';
+        const requestCity = item.request?.city || item.request?.location || '-';
+        const requestDistrict = item.request?.district || '';
+        const priceDisplay = item.price_estimate
+            ? `${item.price_estimate.toLocaleString('tr-TR')} ₺`
+            : item.price
+                ? `${item.price} ₺`
+                : 'Fiyat Girilmedi';
+
+        return (
+            <TouchableOpacity
+                style={styles.offerCard}
+                activeOpacity={0.8}
+                onPress={() => {
+                    if (item.request) {
+                        const requestWithOffer = { ...item.request, bids: [item] };
+                        setSelectedRequest(requestWithOffer);
+                    } else {
+                        Alert.alert('Hata', 'Talep detaylarına ulaşılamadı.');
+                    }
+                }}
+            >
+                {/* Header: Provider Info + Status */}
+                <View style={styles.offerHeader}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+                        <View style={styles.offerIconBox}>
+                            <MaterialCommunityIcons name="domain" size={20} color="#34D399" />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text allowFontScaling={false} style={styles.offerProviderName}>{providerName}</Text>
+                            <Text allowFontScaling={false} style={styles.offerDate}>{new Date(item.created_at).toLocaleDateString('tr-TR')}</Text>
+                        </View>
                     </View>
-                    <View>
-                        <Text allowFontScaling={false} style={styles.offerProviderName}>{item.profiles?.full_name || 'Bilinmeyen Tedarikçi'}</Text>
-                        <Text allowFontScaling={false} style={styles.offerDate}>{new Date(item.created_at).toLocaleDateString('tr-TR')}</Text>
+                    <View style={[styles.statusBadge, {
+                        backgroundColor: item.status === 'accepted' ? 'rgba(74, 222, 128, 0.1)' :
+                            item.status === 'rejected' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(251, 191, 36, 0.1)'
+                    }]}>
+                        <Text allowFontScaling={false} style={[styles.statusText, {
+                            color: item.status === 'accepted' ? '#4ADE80' :
+                                item.status === 'rejected' ? '#EF4444' : '#FBBF24'
+                        }]}>
+                            {item.status === 'accepted' ? 'KABUL' :
+                                item.status === 'rejected' ? 'REDDEDİLDİ' : 'BEKLİYOR'}
+                        </Text>
                     </View>
                 </View>
-                <View style={[styles.statusBadge, {
-                    backgroundColor: item.status === 'accepted' ? 'rgba(74, 222, 128, 0.1)' :
-                        item.status === 'rejected' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(251, 191, 36, 0.1)'
-                }]}>
-                    <Text allowFontScaling={false} style={[styles.statusText, {
-                        color: item.status === 'accepted' ? '#4ADE80' :
-                            item.status === 'rejected' ? '#EF4444' : '#FBBF24'
-                    }]}>
-                        {item.status === 'accepted' ? 'KABUL EDİLDİ' :
-                            item.status === 'rejected' ? 'REDDEDİLDİ' : 'BEKLİYOR'}
+
+                {/* Request location context */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                    <MaterialCommunityIcons name="map-marker-outline" size={13} color="#64748b" />
+                    <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 12 }}>
+                        Talep: {requestCity}{requestDistrict ? ` / ${requestDistrict}` : ''}
                     </Text>
                 </View>
-            </View>
 
-            <View style={styles.offerBody}>
-                <Text allowFontScaling={false} style={styles.offerLabel}>Teklif Tutarı:</Text>
-                <Text allowFontScaling={false} style={styles.offerPrice}>{item.price ? `${item.price} ₺` : 'Fiyat Girilmedi'}</Text>
-                {item.notes && (
-                    <Text allowFontScaling={false} style={styles.offerNote} numberOfLines={2}>"{item.notes}"</Text>
-                )}
-            </View>
-        </TouchableOpacity>
-    );
+                {/* Offer Body */}
+                <View style={styles.offerBody}>
+                    <Text allowFontScaling={false} style={styles.offerLabel}>Teklif Tutarı:</Text>
+                    <Text allowFontScaling={false} style={styles.offerPrice}>{priceDisplay}</Text>
+                    {(item.notes || item.offer_details) && (
+                        <Text allowFontScaling={false} style={styles.offerNote} numberOfLines={2}>"{item.notes || item.offer_details}"</Text>
+                    )}
+                </View>
+            </TouchableOpacity>
+        );
+    };
+
+
 
     const renderUserItem = ({ item }) => (
         <TouchableOpacity
@@ -837,29 +1016,61 @@ const AdminDashboardScreen = () => {
                         <Text allowFontScaling={false} style={styles.userCardPhone}>📞 {item.phone}</Text>
                     )}
                     <Text allowFontScaling={false} style={styles.userCardDate}>Kayıt: {new Date(item.created_at).toLocaleDateString('tr-TR')}</Text>
+                    {item.user_type === 'corporate' && item.subscription_expires_at && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                            <Ionicons name="calendar-outline" size={12} color={new Date(item.subscription_expires_at) < new Date() ? '#EF4444' : '#4ADE80'} />
+                            <Text allowFontScaling={false} style={[styles.userCardDate, { color: new Date(item.subscription_expires_at) < new Date() ? '#EF4444' : '#4ADE80', marginLeft: 4 }]}>
+                                Abonelik Bitiş: {new Date(item.subscription_expires_at).toLocaleDateString('tr-TR')} 
+                                ({Math.ceil((new Date(item.subscription_expires_at) - new Date()) / (1000 * 60 * 60 * 24))} gün)
+                            </Text>
+                        </View>
+                    )}
                 </View>
 
-                {/* Status Badge (Right Side) */}
+                {/* Action / Status Area */}
                 <View style={{ alignItems: 'flex-end' }}>
-                    <View style={[
-                        styles.statusBadge,
-                        {
-                            backgroundColor: item.approval_status === 'approved' ? 'rgba(74, 222, 128, 0.1)' :
-                                item.approval_status === 'suspended' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(251, 191, 36, 0.1)'
-                        }
-                    ]}>
-                        <Text allowFontScaling={false} style={[
-                            styles.statusText,
-                            {
-                                color: item.approval_status === 'approved' ? '#4ADE80' :
-                                    item.approval_status === 'suspended' ? '#EF4444' : '#FBBF24',
-                                fontSize: 10
-                            }
-                        ]}>
-                            {item.approval_status === 'approved' ? 'ONAYLI' :
-                                item.approval_status === 'suspended' ? 'ASKIDA' : 'BEKLİYOR'}
-                        </Text>
-                    </View>
+                    {userTypeFilter === 'individual' ? (
+                        <TouchableOpacity
+                            style={{ backgroundColor: '#D4AF37', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                            onPress={() => {
+                                setUpgradeTargetUser(item);
+                                setUpgradeForm(prev => ({ ...prev, phone: item.phone || '' }));
+                                setUpgradeModalVisible(true);
+                            }}
+                        >
+                            <MaterialCommunityIcons name="shield-star" size={14} color="#000" />
+                            <Text allowFontScaling={false} style={{ color: '#000', fontSize: 10, fontWeight: 'bold' }}>KURUMSAL YAP</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            <TouchableOpacity
+                                style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: '#EF4444' }}
+                                onPress={() => handleConvertToIndividual(item)}
+                            >
+                                <Text allowFontScaling={false} style={{ color: '#EF4444', fontSize: 10, fontWeight: 'bold' }}>BİREYSELE DÜŞÜR</Text>
+                            </TouchableOpacity>
+
+                            <View style={[
+                                styles.statusBadge,
+                                {
+                                    backgroundColor: item.approval_status === 'approved' ? 'rgba(74, 222, 128, 0.1)' :
+                                        item.approval_status === 'suspended' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(251, 191, 36, 0.1)'
+                                }
+                            ]}>
+                                <Text allowFontScaling={false} style={[
+                                    styles.statusText,
+                                    {
+                                        color: item.approval_status === 'approved' ? '#4ADE80' :
+                                            item.approval_status === 'suspended' ? '#EF4444' : '#FBBF24',
+                                        fontSize: 10
+                                    }
+                                ]}>
+                                    {item.approval_status === 'approved' ? 'ONAYLI' :
+                                        item.approval_status === 'suspended' ? 'ASKIDA' : 'BEKLİYOR'}
+                                </Text>
+                            </View>
+                        </View>
+                    )}
                     <Ionicons name="chevron-forward" size={20} color="#555" style={{ marginTop: 8 }} />
                 </View>
             </View>
@@ -879,169 +1090,404 @@ const AdminDashboardScreen = () => {
                         colors={['#1e293b', '#0f172a']}
                         style={styles.modalContent}
                     >
-                        {/* Header */}
-                        <View style={styles.modalHeader}>
-                            <Text allowFontScaling={false} style={styles.modalTitle}>Kullanıcı Detayı</Text>
-                            <TouchableOpacity onPress={() => setSelectedUserDetail(null)} style={styles.closeBtn}>
-                                <Ionicons name="close" size={24} color="#FFF" />
-                            </TouchableOpacity>
-                        </View>
+                        <>
+                            {/* Header */}
+                            <View style={styles.modalHeader}>
+                                <Text allowFontScaling={false} style={styles.modalTitle}>Kullanıcı Detayı</Text>
+                                <TouchableOpacity onPress={() => setSelectedUserDetail(null)} style={styles.closeBtn}>
+                                    <Ionicons name="close" size={24} color="#FFF" />
+                                </TouchableOpacity>
+                            </View>
 
-                        {selectedUserDetail && (
-                            <ScrollView contentContainerStyle={{ padding: 20 }}>
-                                {/* User Info */}
-                                <View style={{ alignItems: 'center', marginBottom: 20 }}>
-                                    <View style={{
-                                        width: 80, height: 80, borderRadius: 40,
-                                        backgroundColor: '#334155', alignItems: 'center', justifyContent: 'center', marginBottom: 12
-                                    }}>
-                                        <Ionicons name={selectedUserDetail.user_type === 'corporate' ? "business" : "person"} size={40} color="#D4AF37" />
-                                    </View>
-                                    <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>{selectedUserDetail.full_name || 'İsimsiz'}</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 14 }}>{selectedUserDetail.email}</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 14, marginTop: 4 }}>{selectedUserDetail.phone || 'Telefon Yok'}</Text>
+                            {selectedUserDetail && (
+                                <>
+                                    <ScrollView contentContainerStyle={{ padding: 20 }}>
+                                        {/* User Info */}
+                                        <View style={{ alignItems: 'center', marginBottom: 20 }}>
+                                            <View style={{
+                                                width: 80, height: 80, borderRadius: 40,
+                                                backgroundColor: '#334155', alignItems: 'center', justifyContent: 'center', marginBottom: 12
+                                            }}>
+                                                <Ionicons name={selectedUserDetail.user_type === 'corporate' ? "business" : "person"} size={40} color="#D4AF37" />
+                                            </View>
+                                            <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>{selectedUserDetail.full_name || 'İsimsiz'}</Text>
+                                            <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 14 }}>{selectedUserDetail.email}</Text>
+                                            <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 14, marginTop: 4 }}>{selectedUserDetail.phone || 'Telefon Yok'}</Text>
+                                            <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 12, marginTop: 6 }}>📅 Sisteme Kayıt: {new Date(selectedUserDetail.created_at).toLocaleDateString('tr-TR')}</Text>
 
-                                    <View style={{
-                                        marginTop: 12, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12,
-                                        backgroundColor: selectedUserDetail.approval_status === 'approved' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(251, 191, 36, 0.1)',
-                                        borderWidth: 1, borderColor: selectedUserDetail.approval_status === 'approved' ? '#4ADE80' : '#FBBF24'
-                                    }}>
-                                        <Text allowFontScaling={false} style={{ color: selectedUserDetail.approval_status === 'approved' ? '#4ADE80' : '#FBBF24', fontWeight: 'bold', fontSize: 12 }}>
-                                            {selectedUserDetail.approval_status === 'approved' ? 'ONAYLI HESAP' :
-                                                selectedUserDetail.approval_status === 'rejected' ? 'REDDEDİLDİ' :
-                                                    selectedUserDetail.approval_status === 'suspended' ? 'HESAP ASKIDA' : 'ONAY BEKLİYOR'}
-                                        </Text>
-                                    </View>
+                                            <View style={{
+                                                marginTop: 12, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12,
+                                                backgroundColor: selectedUserDetail.approval_status === 'approved' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(251, 191, 36, 0.1)',
+                                                borderWidth: 1, borderColor: selectedUserDetail.approval_status === 'approved' ? '#4ADE80' : '#FBBF24'
+                                            }}>
+                                                <Text allowFontScaling={false} style={{ color: selectedUserDetail.approval_status === 'approved' ? '#4ADE80' : '#FBBF24', fontWeight: 'bold', fontSize: 12 }}>
+                                                    {selectedUserDetail.approval_status === 'approved' ? 'ONAYLI HESAP' :
+                                                        selectedUserDetail.approval_status === 'rejected' ? 'REDDEDİLDİ' :
+                                                            selectedUserDetail.approval_status === 'suspended' ? 'HESAP ASKIDA' : 'ONAY BEKLİYOR'}
+                                                </Text>
+                                            </View>
 
-                                    {selectedUserDetail.rejection_reason && (
-                                        <Text allowFontScaling={false} style={{ color: '#EF4444', marginTop: 8, textAlign: 'center', fontStyle: 'italic' }}>
-                                            "{selectedUserDetail.rejection_reason}"
-                                        </Text>
-                                    )}
-                                </View>
+                                            {selectedUserDetail.rejection_reason && (
+                                                <Text allowFontScaling={false} style={{ color: '#EF4444', marginTop: 8, textAlign: 'center', fontStyle: 'italic' }}>
+                                                    "{selectedUserDetail.rejection_reason}"
+                                                </Text>
+                                            )}
+                                        </View>
 
-                                {/* ROLE MANAGEMENT SECTION */}
-                                {selectedUserDetail.user_type === 'corporate' && (
-                                    <View style={{ marginBottom: 20, padding: 15, backgroundColor: '#1a1a1a', borderRadius: 12, borderWidth: 1, borderColor: '#333' }}>
-                                        <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 14, fontWeight: 'bold', marginBottom: 10 }}>FİRMA YETKİLERİ / ROLLERİ</Text>
-
-                                        {[
-                                            { key: 'urban_transformation', label: 'Kentsel Dönüşüm' },
-                                            { key: 'renovation_office', label: 'Tadilat Ofisi' },
-                                            { key: 'market_seller', label: 'Hizmet & Satış (Market)' },
-                                            { key: 'logistics_company', label: 'Lojistik / Nakliye' },
-                                            { key: 'machine_renter', label: 'İş Makinesi Kiralama' },
-                                            { key: 'lawyer', label: 'Avukatlık / Hukuk' },
-                                            { key: 'technical_office', label: 'Teknik Ofis' },
-                                        ].map((role) => {
-                                            const isActive = selectedUserDetail.active_services?.includes(role.key);
-                                            return (
-                                                <View key={role.key} style={styles.roleRow}>
-                                                    <Text allowFontScaling={false} style={{ color: '#ccc', flex: 1 }}>{role.label}</Text>
-                                                    <Switch
-                                                        value={isActive || false}
-                                                        trackColor={{ false: '#333', true: '#4ADE80' }}
-                                                        thumbColor={isActive ? '#fff' : '#f4f3f4'}
-                                                        onValueChange={(newValue) => handleToggleCompanyService(selectedUserDetail, role.key, newValue)}
-                                                    />
-                                                </View>
-                                            );
-                                        })}
-                                    </View>
-                                )}
-
-                                {/* ACTION BUTTONS */}
-                                <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 12, fontWeight: 'bold', marginBottom: 10 }}>İŞLEMLER</Text>
-
-                                <View style={{ gap: 10 }}>
-                                    {/* Approval Actions */}
-                                    {['pending', 'incomplete', 'rejected'].includes(selectedUserDetail.approval_status) && selectedUserDetail.user_type === 'corporate' && (
-                                        <>
-                                            <TouchableOpacity
-                                                style={[styles.actionRowBtn, { backgroundColor: '#065f46' }]}
-                                                onPress={() => { handleApproveUser(selectedUserDetail); setSelectedUserDetail(null); }}
-                                            >
-                                                <Ionicons name="checkmark-circle" size={22} color="#4ADE80" />
-                                                <Text allowFontScaling={false} style={{ color: '#ecfdf5', fontWeight: 'bold', marginLeft: 10 }}>Onayla ve Aktifleştir</Text>
-                                            </TouchableOpacity>
-
-                                            <TouchableOpacity
-                                                style={[styles.actionRowBtn, { backgroundColor: '#422006' }]}
-                                                onPress={() => { handleOpenActionModal(selectedUserDetail, 'incomplete'); }}
-                                            >
-                                                <MaterialCommunityIcons name="file-document-edit" size={22} color="#FBBF24" />
-                                                <Text allowFontScaling={false} style={{ color: '#fef3c7', fontWeight: 'bold', marginLeft: 10 }}>Eksik Bilgi/Belge İste</Text>
-                                            </TouchableOpacity>
-
-                                            <TouchableOpacity
-                                                style={[styles.actionRowBtn, { backgroundColor: '#450a0a' }]}
-                                                onPress={() => { handleOpenActionModal(selectedUserDetail, 'reject'); }}
-                                            >
-                                                <Ionicons name="close-circle" size={22} color="#EF4444" />
-                                                <Text allowFontScaling={false} style={{ color: '#fef2f2', fontWeight: 'bold', marginLeft: 10 }}>Reddet</Text>
-                                            </TouchableOpacity>
-                                        </>
-                                    )}
-
-                                    {/* Communication */}
-                                    <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
-                                        <TouchableOpacity
-                                            style={[styles.actionRowBtn, { flex: 1, justifyContent: 'center', backgroundColor: '#1e293b' }]}
-                                            onPress={() => handleCall(selectedUserDetail.phone)}
-                                            disabled={!selectedUserDetail.phone}
-                                        >
-                                            <Ionicons name="call" size={20} color={selectedUserDetail.phone ? "#3B82F6" : "#444"} />
-                                            <Text allowFontScaling={false} style={{ color: '#cbd5e1', marginLeft: 8 }}>Ara</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            style={[styles.actionRowBtn, { flex: 1, justifyContent: 'center', backgroundColor: '#1e293b' }]}
-                                            onPress={() => handleMessage(selectedUserDetail.phone)}
-                                            disabled={!selectedUserDetail.phone}
-                                        >
-                                            <MaterialCommunityIcons name="whatsapp" size={20} color={selectedUserDetail.phone ? "#25D366" : "#444"} />
-                                            <Text allowFontScaling={false} style={{ color: '#cbd5e1', marginLeft: 8 }}>WhatsApp</Text>
-                                        </TouchableOpacity>
-                                    </View>
-
-                                    {/* Danger Zone */}
-                                    <View style={{ marginTop: 20, borderTopWidth: 1, borderTopColor: '#334155', paddingTop: 20 }}>
-                                        <Text allowFontScaling={false} style={{ color: '#EF4444', fontSize: 12, fontWeight: 'bold', marginBottom: 10 }}>TEHLİKELİ BÖLGE</Text>
-
+                                        {/* COMPANY DETAILS SECTION */}
                                         {selectedUserDetail.user_type === 'corporate' && (
-                                            <TouchableOpacity
-                                                style={[styles.actionRowBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#F59E0B', marginBottom: 10 }]}
-                                                onPress={() => handleConvertToIndividual(selectedUserDetail)}
-                                            >
-                                                <MaterialCommunityIcons name="account-convert" size={20} color="#F59E0B" />
-                                                <Text allowFontScaling={false} style={{ color: '#F59E0B', marginLeft: 10 }}>Kurumsal Üyelikten Çıkar (Bireysele Çevir)</Text>
-                                            </TouchableOpacity>
+                                            <View style={{ marginBottom: 20, padding: 15, backgroundColor: '#1a1a1a', borderRadius: 12, borderWidth: 1, borderColor: '#333' }}>
+                                                <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 14, fontWeight: 'bold', marginBottom: 15 }}>FİRMA RESMİ BİLGİLERİ</Text>
+                                                
+                                                <View style={{ gap: 12 }}>
+                                                    <View>
+                                                        <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase' }}>Firma Ünvanı</Text>
+                                                        <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 14, fontWeight: '600', marginTop: 2 }}>{selectedUserDetail.company_name || 'Belirtilmemiş'}</Text>
+                                                    </View>
+
+                                                    <View style={{ flexDirection: 'row' }}>
+                                                        <View style={{ flex: 1 }}>
+                                                            <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase' }}>Vergi Numarası</Text>
+                                                            <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 14, fontWeight: '600', marginTop: 2 }}>{selectedUserDetail.tax_number || 'Belirtilmemiş'}</Text>
+                                                        </View>
+                                                        <View style={{ flex: 1 }}>
+                                                            <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase' }}>Vergi Dairesi</Text>
+                                                            <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 14, fontWeight: '600', marginTop: 2 }}>{selectedUserDetail.tax_office || 'Belirtilmemiş'}</Text>
+                                                        </View>
+                                                    </View>
+
+                                                    <View style={{ flexDirection: 'row' }}>
+                                                        <View style={{ flex: 1 }}>
+                                                            <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase' }}>Firma Telefonu</Text>
+                                                            <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 14, fontWeight: '600', marginTop: 2 }}>{selectedUserDetail.phone || 'Belirtilmemiş'}</Text>
+                                                        </View>
+                                                        <View style={{ flex: 1 }}>
+                                                            <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase' }}>Hesap Tipi</Text>
+                                                            <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 13, fontWeight: 'bold', marginTop: 2 }}>KURUMSAL</Text>
+                                                        </View>
+                                                    </View>
+
+                                                    <View>
+                                                        <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase' }}>Firma Adresi</Text>
+                                                        <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 13, marginTop: 2 }}>{selectedUserDetail.address || 'Adres bilgisi girilmemiş.'}</Text>
+                                                    </View>
+                                                </View>
+                                            </View>
                                         )}
 
-                                        <TouchableOpacity
-                                            style={[styles.actionRowBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#FBBF24', marginBottom: 10 }]}
-                                            onPress={() => { handleToggleSuspend(selectedUserDetail); }}
-                                        >
-                                            <MaterialCommunityIcons
-                                                name={selectedUserDetail.approval_status === 'suspended' ? "lock-open" : "lock"}
-                                                size={20}
-                                                color="#FBBF24"
-                                            />
-                                            <Text allowFontScaling={false} style={{ color: '#FBBF24', marginLeft: 10 }}>
-                                                {selectedUserDetail.approval_status === 'suspended' ? 'Hesabın Kilidini Aç' : 'Hesabı Askıya Al / Dondur'}
-                                            </Text>
-                                        </TouchableOpacity>
+                                        {/* SUBSCRIPTION TRACKING SECTION */}
+                                        {selectedUserDetail.user_type === 'corporate' && (
+                                            <View style={{ marginBottom: 20, padding: 15, backgroundColor: '#1a1a1a', borderRadius: 12, borderWidth: 1, borderColor: '#333' }}>
+                                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+                                                    <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 14, fontWeight: 'bold' }}>ÜYELİK VE ABONELİK</Text>
+                                                    <TouchableOpacity 
+                                                        style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 }}
+                                                        onPress={() => {
+                                                            const current = selectedUserDetail.subscription_expires_at ? new Date(selectedUserDetail.subscription_expires_at) : new Date();
+                                                            setExpiryInput({
+                                                                day: String(current.getDate()),
+                                                                month: String(current.getMonth() + 1),
+                                                                year: String(current.getFullYear())
+                                                            });
+                                                            setEditingSubscription(true);
+                                                        }}
+                                                    >
+                                                        <Text allowFontScaling={false} style={{ color: '#3B82F6', fontSize: 11, fontWeight: 'bold' }}>DÜZENLE</Text>
+                                                    </TouchableOpacity>
+                                                </View>
 
-                                        <TouchableOpacity
-                                            style={[styles.actionRowBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#EF4444' }]}
-                                            onPress={() => { handleDeleteUser(selectedUserDetail); setSelectedUserDetail(null); }}
-                                        >
-                                            <Ionicons name="trash" size={20} color="#EF4444" />
-                                            <Text allowFontScaling={false} style={{ color: '#EF4444', marginLeft: 10 }}>Kullanıcıyı Tamamen Sil</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-                            </ScrollView>
-                        )}
+                                                <View style={{ flexDirection: 'row', gap: 12 }}>
+                                                    <View style={{ flex: 1, backgroundColor: '#0f172a', padding: 10, borderRadius: 8 }}>
+                                                        <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold' }}>BAŞLANGIÇ</Text>
+                                                        <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 13, marginTop: 2 }}>
+                                                            {selectedUserDetail.subscription_start_date ? new Date(selectedUserDetail.subscription_start_date).toLocaleDateString('tr-TR') : '-'}
+                                                        </Text>
+                                                    </View>
+                                                    <View style={{ flex: 1, backgroundColor: '#0f172a', padding: 10, borderRadius: 8 }}>
+                                                        <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold' }}>BİTİŞ TARİHİ</Text>
+                                                        <Text allowFontScaling={false} style={{ color: selectedUserDetail.subscription_expires_at && new Date(selectedUserDetail.subscription_expires_at) < new Date() ? '#EF4444' : '#4ADE80', fontSize: 13, fontWeight: 'bold', marginTop: 2 }}>
+                                                            {selectedUserDetail.subscription_expires_at ? new Date(selectedUserDetail.subscription_expires_at).toLocaleDateString('tr-TR') : 'Sınırsız'}
+                                                        </Text>
+                                                    </View>
+                                                </View>
+
+                                                {selectedUserDetail.subscription_expires_at && (
+                                                    <View style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                        <Ionicons name="time-outline" size={14} color="#94a3b8" />
+                                                        <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 11 }}>
+                                                            Kalan Süre: {Math.ceil((new Date(selectedUserDetail.subscription_expires_at) - new Date()) / (1000 * 60 * 60 * 24))} gün
+                                                        </Text>
+                                                    </View>
+                                                )}
+                                            </View>
+                                        )}
+
+                                        {/* ROLE MANAGEMENT SECTION */}
+                                        {selectedUserDetail.user_type === 'corporate' && (
+                                            <View style={{ marginBottom: 20, padding: 15, backgroundColor: '#1a1a1a', borderRadius: 12, borderWidth: 1, borderColor: '#333' }}>
+                                                <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 14, fontWeight: 'bold', marginBottom: 15 }}>FİRMA YETKİLERİ / ROLLERİ</Text>
+
+                                                {[
+                                                    { key: 'urban_transformation', label: 'Kentsel Dönüşüm' },
+                                                    { key: 'renovation_office', label: 'Tadilat Ofisi' },
+                                                    { key: 'market_seller', label: 'Hizmet & Satış (Market)' },
+                                                    { key: 'logistics_company', label: 'Lojistik / Nakliye' },
+                                                    { key: 'machine_renter', label: 'İş Makinesi Kiralama' },
+                                                    { key: 'lawyer', label: 'Avukatlık / Hukuk' },
+                                                    { key: 'technical_office', label: 'Teknik Ofis' },
+                                                ].map((role) => {
+                                                    const isActive = selectedUserDetail.active_services?.includes(role.key);
+                                                    return (
+                                                        <View key={role.key} style={[styles.roleRow, { borderBottomWidth: 0.5, borderBottomColor: '#222' }]}>
+                                                            <Text allowFontScaling={false} style={{ color: isActive ? '#fff' : '#888', flex: 1, fontSize: 14 }}>{role.label}</Text>
+                                                            <Switch
+                                                                value={isActive || false}
+                                                                trackColor={{ false: '#333', true: 'rgba(74, 222, 128, 0.4)' }}
+                                                                thumbColor={isActive ? '#4ADE80' : '#f4f3f4'}
+                                                                onValueChange={(newValue) => handleToggleCompanyService(selectedUserDetail, role.key, newValue)}
+                                                            />
+                                                        </View>
+                                                    );
+                                                })}
+                                            </View>
+                                        )}
+
+                                        {/* ACTION BUTTONS */}
+                                        <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 12, fontWeight: 'bold', marginBottom: 10 }}>İŞLEMLER</Text>
+
+                                        <View style={{ gap: 10 }}>
+                                            {/* Approval Actions */}
+                                            {['pending', 'incomplete', 'rejected'].includes(selectedUserDetail.approval_status) && selectedUserDetail.user_type === 'corporate' && (
+                                                <>
+                                                    <TouchableOpacity
+                                                        style={[styles.actionRowBtn, { backgroundColor: '#065f46' }]}
+                                                        onPress={() => { handleApproveUser(selectedUserDetail); setSelectedUserDetail(null); }}
+                                                    >
+                                                        <Ionicons name="checkmark-circle" size={22} color="#4ADE80" />
+                                                        <Text allowFontScaling={false} style={{ color: '#ecfdf5', fontWeight: 'bold', marginLeft: 10 }}>Onayla ve Aktifleştir</Text>
+                                                    </TouchableOpacity>
+
+                                                    <TouchableOpacity
+                                                        style={[styles.actionRowBtn, { backgroundColor: '#422006' }]}
+                                                        onPress={() => { handleOpenActionModal(selectedUserDetail, 'incomplete'); }}
+                                                    >
+                                                        <MaterialCommunityIcons name="file-document-edit" size={22} color="#FBBF24" />
+                                                        <Text allowFontScaling={false} style={{ color: '#fef3c7', fontWeight: 'bold', marginLeft: 10 }}>Eksik Bilgi/Belge İste</Text>
+                                                    </TouchableOpacity>
+
+                                                    <TouchableOpacity
+                                                        style={[styles.actionRowBtn, { backgroundColor: '#450a0a' }]}
+                                                        onPress={() => { handleOpenActionModal(selectedUserDetail, 'reject'); }}
+                                                    >
+                                                        <Ionicons name="close-circle" size={22} color="#EF4444" />
+                                                        <Text allowFontScaling={false} style={{ color: '#fef2f2', fontWeight: 'bold', marginLeft: 10 }}>Reddet</Text>
+                                                    </TouchableOpacity>
+                                                </>
+                                            )}
+
+                                            {/* Communication */}
+                                            <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+                                                <TouchableOpacity
+                                                    style={[styles.actionRowBtn, { flex: 1, justifyContent: 'center', backgroundColor: '#1e293b' }]}
+                                                    onPress={() => handleCall(selectedUserDetail.phone)}
+                                                    disabled={!selectedUserDetail.phone}
+                                                >
+                                                    <Ionicons name="call" size={20} color={selectedUserDetail.phone ? "#3B82F6" : "#444"} />
+                                                    <Text allowFontScaling={false} style={{ color: '#cbd5e1', marginLeft: 8 }}>Ara</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    style={[styles.actionRowBtn, { flex: 1, justifyContent: 'center', backgroundColor: '#1e293b' }]}
+                                                    onPress={() => handleMessage(selectedUserDetail.phone)}
+                                                    disabled={!selectedUserDetail.phone}
+                                                >
+                                                    <MaterialCommunityIcons name="whatsapp" size={20} color={selectedUserDetail.phone ? "#25D366" : "#444"} />
+                                                    <Text allowFontScaling={false} style={{ color: '#cbd5e1', marginLeft: 8 }}>WhatsApp</Text>
+                                                </TouchableOpacity>
+                                            </View>
+
+                                            {/* Danger Zone */}
+                                            <View style={{ marginTop: 20, borderTopWidth: 1, borderTopColor: '#334155', paddingTop: 20 }}>
+                                                <Text allowFontScaling={false} style={{ color: '#EF4444', fontSize: 12, fontWeight: 'bold', marginBottom: 10 }}>TEHLİKELİ BÖLGE</Text>
+
+                                                {selectedUserDetail.user_type === 'corporate' && (
+                                                    <TouchableOpacity
+                                                        style={[styles.actionRowBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#F59E0B', marginBottom: 10 }]}
+                                                        onPress={() => handleConvertToIndividual(selectedUserDetail)}
+                                                    >
+                                                        <MaterialCommunityIcons name="account-convert" size={20} color="#F59E0B" />
+                                                        <Text allowFontScaling={false} style={{ color: '#F59E0B', marginLeft: 10 }}>Kurumsal Üyelikten Çıkar (Bireysele Çevir)</Text>
+                                                    </TouchableOpacity>
+                                                )}
+
+                                                <TouchableOpacity
+                                                    style={[styles.actionRowBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#FBBF24', marginBottom: 10 }]}
+                                                    onPress={() => { handleToggleSuspend(selectedUserDetail); }}
+                                                >
+                                                    <MaterialCommunityIcons
+                                                        name={selectedUserDetail.approval_status === 'suspended' ? "lock-open" : "lock"}
+                                                        size={20}
+                                                        color="#FBBF24"
+                                                    />
+                                                    <Text allowFontScaling={false} style={{ color: '#FBBF24', marginLeft: 10 }}>
+                                                        {selectedUserDetail.approval_status === 'suspended' ? 'Hesabın Kilidini Aç' : 'Hesabı Askıya Al / Dondur'}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    style={[styles.actionRowBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#EF4444' }]}
+                                                    onPress={() => { handleDeleteUser(selectedUserDetail); setSelectedUserDetail(null); }}
+                                                >
+                                                    <Ionicons name="trash" size={20} color="#EF4444" />
+                                                    <Text allowFontScaling={false} style={{ color: '#EF4444', marginLeft: 10 }}>Kullanıcıyı Tamamen Sil</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
+                                    </ScrollView>
+
+                                    {/* INTERNAL SUBSCRIPTION EDIT PANEL (FIXED) */}
+                                    {editingSubscription && (
+                                        <View style={{ 
+                                            position: 'absolute', 
+                                            top: 0, left: 0, right: 0, bottom: 0, 
+                                            backgroundColor: 'rgba(0,0,0,0.92)', 
+                                            zIndex: 999, 
+                                            justifyContent: 'center', 
+                                            padding: 20
+                                        }}>
+                                            <View style={{ backgroundColor: '#1e293b', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#333', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 10 }}>
+                                                <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 18, fontWeight: 'bold', marginBottom: 20 }}>Abonelik Tarihini Güncelle</Text>
+                                                
+                                                <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 12, marginBottom: 10 }}>Hızlı İşlemler:</Text>
+                                                <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
+                                                    <TouchableOpacity 
+                                                        style={{ flex: 1, minWidth: '45%', paddingHorizontal: 15, paddingVertical: 12, borderRadius: 10, backgroundColor: 'rgba(74, 222, 128, 0.15)', borderWidth: 1, borderColor: '#4ADE80', alignItems: 'center' }}
+                                                        onPress={async () => {
+                                                            try {
+                                                                const { error } = await supabase
+                                                                    .from('companies')
+                                                                    .update({ subscription_expires_at: null })
+                                                                    .eq('owner_id', selectedUserDetail.id);
+                                                                
+                                                                if (error) throw error;
+                                                                
+                                                                const updatedUser = { ...selectedUserDetail, subscription_expires_at: null };
+                                                                setSelectedUserDetail(updatedUser);
+                                                                setUsers(prev => prev.map(u => u.id === selectedUserDetail.id ? updatedUser : u));
+                                                                setEditingSubscription(false);
+                                                                Alert.alert("Başarılı", "Üyelik SINIRSIZ olarak güncellendi. ♾️");
+                                                            } catch (err) {
+                                                                Alert.alert("Hata", err.message);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Text allowFontScaling={false} style={{ color: '#4ADE80', fontWeight: 'bold' }}>♾️ SINIRSIZ YAP</Text>
+                                                    </TouchableOpacity>
+
+                                                    <TouchableOpacity 
+                                                        style={{ flex: 1, minWidth: '45%', paddingHorizontal: 15, paddingVertical: 12, borderRadius: 10, backgroundColor: 'rgba(239, 68, 68, 0.15)', borderWidth: 1, borderColor: '#EF4444', alignItems: 'center' }}
+                                                        onPress={async () => {
+                                                            try {
+                                                                const { error } = await supabase
+                                                                    .from('companies')
+                                                                    .update({ subscription_expires_at: new Date().toISOString() })
+                                                                    .eq('owner_id', selectedUserDetail.id);
+                                                                
+                                                                if (error) throw error;
+                                                                
+                                                                const updatedUser = { ...selectedUserDetail, subscription_expires_at: new Date().toISOString() };
+                                                                setSelectedUserDetail(updatedUser);
+                                                                setUsers(prev => prev.map(u => u.id === selectedUserDetail.id ? updatedUser : u));
+                                                                setEditingSubscription(false);
+                                                                Alert.alert("Başarılı", "Üyelik süresi bugün dolacak şekilde güncellendi. ⏳");
+                                                            } catch (err) {
+                                                                Alert.alert("Hata", err.message);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Text allowFontScaling={false} style={{ color: '#EF4444', fontWeight: 'bold' }}>⌛ SÜREYİ BİTİR</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+
+                                                <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 12, marginBottom: 10 }}>Manuel Tarih Girişi (GG / AA / YYYY):</Text>
+                                                <View style={{ flexDirection: 'row', gap: 10, marginBottom: 25 }}>
+                                                    <TextInput 
+                                                        style={{ flex: 1, backgroundColor: '#0f172a', color: '#fff', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#333', textAlign: 'center' }}
+                                                        placeholder="GG"
+                                                        placeholderTextColor="#444"
+                                                        keyboardType="numeric"
+                                                        value={expiryInput.day}
+                                                        onChangeText={(t) => setExpiryInput(prev => ({ ...prev, day: t }))}
+                                                        maxLength={2}
+                                                    />
+                                                    <TextInput 
+                                                        style={{ flex: 1, backgroundColor: '#0f172a', color: '#fff', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#333', textAlign: 'center' }}
+                                                        placeholder="AA"
+                                                        placeholderTextColor="#444"
+                                                        keyboardType="numeric"
+                                                        value={expiryInput.month}
+                                                        onChangeText={(t) => setExpiryInput(prev => ({ ...prev, month: t }))}
+                                                        maxLength={2}
+                                                    />
+                                                    <TextInput 
+                                                        style={{ flex: 2, backgroundColor: '#0f172a', color: '#fff', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#333', textAlign: 'center' }}
+                                                        placeholder="YYYY"
+                                                        placeholderTextColor="#444"
+                                                        keyboardType="numeric"
+                                                        value={expiryInput.year}
+                                                        onChangeText={(t) => setExpiryInput(prev => ({ ...prev, year: t }))}
+                                                        maxLength={4}
+                                                    />
+                                                </View>
+
+                                                <View style={{ flexDirection: 'row', gap: 12 }}>
+                                                    <TouchableOpacity 
+                                                        style={{ flex: 1, backgroundColor: '#334155', padding: 15, borderRadius: 12, alignItems: 'center' }}
+                                                        onPress={() => setEditingSubscription(false)}
+                                                    >
+                                                        <Text allowFontScaling={false} style={{ color: '#fff', fontWeight: 'bold' }}>İPTAL</Text>
+                                                    </TouchableOpacity>
+                                                    
+                                                    <TouchableOpacity 
+                                                        style={{ flex: 2, backgroundColor: '#D4AF37', padding: 15, borderRadius: 12, alignItems: 'center' }}
+                                                        onPress={async () => {
+                                                            const { day, month, year } = expiryInput;
+                                                            if (!day || !month || !year) {
+                                                                Alert.alert("Hata", "Lütfen tüm tarih alanlarını doldurun.");
+                                                                return;
+                                                            }
+                                                            
+                                                            const newDate = new Date(year, month - 1, day, 23, 59, 59);
+                                                            if (isNaN(newDate.getTime())) {
+                                                                Alert.alert("Hata", "Geçersiz tarih formatı.");
+                                                                return;
+                                                            }
+
+                                                            try {
+                                                                const { error } = await supabase
+                                                                    .from('companies')
+                                                                    .update({ subscription_expires_at: newDate.toISOString() })
+                                                                    .eq('owner_id', selectedUserDetail.id);
+                                                                
+                                                                if (error) throw error;
+                                                                
+                                                                const updatedUser = { ...selectedUserDetail, subscription_expires_at: newDate.toISOString() };
+                                                                setSelectedUserDetail(updatedUser);
+                                                                setUsers(prev => prev.map(u => u.id === selectedUserDetail.id ? updatedUser : u));
+                                                                setEditingSubscription(false);
+                                                                Alert.alert("Başarılı", `Bitiş tarihi ${day}.${month}.${year} olarak güncellendi. ✅`);
+                                                            } catch (err) {
+                                                                Alert.alert("Hata", err.message);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold' }}>TARİHİ KAYDET</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            </View>
+                                        </View>
+                                    )}
+                                </>
+                            )}
+                        </>
                     </LinearGradient>
                 </View>
             </View>
@@ -1167,6 +1613,24 @@ const AdminDashboardScreen = () => {
                         <Text allowFontScaling={false} style={styles.userText}>👤 {item.profiles.email} ({item.profiles.full_name})</Text>
                     ) : (
                         <Text allowFontScaling={false} style={styles.userText}>👤 Kullanıcı (Bilinmiyor)</Text>
+                    )}
+                    
+                    {/* STATS: Routing & Offers */}
+                    {['urban_transformation', 'renovation', 'market'].includes(selectedModule?.id) && (
+                        <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(212, 175, 55, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                                <MaterialCommunityIcons name="briefcase-account" size={12} color="#D4AF37" />
+                                <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 11, fontWeight: 'bold', marginLeft: 4 }}>
+                                    {item.assigned_provider_ids?.length || 0} Firmaya İletildi
+                                </Text>
+                            </View>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(52, 211, 153, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                                <MaterialCommunityIcons name="file-document-outline" size={12} color="#34D399" />
+                                <Text allowFontScaling={false} style={{ color: '#34D399', fontSize: 11, fontWeight: 'bold', marginLeft: 4 }}>
+                                    {item.bids?.length || 0} Teklif Alındı
+                                </Text>
+                            </View>
+                        </View>
                     )}
                 </View>
 
@@ -1383,16 +1847,86 @@ const AdminDashboardScreen = () => {
                                     onEndReachedThreshold={0.5}
                                     ListFooterComponent={loading && page > 0 ? <ActivityIndicator color="#D4AF37" /> : null}
                                 />
-                            ) : (
-                                <FlatList
-                                    key="offer-list"
-                                    data={offers}
-                                    renderItem={renderOfferItem}
-                                    keyExtractor={item => item.id.toString()}
-                                    contentContainerStyle={{ padding: 20 }}
-                                    ListEmptyComponent={<Text allowFontScaling={false} style={styles.noBidsText}>Henüz teklif yok.</Text>}
-                                />
-                            )}
+                            ) : (() => {
+                                // Compute filtered offers
+                                const filteredOffers = offers.filter(item => {
+                                    if (!offerSearchQuery.trim()) return true;
+                                    const q = offerSearchQuery.toLowerCase();
+                                    if (offerFilterMode === 'contractor') {
+                                        const providerProfile = item.contractor || item.profiles;
+                                        const name = (providerProfile?.company_name || providerProfile?.full_name || '').toLowerCase();
+                                        return name.includes(q);
+                                    } else { // request
+                                        const city = (item.request?.city || item.request?.location || '').toLowerCase();
+                                        const district = (item.request?.district || '').toLowerCase();
+                                        return city.includes(q) || district.includes(q);
+                                    }
+                                });
+
+                                return (
+                                    <FlatList
+                                        key="offer-list"
+                                        data={filteredOffers}
+                                        renderItem={renderOfferItem}
+                                        keyExtractor={item => item.id.toString()}
+                                        contentContainerStyle={{ padding: 20 }}
+                                        ListHeaderComponent={(
+                                            <View style={{ marginBottom: 16 }}>
+                                                {/* Filter Mode Chips */}
+                                                <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
+                                                    <TouchableOpacity
+                                                        onPress={() => setOfferFilterMode('request')}
+                                                        style={{
+                                                            paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20,
+                                                            backgroundColor: offerFilterMode === 'request' ? '#D4AF37' : '#1e293b',
+                                                            borderWidth: 1, borderColor: '#D4AF37'
+                                                        }}
+                                                    >
+                                                        <Text allowFontScaling={false} style={{ color: offerFilterMode === 'request' ? '#000' : '#D4AF37', fontSize: 12, fontWeight: 'bold' }}>
+                                                            📋 Talebe Göre
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity
+                                                        onPress={() => setOfferFilterMode('contractor')}
+                                                        style={{
+                                                            paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20,
+                                                            backgroundColor: offerFilterMode === 'contractor' ? '#D4AF37' : '#1e293b',
+                                                            borderWidth: 1, borderColor: '#D4AF37'
+                                                        }}
+                                                    >
+                                                        <Text allowFontScaling={false} style={{ color: offerFilterMode === 'contractor' ? '#000' : '#D4AF37', fontSize: 12, fontWeight: 'bold' }}>
+                                                            🏢 Müteahhite Göre
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                </View>
+
+                                                {/* Search */}
+                                                <View style={[styles.searchContainer, { marginTop: 0 }]}>
+                                                    <Ionicons name="search" size={18} color="#D4AF37" style={{ marginRight: 8 }} />
+                                                    <TextInput
+                                                        allowFontScaling={false}
+                                                        style={[styles.searchInput, { flex: 1 }]}
+                                                        placeholder={offerFilterMode === 'contractor' ? 'Firma adı ara...' : 'Şehir / İlçe ara...'}
+                                                        placeholderTextColor="#555"
+                                                        value={offerSearchQuery}
+                                                        onChangeText={setOfferSearchQuery}
+                                                    />
+                                                    {offerSearchQuery ? (
+                                                        <TouchableOpacity onPress={() => setOfferSearchQuery('')}>
+                                                            <Ionicons name="close-circle" size={18} color="#555" />
+                                                        </TouchableOpacity>
+                                                    ) : null}
+                                                </View>
+
+                                                <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 12, marginTop: 8 }}>
+                                                    {filteredOffers.length} teklif listeleniyor
+                                                </Text>
+                                            </View>
+                                        )}
+                                        ListEmptyComponent={<Text allowFontScaling={false} style={styles.noBidsText}>Teklif bulunamadı.</Text>}
+                                    />
+                                );
+                            })()}
                         </View>
                     ) : (
                         /* DASHBOARD VIEW: MENU OR MODULES */
@@ -1487,8 +2021,16 @@ const AdminDashboardScreen = () => {
                                                 <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.title || selectedModule?.title + ' Talebi'}</Text>
                                             </View>
                                             <View style={styles.infoRow}>
-                                                <Text allowFontScaling={false} style={styles.infoKey}>Kullanıcı:</Text>
+                                                <Text allowFontScaling={false} style={styles.infoKey}>Kullanıcı Adı:</Text>
+                                                <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.profiles?.full_name || 'Bilinmiyor'}</Text>
+                                            </View>
+                                            <View style={styles.infoRow}>
+                                                <Text allowFontScaling={false} style={styles.infoKey}>E-Posta:</Text>
                                                 <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.profiles?.email || 'Bilinmiyor'}</Text>
+                                            </View>
+                                            <View style={styles.infoRow}>
+                                                <Text allowFontScaling={false} style={styles.infoKey}>Telefon:</Text>
+                                                <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.profiles?.phone || 'Belirtilmemiş'}</Text>
                                             </View>
                                             <View style={styles.infoRow}>
                                                 <Text allowFontScaling={false} style={styles.infoKey}>Konum:</Text>
@@ -1637,25 +2179,41 @@ const AdminDashboardScreen = () => {
                                 data={assignableProviders}
                                 keyExtractor={item => item.id}
                                 contentContainerStyle={{ paddingHorizontal: 15, paddingBottom: 20 }}
+                                ListHeaderComponent={(
+                                    <View style={{ marginBottom: 10 }}>
+                                        <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 12 }}>
+                                            ✅ Yeşil = Zaten iletilmiş • Seçili = Bu seferki yönlendirmeye dahil
+                                        </Text>
+                                    </View>
+                                )}
                                 renderItem={({ item }) => {
+                                    const alreadyAssigned = (assignTargetRequest?.assigned_provider_ids || []).includes(item.id);
                                     const isSelected = selectedProviderIds.includes(item.id);
                                     return (
-                                        <TouchableOpacity 
+                                        <TouchableOpacity
                                             activeOpacity={0.7}
                                             style={{
-                                                flexDirection: 'row', alignItems: 'center', backgroundColor: isSelected ? 'rgba(74, 222, 128, 0.1)' : '#1e293b', 
+                                                flexDirection: 'row', alignItems: 'center',
+                                                backgroundColor: alreadyAssigned ? 'rgba(52, 211, 153, 0.08)' : (isSelected ? 'rgba(74, 222, 128, 0.1)' : '#1e293b'),
                                                 padding: 15, borderRadius: 12, marginBottom: 10,
-                                                borderWidth: 1, borderColor: isSelected ? '#4ADE80' : '#334155'
+                                                borderWidth: 1, borderColor: alreadyAssigned ? '#34D399' : (isSelected ? '#4ADE80' : '#334155')
                                             }}
                                             onPress={() => toggleProviderSelection(item.id)}
                                         >
-                                            <MaterialCommunityIcons 
-                                                name={isSelected ? "checkbox-marked-circle" : "checkbox-blank-circle-outline"} 
-                                                size={24} color={isSelected ? "#4ADE80" : "#64748b"} 
-                                                style={{ marginRight: 15 }} 
+                                            <MaterialCommunityIcons
+                                                name={isSelected ? "checkbox-marked-circle" : "checkbox-blank-circle-outline"}
+                                                size={24} color={isSelected ? "#4ADE80" : (alreadyAssigned ? '#34D399' : '#64748b')}
+                                                style={{ marginRight: 15 }}
                                             />
                                             <View style={{ flex: 1 }}>
-                                                <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>{item.full_name || 'İsimsiz Firma'}</Text>
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                                    <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 15, fontWeight: 'bold', flex: 1 }}>{item.full_name || 'İsimsiz Firma'}</Text>
+                                                    {alreadyAssigned && (
+                                                        <View style={{ backgroundColor: 'rgba(52, 211, 153, 0.15)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
+                                                            <Text allowFontScaling={false} style={{ color: '#34D399', fontSize: 10, fontWeight: 'bold' }}>Zaten İletildi</Text>
+                                                        </View>
+                                                    )}
+                                                </View>
                                                 <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 13 }}>{item.email}</Text>
                                                 {item.phone && <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 12 }}>📞 {item.phone}</Text>}
                                             </View>
@@ -1683,6 +2241,157 @@ const AdminDashboardScreen = () => {
             </Modal>
 
             {renderUserDetailModal()}
+
+            {/* MANUAL CORPORATE UPGRADE MODAL */}
+            <Modal
+                visible={upgradeModalVisible}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setUpgradeModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.modalContent, { backgroundColor: '#0f172a', height: '90%' }]}>
+                        <View style={styles.modalHeader}>
+                            <Text allowFontScaling={false} style={styles.modalTitle}>Kurumsal Hesaba Geçir</Text>
+                            <TouchableOpacity onPress={() => setUpgradeModalVisible(false)}>
+                                <Ionicons name="close" size={24} color="#FFF" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <ScrollView contentContainerStyle={{ padding: 20 }}>
+                            <View style={{ marginBottom: 20, padding: 15, backgroundColor: 'rgba(212, 175, 55, 0.05)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.2)' }}>
+                                <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 14 }}>Kullanıcı:</Text>
+                                <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 16, marginTop: 4 }}>{upgradeTargetUser?.full_name || upgradeTargetUser?.email}</Text>
+                            </View>
+
+                            <Text allowFontScaling={false} style={styles.detailLabel}>FİRMA BİLGİLERİ</Text>
+                            
+                            <Text allowFontScaling={false} style={styles.inputLabel}>Firma Adı *</Text>
+                            <TextInput allowFontScaling={false}
+                                style={styles.modalInput}
+                                placeholder="Örn: Özkan İnşaat Ltd. Şti."
+                                placeholderTextColor="#444"
+                                value={upgradeForm.company_name}
+                                onChangeText={(t) => setUpgradeForm(prev => ({ ...prev, company_name: t }))}
+                            />
+
+                            <View style={{ flexDirection: 'row', gap: 10 }}>
+                                <View style={{ flex: 1 }}>
+                                    <Text allowFontScaling={false} style={styles.inputLabel}>Vergi No</Text>
+                                    <TextInput allowFontScaling={false}
+                                        style={styles.modalInput}
+                                        placeholder="1234567890"
+                                        placeholderTextColor="#444"
+                                        keyboardType="numeric"
+                                        value={upgradeForm.tax_number}
+                                        onChangeText={(t) => setUpgradeForm(prev => ({ ...prev, tax_number: t }))}
+                                    />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text allowFontScaling={false} style={styles.inputLabel}>Vergi Dairesi</Text>
+                                    <TextInput allowFontScaling={false}
+                                        style={styles.modalInput}
+                                        placeholder="Zincirlikuyu"
+                                        placeholderTextColor="#444"
+                                        value={upgradeForm.tax_office}
+                                        onChangeText={(t) => setUpgradeForm(prev => ({ ...prev, tax_office: t }))}
+                                    />
+                                </View>
+                            </View>
+
+                            <Text allowFontScaling={false} style={styles.inputLabel}>İletişim Telefonu *</Text>
+                            <TextInput allowFontScaling={false}
+                                style={styles.modalInput}
+                                placeholder="05xx xxx xx xx"
+                                placeholderTextColor="#444"
+                                keyboardType="phone-pad"
+                                value={upgradeForm.phone}
+                                onChangeText={(t) => setUpgradeForm(prev => ({ ...prev, phone: t }))}
+                            />
+
+                            <Text allowFontScaling={false} style={styles.inputLabel}>Firma Adresi</Text>
+                            <TextInput allowFontScaling={false}
+                                style={[styles.modalInput, { height: 80, textAlignVertical: 'top' }]}
+                                placeholder="Mahalle, Sokak, No..."
+                                placeholderTextColor="#444"
+                                multiline
+                                value={upgradeForm.address}
+                                onChangeText={(t) => setUpgradeForm(prev => ({ ...prev, address: t }))}
+                            />
+
+                            <Text allowFontScaling={false} style={[styles.detailLabel, { marginTop: 10 }]}>HİZMET ALANLARI / YETKİLER *</Text>
+                            <View style={{ gap: 8 }}>
+                                {SERVICE_TYPES.map((service) => {
+                                    const isSelected = upgradeForm.service_types.includes(service.id);
+                                    return (
+                                        <TouchableOpacity
+                                            key={service.id}
+                                            style={[
+                                                styles.serviceChoiceBtn,
+                                                isSelected && styles.serviceChoiceBtnActive
+                                            ]}
+                                            onPress={() => {
+                                                setUpgradeForm(prev => ({
+                                                    ...prev,
+                                                    service_types: isSelected 
+                                                        ? prev.service_types.filter(id => id !== service.id)
+                                                        : [...prev.service_types, service.id]
+                                                }));
+                                            }}
+                                        >
+                                            <MaterialCommunityIcons 
+                                                name={isSelected ? "checkbox-marked-circle" : "checkbox-blank-circle-outline"} 
+                                                size={20} 
+                                                color={isSelected ? "#000" : "#64748b"} 
+                                            />
+                                            <Text allowFontScaling={false} style={[styles.serviceChoiceText, isSelected && styles.serviceChoiceTextActive]}>
+                                                {service.label}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+
+                            <Text allowFontScaling={false} style={[styles.detailLabel, { marginTop: 20 }]}>ABONELİK SÜRESİ</Text>
+                            <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
+                                {[
+                                    { label: '3 Ay', val: 3 },
+                                    { label: '6 Ay', val: 6 },
+                                    { label: '1 Yıl', val: 12 },
+                                    { label: '2 Yıl', val: 24 }
+                                ].map((opt) => (
+                                    <TouchableOpacity 
+                                        key={opt.val}
+                                        style={[
+                                            { paddingHorizontal: 15, paddingVertical: 10, borderRadius: 10, backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#333' },
+                                            upgradeForm.subscription_months === opt.val && { backgroundColor: '#D4AF37', borderColor: '#D4AF37' }
+                                        ]}
+                                        onPress={() => setUpgradeForm(prev => ({ ...prev, subscription_months: opt.val }))}
+                                    >
+                                        <Text allowFontScaling={false} style={{ color: upgradeForm.subscription_months === opt.val ? '#000' : '#888', fontWeight: 'bold' }}>{opt.label}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+
+                            <View style={{ height: 30 }} />
+                        </ScrollView>
+
+                        <View style={{ padding: 20, borderTopWidth: 1, borderTopColor: '#1e293b' }}>
+                            <TouchableOpacity
+                                style={[styles.upgradeSubmitBtn, upgradeLoading && { opacity: 0.7 }]}
+                                onPress={handleManualUpgrade}
+                                disabled={upgradeLoading}
+                            >
+                                {upgradeLoading ? (
+                                    <ActivityIndicator color="#000" />
+                                ) : (
+                                    <Text allowFontScaling={false} style={styles.upgradeSubmitText}>KURUMSAL ÜYELİĞİ BAŞLAT ✅</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
 
             {/* LOCATION PICKER MODAL */}
 
@@ -1833,10 +2542,19 @@ const styles = StyleSheet.create({
     debugText: { color: '#555', marginTop: 5, fontSize: 12 },
 
     // Modal Styles
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 20 },
-    modalContent: { borderRadius: 16, overflow: 'hidden', maxHeight: '80%', width: '100%' },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'flex-end' },
+    modalContent: { borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden', height: '92%', width: '100%' },
     modalContainer: { flex: 1 },
-    modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, borderBottomWidth: 1, borderBottomColor: '#333' },
+    modalHeader: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
+        paddingHorizontal: 20, 
+        paddingTop: 35, 
+        paddingBottom: 15, 
+        borderBottomWidth: 1, 
+        borderBottomColor: '#333' 
+    },
     modalTitle: { color: '#D4AF37', fontSize: 20, fontWeight: 'bold' },
     closeBtn: { padding: 5 },
     detailSection: { backgroundColor: '#1e293b', margin: 20, padding: 20, borderRadius: 12 },
@@ -1913,4 +2631,44 @@ const styles = StyleSheet.create({
     locationFilterBtn: { flex: 1, height: 40, borderRadius: 10, borderWidth: 1, borderColor: '#222', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8, overflow: 'hidden' },
     locationFilterText: { color: '#888', fontSize: 12, fontWeight: '600', flex: 1 },
     clearFilterBtn: { width: 40, height: 40, borderRadius: 10, backgroundColor: 'rgba(239, 68, 68, 0.08)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.15)' },
+
+    // Manual Upgrade Modal Styles
+    inputLabel: { color: '#94a3b8', fontSize: 12, marginBottom: 5, marginLeft: 2, marginTop: 10 },
+    modalInput: {
+        backgroundColor: '#0f172a',
+        color: '#fff',
+        padding: 12,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#334155',
+        fontSize: 14,
+    },
+    serviceChoiceBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        borderRadius: 10,
+        backgroundColor: '#1e293b',
+        borderWidth: 1,
+        borderColor: '#334155',
+        gap: 10
+    },
+    serviceChoiceBtnActive: {
+        backgroundColor: '#D4AF37',
+        borderColor: '#D4AF37',
+    },
+    serviceChoiceText: { color: '#94a3b8', fontSize: 13, fontWeight: '500' },
+    serviceChoiceTextActive: { color: '#000', fontWeight: 'bold' },
+    upgradeSubmitBtn: {
+        backgroundColor: '#D4AF37',
+        padding: 16,
+        borderRadius: 12,
+        alignItems: 'center',
+        shadowColor: '#D4AF37',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 5
+    },
+    upgradeSubmitText: { color: '#000', fontSize: 16, fontWeight: 'bold' }
 });

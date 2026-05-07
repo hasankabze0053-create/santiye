@@ -11,9 +11,10 @@ export default function AccountSettingsScreen({ route }) {
     const { user } = useAuth();
     // Profil sayfasından gelen mevcut veriyi alıyoruz
     const { profileData } = route.params || {};
-
     const [fullName, setFullName] = useState(profileData?.full_name || '');
+    const [companyData, setCompanyData] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [fetchingCompany, setFetchingCompany] = useState(false);
 
     // The Corporate Card ALWAYS keeps this Dark/Gold scheme
     const corporateTheme = {
@@ -23,6 +24,33 @@ export default function AccountSettingsScreen({ route }) {
         subText: '#CCCCCC',
         icon: '#FDCB58'
     };
+
+    const fetchCompanyInfo = async () => {
+        if (profileData?.user_type !== 'corporate') return;
+        
+        try {
+            setFetchingCompany(true);
+            const { data, error } = await supabase
+                .from('companies')
+                .select('*')
+                .eq('owner_id', user.id)
+                .single();
+            
+            if (error) {
+                console.warn("Company fetch error:", error);
+                return;
+            }
+            setCompanyData(data);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setFetchingCompany(false);
+        }
+    };
+
+    useState(() => {
+        fetchCompanyInfo();
+    }, []);
 
     const handleUpdate = async () => {
         if (!fullName.trim()) {
@@ -84,6 +112,52 @@ export default function AccountSettingsScreen({ route }) {
                         {profileData?.user_type === 'corporate' ? 'Kurumsal Üye' : 'Bireysel Kullanıcı'}
                     </Text>
                 </View>
+
+                {/* CORPORATE INFO SECTION */}
+                {profileData?.user_type === 'corporate' && (
+                    <View style={{ marginTop: 25 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15, gap: 8 }}>
+                            <MaterialCommunityIcons name="domain" size={20} color="#FFD700" />
+                            <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 16, fontWeight: 'bold' }}>Kurumsal Firma Bilgileri</Text>
+                        </View>
+
+                        {fetchingCompany ? (
+                            <ActivityIndicator color="#FFD700" style={{ marginVertical: 20 }} />
+                        ) : companyData ? (
+                            <View style={styles.corporateDetailsContainer}>
+                                <View style={styles.detailRow}>
+                                    <Text allowFontScaling={false} style={styles.detailLabel}>Firma Ünvanı</Text>
+                                    <Text allowFontScaling={false} style={styles.detailValue}>{companyData.company_name || '-'}</Text>
+                                </View>
+
+                                <View style={{ flexDirection: 'row', gap: 15 }}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text allowFontScaling={false} style={styles.detailLabel}>Vergi No</Text>
+                                        <Text allowFontScaling={false} style={styles.detailValue}>{companyData.tax_number || '-'}</Text>
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text allowFontScaling={false} style={styles.detailLabel}>Vergi Dairesi</Text>
+                                        <Text allowFontScaling={false} style={styles.detailValue}>{companyData.tax_office || '-'}</Text>
+                                    </View>
+                                </View>
+
+                                <View style={styles.detailRow}>
+                                    <Text allowFontScaling={false} style={styles.detailLabel}>İletişim Tel</Text>
+                                    <Text allowFontScaling={false} style={styles.detailValue}>{companyData.phone || '-'}</Text>
+                                </View>
+
+                                <View style={styles.detailRow}>
+                                    <Text allowFontScaling={false} style={styles.detailLabel}>Firma Adresi</Text>
+                                    <Text allowFontScaling={false} style={styles.detailValue}>{companyData.address || '-'}</Text>
+                                </View>
+                            </View>
+                        ) : (
+                            <View style={styles.corporateDetailsContainer}>
+                                <Text allowFontScaling={false} style={{ color: '#888', fontStyle: 'italic', textAlign: 'center' }}>Firma bilgileri bulunamadı.</Text>
+                            </View>
+                        )}
+                    </View>
+                )}
 
                 <TouchableOpacity style={styles.saveButton} onPress={handleUpdate} disabled={loading}>
                     {loading ? (
@@ -177,4 +251,16 @@ const styles = StyleSheet.create({
     corporateSubtitle: { fontSize: 12, marginTop: 2 },
     corporateArrow: { flexDirection: 'row', alignItems: 'center' },
     manageText: { color: '#FDCB58', fontSize: 12, fontWeight: '700', marginRight: 2 },
+
+    // Corporate Detail Styles
+    corporateDetailsContainer: {
+        backgroundColor: '#111',
+        borderRadius: 12,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: '#222'
+    },
+    detailRow: { marginBottom: 12 },
+    detailLabel: { color: '#666', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 4 },
+    detailValue: { color: '#fff', fontSize: 14, fontWeight: '500' }
 });
