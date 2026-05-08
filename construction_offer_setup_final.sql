@@ -5,7 +5,7 @@
 -- Construction Requests (Talepler)
 create table if not exists public.construction_requests (
   id uuid default gen_random_uuid() primary key,
-  user_id uuid references auth.users not null,
+  user_id uuid references public.profiles(id) not null,
   city text not null default 'İstanbul',
   district text not null,
   neighborhood text not null,
@@ -23,7 +23,7 @@ create table if not exists public.construction_requests (
 create table if not exists public.construction_offers (
   id uuid default gen_random_uuid() primary key,
   request_id uuid references public.construction_requests not null,
-  contractor_id uuid references auth.users not null,
+  contractor_id uuid references public.profiles(id) not null,
   offer_details text not null,
   price_estimate numeric,
   status text not null default 'pending', -- pending, accepted, rejected

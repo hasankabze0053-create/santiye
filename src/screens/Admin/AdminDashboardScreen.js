@@ -7,6 +7,7 @@ import { ActivityIndicator, Alert, FlatList, Linking, Modal, RefreshControl, Scr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import TurkeyLocationPicker from '../../components/TurkeyLocationPicker';
+import SharedRequestDetail from '../../components/SharedRequestDetail';
 
 // Reuse categories from HomeScreen logic but adapted
 const ADMIN_MODULES = [
@@ -100,6 +101,10 @@ const AdminDashboardScreen = () => {
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
+    const [detailItems, setDetailItems] = useState([]);
+    const [detailBids, setDetailBids] = useState([]);
+    const [detailConstructionOffers, setDetailConstructionOffers] = useState([]);
+    const [detailLoading, setDetailLoading] = useState(false);
 
     // Config Management State
     const [isEditMode, setIsEditMode] = useState(false);
@@ -199,7 +204,53 @@ const AdminDashboardScreen = () => {
                 setConfigModules(data);
             }
         } catch (err) {
-            console.error(err);
+            console.error('fetchParameters error:', err);
+        }
+    };
+
+    // Detay verilerini çek (Modal için)
+    useEffect(() => {
+        if (selectedRequest) {
+            fetchRequestDetails();
+        } else {
+            setDetailItems([]);
+            setDetailBids([]);
+            setDetailConstructionOffers([]);
+        }
+    }, [selectedRequest]);
+
+    const fetchRequestDetails = async () => {
+        try {
+            setDetailLoading(true);
+            const reqId = selectedRequest.id;
+            
+            // 1. Get Items (Market)
+            const { data: items } = await supabase
+                .from('market_request_items')
+                .select('*')
+                .eq('request_id', reqId);
+            setDetailItems(items || []);
+
+            // 2. Get Bids (Market)
+            const { data: bids } = await supabase
+                .from('market_bids')
+                .select('*, provider:profiles!provider_id(full_name)')
+                .eq('request_id', reqId);
+            setDetailBids(bids || []);
+
+            // 3. Get Construction Offers
+            const { data: cOffers } = await supabase
+                .from('construction_offers')
+                .select('*, profiles:profiles!contractor_id(id, full_name, company_name, avatar_url)')
+                .eq('request_id', reqId)
+                .neq('status', 'draft')
+                .order('created_at', { ascending: false });
+            setDetailConstructionOffers(cOffers || []);
+
+        } catch (err) {
+            console.error('fetchRequestDetails error:', err);
+        } finally {
+            setDetailLoading(false);
         }
     };
 
@@ -249,12 +300,21 @@ const AdminDashboardScreen = () => {
 
         try {
             // Build Query String safely
-            let selectQuery = '*, profiles(full_name, email)';
+            let profileHint = 'profiles';
+            if (tableName === 'construction_requests' || tableName === 'renovation_group') profileHint = 'profiles!fk_construction_profiles';
+            else if (tableName === 'market_requests') profileHint = 'profiles!fk_market_profiles';
+            else if (tableName === 'transport_requests') profileHint = 'profiles!fk_transport_profiles';
+            else if (tableName === 'elevator_requests') profileHint = 'profiles!elevator_requests_user_id_fkey';
+
+            let selectQuery = `*, ${profileHint}(full_name, email)`;
 
             if (tableName === 'renovation_group') {
                 // Fetch from construction_requests where offer_type='anahtar_teslim_tadilat' AND elevator_requests
-                let query1 = supabase.from('construction_requests').select(selectQuery + ', bids:construction_offers(*)').eq('offer_type', 'anahtar_teslim_tadilat').order('created_at', { ascending: false });
-                let query2 = supabase.from('elevator_requests').select(selectQuery).order('created_at', { ascending: false });
+                const constructionSelect = '*, profiles!fk_construction_profiles(full_name, email), bids:construction_offers(*)';
+                const elevatorSelect = '*, profiles!elevator_requests_user_id_fkey(full_name, email)';
+
+                let query1 = supabase.from('construction_requests').select(constructionSelect).eq('offer_type', 'anahtar_teslim_tadilat').order('created_at', { ascending: false });
+                let query2 = supabase.from('elevator_requests').select(elevatorSelect).order('created_at', { ascending: false });
 
                 if (searchQuery) {
                     query1 = query1.or(`title.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,district.ilike.%${searchQuery}%`);
@@ -389,13 +449,13 @@ const AdminDashboardScreen = () => {
         if (tableName === 'construction_requests') {
             offerTable = 'construction_offers';
             // construction_offers uses contractor_id (not provider_id)
-            selectQuery = `*, contractor:profiles!contractor_id(full_name, company_name, email, phone), request:construction_requests(city, district, offer_type)`;
+            selectQuery = `*, contractor:profiles!contractor_id(full_name, company_name, email, phone), request:construction_requests!request_id(city, district, offer_type, description, campaign_unit_count, campaign_commercial_count)`;
         } else if (tableName === 'market_requests') {
             offerTable = 'market_bids';
-            selectQuery = `*, profiles:provider_id(full_name, email, phone), request:market_requests(location)`;
+            selectQuery = `*, profiles:profiles!provider_id(full_name, email, phone), request:market_requests!request_id(location)`;
         } else if (tableName === 'transport_requests') {
             offerTable = 'transport_bids';
-            selectQuery = `*, profiles:provider_id(full_name, email, phone), request:transport_requests(city, district)`;
+            selectQuery = `*, profiles:profiles!provider_id(full_name, email, phone), request:transport_requests!request_id(city, district)`;
         }
 
         if (!offerTable) return;
@@ -929,18 +989,29 @@ const AdminDashboardScreen = () => {
         const providerName = providerProfile?.company_name || providerProfile?.full_name || 'Bilinmeyen Firma';
         const requestCity = item.request?.city || item.request?.location || '-';
         const requestDistrict = item.request?.district || '';
-        const priceDisplay = item.price_estimate
-            ? `${item.price_estimate.toLocaleString('tr-TR')} ₺`
-            : item.price
-                ? `${item.price} ₺`
-                : 'Fiyat Girilmedi';
+        const locationText = `${requestCity}${requestDistrict ? ' / ' + requestDistrict : ''}`;
+        const offerTypeLabel = item.request?.offer_type === 'anahtar_teslim_tadilat' ? 'Anahtar Teslim' : 'Kat Karşılığı';
+
+        const priceDisplay = item.price_estimate > 0
+            ? `${locationText} - ${item.price_estimate.toLocaleString('tr-TR')} ₺`
+            : item.price > 0
+                ? `${locationText} - ${item.price.toLocaleString('tr-TR')} ₺`
+                : `${locationText} - ${offerTypeLabel}`;
 
         return (
             <TouchableOpacity
                 style={styles.offerCard}
                 activeOpacity={0.8}
                 onPress={() => {
-                    if (item.request) {
+                    if (['urban_transformation', 'renovation'].includes(selectedModule?.id)) {
+                        navigation.navigate('OfferDetail', {
+                            request: item.request,
+                            request_id: item.request_id,
+                            contractor_id: item.contractor_id,
+                            initialOfferIndex: 0,
+                            isAdminView: true
+                        });
+                    } else if (item.request) {
                         const requestWithOffer = { ...item.request, bids: [item] };
                         setSelectedRequest(requestWithOffer);
                     } else {
@@ -973,17 +1044,39 @@ const AdminDashboardScreen = () => {
                     </View>
                 </View>
 
-                {/* Request location context */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                    <MaterialCommunityIcons name="map-marker-outline" size={13} color="#64748b" />
-                    <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 12 }}>
-                        Talep: {requestCity}{requestDistrict ? ` / ${requestDistrict}` : ''}
-                    </Text>
+                {/* Request Type Badge */}
+                <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+                    <View style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 6,
+                        backgroundColor: item.request?.offer_type === 'anahtar_teslim_tadilat' ? 'rgba(212, 175, 55, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                        paddingHorizontal: 10,
+                        paddingVertical: 4,
+                        borderRadius: 8,
+                        borderWidth: 1,
+                        borderColor: item.request?.offer_type === 'anahtar_teslim_tadilat' ? 'rgba(212, 175, 55, 0.3)' : 'rgba(59, 130, 246, 0.3)',
+                    }}>
+                        <MaterialCommunityIcons 
+                            name={item.request?.offer_type === 'anahtar_teslim_tadilat' ? "hammer-wrench" : "home-city"} 
+                            size={14} 
+                            color={item.request?.offer_type === 'anahtar_teslim_tadilat' ? "#D4AF37" : "#60A5FA"} 
+                        />
+                        <Text allowFontScaling={false} style={{ 
+                            color: item.request?.offer_type === 'anahtar_teslim_tadilat' ? "#D4AF37" : "#60A5FA", 
+                            fontSize: 11, 
+                            fontWeight: 'bold',
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.5
+                        }}>
+                            {item.request?.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat Talebi' : 'Kentsel Dönüşüm'}
+                        </Text>
+                    </View>
                 </View>
 
                 {/* Offer Body */}
                 <View style={styles.offerBody}>
-                    <Text allowFontScaling={false} style={styles.offerLabel}>Teklif Tutarı:</Text>
+                    <Text allowFontScaling={false} style={styles.offerLabel}>Teklif Özeti:</Text>
                     <Text allowFontScaling={false} style={styles.offerPrice}>{priceDisplay}</Text>
                     {(item.notes || item.offer_details) && (
                         <Text allowFontScaling={false} style={styles.offerNote} numberOfLines={2}>"{item.notes || item.offer_details}"</Text>
@@ -1965,122 +2058,109 @@ const AdminDashboardScreen = () => {
                                     contentContainerStyle={{ padding: 20 }}
                                 />
                             ) : (
-                            <FlatList
-                                key="module-grid"
-                                data={configModules.filter(m => m.is_active)}
-                                renderItem={({ item }) => {
-                                    // Merge with static definition to get Icon, Color, Table info
-                                    const staticDef = ADMIN_MODULES.find(m => m.id === item.id) || {};
-                                    const mergedItem = {
-                                        ...staticDef,
-                                        ...item,
-                                        // DB image_asset_key is handled by renderModuleItem using ASSET_MAP
-                                        // But we ensure 'image' fallback exists via staticDef
-                                    };
-                                    return renderModuleItem({ item: mergedItem });
-                                }}
-                                keyExtractor={item => item.id}
-                                contentContainerStyle={{ padding: 20, paddingBottom: 50 }}
-                                numColumns={1}
-                                style={{ flex: 1 }}
-                            />
+                                <FlatList
+                                    key="module-grid"
+                                    data={configModules.filter(m => m.is_active)}
+                                    renderItem={({ item }) => {
+                                        // Merge with static definition to get Icon, Color, Table info
+                                        const staticDef = ADMIN_MODULES.find(m => m.id === item.id) || {};
+                                        const mergedItem = {
+                                            ...staticDef,
+                                            ...item,
+                                        };
+                                        return renderModuleItem({ item: mergedItem });
+                                    }}
+                                    keyExtractor={item => item.id}
+                                    contentContainerStyle={{ padding: 20, paddingBottom: 50 }}
+                                    numColumns={1}
+                                    style={{ flex: 1 }}
+                                />
+                            )
                         )
-                    )
-                )}
-            </View>
+                    )}
+                </View>
 
-                {/* DETAIL MODAL */}
+                {/* DETAIL MODAL (Unified with SharedRequestDetail) */}
                 <Modal
                     visible={!!selectedRequest}
                     animationType="slide"
                     presentationStyle="pageSheet"
                     onRequestClose={() => setSelectedRequest(null)}
                 >
-                    <View style={styles.modalContainer}>
-                        <LinearGradient colors={['#1e293b', '#0f172a']} style={StyleSheet.absoluteFill} />
-
-                        {/* Modal Header */}
-                        <View style={styles.modalHeader}>
-                            <Text allowFontScaling={false} style={styles.modalTitle}>Talep Detayı</Text>
-                            <TouchableOpacity onPress={() => setSelectedRequest(null)} style={styles.closeBtn}>
-                                <Ionicons name="close" size={24} color="#FFF" />
-                            </TouchableOpacity>
-                        </View>
-
+                    <View style={{ flex: 1, backgroundColor: '#000' }}>
                         {selectedRequest && (
-                            <FlatList
-                                data={selectedRequest.bids || selectedRequest.offers || []}
-                                keyExtractor={item => item.id?.toString() || Math.random().toString()}
-                                ListHeaderComponent={() => (
-                                    <View>
-                                        {/* Request Info */}
-                                        <View style={styles.detailSection}>
-                                            <Text allowFontScaling={false} style={styles.detailLabel}>TALEP BİLGİLERİ</Text>
-                                            <View style={styles.infoRow}>
-                                                <Text allowFontScaling={false} style={styles.infoKey}>Başlık:</Text>
-                                                <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.title || selectedModule?.title + ' Talebi'}</Text>
-                                            </View>
-                                            <View style={styles.infoRow}>
-                                                <Text allowFontScaling={false} style={styles.infoKey}>Kullanıcı Adı:</Text>
-                                                <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.profiles?.full_name || 'Bilinmiyor'}</Text>
-                                            </View>
-                                            <View style={styles.infoRow}>
-                                                <Text allowFontScaling={false} style={styles.infoKey}>E-Posta:</Text>
-                                                <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.profiles?.email || 'Bilinmiyor'}</Text>
-                                            </View>
-                                            <View style={styles.infoRow}>
-                                                <Text allowFontScaling={false} style={styles.infoKey}>Telefon:</Text>
-                                                <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.profiles?.phone || 'Belirtilmemiş'}</Text>
-                                            </View>
-                                            <View style={styles.infoRow}>
-                                                <Text allowFontScaling={false} style={styles.infoKey}>Konum:</Text>
-                                                <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.city || selectedRequest.location || '-'} / {selectedRequest.district || '-'}</Text>
-                                            </View>
-                                            {selectedRequest.notes && (
-                                                <View style={styles.infoRow}>
-                                                    <Text allowFontScaling={false} style={styles.infoKey}>Notlar:</Text>
-                                                    <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.notes}</Text>
-                                                </View>
-                                            )}
-                                            {/* Special Fields for Market */}
-                                            {selectedRequest.items && selectedRequest.items.length > 0 && (
-                                                <View style={{ marginTop: 10 }}>
-                                                    <Text allowFontScaling={false} style={[styles.infoKey, { marginBottom: 5 }]}>Sipariş Listesi:</Text>
-                                                    {selectedRequest.items.map((it, idx) => (
-                                                        <Text allowFontScaling={false} key={idx} style={styles.bulletItem}>• {it.product_name} ({it.quantity})</Text>
-                                                    ))}
-                                                </View>
-                                            )}
-                                            {/* Special Fields for Transport */}
-                                            {selectedModule?.id === 'transport' && (
-                                                <>
-                                                    <View style={styles.infoRow}>
-                                                        <Text allowFontScaling={false} style={styles.infoKey}>Nereden:</Text>
-                                                        <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.from_location}</Text>
-                                                    </View>
-                                                    <View style={styles.infoRow}>
-                                                        <Text allowFontScaling={false} style={styles.infoKey}>Nereye:</Text>
-                                                        <Text allowFontScaling={false} style={styles.infoValue}>{selectedRequest.to_location}</Text>
-                                                    </View>
-                                                </>
-                                            )}
-                                        </View>
+                            <SharedRequestDetail
+                                request={selectedRequest}
+                                type={
+                                    selectedModule?.id === 'urban_transformation' ? 'construction' :
+                                    selectedModule?.id === 'market' ? 'market' :
+                                    selectedModule?.id === 'logistics' ? 'logistics' :
+                                    selectedRequest.type || (selectedRequest.offer_type ? 'construction' : 'elevator') 
+                                }
+                                items={detailItems}
+                                bids={detailBids}
+                                constructionOffers={detailConstructionOffers}
+                                loading={detailLoading}
+                                isAdmin={true}
+                                isOwner={false}
+                                navigation={navigation}
+                                showActions={false}
+                                additionalFooter={
+                                    <View style={{ paddingHorizontal: 16, paddingBottom: 40, gap: 12 }}>
+                                        <TouchableOpacity 
+                                            style={{ 
+                                                backgroundColor: '#FBBF24', 
+                                                paddingVertical: 18, 
+                                                borderRadius: 16, 
+                                                alignItems: 'center',
+                                                flexDirection: 'row',
+                                                justifyContent: 'center',
+                                                gap: 10
+                                            }}
+                                            onPress={() => {
+                                                setAssignTargetRequest(selectedRequest);
+                                                setSelectedProviderIds(selectedRequest.assigned_provider_ids || []);
+                                                setAssignModalVisible(true);
+                                            }}
+                                        >
+                                            <MaterialCommunityIcons name="briefcase-check" size={24} color="#78350F" />
+                                            <Text allowFontScaling={false} style={{ color: '#78350F', fontWeight: '900', fontSize: 16 }}>HİZMET VERENE YÖNLENDİR</Text>
+                                        </TouchableOpacity>
 
-                                        <Text allowFontScaling={false} style={[styles.detailLabel, { marginTop: 20, marginLeft: 20 }]}>TEKLİFLER ({(selectedRequest.bids || selectedRequest.offers || []).length})</Text>
+                                        <TouchableOpacity 
+                                            style={{ 
+                                                backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+                                                borderWidth: 1, 
+                                                borderColor: '#EF4444', 
+                                                paddingVertical: 16, 
+                                                borderRadius: 16, 
+                                                alignItems: 'center',
+                                                flexDirection: 'row',
+                                                justifyContent: 'center',
+                                                gap: 8
+                                            }}
+                                            onPress={() => {
+                                                Alert.alert(
+                                                    'Talebi Sil',
+                                                    'Bu talebi yönetici yetkisiyle silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+                                                    [
+                                                        { text: 'Vazgeç', style: 'cancel' },
+                                                        { text: 'Sil', style: 'destructive', onPress: () => { handleDelete(selectedRequest); setSelectedRequest(null); } }
+                                                    ]
+                                                );
+                                            }}
+                                        >
+                                            <MaterialCommunityIcons name="trash-can-outline" size={20} color="#EF4444" />
+                                            <Text allowFontScaling={false} style={{ color: '#EF4444', fontWeight: 'bold' }}>TALEBİ KALICI OLARAK SİL</Text>
+                                        </TouchableOpacity>
+                                        
+                                        <TouchableOpacity 
+                                            style={{ paddingVertical: 10, alignItems: 'center' }}
+                                            onPress={() => setSelectedRequest(null)}
+                                        >
+                                            <Text allowFontScaling={false} style={{ color: '#666', fontWeight: 'bold' }}>KAPAT</Text>
+                                        </TouchableOpacity>
                                     </View>
-                                )}
-                                renderItem={({ item }) => (
-                                    <View style={styles.bidCard}>
-                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                            <Text allowFontScaling={false} style={styles.bidPrice}>{item.price || item.price_estimate} ₺</Text>
-                                            <Text allowFontScaling={false} style={styles.bidStatus}>{item.status}</Text>
-                                        </View>
-                                        <Text allowFontScaling={false} style={styles.bidNotes}>{item.notes || item.offer_details || 'Açıklama yok'}</Text>
-                                        <Text allowFontScaling={false} style={styles.bidProvider}>Tedarikçi ID: {item.provider_id || item.contractor_id}</Text>
-                                    </View>
-                                )}
-                                ListEmptyComponent={
-                                    <Text allowFontScaling={false} style={styles.noBidsText}>Henüz teklif verilmemiş.</Text>
                                 }
                             />
                         )}

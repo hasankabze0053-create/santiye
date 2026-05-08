@@ -243,7 +243,7 @@ export const MarketService = {
                 .from('market_bids')
                 .select(`
                     *,
-                    provider:profiles(full_name, avatar_url, company_name),
+                    provider:profiles!provider_id(full_name, avatar_url, company_name),
                     request:market_requests(*, items:market_request_items(*))
                 `)
                 .in('request_id', requestIds)

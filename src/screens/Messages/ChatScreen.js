@@ -108,7 +108,7 @@ export default function ChatScreen() {
 
             const { data, error } = await supabase
                 .from('construction_offers')
-                .select('*, request:construction_requests(*), profiles:contractor_id(full_name, avatar_url, company_name)')
+                .select('*, request:construction_requests!request_id(*), profiles:profiles!contractor_id(full_name, avatar_url, company_name)')
                 .eq('request_id', request_id)
                 .eq('contractor_id', contractorId)
                 .neq('status', 'draft');

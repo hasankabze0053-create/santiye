@@ -153,7 +153,7 @@ const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, i
         </View>
 
         {/* Dynamic CTA Button */}
-        <View style={[styles.ctaWrapper, align === 'center' ? { left: CARD_WIDTH * 0.25 - 65 } : { left: 0 }]}>
+        <View style={[styles.ctaWrapper, align === 'center' ? { left: CARD_WIDTH * 0.25 - 65 } : { left: -1 }]}>
           <LinearGradient
             colors={[themeBtnStart, themeBtnEnd]}
             start={{ x: 0, y: 0 }}
@@ -269,8 +269,8 @@ const styles = StyleSheet.create({
   },
   ctaWrapper: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
+    bottom: -1,
+    left: -1,
   },
   cta: {
     flexDirection: 'row',

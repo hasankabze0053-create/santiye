@@ -65,8 +65,7 @@ export default function UserRequestsScreen() {
         try {
             const { data, error } = await supabase
                 .from('construction_offers')
-                .select('*, profiles:contractor_id(full_name, avatar_url, company_name)') // Assuming relation
-                .select('*, profiles:contractor_id(full_name, avatar_url, company_name)') // Assuming relation
+                .select('*, profiles:profiles!contractor_id(full_name, avatar_url, company_name)') // Fixed ambiguity
                 .eq('request_id', requestId)
                 .neq('status', 'draft') // Show only submitted offers
             if (error) {

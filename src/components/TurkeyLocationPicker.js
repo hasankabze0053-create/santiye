@@ -3,13 +3,13 @@ import { useState } from 'react';
 import {
     FlatList,
     Modal,
-    SafeAreaView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
     View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { TURKEY_CITIES, DISTRICTS, DEFAULT_DISTRICTS } from '../constants/TurkeyLocations';
 
 export default function TurkeyLocationPicker({ visible, onClose, onSelect, currentCity, currentDistrict }) {

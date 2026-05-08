@@ -26,7 +26,7 @@ export const ConstructionService = {
         try {
             const { data, error } = await supabase
                 .from('construction_requests')
-                .select('*, profiles!user_id(full_name, phone, email, avatar_url), bids:construction_offers(id)')
+                .select('*, profiles!fk_construction_profiles(full_name, phone, email, avatar_url), bids:construction_offers(id)')
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -42,7 +42,7 @@ export const ConstructionService = {
         try {
             const { data, error } = await supabase
                 .from('construction_offers')
-                .select('*, request:construction_requests(*, profiles:user_id(full_name)), contractor:profiles!contractor_id(full_name, company_name, avatar_url)')
+                .select('*, request:construction_requests(*, profiles!fk_construction_profiles(full_name)), contractor:profiles!contractor_id(full_name, company_name, avatar_url)')
                 .order('created_at', { ascending: false });
 
             if (error) throw error;

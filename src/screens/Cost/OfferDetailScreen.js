@@ -67,7 +67,7 @@ export default function OfferDetailScreen() {
     const { user } = useAuth();
     const navigation = useNavigation();
     const route = useRoute();
-    const { request, request_id, contractor_id, offers: initialOffers, initialOfferIndex = 0 } = route.params || {};
+    const { request, request_id, contractor_id, offers: initialOffers, initialOfferIndex = 0, isAdminView = false } = route.params || {};
 
     const [loading, setLoading] = useState(!initialOffers);
     const [offers, setOffers] = useState(initialOffers || []); // Array of offer objects
@@ -142,7 +142,7 @@ export default function OfferDetailScreen() {
             // 1. Fetch Offers
             const { data: offersData, error: offersError } = await supabase
                 .from('construction_offers')
-                .select('*, profiles:contractor_id(*)') // Fetch profile joined
+                .select('*, profiles:profiles!contractor_id(*)') // Fetch profile joined with hint
                 .eq('request_id', request_id)
                 .eq('contractor_id', contractor_id)
                 .order('created_at', { ascending: false }); // Newest first
@@ -403,7 +403,7 @@ export default function OfferDetailScreen() {
                 )}
 
                 {/* 4. Action Buttons */}
-                {contractor?.id !== user?.id && (
+                {contractor?.id !== user?.id && !isAdminView && (
                     <View style={{ marginTop: 30, gap: 12 }}>
                         {/* Info Note */}
                         <GlassCard style={styles.infoNoteCard}>
