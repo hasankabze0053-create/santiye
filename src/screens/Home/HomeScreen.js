@@ -19,7 +19,6 @@ import HighlightEditModal from '../../components/HighlightEditModal';
 import ModuleEditModal from '../../components/ModuleEditModal';
 import CategoryChipEditModal from '../../components/CategoryChipEditModal';
 import CategoryChip from '../../components/CategoryChip';
-import InfoCard from '../../components/InfoCard';
 import ServiceListItem from '../../components/ServiceListItem';
 import { COLORS, FONTS } from '../../theme';
 
@@ -174,11 +173,6 @@ export default function HomeScreen({ navigation }) {
                         }}
                     />
 
-                    {/* Ticker Section */}
-                    <InfoCard 
-                        weather={{ temp: 18, description: 'Beyaz' }}
-                        ironPrice={{ value: '₺31.50', trend: 'down' }}
-                    />
 
                     {/* Highlight Carousel Section */}
                     <View style={styles.carouselContainer}>

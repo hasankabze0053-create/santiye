@@ -24,6 +24,7 @@ import OfferSummaryCard from '../../components/OfferSummaryCard';
 import PremiumBackground from '../../components/PremiumBackground';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+import SharedRequestDetail from '../../components/SharedRequestDetail';
 
 const { width } = Dimensions.get('window');
 
@@ -67,13 +68,14 @@ export default function OfferDetailScreen() {
     const { user } = useAuth();
     const navigation = useNavigation();
     const route = useRoute();
-    const { request, request_id, contractor_id, offers: initialOffers, initialOfferIndex = 0, isAdminView = false } = route.params || {};
+    const { request, request_id, contractor_id, offers: initialOffers, initialOfferIndex = 0, isAdminView = false, isMarket = false } = route.params || {};
 
     const [loading, setLoading] = useState(!initialOffers);
     const [offers, setOffers] = useState(initialOffers || []); // Array of offer objects
     const [contractor, setContractor] = useState(null);
     const [activeTab, setActiveTab] = useState(initialOfferIndex); // Index of currently viewed offer
     const [isSchemaModalVisible, setIsSchemaModalVisible] = useState(false);
+    const [showRequestModal, setShowRequestModal] = useState(false);
     const [viewerMode, setViewerMode] = useState('contractor');
 
     const scrollX = useRef(new Animated.Value(0)).current;
@@ -178,6 +180,32 @@ export default function OfferDetailScreen() {
     const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
 
     // --- PROFOSYONEL PARSING MANTIĞI ---
+    const parseBidNotes = (notesText) => {
+        if (!notesText) return {};
+        const parsed = {};
+        const brandMatch = notesText.match(/\[Marka:\s*(.*?)\]/);
+        if (brandMatch) parsed.offerBrand = brandMatch[1].trim();
+        const providerBrandMatch = notesText.match(/(?<!\[)Marka:\s*(.*?)(?=\n|$|\[)/);
+        if (providerBrandMatch) parsed.providerBrand = providerBrandMatch[1].trim();
+        const specMatch = notesText.match(/\[Özellik:\s*(.*?)\]/);
+        if (specMatch) parsed.offerTechSpec = specMatch[1].trim();
+        const providerSpecMatch = notesText.match(/(?<!\[)Özellik:\s*(.*?)(?=\n|$|\[)/);
+        if (providerSpecMatch) parsed.providerTechSpec = providerSpecMatch[1].trim();
+        if (notesText.includes('Stok: Hemen') || notesText.includes('Stok Durumu: Hemen')) parsed.stockStatus = 'Hemen Teslim';
+        else if (notesText.includes('Stok:') || notesText.includes('Stok Durumu:')) parsed.stockStatus = 'Beklemeli';
+        parsed.vatIncluded = notesText.includes('KDV: Dahil') || notesText.includes('KDV: Dahili');
+        if (notesText.includes('Nakliye: Alıcı') || notesText.includes('Nakliye Durumu: Alıcı')) parsed.shippingType = 'Alıcı Öder';
+        else if (notesText.includes('Nakliye: Hariç') || notesText.includes('Nakliye Durumu: Hariç')) parsed.shippingType = 'Hariç';
+        else if (notesText.includes('Nakliye:')) parsed.shippingType = 'Dahil';
+        const feeMatch = notesText.match(/Nakliye.*?(\d+)\s*TL/);
+        if (feeMatch) parsed.shippingFee = feeMatch[1];
+        const vadeMatch = notesText.match(/(\[Vade:\s*(.*?)\]|Vade:\s*(.*?)(?=\n|$))/);
+        if (vadeMatch) parsed.paymentTerm = vadeMatch[2] || vadeMatch[3];
+        const validMatch = notesText.match(/Geçerlilik:\s*(\d+)/);
+        if (validMatch) parsed.validity = validMatch[1] || '48';
+        return parsed;
+    };
+
     const getField = (tag) => {
         if (!request?.description) return null;
         const regexNew = new RegExp(`\\[${tag}\\]\\s*(.*)`, 'i');
@@ -235,6 +263,116 @@ export default function OfferDetailScreen() {
         const lokasyon = getField('LOKASYON') || (request?.district ? `${request.district}, ${request.city}` : (request?.city || 'Belirtilmedi'));
         const teknikItems = teknik.split('|').map(s => s.trim()).filter(Boolean);
 
+        if (isMarket) {
+            const parsed = parseBidNotes(offer.notes);
+            const unitPrice = parseFloat(offer.price) || 0;
+            const quantityVal = request?.items?.[0]?.quantity || request?.quantity || 1;
+            const totalAmnt = unitPrice * (parseFloat(String(quantityVal).split(' ')[0]) || 1);
+            let itemName = request?.items?.[0]?.product_name || request?.title || 'Malzeme Talebi';
+            itemName = itemName.replace(/\[Marka:.*?\]/g, '').replace(/\[Özellik:.*?\]/g, '').trim();
+
+            return (
+                <ScrollView style={{ width: width, paddingHorizontal: 20 }} contentContainerStyle={{ paddingBottom: 150 }} showsVerticalScrollIndicator={false}>
+                    {/* Firm Info - Common */}
+                    <GlassCard style={styles.firmCard}>
+                        <View style={styles.firmHeaderRow}>
+                            <View style={styles.avatarContainer}>
+                                <View style={styles.avatarPlaceholder}><MaterialCommunityIcons name="store-outline" size={24} color="#D4AF37" /></View>
+                                <View style={styles.onlineBadge} />
+                            </View>
+                            <View style={styles.firmMeta}>
+                                <Text allowFontScaling={false} style={styles.firmLabel}>TEDARİKÇİ FİRMA</Text>
+                                <View style={styles.nameRow}>
+                                    <Text allowFontScaling={false} style={styles.firmName}>{contractor?.company_name || contractor?.full_name || 'Tedarikçi'}</Text>
+                                    <MaterialCommunityIcons name="check-decagram" size={18} color="#34D399" style={{ marginLeft: 6 }} />
+                                </View>
+                                <View style={styles.statusRow}>
+                                    <View style={styles.dot} /><Text allowFontScaling={false} style={styles.statusText}>Aktif Satıcı Üye</Text>
+                                </View>
+                            </View>
+                        </View>
+                        {isAdminView && (
+                            <TouchableOpacity style={[styles.adminRequestBtn, { marginTop: 15, marginBottom: 5 }]} onPress={() => setShowRequestModal(true)}>
+                                <MaterialCommunityIcons name="file-document-outline" size={18} color="#D4AF37" />
+                                <Text allowFontScaling={false} style={styles.adminRequestBtnText}>TALEBİ GÖRÜNTÜLE</Text>
+                                <Ionicons name="chevron-forward" size={14} color="#D4AF37" style={{ marginLeft: 'auto' }} />
+                            </TouchableOpacity>
+                        )}
+                    </GlassCard>
+
+                    {/* Market Offer Card Parity */}
+                    <GlassCard style={{ padding: 18, borderRadius: 20, borderColor: 'rgba(255, 215, 0, 0.2)', borderWidth: 1, backgroundColor: 'rgba(255, 215, 0, 0.03)', marginTop: 20 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+                             <View style={{ backgroundColor: 'rgba(255, 215, 0, 0.15)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 }}>
+                                <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 11, fontWeight: '900', letterSpacing: 1 }}>TEKLİF DETAYI</Text>
+                             </View>
+                             <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 11, fontWeight: 'bold' }}>#{offer.id?.substring(0,8).toUpperCase()}</Text>
+                        </View>
+
+                        <View style={{ marginBottom: 20 }}>
+                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 4 }}>MALZEME</Text>
+                            <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 20, fontWeight: '900' }}>{itemName}</Text>
+                            
+                            <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
+                                {(parsed.providerBrand || parsed.offerBrand) && (
+                                    <View style={{ backgroundColor: 'rgba(56, 189, 248, 0.1)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                        <MaterialCommunityIcons name="tag-outline" size={14} color="#38bdf8" />
+                                        <Text allowFontScaling={false} style={{ color: '#38bdf8', fontSize: 12, fontWeight: 'bold' }}>Marka: {parsed.providerBrand || parsed.offerBrand}</Text>
+                                    </View>
+                                )}
+                                {(parsed.providerTechSpec || parsed.offerTechSpec) && (
+                                    <View style={{ backgroundColor: 'rgba(168, 85, 247, 0.1)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                        <MaterialCommunityIcons name="tune-variant" size={14} color="#a855f7" />
+                                        <Text allowFontScaling={false} style={{ color: '#a855f7', fontSize: 12, fontWeight: 'bold' }}>Özellik: {parsed.providerTechSpec || parsed.offerTechSpec}</Text>
+                                    </View>
+                                )}
+                            </View>
+                        </View>
+
+                        <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginBottom: 20 }} />
+
+                        <View style={{ flexDirection: 'row', gap: 20, marginBottom: 20 }}>
+                            <View style={{ flex: 1 }}>
+                                <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 4 }}>MİKTAR</Text>
+                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: '900' }}>{quantityVal}</Text>
+                            </View>
+                            <View style={{ flex: 2 }}>
+                                <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 4 }}>BİRİM FİYAT</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
+                                    <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 24, fontWeight: '900' }}>{unitPrice.toLocaleString('tr-TR')} ₺</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 12, fontWeight: 'bold' }}>{parsed.vatIncluded ? '(KDV Dahil)' : '(+KDV)'}</Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 16, padding: 15, flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                             <View style={{ width: '47%' }}>
+                                <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', marginBottom: 2 }}>STOK</Text>
+                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '700' }}>{parsed.stockStatus || 'Hemen Teslim'}</Text>
+                             </View>
+                             <View style={{ width: '47%' }}>
+                                <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', marginBottom: 2 }}>NAKLİYE</Text>
+                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '700' }}>{parsed.shippingType || 'Hariç'}</Text>
+                             </View>
+                             <View style={{ width: '47%' }}>
+                                <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', marginBottom: 2 }}>VADE</Text>
+                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '700' }}>{parsed.paymentTerm || 'EFT'}</Text>
+                             </View>
+                             <View style={{ width: '47%' }}>
+                                <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', marginBottom: 2 }}>GEÇERLİLİK</Text>
+                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '700' }}>{parsed.validity || '48'} Saat</Text>
+                             </View>
+                        </View>
+
+                        <View style={{ marginTop: 20, backgroundColor: 'rgba(74, 222, 128, 0.1)', padding: 15, borderRadius: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 12, fontWeight: 'bold' }}>TOPLAM TEKLİF TUTARI</Text>
+                            <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 20, fontWeight: '900' }}>{totalAmnt.toLocaleString('tr-TR')} ₺</Text>
+                        </View>
+                    </GlassCard>
+                </ScrollView>
+            );
+        }
+
         return (
             <ScrollView
                 style={{ width: width, paddingHorizontal: 20 }}
@@ -272,6 +410,17 @@ export default function OfferDetailScreen() {
                             </View>
                         </View>
                     </View>
+
+                    {isAdminView && (
+                        <TouchableOpacity 
+                            style={[styles.adminRequestBtn, { marginTop: 15, marginBottom: 5 }]}
+                            onPress={() => setShowRequestModal(true)}
+                        >
+                            <MaterialCommunityIcons name="file-document-outline" size={18} color="#D4AF37" />
+                            <Text style={styles.adminRequestBtnText}>TALEBİ GÖRÜNTÜLE</Text>
+                            <Ionicons name="chevron-forward" size={14} color="#D4AF37" style={{ marginLeft: 'auto' }} />
+                        </TouchableOpacity>
+                    )}
 
                     <TouchableOpacity 
                         style={styles.visitBtn}
@@ -497,7 +646,11 @@ export default function OfferDetailScreen() {
 
                 {/* Header */}
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                    <TouchableOpacity 
+                        onPress={() => navigation.goBack()} 
+                        style={styles.backBtn}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <View style={{ alignItems: 'center' }}>
@@ -509,7 +662,10 @@ export default function OfferDetailScreen() {
                             </Text>
                         </View>
                     </View>
-                    <TouchableOpacity style={styles.backBtn}>
+                    <TouchableOpacity 
+                        style={styles.backBtn}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
                         <MaterialCommunityIcons name="dots-horizontal" size={24} color="#FFF" />
                     </TouchableOpacity>
                 </View>
@@ -586,6 +742,27 @@ export default function OfferDetailScreen() {
                     </View>
                 </Modal>
 
+                {/* Shared Request Detail Modal for Admin */}
+                <Modal 
+                    visible={showRequestModal} 
+                    animationType="slide" 
+                    transparent={true} 
+                    onRequestClose={() => setShowRequestModal(false)}
+                >
+                    <View style={{ flex: 1, backgroundColor: '#000' }}>
+                        <SharedRequestDetail
+                            request={request}
+                            type={request?.offer_type === 'anahtar_teslim_tadilat' ? 'construction' : 'construction'} // Handle mapping
+                            isAdmin={true}
+                            showActions={false}
+                            navigation={{
+                                ...navigation,
+                                goBack: () => setShowRequestModal(false)
+                            }}
+                        />
+                    </View>
+                </Modal>
+
             </SafeAreaView>
         </PremiumBackground>
     );
@@ -593,9 +770,23 @@ export default function OfferDetailScreen() {
 
 const styles = StyleSheet.create({
     center: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 10 },
+    header: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
+        paddingHorizontal: 15, 
+        paddingVertical: 15 
+    },
     headerTitle: { color: '#D4AF37', fontSize: 16, fontWeight: 'bold', letterSpacing: 1 },
-    backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.1)' },
+    backBtn: { 
+        width: 44, 
+        height: 44, 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        borderRadius: 22, 
+        backgroundColor: 'rgba(255,255,255,0.12)',
+        marginLeft: 5
+    },
 
     tabContainer: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: 10 },
     tabDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#333' },
@@ -743,6 +934,23 @@ const styles = StyleSheet.create({
     visitBtnText: {
         color: '#D4AF37',
         fontSize: 14,
+        fontWeight: 'bold',
+    },
+
+    adminRequestBtn: {
+        backgroundColor: 'rgba(212,175,55,0.1)',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        borderWidth: 1,
+        borderColor: 'rgba(212,175,55,0.3)',
+    },
+    adminRequestBtnText: {
+        color: '#D4AF37',
+        fontSize: 10,
         fontWeight: 'bold',
     },
 

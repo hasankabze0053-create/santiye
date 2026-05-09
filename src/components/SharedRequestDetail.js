@@ -980,7 +980,7 @@ const SharedRequestDetail = ({
             <LinearGradient colors={['#000000', '#121212']} style={StyleSheet.absoluteFillObject} />
             <SafeAreaView style={{ flex: 1 }} edges={['top']}>
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.backBtn}>
+                    <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.backBtn} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <Text allowFontScaling={false} style={styles.headerTitle}>TALEP DETAYI</Text>

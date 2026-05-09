@@ -452,7 +452,7 @@ const AdminDashboardScreen = () => {
             selectQuery = `*, contractor:profiles!contractor_id(full_name, company_name, email, phone), request:construction_requests!request_id(city, district, offer_type, description, campaign_unit_count, campaign_commercial_count)`;
         } else if (tableName === 'market_requests') {
             offerTable = 'market_bids';
-            selectQuery = `*, profiles:profiles!provider_id(full_name, email, phone), request:market_requests!request_id(location)`;
+            selectQuery = `*, profiles:profiles!provider_id(full_name, company_name, email, phone), request:market_requests!request_id(location, title, items:market_request_items(*))`;
         } else if (tableName === 'transport_requests') {
             offerTable = 'transport_bids';
             selectQuery = `*, profiles:profiles!provider_id(full_name, email, phone), request:transport_requests!request_id(city, district)`;
@@ -461,9 +461,18 @@ const AdminDashboardScreen = () => {
         if (!offerTable) return;
 
         try {
-            const { data, error } = await supabase
+            let query = supabase
                 .from(offerTable)
-                .select(selectQuery)
+                .select(selectQuery);
+
+            // Filter by module to avoid mixing urban transformation and renovation offers
+            if (selectedModule?.id === 'urban_transformation') {
+                query = query.not('request.offer_type', 'eq', 'anahtar_teslim_tadilat');
+            } else if (selectedModule?.id === 'renovation') {
+                query = query.eq('request.offer_type', 'anahtar_teslim_tadilat');
+            }
+
+            const { data, error } = await query
                 .order('created_at', { ascending: false })
                 .limit(100);
 
@@ -984,6 +993,144 @@ const AdminDashboardScreen = () => {
     };
 
     const renderOfferItem = ({ item }) => {
+        if (selectedModule?.id === 'market') {
+            const providerProfile = item.contractor || item.profiles;
+            const statusColor = item.status === 'ACCEPTED' ? '#4ade80' : item.status === 'REJECTED' ? '#ef4444' : '#f59e0b';
+            const statusBg = item.status === 'ACCEPTED' ? 'rgba(74, 222, 128, 0.15)' : item.status === 'REJECTED' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)';
+            const statusText = item.status === 'ACCEPTED' ? 'ONAYLI TEKLİF' : item.status === 'REJECTED' ? 'REDDEDİLDİ' : 'BEKLEYEN TEKLİF';
+
+            // IF FILTERED BY REQUEST: Use the "Opportunity Card" style (Image 2)
+            if (offerFilterMode === 'request') {
+                return (
+                    <View style={[styles.card, { padding: 0, overflow: 'hidden', backgroundColor: '#0f172a', borderColor: 'rgba(255,255,255,0.05)', marginBottom: 15 }]}>
+                        <View style={{ padding: 16 }}>
+                            {/* Header: Provider & Status */}
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                                <View style={{ flex: 1 }}>
+                                    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                                        <View style={{ backgroundColor: 'rgba(52, 211, 153, 0.15)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                            <MaterialCommunityIcons name="office-building" size={12} color="#34D399" />
+                                            <Text allowFontScaling={false} style={{ color: '#34D399', fontSize: 10, fontWeight: '900' }}>{providerProfile?.company_name || providerProfile?.full_name || 'İSİMSİZ FİRMA'}</Text>
+                                        </View>
+                                        <View style={{ backgroundColor: statusBg, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                                            <Text allowFontScaling={false} style={{ color: statusColor, fontSize: 10, fontWeight: '900' }}>{statusText}</Text>
+                                        </View>
+                                    </View>
+                                    <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 12, fontWeight: 'bold' }}>
+                                        {new Date(item.created_at).toLocaleDateString('tr-TR')} • {new Date(item.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                    </Text>
+                                </View>
+                                <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, alignSelf: 'flex-start' }}>
+                                    <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold' }}>#{item.id.substring(0,8).toUpperCase()}</Text>
+                                </View>
+                            </View>
+
+                            {/* Details Box */}
+                            <View style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 16, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', gap: 12 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                    <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.05)', alignItems: 'center', justifyContent: 'center' }}>
+                                        <MaterialCommunityIcons name="cube-outline" size={20} color="#94a3b8" />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', letterSpacing: 0.5 }}>MALZEME</Text>
+                                        {renderProductWithBadges(item.request?.items?.[0]?.product_name || item.request?.title || "İsimsiz Talep", false)}
+                                    </View>
+                                </View>
+
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                    <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.05)', alignItems: 'center', justifyContent: 'center' }}>
+                                        <MaterialCommunityIcons name="cash" size={20} color="#4ade80" />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', letterSpacing: 0.5 }}>TEKLİF TUTARI</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#4ade80', fontSize: 15, fontWeight: 'bold' }}>{item.price?.toLocaleString('tr-TR')} ₺</Text>
+                                    </View>
+                                </View>
+
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                    <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.05)', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Ionicons name="location-outline" size={20} color="#EF4444" />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', letterSpacing: 0.5 }}>TESLİMAT YERİ</Text>
+                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 14, fontWeight: 'bold' }}>{item.request?.location || 'Konum belirtilmedi'}</Text>
+                                    </View>
+                                </View>
+                            </View>
+
+                            {/* Actions */}
+                            <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+                                <TouchableOpacity style={{ flex: 1, backgroundColor: '#1e293b', paddingVertical: 12, borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' }}>
+                                    <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 14, fontWeight: 'bold' }}>Arşivle</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity 
+                                    style={{ flex: 2, backgroundColor: '#fbbf24', paddingVertical: 12, borderRadius: 12, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}
+                                    onPress={() => {
+                                        // Navigate to MarketOffers to see the EXACT view the customer sees
+                                        navigation.navigate('MarketOffers', {
+                                            request: { ...item.request, items: item.request?.items || [] }, 
+                                            bids: [item], // Pass the single bid as an array
+                                            isAdminView: true
+                                        });
+                                    }}
+                                >
+                                    <Text allowFontScaling={false} style={{ color: '#000', fontSize: 14, fontWeight: '900' }}>TEKLİFİ İNCELE</Text>
+                                    <Ionicons name="arrow-forward" size={18} color="#000" />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                );
+            }
+
+            // DEFAULT / BY CONTRACTOR: Use the standard offer-focused design
+            return (
+                <TouchableOpacity
+                    style={[styles.card, { padding: 16, backgroundColor: '#1a1a1e', borderColor: 'rgba(255,255,255,0.05)', marginBottom: 15 }]}
+                    onPress={() => {
+                        // Navigate to MarketOffers to see the EXACT view the customer sees
+                        navigation.navigate('MarketOffers', {
+                            request: { ...item.request, items: item.request?.items || [] }, 
+                            bids: [item], // Pass the single bid as an array
+                            isAdminView: true
+                        });
+                    }}
+                >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                        <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(52, 211, 153, 0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
+                            <MaterialCommunityIcons name="office-building" size={20} color="#34D399" />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 15, fontWeight: 'bold' }}>{providerProfile?.company_name || providerProfile?.full_name || 'İsimsiz Firma'}</Text>
+                            <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 11 }}>{new Date(item.created_at).toLocaleDateString('tr-TR')}</Text>
+                        </View>
+                        <View style={{ backgroundColor: statusBg, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                            <Text allowFontScaling={false} style={{ color: statusColor, fontSize: 10, fontWeight: '900' }}>{statusText}</Text>
+                        </View>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', marginBottom: 12 }}>
+                         <View style={{ backgroundColor: 'rgba(52, 211, 153, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                            <MaterialCommunityIcons name="cart" size={12} color="#34D399" />
+                            <Text allowFontScaling={false} style={{ color: '#34D399', fontSize: 10, fontWeight: 'bold' }}>MARKET / MALZEME</Text>
+                         </View>
+                    </View>
+
+                    <View style={{ backgroundColor: 'rgba(0,0,0,0.2)', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' }}>
+                        <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 11, fontWeight: 'bold', marginBottom: 4 }}>Teklif Özeti:</Text>
+                        <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 15, fontWeight: 'bold' }}>
+                            {item.request?.location || 'Konum belirtilmedi'} - {item.price?.toLocaleString('tr-TR')} ₺
+                        </Text>
+                        {item.notes && (
+                            <Text allowFontScaling={false} numberOfLines={2} style={{ color: '#94a3b8', fontSize: 12, marginTop: 4, fontStyle: 'italic' }}>
+                                "{item.notes}"
+                            </Text>
+                        )}
+                    </View>
+                </TouchableOpacity>
+            );
+        }
+
         // construction_offers uses contractor field (not profiles), others use profiles
         const providerProfile = item.contractor || item.profiles;
         const providerName = providerProfile?.company_name || providerProfile?.full_name || 'Bilinmeyen Firma';
@@ -1012,8 +1159,14 @@ const AdminDashboardScreen = () => {
                             isAdminView: true
                         });
                     } else if (item.request) {
-                        const requestWithOffer = { ...item.request, bids: [item] };
-                        setSelectedRequest(requestWithOffer);
+                        navigation.navigate('OfferDetail', {
+                            request: item.request, 
+                            request_id: item.request_id, 
+                            contractor_id: item.provider_id, 
+                            offers: [item], 
+                            isAdminView: true,
+                            isMarket: selectedModule?.id === 'market'
+                        });
                     } else {
                         Alert.alert('Hata', 'Talep detaylarına ulaşılamadı.');
                     }
@@ -1050,26 +1203,53 @@ const AdminDashboardScreen = () => {
                         flexDirection: 'row',
                         alignItems: 'center',
                         gap: 6,
-                        backgroundColor: item.request?.offer_type === 'anahtar_teslim_tadilat' ? 'rgba(212, 175, 55, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                        backgroundColor: 
+                            item.request?.offer_type === 'anahtar_teslim_tadilat' ? 'rgba(212, 175, 55, 0.1)' :
+                            selectedModule?.id === 'market' ? 'rgba(52, 211, 153, 0.1)' :
+                            selectedModule?.id === 'logistics' ? 'rgba(56, 189, 248, 0.1)' :
+                            'rgba(59, 130, 246, 0.1)',
                         paddingHorizontal: 10,
                         paddingVertical: 4,
                         borderRadius: 8,
                         borderWidth: 1,
-                        borderColor: item.request?.offer_type === 'anahtar_teslim_tadilat' ? 'rgba(212, 175, 55, 0.3)' : 'rgba(59, 130, 246, 0.3)',
+                        borderColor: 
+                            item.request?.offer_type === 'anahtar_teslim_tadilat' ? 'rgba(212, 175, 55, 0.3)' :
+                            selectedModule?.id === 'market' ? 'rgba(52, 211, 153, 0.3)' :
+                            selectedModule?.id === 'logistics' ? 'rgba(56, 189, 248, 0.3)' :
+                            'rgba(59, 130, 246, 0.3)',
                     }}>
                         <MaterialCommunityIcons 
-                            name={item.request?.offer_type === 'anahtar_teslim_tadilat' ? "hammer-wrench" : "home-city"} 
+                            name={
+                                item.request?.offer_type === 'anahtar_teslim_tadilat' ? "hammer-wrench" :
+                                selectedModule?.id === 'market' ? "cart" :
+                                selectedModule?.id === 'logistics' ? "truck-fast" :
+                                "home-city"
+                            } 
                             size={14} 
-                            color={item.request?.offer_type === 'anahtar_teslim_tadilat' ? "#D4AF37" : "#60A5FA"} 
+                            color={
+                                item.request?.offer_type === 'anahtar_teslim_tadilat' ? "#D4AF37" :
+                                selectedModule?.id === 'market' ? "#34D399" :
+                                selectedModule?.id === 'logistics' ? "#38BDF8" :
+                                "#60A5FA"
+                            } 
                         />
                         <Text allowFontScaling={false} style={{ 
-                            color: item.request?.offer_type === 'anahtar_teslim_tadilat' ? "#D4AF37" : "#60A5FA", 
+                            color: 
+                                item.request?.offer_type === 'anahtar_teslim_tadilat' ? "#D4AF37" :
+                                selectedModule?.id === 'market' ? "#34D399" :
+                                selectedModule?.id === 'logistics' ? "#38BDF8" :
+                                "#60A5FA", 
                             fontSize: 11, 
                             fontWeight: 'bold',
                             textTransform: 'uppercase',
                             letterSpacing: 0.5
                         }}>
-                            {item.request?.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat Talebi' : 'Kentsel Dönüşüm'}
+                            {
+                                item.request?.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat Talebi' :
+                                selectedModule?.id === 'market' ? 'Market / Malzeme' :
+                                selectedModule?.id === 'logistics' ? 'Lojistik / Nakliye' :
+                                'Kentsel Dönüşüm'
+                            }
                         </Text>
                     </View>
                 </View>
@@ -1682,13 +1862,199 @@ const AdminDashboardScreen = () => {
         );
     };
 
+    // Helper to render Name + Badges from product_name (Parity with Market)
+    const renderProductWithBadges = (rawName, isTitle = false, hideCleanName = false, hideBadges = false) => {
+        if (!rawName) return <Text allowFontScaling={false} style={{ color: '#888', fontSize: isTitle ? 16 : 14 }}>Belirtilmedi</Text>;
+
+        let cleanName = rawName;
+        let brand = null;
+        let spec = null;
+
+        const brandMatch = cleanName.match(/\[Marka:\s*(.*?)\]/);
+        if (brandMatch) {
+            brand = brandMatch[1];
+            cleanName = cleanName.replace(brandMatch[0], '').trim();
+        }
+
+        const specMatch = cleanName.match(/\[Özellik:\s*(.*?)\]/);
+        if (specMatch) {
+            spec = specMatch[1];
+            cleanName = cleanName.replace(specMatch[0], '').trim();
+        }
+
+        return (
+            <View>
+                {!hideCleanName && (
+                    <Text allowFontScaling={false} style={{ 
+                        color: '#FFF', 
+                        fontSize: isTitle ? 18 : 14, 
+                        fontWeight: isTitle ? '900' : 'bold' 
+                    }}>
+                        {cleanName}
+                    </Text>
+                )}
+                {(!hideBadges && (brand || spec)) && (
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: isTitle ? 8 : 4 }}>
+                        {brand && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(56, 189, 248, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: 'rgba(56, 189, 248, 0.2)' }}>
+                                <Ionicons name="pricetag" size={10} color="#38bdf8" />
+                                <Text allowFontScaling={false} style={{ color: '#38bdf8', fontSize: 11, fontWeight: 'bold' }}>Marka: {brand}</Text>
+                            </View>
+                        )}
+                        {spec && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(168, 85, 247, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: 'rgba(168, 85, 247, 0.2)' }}>
+                                <Ionicons name="settings" size={10} color="#a855f7" />
+                                <Text allowFontScaling={false} style={{ color: '#a855f7', fontSize: 11, fontWeight: 'bold' }}>Özellik: {spec}</Text>
+                            </View>
+                        )}
+                    </View>
+                )}
+            </View>
+        );
+    };
+
     // --- RENDER REQUEST ITEM ---
-    const renderRequestItem = ({ item }) => (
-        <TouchableOpacity
-            style={styles.card}
-            activeOpacity={0.7}
-            onPress={() => setSelectedRequest(item)}
-        >
+    const renderRequestItem = ({ item }) => {
+        if (selectedModule?.id === 'market') {
+            return (
+                <View style={[styles.card, { padding: 0, overflow: 'hidden', backgroundColor: '#0f172a', borderColor: 'rgba(255,255,255,0.05)', marginBottom: 15 }]}>
+                    <View style={{ padding: 16 }}>
+                        {/* Header: Title & Time */}
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                            <View style={{ flex: 1 }}>
+                                <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                                    <View style={{ backgroundColor: '#fbbf24', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                        <Ionicons name="flash" size={12} color="#000" />
+                                        <Text allowFontScaling={false} style={{ color: '#000', fontSize: 10, fontWeight: '900' }}>YENİ TALEP</Text>
+                                    </View>
+                                    <View style={{ backgroundColor: 'rgba(56, 189, 248, 0.15)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                        <Ionicons name="location" size={12} color="#38bdf8" />
+                                        <Text allowFontScaling={false} style={{ color: '#38bdf8', fontSize: 10, fontWeight: '900' }}>YAKIN KONUM</Text>
+                                    </View>
+                                </View>
+                                <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 12, fontWeight: 'bold' }}>
+                                    {new Date(item.created_at).toLocaleDateString('tr-TR')} • {new Date(item.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                </Text>
+                            </View>
+                            <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, alignSelf: 'flex-start' }}>
+                                <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold' }}>#{item.id.substring(0,8).toUpperCase()}</Text>
+                            </View>
+                        </View>
+
+                        {/* Details Box */}
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 16, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', gap: 12 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.05)', alignItems: 'center', justifyContent: 'center' }}>
+                                    <MaterialCommunityIcons name="cube-outline" size={20} color="#94a3b8" />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', letterSpacing: 0.5 }}>MALZEME</Text>
+                                    {renderProductWithBadges(item.items?.[0]?.product_name || item.title || "İsimsiz Talep", false)}
+                                </View>
+                            </View>
+
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.05)', alignItems: 'center', justifyContent: 'center' }}>
+                                    <MaterialCommunityIcons name="bag-personal-outline" size={20} color="#94a3b8" />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', letterSpacing: 0.5 }}>MİKTAR</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 15, fontWeight: 'bold' }}>{item.items?.[0]?.quantity || item.quantity || '-'}</Text>
+                                </View>
+                            </View>
+
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.05)', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Ionicons name="location-outline" size={20} color="#EF4444" />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', letterSpacing: 0.5 }}>TESLİMAT YERİ</Text>
+                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 14, fontWeight: 'bold' }}>{item.location || 'Konum belirtilmedi'}</Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* Actions */}
+                        <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+                            <TouchableOpacity style={{ flex: 1, backgroundColor: '#1e293b', paddingVertical: 12, borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' }}>
+                                <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 14, fontWeight: 'bold' }}>Arşivle</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                                style={{ flex: 2, backgroundColor: '#fbbf24', paddingVertical: 12, borderRadius: 12, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}
+                                onPress={() => setSelectedRequest(item)}
+                            >
+                                <Text allowFontScaling={false} style={{ color: '#000', fontSize: 14, fontWeight: '900' }}>TALEBİ İNCELE</Text>
+                                <Ionicons name="arrow-forward" size={18} color="#000" />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            );
+        }
+
+        return (
+            <TouchableOpacity
+                style={styles.card}
+                activeOpacity={0.7}
+                onPress={() => setSelectedRequest(item)}
+            >
+            {/* Module Context Badge */}
+            <View style={{ flexDirection: 'row', marginBottom: 12 }}>
+                <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 6,
+                    backgroundColor: 
+                        selectedModule?.id === 'renovation' ? 'rgba(212, 175, 55, 0.1)' :
+                        selectedModule?.id === 'market' ? 'rgba(52, 211, 153, 0.1)' :
+                        selectedModule?.id === 'logistics' ? 'rgba(56, 189, 248, 0.1)' :
+                        'rgba(59, 130, 246, 0.1)',
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                    borderRadius: 6,
+                    borderWidth: 1,
+                    borderColor: 
+                        selectedModule?.id === 'renovation' ? 'rgba(212, 175, 55, 0.3)' :
+                        selectedModule?.id === 'market' ? 'rgba(52, 211, 153, 0.3)' :
+                        selectedModule?.id === 'logistics' ? 'rgba(56, 189, 248, 0.3)' :
+                        'rgba(59, 130, 246, 0.3)',
+                }}>
+                    <MaterialCommunityIcons 
+                        name={
+                            selectedModule?.id === 'renovation' ? "hammer-wrench" :
+                            selectedModule?.id === 'market' ? "cart" :
+                            selectedModule?.id === 'logistics' ? "truck-fast" :
+                            "home-city"
+                        } 
+                        size={12} 
+                        color={
+                            selectedModule?.id === 'renovation' ? "#D4AF37" :
+                            selectedModule?.id === 'market' ? "#34D399" :
+                            selectedModule?.id === 'logistics' ? "#38BDF8" :
+                            "#60A5FA"
+                        } 
+                    />
+                    <Text allowFontScaling={false} style={{ 
+                        color: 
+                            selectedModule?.id === 'renovation' ? "#D4AF37" :
+                            selectedModule?.id === 'market' ? "#34D399" :
+                            selectedModule?.id === 'logistics' ? "#38BDF8" :
+                            "#60A5FA", 
+                        fontSize: 9, 
+                        fontWeight: 'bold',
+                        textTransform: 'uppercase',
+                        letterSpacing: 0.5
+                    }}>
+                        {
+                            selectedModule?.id === 'renovation' ? 'Tadilat' :
+                            selectedModule?.id === 'market' ? 'Market' :
+                            selectedModule?.id === 'logistics' ? 'Lojistik' :
+                            'Kentsel Dönüşüm'
+                        }
+                    </Text>
+                </View>
+            </View>
+
             <View style={styles.row}>
                 <View style={[styles.iconBox, { backgroundColor: selectedModule.color + '20' }]}>
                     <MaterialCommunityIcons
@@ -1703,7 +2069,10 @@ const AdminDashboardScreen = () => {
                         {item.city || 'Tüm Şehirler'} / {item.district || 'Tüm İlçeler'} • {new Date(item.created_at).toLocaleDateString('tr-TR')}
                     </Text>
                     {item.profiles ? (
-                        <Text allowFontScaling={false} style={styles.userText}>👤 {item.profiles.email} ({item.profiles.full_name})</Text>
+                        <Text allowFontScaling={false} style={styles.userText}>
+                            👤 {item.profiles.company_name || item.profiles.full_name} 
+                            <Text style={{ fontSize: 10, color: '#64748b' }}> ({item.profiles.email})</Text>
+                        </Text>
                     ) : (
                         <Text allowFontScaling={false} style={styles.userText}>👤 Kullanıcı (Bilinmiyor)</Text>
                     )}
@@ -1756,6 +2125,7 @@ const AdminDashboardScreen = () => {
             )}
         </TouchableOpacity>
     );
+    };
 
     // --- MAIN RENDER ---
     return (
@@ -2103,7 +2473,7 @@ const AdminDashboardScreen = () => {
                                 loading={detailLoading}
                                 isAdmin={true}
                                 isOwner={false}
-                                navigation={navigation}
+                                navigation={{ ...navigation, goBack: () => setSelectedRequest(null) }}
                                 showActions={false}
                                 additionalFooter={
                                     <View style={{ paddingHorizontal: 16, paddingBottom: 40, gap: 12 }}>
@@ -2492,6 +2862,13 @@ const AdminDashboardScreen = () => {
 export default AdminDashboardScreen;
 
 // Asset Logic Map
+const PAYMENT_LABELS = {
+    'cash': 'Nakit Ödeme',
+    'credit_card': 'Kredi Kartı',
+    'check': 'Çek / Senet',
+    'transfer': 'Havale / EFT'
+};
+
 const ASSET_MAP = {
     'cat_rental_v4': require('../../assets/categories/cat_rental_v4.png'),
     'cat_market_v4': require('../../assets/categories/cat_market_v4.png'),

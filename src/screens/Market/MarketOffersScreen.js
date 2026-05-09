@@ -2,15 +2,18 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo, useState } from 'react';
-import { Alert, Dimensions, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Dimensions, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import SharedRequestDetail from '../../components/SharedRequestDetail';
 
 const { width } = Dimensions.get('window');
 
 export default function MarketOffersScreen() {
     const navigation = useNavigation();
     const route = useRoute();
-    const { request, bids } = route.params || {};
+    const { request, bids, isAdminView = false } = route.params || {};
+    const [showRequestModal, setShowRequestModal] = useState(false);
+    const customerName = request?.profiles?.full_name || request?.profiles?.company_name || 'Müşteri';
 
     // Per-group active offer index
     const [offerIndexMap, setOfferIndexMap] = useState({});
@@ -109,13 +112,15 @@ export default function MarketOffersScreen() {
 
                 {/* ── Header ── */}
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
                         <Ionicons name="arrow-back" size={22} color="#FFF" />
                     </TouchableOpacity>
                     <View style={{ alignItems: 'center' }}>
-                        <Text allowFontScaling={false} style={styles.headerTitle}>GELEN TEKLİFLER</Text>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>
+                            {isAdminView ? customerName.toUpperCase() : 'GELEN TEKLİFLER'}
+                        </Text>
                         <Text allowFontScaling={false} style={{ color: '#475569', fontSize: 11, marginTop: 2 }}>
-                            {bids.length} teklif · {groupedBids.length} firma
+                            {isAdminView ? 'Talep Sahibi' : `${bids.length} teklif · ${groupedBids.length} firma`}
                         </Text>
                     </View>
                     <View style={{ width: 40 }} />
@@ -145,6 +150,30 @@ export default function MarketOffersScreen() {
                                 <Text allowFontScaling={false} style={{ color: '#475569', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>TOPLAM TEKLİF</Text>
                             </View>
                         </View>
+
+                        {/* Admin Action: View Request Detail */}
+                        {isAdminView && (
+                            <TouchableOpacity 
+                                style={{ 
+                                    marginTop: 15, 
+                                    backgroundColor: 'rgba(212,175,55,0.1)', 
+                                    paddingVertical: 10, 
+                                    paddingHorizontal: 12, 
+                                    borderRadius: 10, 
+                                    flexDirection: 'row', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center', 
+                                    gap: 8,
+                                    borderWidth: 1,
+                                    borderColor: 'rgba(212,175,55,0.2)'
+                                }}
+                                onPress={() => setShowRequestModal(true)}
+                            >
+                                <MaterialCommunityIcons name="file-document-outline" size={18} color="#FFD700" />
+                                <Text allowFontScaling={false} style={{ color: '#FFD700', fontWeight: 'bold', fontSize: 12 }}>TALEBİ GÖRÜNTÜLE</Text>
+                                <Ionicons name="chevron-forward" size={14} color="#FFD700" />
+                            </TouchableOpacity>
+                        )}
                     </LinearGradient>
 
                     {/* ── Bid Groups ── */}
@@ -174,11 +203,11 @@ export default function MarketOffersScreen() {
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                                         <View style={styles.avatar}>
                                             <Text allowFontScaling={false} style={{ color: '#FFD700', fontWeight: '900', fontSize: 18 }}>
-                                                {group.provider?.full_name ? group.provider.full_name.charAt(0).toUpperCase() : 'F'}
+                                                {(group.provider?.company_name || group.provider?.full_name || 'F').charAt(0).toUpperCase()}
                                             </Text>
                                         </View>
                                         <View style={{ flex: 1 }}>
-                                            <Text allowFontScaling={false} style={styles.firmName}>{group.provider?.full_name || 'Tedarikçi Firma'}</Text>
+                                            <Text allowFontScaling={false} style={styles.firmName}>{group.provider?.company_name || group.provider?.full_name || 'Tedarikçi Firma'}</Text>
                                             <Text allowFontScaling={false} style={styles.firmSub}>
                                                 {total > 1 ? `${total} farklı seçenek sundu` : '1 teklif sundu'}
                                             </Text>
@@ -352,7 +381,11 @@ export default function MarketOffersScreen() {
                                 {/* ── CTA Button ── */}
                                 <TouchableOpacity
                                     style={{ marginHorizontal: 16, marginBottom: 16, borderRadius: 14, overflow: 'hidden' }}
-                                    onPress={() =>
+                                    onPress={() => {
+                                        if (isAdminView) {
+                                            Alert.alert('Admin Bilgi', 'Admin olarak bu teklife direkt yanıt veremezsiniz. Lütfen işlem için ilgili butonu kullanın.');
+                                            return;
+                                        }
                                         Alert.alert(
                                             'Görüşme Sağla',
                                             `${group.provider?.full_name || 'Firma'} ile ${unitPrice.toLocaleString('tr-TR')} ₺/birim fiyat üzerinden görüşmek istiyor musunuz?`,
@@ -361,7 +394,7 @@ export default function MarketOffersScreen() {
                                                 { text: 'Evet, Görüş', style: 'default' },
                                             ]
                                         )
-                                    }
+                                    }}
                                     activeOpacity={0.85}
                                 >
                                     <LinearGradient
@@ -371,7 +404,7 @@ export default function MarketOffersScreen() {
                                     >
                                         <MaterialCommunityIcons name="chat-processing-outline" size={20} color="#000" />
                                         <Text allowFontScaling={false} style={{ color: '#000', fontWeight: '900', fontSize: 15, letterSpacing: 0.5 }}>
-                                            GÖRÜŞME SAĞLA
+                                            {isAdminView ? 'TEKLİFİ İNCELE (ADMİN)' : 'GÖRÜŞME SAĞLA'}
                                         </Text>
                                     </LinearGradient>
                                 </TouchableOpacity>
@@ -382,6 +415,22 @@ export default function MarketOffersScreen() {
 
                     <View style={{ height: 40 }} />
                 </ScrollView>
+
+                {/* Shared Request Detail Modal for Admin */}
+                <Modal visible={showRequestModal} animationType="slide" transparent={true}>
+                    <View style={{ flex: 1, backgroundColor: '#000' }}>
+                        <SharedRequestDetail
+                            request={request}
+                            type="market"
+                            isAdmin={true}
+                            showActions={false}
+                            navigation={{
+                                ...navigation,
+                                goBack: () => setShowRequestModal(false)
+                            }}
+                        />
+                    </View>
+                </Modal>
             </SafeAreaView>
         </View>
     );
