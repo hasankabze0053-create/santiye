@@ -281,7 +281,7 @@ export default function ConstructionOfferScreen() {
                 uploadedUrls.push(...results);
             }
 
-            const { error } = await supabase
+            const { data, error } = await supabase
                 .from('construction_requests')
                 .insert({
                     user_id: user.id,
@@ -301,17 +301,19 @@ export default function ConstructionOfferScreen() {
                     campaign_unit_count: hasYarisiBizden ? apartmentCount : 0,
                     campaign_commercial_count: hasYarisiBizden ? commercialCount : 0,
 
-                    campaign_unit_count: hasYarisiBizden ? apartmentCount : 0,
-                    campaign_commercial_count: hasYarisiBizden ? commercialCount : 0,
-
                     deed_image_url: uploadedUrls.length > 0 ? uploadedUrls[0] : null, // Primary image
                     document_urls: uploadedUrls, // All images
-                    status: 'pending'
-                });
+                    status: 'pending',
+                    // Generate 7-digit ad_no: 
+                    // Urban transformation starts with '1', others start with '2-9'
+                    ad_no: Math.floor(1000000 + Math.random() * 1000000)
+                })
+                .select('ad_no')
+                .single();
 
             if (error) throw error;
 
-            navigation.navigate('ConstructionSuccess');
+            navigation.navigate('ConstructionSuccess', { ad_no: data?.ad_no });
         } catch (error) {
             console.error('Submission Error:', error);
             Alert.alert('Hata', 'Talebiniz oluşturulurken bir hata oluştu. Lütfen tekrar deneyiniz.\n' + error.message);

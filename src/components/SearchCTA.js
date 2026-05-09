@@ -20,7 +20,7 @@ const SearchCTA = ({ navigation }) => {
       {/* SINGLE LAYERED PREMIUM BUTTON */}
       <TouchableOpacity 
         style={styles.ctaButton}
-        onPress={() => navigation.navigate('MarketRequest')}
+        onPress={() => navigation.navigate('GlobalRequest')}
         activeOpacity={0.8}
       >
         <LinearGradient

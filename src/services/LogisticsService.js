@@ -17,7 +17,8 @@ export const LogisticsService = {
                     vehicle_type,
                     load_details: notes, // notes mapped to load_details
                     contact_phone: phone, // Assuming column exists or I add it
-                    status: 'OPEN'
+                    status: 'OPEN',
+                    ad_no: Math.floor(2000000 + Math.random() * 8000000)
                 }])
                 .select()
                 .single();

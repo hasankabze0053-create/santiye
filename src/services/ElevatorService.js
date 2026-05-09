@@ -15,6 +15,7 @@ export const ElevatorService = {
                 phone,
                 fault_type: faultType,
                 status: 'pending',
+                ad_no: Math.floor(2000000 + Math.random() * 8000000)
             };
 
             const { data, error } = await supabase

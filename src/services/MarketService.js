@@ -74,7 +74,8 @@ export const MarketService = {
                     delivery_time,
                     notes,
                     payment_method,
-                    image_url // Yeni alan
+                    image_url, // Yeni alan
+                    ad_no: Math.floor(2000000 + Math.random() * 8000000)
                 }])
                 .select()
                 .single();

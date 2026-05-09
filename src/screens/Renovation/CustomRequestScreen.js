@@ -182,7 +182,8 @@ export default function CustomRequestScreen({ navigation, route }) {
                     document_urls: allDocumentUrls,
                     deed_image_url: allDocumentUrls.length > 0 ? allDocumentUrls[0] : null,
                     current_situation_urls: currentUrls,
-                    inspiration_urls: inspirationUrls
+                    inspiration_urls: inspirationUrls,
+                    ad_no: Math.floor(2000000 + Math.random() * 8000000)
                 });
 
             if (error) throw error;

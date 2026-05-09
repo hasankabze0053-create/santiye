@@ -8,8 +8,9 @@ import PremiumBackground from '../../components/PremiumBackground';
 
 const { width } = Dimensions.get('window');
 
-export default function ConstructionSuccessScreen() {
+export default function ConstructionSuccessScreen({ route }) {
     const navigation = useNavigation();
+    const adNo = route.params?.ad_no;
 
     return (
         <PremiumBackground>
@@ -32,6 +33,12 @@ export default function ConstructionSuccessScreen() {
 
                     {/* Description Text */}
                     <Animated.View entering={FadeInDown.delay(800).duration(800)} style={styles.messageContainer}>
+                        {adNo && (
+                            <View style={styles.adNoBadge}>
+                                <Text allowFontScaling={false} style={styles.adNoLabel}>İLAN NO</Text>
+                                <Text allowFontScaling={false} style={styles.adNoValue}>{adNo.toString().padStart(7, '0')}</Text>
+                            </View>
+                        )}
                         <Text allowFontScaling={false} style={styles.messageText}>
                             Projeniz <Text allowFontScaling={false} style={styles.highlight}>Seçilmiş Müteahhitlere</Text> başarıyla sunulmuştur.
                         </Text>
@@ -157,5 +164,28 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         letterSpacing: 1,
+    },
+    adNoBadge: {
+        backgroundColor: 'rgba(255, 215, 0, 0.1)',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 215, 0, 0.3)',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    adNoLabel: {
+        color: '#FFD700',
+        fontSize: 10,
+        fontWeight: 'bold',
+        letterSpacing: 1,
+    },
+    adNoValue: {
+        color: '#FFF',
+        fontSize: 24,
+        fontWeight: '900',
+        marginTop: 2,
+        letterSpacing: 2,
     },
 });

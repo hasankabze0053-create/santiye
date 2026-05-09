@@ -122,6 +122,7 @@ const AdminDashboardScreen = () => {
     // Offer Filter State
     const [offerFilterMode, setOfferFilterMode] = useState('request'); // 'request' | 'contractor'
     const [offerSearchQuery, setOfferSearchQuery] = useState('');
+    const [selectedContractorForOffers, setSelectedContractorForOffers] = useState(null);
 
     // Location Filters
     const [filterCity, setFilterCity] = useState('');
@@ -317,8 +318,16 @@ const AdminDashboardScreen = () => {
                 let query2 = supabase.from('elevator_requests').select(elevatorSelect).order('created_at', { ascending: false });
 
                 if (searchQuery) {
-                    query1 = query1.or(`title.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,district.ilike.%${searchQuery}%`);
-                    query2 = query2.or(`city.ilike.%${searchQuery}%,district.ilike.%${searchQuery}%`);
+                    let or1 = `title.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,district.ilike.%${searchQuery}%`;
+                    let or2 = `city.ilike.%${searchQuery}%,district.ilike.%${searchQuery}%`;
+                    
+                    if (!isNaN(searchQuery) && searchQuery.trim().length > 0) {
+                        or1 += `,ad_no.eq.${searchQuery}`;
+                        or2 += `,ad_no.eq.${searchQuery}`;
+                    }
+                    
+                    query1 = query1.or(or1);
+                    query2 = query2.or(or2);
                 }
                 if (filterCity) {
                     query1 = query1.eq('city', filterCity);
@@ -389,9 +398,21 @@ const AdminDashboardScreen = () => {
 
             // Apply Search Filter
             if (searchQuery) {
-                // ILIKE for title or ID (if strictly numeric)
-                // Note: Joining profiles for name search is complex in one query, restricting to title/id/city for now
-                query = query.or(`title.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,district.ilike.%${searchQuery}%`);
+                let orQuery = "";
+                
+                if (tableName === 'transport_requests') {
+                    orQuery = `load_type.ilike.%${searchQuery}%,from_location.ilike.%${searchQuery}%,to_location.ilike.%${searchQuery}%`;
+                } else if (tableName === 'market_requests') {
+                    orQuery = `title.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%`;
+                } else {
+                    orQuery = `title.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,district.ilike.%${searchQuery}%`;
+                }
+
+                // If numeric, also search in ad_no
+                if (!isNaN(searchQuery) && searchQuery.trim().length > 0) {
+                    orQuery += `,ad_no.eq.${searchQuery}`;
+                }
+                query = query.or(orQuery);
             }
 
             // Apply Location Filters (Compatible with columns if they exist)
@@ -449,13 +470,13 @@ const AdminDashboardScreen = () => {
         if (tableName === 'construction_requests') {
             offerTable = 'construction_offers';
             // construction_offers uses contractor_id (not provider_id)
-            selectQuery = `*, contractor:profiles!contractor_id(full_name, company_name, email, phone), request:construction_requests!request_id(city, district, offer_type, description, campaign_unit_count, campaign_commercial_count)`;
+            selectQuery = `*, contractor:profiles!contractor_id(full_name, email), request:construction_requests!request_id(ad_no, city, district, offer_type, description, campaign_unit_count, campaign_commercial_count)`;
         } else if (tableName === 'market_requests') {
             offerTable = 'market_bids';
-            selectQuery = `*, profiles:profiles!provider_id(full_name, company_name, email, phone), request:market_requests!request_id(location, title, items:market_request_items(*))`;
+            selectQuery = `*, profiles:profiles!provider_id(full_name, email), request:market_requests!request_id(ad_no, location, title, items:market_request_items(*))`;
         } else if (tableName === 'transport_requests') {
             offerTable = 'transport_bids';
-            selectQuery = `*, profiles:profiles!provider_id(full_name, email, phone), request:transport_requests!request_id(city, district)`;
+            selectQuery = `*, profiles:profiles!provider_id(full_name, email), request:transport_requests!request_id(ad_no, city, district)`;
         }
 
         if (!offerTable) return;
@@ -477,7 +498,10 @@ const AdminDashboardScreen = () => {
                 .limit(100);
 
             if (!error) {
-                setOffers(data || []);
+                const dataWithTable = (data || []).map(d => ({ ...d, _tableName: offerTable }));
+                setOffers(dataWithTable);
+                // Reset drill-down if mode changes or data refreshes
+                setSelectedContractorForOffers(null);
             } else {
                 console.error('fetchOffers error:', error);
             }
@@ -501,8 +525,9 @@ const AdminDashboardScreen = () => {
                             const { error } = await supabase.from(targetTable).delete().eq('id', item.id);
                             if (error) throw error;
 
-                            Alert.alert('Başarılı', 'Talep silindi.');
-                            fetchModuleData(selectedModule.table); // Refresh
+                            Alert.alert('Başarılı', 'İşlem tamamlandı.');
+                            fetchModuleData(selectedModule.table); // Refresh requests
+                            fetchOffers(selectedModule.table); // Refresh offers
                         } catch (err) {
                             Alert.alert('Hata', 'Silme işlemi başarısız: ' + err.message);
                         }
@@ -992,6 +1017,56 @@ const AdminDashboardScreen = () => {
         }
     };
 
+    const groupOffersByContractor = (offersList) => {
+        const groups = {};
+        offersList.forEach(offer => {
+            const profile = offer.contractor || offer.profiles;
+            const id = profile?.id || 'unknown';
+            if (!groups[id]) {
+                groups[id] = {
+                    id,
+                    profile,
+                    offers: []
+                };
+            }
+            groups[id].offers.push(offer);
+        });
+        return Object.values(groups).sort((a, b) => 
+            (a.profile?.company_name || a.profile?.full_name || '').localeCompare(b.profile?.company_name || b.profile?.full_name || '')
+        );
+    };
+
+    const renderContractorItem = ({ item }) => (
+        <TouchableOpacity 
+            style={[styles.card, { padding: 16, marginBottom: 12, borderLeftWidth: 4, borderLeftColor: '#D4AF37' }]}
+            activeOpacity={0.7}
+            onPress={() => setSelectedContractorForOffers(item)}
+        >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={[styles.iconBox, { backgroundColor: 'rgba(212, 175, 55, 0.1)', width: 44, height: 44, borderRadius: 12 }]}>
+                    <MaterialCommunityIcons name="domain" size={24} color="#D4AF37" />
+                </View>
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 16, fontWeight: 'bold' }}>
+                        {item.profile?.company_name || item.profile?.full_name || 'İsimsiz Firma'}
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 8 }}>
+                        <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 12 }}>
+                            📞 {item.profile?.phone || 'Telefon yok'}
+                        </Text>
+                        <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 12 }}>
+                            📍 {item.profile?.city || '-'}{item.profile?.district ? ` / ${item.profile.district}` : ''}
+                        </Text>
+                    </View>
+                </View>
+                <View style={{ backgroundColor: 'rgba(52, 211, 153, 0.1)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, alignItems: 'center' }}>
+                    <Text allowFontScaling={false} style={{ color: '#34D399', fontSize: 14, fontWeight: 'bold' }}>{item.offers.length}</Text>
+                    <Text allowFontScaling={false} style={{ color: '#34D399', fontSize: 9, fontWeight: 'bold' }}>TEKLİF</Text>
+                </View>
+            </View>
+        </TouchableOpacity>
+    );
+
     const renderOfferItem = ({ item }) => {
         if (selectedModule?.id === 'market') {
             const providerProfile = item.contractor || item.profiles;
@@ -1179,21 +1254,36 @@ const AdminDashboardScreen = () => {
                             <MaterialCommunityIcons name="domain" size={20} color="#34D399" />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text allowFontScaling={false} style={styles.offerProviderName}>{providerName}</Text>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Text allowFontScaling={false} style={styles.offerProviderName}>{providerName}</Text>
+                                {item.request?.ad_no && (
+                                    <View style={{ backgroundColor: 'rgba(255, 215, 0, 0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                                        <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 9, fontWeight: 'bold' }}>#{item.request.ad_no.toString().padStart(7, '0')}</Text>
+                                    </View>
+                                )}
+                            </View>
                             <Text allowFontScaling={false} style={styles.offerDate}>{new Date(item.created_at).toLocaleDateString('tr-TR')}</Text>
                         </View>
                     </View>
-                    <View style={[styles.statusBadge, {
-                        backgroundColor: item.status === 'accepted' ? 'rgba(74, 222, 128, 0.1)' :
-                            item.status === 'rejected' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(251, 191, 36, 0.1)'
-                    }]}>
-                        <Text allowFontScaling={false} style={[styles.statusText, {
-                            color: item.status === 'accepted' ? '#4ADE80' :
-                                item.status === 'rejected' ? '#EF4444' : '#FBBF24'
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <View style={[styles.statusBadge, {
+                            backgroundColor: item.status === 'accepted' ? 'rgba(74, 222, 128, 0.1)' :
+                                item.status === 'rejected' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(251, 191, 36, 0.1)'
                         }]}>
-                            {item.status === 'accepted' ? 'KABUL' :
-                                item.status === 'rejected' ? 'REDDEDİLDİ' : 'BEKLİYOR'}
-                        </Text>
+                            <Text allowFontScaling={false} style={[styles.statusText, {
+                                color: item.status === 'accepted' ? '#4ADE80' :
+                                    item.status === 'rejected' ? '#EF4444' : '#FBBF24'
+                            }]}>
+                                {item.status === 'accepted' ? 'KABUL' :
+                                    item.status === 'rejected' ? 'REDDEDİLDİ' : 'BEKLİYOR'}
+                            </Text>
+                        </View>
+                        <TouchableOpacity 
+                            onPress={() => handleDelete(item)}
+                            style={{ padding: 5 }}
+                        >
+                            <MaterialCommunityIcons name="delete-outline" size={20} color="#EF4444" />
+                        </TouchableOpacity>
                     </View>
                 </View>
 
@@ -1936,8 +2026,12 @@ const AdminDashboardScreen = () => {
                                     {new Date(item.created_at).toLocaleDateString('tr-TR')} • {new Date(item.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                                 </Text>
                             </View>
-                            <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, alignSelf: 'flex-start' }}>
-                                <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold' }}>#{item.id.substring(0,8).toUpperCase()}</Text>
+                            <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                                <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                                    <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold' }}>
+                                        {item.ad_no ? `#${item.ad_no.toString().padStart(7, '0')}` : `#${item.id.substring(0,8).toUpperCase()}`}
+                                    </Text>
+                                </View>
                             </View>
                         </View>
 
@@ -2064,7 +2158,14 @@ const AdminDashboardScreen = () => {
                     />
                 </View>
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                    <Text allowFontScaling={false} style={styles.title}>{item.title || selectedModule.title + ' Talebi'}</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <Text allowFontScaling={false} style={[styles.title, { flex: 1 }]}>{item.title || selectedModule.title + ' Talebi'}</Text>
+                        {item.ad_no && (
+                            <View style={{ backgroundColor: 'rgba(255, 215, 0, 0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginLeft: 8 }}>
+                                <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 10, fontWeight: 'bold' }}>#{item.ad_no.toString().padStart(7, '0')}</Text>
+                            </View>
+                        )}
+                    </View>
                     <Text allowFontScaling={false} style={styles.subtitle}>
                         {item.city || 'Tüm Şehirler'} / {item.district || 'Tüm İlçeler'} • {new Date(item.created_at).toLocaleDateString('tr-TR')}
                     </Text>
@@ -2326,11 +2427,45 @@ const AdminDashboardScreen = () => {
                                     }
                                 });
 
+                                // Contractor Drill-Down Logic
+                                if (offerFilterMode === 'contractor' && selectedContractorForOffers) {
+                                    return (
+                                        <FlatList
+                                            key="contractor-offer-list"
+                                            data={selectedContractorForOffers.offers}
+                                            renderItem={renderOfferItem}
+                                            keyExtractor={item => item.id.toString()}
+                                            contentContainerStyle={{ padding: 20 }}
+                                            ListHeaderComponent={(
+                                                <View style={{ marginBottom: 16 }}>
+                                                    <TouchableOpacity 
+                                                        onPress={() => setSelectedContractorForOffers(null)}
+                                                        style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}
+                                                    >
+                                                        <Ionicons name="arrow-back" size={20} color="#D4AF37" />
+                                                        <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', marginLeft: 8 }}>Müteahhit Listesine Dön</Text>
+                                                    </TouchableOpacity>
+                                                    <View style={{ backgroundColor: 'rgba(212, 175, 55, 0.1)', padding: 15, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.2)' }}>
+                                                        <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 18, fontWeight: 'bold' }}>
+                                                            {selectedContractorForOffers.profile?.company_name || selectedContractorForOffers.profile?.full_name}
+                                                        </Text>
+                                                        <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 13, marginTop: 4 }}>
+                                                            Toplam {selectedContractorForOffers.offers.length} teklif listeleniyor
+                                                        </Text>
+                                                    </View>
+                                                </View>
+                                            )}
+                                        />
+                                    );
+                                }
+
+                                const groupedData = offerFilterMode === 'contractor' ? groupOffersByContractor(filteredOffers) : filteredOffers;
+
                                 return (
                                     <FlatList
-                                        key="offer-list"
-                                        data={filteredOffers}
-                                        renderItem={renderOfferItem}
+                                        key={offerFilterMode === 'contractor' ? "contractor-list" : "offer-list"}
+                                        data={groupedData}
+                                        renderItem={offerFilterMode === 'contractor' ? renderContractorItem : renderOfferItem}
                                         keyExtractor={item => item.id.toString()}
                                         contentContainerStyle={{ padding: 20 }}
                                         ListHeaderComponent={(
@@ -2338,7 +2473,7 @@ const AdminDashboardScreen = () => {
                                                 {/* Filter Mode Chips */}
                                                 <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
                                                     <TouchableOpacity
-                                                        onPress={() => setOfferFilterMode('request')}
+                                                        onPress={() => { setOfferFilterMode('request'); setSelectedContractorForOffers(null); }}
                                                         style={{
                                                             paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20,
                                                             backgroundColor: offerFilterMode === 'request' ? '#D4AF37' : '#1e293b',
@@ -2350,7 +2485,7 @@ const AdminDashboardScreen = () => {
                                                         </Text>
                                                     </TouchableOpacity>
                                                     <TouchableOpacity
-                                                        onPress={() => setOfferFilterMode('contractor')}
+                                                        onPress={() => { setOfferFilterMode('contractor'); setSelectedContractorForOffers(null); }}
                                                         style={{
                                                             paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20,
                                                             backgroundColor: offerFilterMode === 'contractor' ? '#D4AF37' : '#1e293b',
@@ -2382,7 +2517,7 @@ const AdminDashboardScreen = () => {
                                                 </View>
 
                                                 <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 12, marginTop: 8 }}>
-                                                    {filteredOffers.length} teklif listeleniyor
+                                                    {offerFilterMode === 'contractor' ? `${groupedData.length} firma listeleniyor` : `${filteredOffers.length} teklif listeleniyor`}
                                                 </Text>
                                             </View>
                                         )}

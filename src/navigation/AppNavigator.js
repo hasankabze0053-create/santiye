@@ -52,6 +52,7 @@ import EmptyReturnSuccessScreen from '../screens/Logistics/EmptyReturnSuccessScr
 import LogisticsScreen from '../screens/Logistics/LogisticsScreen';
 import TransportModeSelectionScreen from '../screens/Logistics/TransportModeSelectionScreen';
 import BulkRequestScreen from '../screens/Market/BulkRequestScreen';
+import GlobalRequestScreen from '../screens/GlobalRequestScreen';
 import MarketCartScreen from '../screens/Market/MarketCartScreen';
 import MarketDynamicFormScreen from '../screens/Market/MarketDynamicFormScreen';
 import MarketOffersScreen from '../screens/Market/MarketOffersScreen';
@@ -268,7 +269,7 @@ function BottomTabNavigator() {
                         // Prevent default action
                         e.preventDefault();
                         // Navigate to a request creation flow (using MarketRequest as placeholder)
-                        navigation.navigate('MarketRequest');
+                        navigation.navigate('GlobalRequest');
                     },
                 })}
                 options={{
@@ -380,6 +381,7 @@ export default function AppNavigator() {
             <Stack.Screen name="MarketCart" component={MarketCartScreen} options={{ headerShown: false, animation: 'slide_from_bottom' }} />
             <Stack.Screen name="BulkRequest" component={BulkRequestScreen} />
             <Stack.Screen name="MarketRequest" component={MarketRequestScreen} />
+            <Stack.Screen name="GlobalRequest" component={GlobalRequestScreen} />
             <Stack.Screen name="Chat" component={ChatScreen} />
             <Stack.Screen name="MarketSuccess" component={MarketSuccessScreen} />
             <Stack.Screen name="MarketOffers" component={MarketOffersScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />

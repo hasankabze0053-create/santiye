@@ -378,7 +378,9 @@ const SharedRequestDetail = ({
                             </TouchableOpacity>
                             <View style={{ alignItems: 'center' }}>
                                 <Text allowFontScaling={false} style={styles.headerTitle}>PROJE DETAYI</Text>
-                                <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: 'bold', marginTop: 2 }}>#{request.id?.slice(0, 8).toUpperCase()}</Text>
+                                <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: 'bold', marginTop: 2 }}>
+                                    {request.ad_no ? `İLAN NO: ${request.ad_no.toString().padStart(7, '0')}` : `#${request.id?.slice(0, 8).toUpperCase()}`}
+                                </Text>
                             </View>
                             <View style={{ width: 40 }} />
                         </View>
