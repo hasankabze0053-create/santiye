@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, ScrollView, StatusBar, StyleSheet, ActivityIndicator, Dimensions, TouchableOpacity, Text } from 'react-native';
+import { View, ScrollView, StatusBar, StyleSheet, ActivityIndicator, Dimensions, TouchableOpacity, Text, AppState } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -51,13 +51,15 @@ export default function HomeScreen({ navigation }) {
     const [editingChip, setEditingChip] = useState(null);
 
     useEffect(() => {
-        const fetchConfig = async () => {
+        const fetchConfig = async (isSilent = false) => {
             const CACHE_KEY = 'app_module_config_cache';
             try {
-                const cached = await AsyncStorage.getItem(CACHE_KEY);
-                if (cached) {
-                    setCategories(JSON.parse(cached));
-                    setLoadingConfig(false);
+                if (!isSilent) {
+                    const cached = await AsyncStorage.getItem(CACHE_KEY);
+                    if (cached) {
+                        setCategories(JSON.parse(cached));
+                        setLoadingConfig(false);
+                    }
                 }
 
                 const { data, error } = await supabase
@@ -72,7 +74,7 @@ export default function HomeScreen({ navigation }) {
             } catch (err) {
                 console.warn('Config fetch error:', err);
             } finally {
-                setLoadingConfig(false);
+                if (!isSilent) setLoadingConfig(false);
             }
         };
 
@@ -92,13 +94,27 @@ export default function HomeScreen({ navigation }) {
             setCategoryChips(chips);
         };
 
+        const silentSync = async () => {
+            console.log('HomeScreen: Background silent sync triggered');
+            await Promise.all([
+                fetchConfig(true),
+                fetchAllHighlights(),
+                fetchAllChips()
+            ]);
+        };
+
+        // Initial Load
         fetchConfig();
         loadInternalData();
         fetchAllHighlights();
         fetchAllChips();
 
-        const unsubscribe = navigation.addListener('focus', async () => {
+        // 1. Navigation Focus Listener (SWR)
+        const unsubscribeFocus = navigation.addListener('focus', async () => {
             const freshConfigs = await fetchAllHighlights();
+            fetchConfig(true); // silent sync other data
+            fetchAllChips(); // silent sync chips
+            
             try {
                 const lastVisited = await AsyncStorage.getItem('lastVisitedModule');
                 if (lastVisited && freshConfigs && freshConfigs.length > 0) {
@@ -113,7 +129,17 @@ export default function HomeScreen({ navigation }) {
             } catch(e) { console.warn(e); }
         });
 
-        return unsubscribe;
+        // 2. AppState Listener (Background to Foreground SWR)
+        const appStateSubscription = AppState.addEventListener('change', nextAppState => {
+            if (nextAppState === 'active') {
+                silentSync();
+            }
+        });
+
+        return () => {
+            unsubscribeFocus();
+            appStateSubscription.remove();
+        };
     }, [navigation]);
 
     const handleCategoryPress = (cat) => {

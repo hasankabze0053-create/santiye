@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, Switch, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, Switch, ScrollView, Pressable, Keyboard } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppAssetService } from '../services/AppAssetService';
@@ -50,9 +50,11 @@ const ModuleEditModal = ({ visible, onClose, initialConfig, onSaveSuccess }) => 
     };
 
     return (
-        <Modal visible={visible} animationType="slide" transparent>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.overlay}>
-                <View style={styles.content}>
+        <Modal visible={visible} animationType="slide" transparent statusBarTranslucent>
+            <View style={styles.overlay}>
+                <Pressable style={StyleSheet.absoluteFill} onPress={Keyboard.dismiss} />
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+                    <View style={styles.panel}>
                     <View style={styles.header}>
                         <Text style={styles.modalTitle}>Modül Düzenle</Text>
                         <TouchableOpacity onPress={onClose}>
@@ -60,7 +62,7 @@ const ModuleEditModal = ({ visible, onClose, initialConfig, onSaveSuccess }) => 
                         </TouchableOpacity>
                     </View>
 
-                    <ScrollView style={styles.form} contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={false}>
+                    <ScrollView style={styles.scroll} contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={false}>
                         <Text style={styles.label}>Başlık</Text>
                         <TextInput 
                             style={styles.input} 
@@ -102,16 +104,26 @@ const ModuleEditModal = ({ visible, onClose, initialConfig, onSaveSuccess }) => 
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>
+            </View>
         </Modal>
     );
 };
 
 const styles = StyleSheet.create({
-    overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
-    content: { backgroundColor: '#1C1C1E', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 20, minHeight: 500 },
+    overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)' },
+    panel: { 
+        flex: 1, 
+        marginTop: Platform.OS === 'ios' ? 80 : 60,
+        backgroundColor: '#1C1C1E', 
+        borderTopLeftRadius: 30, 
+        borderTopRightRadius: 30, 
+        paddingTop: 20,
+        paddingHorizontal: 20,
+        paddingBottom: 0
+    },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
     modalTitle: { color: '#D4AF37', fontSize: 20, fontFamily: FONTS.bold },
-    form: { flex: 1 },
+    scroll: { flex: 1 },
     label: { color: '#AAA', fontFamily: FONTS.bold, fontSize: 12, marginBottom: 8, marginTop: 15 },
     helperText: { color: '#666', fontSize: 10, fontFamily: FONTS.medium, marginTop: 4 },
     input: { backgroundColor: '#2C2C2E', color: '#FFF', borderRadius: 12, padding: 15, fontFamily: FONTS.medium, fontSize: 14, borderWidth: 1, borderColor: '#3A3A3C' },

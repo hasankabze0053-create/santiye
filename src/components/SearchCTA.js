@@ -7,15 +7,8 @@ import { COLORS, FONTS } from '../theme';
 const SearchCTA = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      {/* Search Bar Area */}
-      <View style={styles.searchBar}>
-        <MaterialCommunityIcons name="magnify" size={20} color="#555" />
-        <TextInput
-          placeholder="Hizmet, kategori veya firma ara..."
-          placeholderTextColor="#555"
-          style={styles.input}
-        />
-      </View>
+      {/* Boş Alan (Premium Negative Space) - Talep Oluştur butonunu sağda tutar */}
+      <View style={{ flex: 1 }} />
 
       {/* SINGLE LAYERED PREMIUM BUTTON */}
       <TouchableOpacity 

@@ -103,8 +103,9 @@ export default function HighlightEditModal({ visible, onClose, initialConfig, on
 
     return (
         <Modal visible={visible} animationType="slide" transparent statusBarTranslucent>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.overlay}>
+            <View style={s.overlay}>
                 <Pressable style={StyleSheet.absoluteFill} onPress={Keyboard.dismiss} />
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
                 
                 {/* Panel */}
                 <View style={s.panel}>
@@ -263,6 +264,7 @@ export default function HighlightEditModal({ visible, onClose, initialConfig, on
 
                 </View>
             </KeyboardAvoidingView>
+            </View>
         </Modal>
     );
 }

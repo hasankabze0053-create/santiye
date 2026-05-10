@@ -51,6 +51,38 @@ export const AuthProvider = ({ children }) => {
         return () => subscription.unsubscribe();
     }, []);
 
+    // 3. Listen for Real-time profile updates (e.g. Admin changes role/status)
+    useEffect(() => {
+        let profileSubscription = null;
+
+        if (user?.id) {
+            console.log("AuthContext: Starting Realtime listener for profile:", user.id);
+            profileSubscription = supabase
+                .channel(`public:profiles:id=${user.id}`)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: 'UPDATE',
+                        schema: 'public',
+                        table: 'profiles',
+                        filter: `id=eq.${user.id}`
+                    },
+                    (payload) => {
+                        console.log("AuthContext: Realtime profile update received:", payload.new);
+                        setProfile(payload.new);
+                    }
+                )
+                .subscribe();
+        }
+
+        return () => {
+            if (profileSubscription) {
+                console.log("AuthContext: Cleaning up Realtime listener");
+                supabase.removeChannel(profileSubscription);
+            }
+        };
+    }, [user?.id]);
+
     const fetchProfile = async (userId) => {
         try {
             console.log("AuthContext: calling AuthService.getProfile...");
