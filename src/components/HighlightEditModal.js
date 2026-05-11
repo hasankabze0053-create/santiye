@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView,
     ActivityIndicator, Alert, TextInput, Pressable, Keyboard,
-    KeyboardAvoidingView, Platform
+    KeyboardAvoidingView, Platform, PanResponder
 } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -10,6 +10,7 @@ import * as ImagePicker from 'expo-image-picker';
 import Slider from '@react-native-community/slider';
 import { AppAssetService } from '../services/AppAssetService';
 import { FONTS } from '../theme';
+import HighlightCard from './HighlightCard';
 
 const THEMES = [
     { id: 'gold', name: 'Gold Premium', colors: { title: '#FFFFFF', pillsBorder: '#B8820F', pillsText: '#B8820F', buttonGradientStart: '#B8820F', buttonGradientEnd: '#8C6200' } },
@@ -53,7 +54,57 @@ export default function HighlightEditModal({ visible, onClose, initialConfig, on
     const [activeTab, setActiveTab] = useState('content');
     const [loading, setLoading] = useState(false);
     const [config, setConfig] = useState(DEFAULT);
+    const configRef = useRef(config);
     const [pillsInput, setPillsInput] = useState('');
+
+    useEffect(() => {
+        configRef.current = config;
+    }, [config]);
+
+    const panState = useRef({ initialTx: 0, initialTy: 0, initialScale: 1, initialDistance: null }).current;
+
+    const panResponder = useRef(
+        PanResponder.create({
+            onStartShouldSetPanResponder: () => true,
+            onMoveShouldSetPanResponder: () => true,
+            onPanResponderGrant: () => {
+                // Keep the current config values to calculate deltas
+                panState.initialTx = configRef.current.translateX || 20;
+                panState.initialTy = configRef.current.translateY || 0;
+                panState.initialScale = configRef.current.scale || 1;
+                panState.initialDistance = null;
+            },
+            onPanResponderMove: (evt, gestureState) => {
+                const touches = evt.nativeEvent.touches;
+                if (touches.length === 1) {
+                    // Pan
+                    setConfig(prev => ({
+                        ...prev,
+                        translateX: panState.initialTx + gestureState.dx,
+                        translateY: panState.initialTy + gestureState.dy
+                    }));
+                } else if (touches.length === 2) {
+                    // Zoom
+                    const dx = touches[0].pageX - touches[1].pageX;
+                    const dy = touches[0].pageY - touches[1].pageY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (panState.initialDistance === null) {
+                        panState.initialDistance = distance;
+                    } else {
+                        const scaleFactor = distance / panState.initialDistance;
+                        let newScale = panState.initialScale * scaleFactor;
+                        if (newScale < 0.5) newScale = 0.5;
+                        if (newScale > 3) newScale = 3;
+                        setConfig(prev => ({ ...prev, scale: newScale }));
+                    }
+                }
+            },
+            onPanResponderRelease: () => {
+                panState.initialDistance = null;
+            }
+        })
+    ).current;
 
     useEffect(() => {
         if (!visible) return;
@@ -162,6 +213,25 @@ export default function HighlightEditModal({ visible, onClose, initialConfig, on
                         {/* VISUALS TAB */}
                         {activeTab === 'visuals' && (
                             <View>
+                                <Text style={s.sectionTitle}>CANLI ÖNİZLEME</Text>
+                                <Text style={[s.label, { marginBottom: 15, fontSize: 12, lineHeight: 18 }]}>
+                                    Aşağıdaki karta tıklayarak sağa/sola sürükleyebilir (Pan) veya iki parmağınızla büyütüp/küçültebilirsiniz (Zoom). 
+                                    Resmin görünmeyen kısımlarını ortaya çıkarmak için önce biraz büyütün, ardından sürükleyin.
+                                </Text>
+                                
+                                <View style={{ alignItems: 'center', marginBottom: 20 }}>
+                                    <View {...panResponder.panHandlers}>
+                                        <View pointerEvents="none">
+                                            <HighlightCard 
+                                                config={config} 
+                                                isDarkMode={false} // Always show Light Mode preview per user request
+                                                onPress={() => {}}
+                                                isAdmin={false} // Disable edit button overlay
+                                            />
+                                        </View>
+                                    </View>
+                                </View>
+
                                 <Text style={s.sectionTitle}>FOTOĞRAF YÜKLE</Text>
                                 <TouchableOpacity style={s.imageBtn} onPress={handlePickImage}>
                                     <MaterialCommunityIcons name="image-plus" size={24} color="#D4AF37" />

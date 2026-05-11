@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 import GlassCard from './GlassCard';
+import { useTheme } from '../context/ThemeContext';
 
 const formatCurrency = (val) => {
     if (!val) return '0';
@@ -87,8 +88,11 @@ export default function OfferSummaryCard({
     const isLandowner = viewerMode === 'landowner';
 
     const isTadilat = offerType === 'anahtar_teslim_tadilat';
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const styles = getStyles(theme, isDarkMode);
 
-    return (
+        return (
         <GlassCard style={[styles.card, containerStyle, isTadilat && { borderColor: '#4CAF50', backgroundColor: 'rgba(76, 175, 80, 0.05)' }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
                 <MaterialCommunityIcons 
@@ -105,7 +109,7 @@ export default function OfferSummaryCard({
             <Text allowFontScaling={false} style={styles.bodyText}>
                 {isTadilat ? (
                     <>
-                        <Text allowFontScaling={false} style={{ fontWeight: 'bold', color: '#FFF' }}>
+                        <Text allowFontScaling={false} style={{ fontWeight: 'bold', color: isDarkMode ? '#FFF' : theme.text }}>
                             {isLandowner
                                 ? 'Söz konusu tadilat ve yenileme işi için firmanın teklifi;'
                                 : 'Söz konusu tadilat ve yenileme işi için firma olarak teklifim;'}
@@ -117,13 +121,13 @@ export default function OfferSummaryCard({
                         <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(tPrice)})</Text>
                         {isLandowner ? ' nakit ödeme talep edilmektedir.' : ' nakit ödeme talep ediyorum.'}
                         {'\n\n'}
-                        <Text allowFontScaling={false} style={{ fontSize: 11, color: '#AAA' }}>
+                        <Text allowFontScaling={false} style={{ fontSize: 11, color: isDarkMode ? '#AAA' : theme.textSecondary }}>
                             * Fiyatlara KDV dahil değildir (Aksi belirtilmedikçe).
                         </Text>
                     </>
                 ) : (
                     <>
-                        <Text allowFontScaling={false} style={{ fontWeight: 'bold', color: '#FFF' }}>
+                        <Text allowFontScaling={false} style={{ fontWeight: 'bold', color: isDarkMode ? '#FFF' : theme.text }}>
                             {isLandowner
                                 ? 'Söz konusu inşaat yapım işi için müteahhit firmanın talebi;'
                                 : 'Söz konusu inşaat yapım işi için müteahhit firma olarak talebim;'}
@@ -134,26 +138,26 @@ export default function OfferSummaryCard({
                             <>
                                 {unitNames.length > 0 ? (
                                     <>
-                                        Binada yer alan <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>{unitNames.join(', ')}</Text>
+                                        Binada yer alan <Text allowFontScaling={false} style={{ color: isDarkMode ? '#D4AF37' : '#8C6200', fontWeight: 'bold' }}>{unitNames.join(', ')}</Text>
                                         {unitNames.length > 1 ? ' bağımsız bölümlerinin ' : ' bağımsız bölümünün '}
                                         {isLandowner ? 'müteahhit firmaya devredilmesi,' : 'tarafıma devredilmesi,'} kalan tüm bağımsız bölümlerin hak sahiplerine teslim edilmesi ve inşaat yapım bedeli olarak;
                                     </>
                                 ) : (
                                     <>
-                                        Binada yer alan <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>tüm bağımsız bölümlerin</Text> hak sahiplerine teslim edilmesi ve inşaat yapım bedeli olarak;
+                                        Binada yer alan <Text allowFontScaling={false} style={{ color: isDarkMode ? '#D4AF37' : '#8C6200', fontWeight: 'bold' }}>tüm bağımsız bölümlerin</Text> hak sahiplerine teslim edilmesi ve inşaat yapım bedeli olarak;
                                     </>
                                 )}
                                 {grantAmount > 0 ? (
                                     <>
-                                        Üstlenicinin toplam <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>{formattedTotalPrice}</Text> tutarındaki talebinden, hak sahiplerinin beyanı doğrultusunda devletin sağladığı <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedGrant}</Text> hibe/kredi desteği düşüldüğünde;
+                                        Üstlenicinin toplam <Text allowFontScaling={false} style={{ color: isDarkMode ? '#D4AF37' : '#8C6200', fontWeight: 'bold' }}>{formattedTotalPrice}</Text> tutarındaki talebinden, hak sahiplerinin beyanı doğrultusunda devletin sağladığı <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold' }}>{formattedGrant}</Text> hibe/kredi desteği düşüldüğünde;
                                         {'\n\n'}
-                                        Hak sahipleri tarafından <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 16 }}>{formattedNetPrice}</Text>
+                                        Hak sahipleri tarafından <Text allowFontScaling={false} style={{ color: isDarkMode ? '#D4AF37' : '#8C6200', fontWeight: 'bold', fontSize: 16 }}>{formattedNetPrice}</Text>
                                         <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(netPrice)})</Text>
                                         {isLandowner ? ' nakit ödeme yapılması talep edilmektedir.' : ' nakit ödeme yapılması talep ediyorum.'}
                                     </>
                                 ) : (
                                     <>
-                                        <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold', fontSize: 16 }}>{formattedTotalPrice}</Text>
+                                        <Text allowFontScaling={false} style={{ color: isDarkMode ? '#D4AF37' : '#8C6200', fontWeight: 'bold', fontSize: 16 }}>{formattedTotalPrice}</Text>
                                         <Text allowFontScaling={false} style={styles.italicText}> ({numberToTurkishWords(tPrice)})</Text>
                                         {isLandowner ? ' nakit ödeme talep edilmektedir.' : ' nakit ödeme talep ediyorum.'}
                                     </>
@@ -163,12 +167,12 @@ export default function OfferSummaryCard({
                             <>
                                 {unitNames.length > 0 ? (
                                     <>
-                                        Binada yer alan <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>{unitNames.join(', ')}</Text>
+                                        Binada yer alan <Text allowFontScaling={false} style={{ color: isDarkMode ? '#D4AF37' : '#8C6200', fontWeight: 'bold' }}>{unitNames.join(', ')}</Text>
                                         {unitNames.length > 1 ? ' bağımsız bölümlerinin ' : ' bağımsız bölümünün '}
                                         {isLandowner ? 'müteahhit firmaya devredilmesi' : 'tarafıma devredilmesi'}
                                     </>
                                 ) : (
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontWeight: 'bold' }}>Binada yer alan tüm bağımsız bölümlerin hak sahiplerine teslim edilmesi </Text>
+                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontWeight: 'bold' }}>Binada yer alan tüm bağımsız bölümlerin hak sahiplerine teslim edilmesi </Text>
                                 )}
 
                                 {grantAmount > 0 && (
@@ -208,26 +212,26 @@ export default function OfferSummaryCard({
     );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme, isDarkMode) => StyleSheet.create({
     card: {
         marginTop: 16,
-        borderColor: '#D4AF37',
+        borderColor: isDarkMode ? '#D4AF37' : 'rgba(140, 98, 0, 0.3)',
         borderWidth: 1,
         backgroundColor: 'rgba(212, 175, 55, 0.05)'
     },
     headerTitle: {
-        color: '#D4AF37',
+        color: isDarkMode ? '#D4AF37' : '#8C6200',
         fontWeight: 'bold',
         fontSize: 13,
         letterSpacing: 1
     },
     bodyText: {
-        color: '#E0E0E0',
+        color: isDarkMode ? '#E0E0E0' : theme.text,
         fontSize: 13,
         lineHeight: 22
     },
     italicText: {
-        color: '#AAA',
+        color: isDarkMode ? '#AAA' : theme.textSecondary,
         fontSize: 11,
         fontStyle: 'italic'
     }

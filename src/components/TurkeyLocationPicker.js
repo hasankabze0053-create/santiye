@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useTheme } from '../context/ThemeContext';
 import {
+    Platform,
     FlatList,
     Modal,
     StyleSheet,
@@ -13,6 +15,23 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { TURKEY_CITIES, DISTRICTS, DEFAULT_DISTRICTS } from '../constants/TurkeyLocations';
 
 export default function TurkeyLocationPicker({ visible, onClose, onSelect, currentCity, currentDistrict }) {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+
+    const styles = useMemo(() => StyleSheet.create({
+        container: { flex: 1, backgroundColor: theme.background },
+        header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 15, paddingTop: Platform.OS === 'ios' ? 60 : 20, borderBottomWidth: 1, borderBottomColor: theme.border },
+        backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: theme.surface, alignItems: 'center', justifyContent: 'center' },
+        headerTitle: { color: theme.text, fontSize: 18, fontWeight: 'bold' },
+        searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surface, margin: 20, paddingHorizontal: 15, borderRadius: 12, borderWidth: 1, borderColor: theme.borderLight },
+        searchIcon: { marginRight: 10 },
+        searchInput: { flex: 1, height: 50, color: theme.text, fontSize: 16 },
+        list: { paddingHorizontal: 20, paddingBottom: 40 },
+        item: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: theme.surface },
+        itemText: { color: theme.text, fontSize: 16, fontWeight: '500' },
+        empty: { alignItems: 'center', marginTop: 40 }
+    }), [theme, isDarkMode]);
+
     const [view, setView] = useState('city'); // 'city' or 'district'
     const [selectedCity, setSelectedCity] = useState(currentCity || '');
     const [searchQuery, setSearchQuery] = useState('');
@@ -57,7 +76,7 @@ export default function TurkeyLocationPicker({ visible, onClose, onSelect, curre
             <SafeAreaView style={styles.container}>
                 <View style={styles.header}>
                     <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
-                        <Ionicons name={view === 'city' ? "close" : "arrow-back"} size={24} color="#FFF" />
+                        <Ionicons name={view === 'city' ? "close" : "arrow-back"} size={24} color={theme.text} />
                     </TouchableOpacity>
                     <Text allowFontScaling={false} style={styles.headerTitle}>
                         {view === 'city' ? 'Şehir Seçin' : `${selectedCity} - İlçe Seçin`}
@@ -70,7 +89,7 @@ export default function TurkeyLocationPicker({ visible, onClose, onSelect, curre
                     <TextInput allowFontScaling={false}
                         style={styles.searchInput}
                         placeholder={view === 'city' ? "Şehir ara..." : "İlçe ara..."}
-                        placeholderTextColor="#888"
+                        placeholderTextColor={theme.textSecondary}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                         autoCapitalize="words"
@@ -87,12 +106,12 @@ export default function TurkeyLocationPicker({ visible, onClose, onSelect, curre
                             onPress={() => view === 'city' ? handleCitySelect(item) : handleDistrictSelect(item)}
                         >
                             <Text allowFontScaling={false} style={styles.itemText}>{item}</Text>
-                            <Ionicons name="chevron-forward" size={20} color="#444" />
+                            <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
                         </TouchableOpacity>
                     )}
                     ListEmptyComponent={
                         <View style={styles.empty}>
-                            <Text allowFontScaling={false} style={{ color: '#888' }}>Sonuç bulunamadı.</Text>
+                            <Text allowFontScaling={false} style={{ color: theme.textSecondary }}>Sonuç bulunamadı.</Text>
                         </View>
                     }
                 />
@@ -100,17 +119,3 @@ export default function TurkeyLocationPicker({ visible, onClose, onSelect, curre
         </Modal>
     );
 }
-
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#000' },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, borderBottomWidth: 1, borderBottomColor: '#222' },
-    backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#1A1A1C', alignItems: 'center', justifyContent: 'center' },
-    headerTitle: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
-    searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1A1A1C', margin: 20, paddingHorizontal: 15, borderRadius: 12, borderWidth: 1, borderColor: '#333' },
-    searchIcon: { marginRight: 10 },
-    searchInput: { flex: 1, height: 50, color: '#FFF', fontSize: 16 },
-    list: { paddingHorizontal: 20, paddingBottom: 40 },
-    item: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: '#1A1A1C' },
-    itemText: { color: '#FFF', fontSize: 16, fontWeight: '500' },
-    empty: { alignItems: 'center', marginTop: 40 }
-});

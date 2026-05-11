@@ -1,5 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useMemo } from 'react';
+import { useTheme } from '../context/ThemeContext';
 
 const BUDGET_OPTIONS = [
     { 
@@ -33,6 +35,33 @@ const BUDGET_OPTIONS = [
 ];
 
 export default function BudgetSelector({ selectedSegment, onSelect }) {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+
+    const styles = useMemo(() => StyleSheet.create({
+        container: { width: '100%' },
+        grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+        card: { 
+            width: '48%', 
+            backgroundColor: theme.surface, 
+            borderRadius: 16, 
+            padding: 16, 
+            borderWidth: 1, 
+            borderColor: theme.borderLight,
+            minHeight: 140
+        },
+        iconBox: {
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 12
+        },
+        title: { color: theme.text, fontSize: 16, fontWeight: '800', marginBottom: 6 },
+        desc: { color: theme.textSecondary, fontSize: 11, lineHeight: 16 }
+    }), [theme, isDarkMode]);
+
     return (
         <View style={styles.container}>
             <View style={styles.grid}>
@@ -52,7 +81,7 @@ export default function BudgetSelector({ selectedSegment, onSelect }) {
                                 <MaterialCommunityIcons 
                                     name={opt.icon} 
                                     size={24} 
-                                    color={isSelected ? opt.color : '#666'} 
+                                    color={isSelected ? opt.color : (isDarkMode ? '#666' : '#999')} 
                                 />
                             </View>
                             <Text allowFontScaling={false} style={[
@@ -71,27 +100,3 @@ export default function BudgetSelector({ selectedSegment, onSelect }) {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: { width: '100%' },
-    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-    card: { 
-        width: '48%', 
-        backgroundColor: '#1A1A1C', 
-        borderRadius: 16, 
-        padding: 16, 
-        borderWidth: 1, 
-        borderColor: '#333',
-        minHeight: 140
-    },
-    iconBox: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 12
-    },
-    title: { color: '#FFF', fontSize: 16, fontWeight: '800', marginBottom: 6 },
-    desc: { color: '#888', fontSize: 11, lineHeight: 16 }
-});

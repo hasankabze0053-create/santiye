@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { Alert, Dimensions, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SharedRequestDetail from '../../components/SharedRequestDetail';
+import { useTheme } from '../../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -12,6 +13,9 @@ export default function MarketOffersScreen() {
     const navigation = useNavigation();
     const route = useRoute();
     const { request, bids, isAdminView = false } = route.params || {};
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const styles = getStyles(theme, isDarkMode);
     const [showRequestModal, setShowRequestModal] = useState(false);
     const customerName = request?.profiles?.full_name || request?.profiles?.company_name || 'Müşteri';
 
@@ -107,19 +111,19 @@ export default function MarketOffersScreen() {
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
-            <LinearGradient colors={['#000000', '#0a0f1e']} style={StyleSheet.absoluteFillObject} />
+            <LinearGradient colors={isDarkMode ? ['#000000', '#0a0f1e'] : [theme.background, theme.background]} style={StyleSheet.absoluteFillObject} />
             <SafeAreaView style={{ flex: 1 }}>
 
                 {/* ── Header ── */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
-                        <Ionicons name="arrow-back" size={22} color="#FFF" />
+                        <Ionicons name="arrow-back" size={22} color={isDarkMode ? '#FFF' : theme.text} />
                     </TouchableOpacity>
                     <View style={{ alignItems: 'center' }}>
                         <Text allowFontScaling={false} style={styles.headerTitle}>
                             {isAdminView ? customerName.toUpperCase() : 'GELEN TEKLİFLER'}
                         </Text>
-                        <Text allowFontScaling={false} style={{ color: '#475569', fontSize: 11, marginTop: 2 }}>
+                        <Text allowFontScaling={false} style={{ color: isDarkMode ? '#475569' : theme.textSecondary, fontSize: 11, marginTop: 2 }}>
                             {isAdminView ? 'Talep Sahibi' : `${bids.length} teklif · ${groupedBids.length} firma`}
                         </Text>
                     </View>
@@ -130,24 +134,24 @@ export default function MarketOffersScreen() {
 
                     {/* ── Request Summary Card ── */}
                     <LinearGradient
-                        colors={['rgba(30,41,59,0.9)', 'rgba(15,23,42,0.95)']}
+                        colors={isDarkMode ? ['rgba(30,41,59,0.9)', 'rgba(15,23,42,0.95)'] : [theme.surface, theme.surface]}
                         style={styles.summaryCard}
                     >
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                             <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(212,175,55,0.12)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(212,175,55,0.25)' }}>
-                                <MaterialCommunityIcons name="cube-outline" size={22} color="#FFD700" />
+                                <MaterialCommunityIcons name="cube-outline" size={22} color={isDarkMode ? '#FFD700' : '#8C6200'} />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 15, fontWeight: '800' }} numberOfLines={1}>
+                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#fff' : theme.text, fontSize: 15, fontWeight: '800' }} numberOfLines={1}>
                                     {request.title || 'Toptan Malzeme Talebi'}
                                 </Text>
-                                <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 12, marginTop: 2 }} numberOfLines={1}>
+                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#64748b' : theme.textSecondary, fontSize: 12, marginTop: 2 }} numberOfLines={1}>
                                     · {request.location?.replace('(Varsayılan)', '').trim()}
                                 </Text>
                             </View>
                             <View style={{ alignItems: 'flex-end' }}>
-                                <Text allowFontScaling={false} style={{ color: '#FFD700', fontWeight: '900', fontSize: 22 }}>{bids.length}</Text>
-                                <Text allowFontScaling={false} style={{ color: '#475569', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>TOPLAM TEKLİF</Text>
+                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFD700' : '#8C6200', fontWeight: '900', fontSize: 22 }}>{bids.length}</Text>
+                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#475569' : theme.textSecondary, fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>TOPLAM TEKLİF</Text>
                             </View>
                         </View>
 
@@ -169,9 +173,9 @@ export default function MarketOffersScreen() {
                                 }}
                                 onPress={() => setShowRequestModal(true)}
                             >
-                                <MaterialCommunityIcons name="file-document-outline" size={18} color="#FFD700" />
-                                <Text allowFontScaling={false} style={{ color: '#FFD700', fontWeight: 'bold', fontSize: 12 }}>TALEBİ GÖRÜNTÜLE</Text>
-                                <Ionicons name="chevron-forward" size={14} color="#FFD700" />
+                                <MaterialCommunityIcons name="file-document-outline" size={18} color={isDarkMode ? '#FFD700' : '#8C6200'} />
+                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFD700' : '#8C6200', fontWeight: 'bold', fontSize: 12 }}>TALEBİ GÖRÜNTÜLE</Text>
+                                <Ionicons name="chevron-forward" size={14} color={isDarkMode ? '#FFD700' : '#8C6200'} />
                             </TouchableOpacity>
                         )}
                     </LinearGradient>
@@ -202,13 +206,13 @@ export default function MarketOffersScreen() {
                                 <View style={styles.firmHeader}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                                         <View style={styles.avatar}>
-                                            <Text allowFontScaling={false} style={{ color: '#FFD700', fontWeight: '900', fontSize: 18 }}>
+                                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFD700' : '#8C6200', fontWeight: '900', fontSize: 18 }}>
                                                 {(group.provider?.company_name || group.provider?.full_name || 'F').charAt(0).toUpperCase()}
                                             </Text>
                                         </View>
                                         <View style={{ flex: 1 }}>
-                                            <Text allowFontScaling={false} style={styles.firmName}>{group.provider?.company_name || group.provider?.full_name || 'Tedarikçi Firma'}</Text>
-                                            <Text allowFontScaling={false} style={styles.firmSub}>
+                                            <Text allowFontScaling={false} style={[styles.firmName, { color: isDarkMode ? '#fff' : theme.text }]}>{group.provider?.company_name || group.provider?.full_name || 'Tedarikçi Firma'}</Text>
+                                            <Text allowFontScaling={false} style={[styles.firmSub, { color: isDarkMode ? '#475569' : theme.textSecondary }]}>
                                                 {total > 1 ? `${total} farklı seçenek sundu` : '1 teklif sundu'}
                                             </Text>
                                         </View>
@@ -227,7 +231,7 @@ export default function MarketOffersScreen() {
                                         </TouchableOpacity>
 
                                         <View style={{ alignItems: 'center', gap: 5 }}>
-                                            <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 12, fontWeight: '800', letterSpacing: 1 }}>
+                                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFD700' : '#8C6200', fontSize: 12, fontWeight: '800', letterSpacing: 1 }}>
                                                 SEÇİM {idx + 1} / {total}
                                             </Text>
                                             <View style={{ flexDirection: 'row', gap: 4 }}>
@@ -253,15 +257,15 @@ export default function MarketOffersScreen() {
                                 <View style={{ paddingHorizontal: 16, marginTop: 16, marginBottom: 20 }}>
                                     
                                     {/* Sipariş Detayı (Ne sipariş edildi?) */}
-                                    <View style={{ marginBottom: 16, backgroundColor: 'rgba(255,255,255,0.03)', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
+                                    <View style={{ marginBottom: 16, backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : theme.surfaceSecondary, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : theme.borderLight }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
                                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                                 <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(255, 255, 255, 0.08)', alignItems: 'center', justifyContent: 'center', marginRight: 14, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.2)' }}>
-                                                    <MaterialCommunityIcons name="cube-outline" size={26} color="#FFF" />
+                                                    <MaterialCommunityIcons name="cube-outline" size={26} color={isDarkMode ? '#FFF' : theme.text} />
                                                 </View>
                                                 <View>
-                                                    <View style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, marginBottom: 6 }}>
-                                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 11, fontWeight: '900', letterSpacing: 1.5 }}>SİPARİŞ DETAYI</Text>
+                                                    <View style={{ backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0,0,0,0.05)', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, marginBottom: 6 }}>
+                                                        <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontSize: 11, fontWeight: '900', letterSpacing: 1.5 }}>SİPARİŞ DETAYI</Text>
                                                     </View>
                                                     
                                                     {(() => {
@@ -275,9 +279,9 @@ export default function MarketOffersScreen() {
                                                         
                                                         return (
                                                             <View style={{ marginTop: 2 }}>
-                                                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: '900' }}>{itemName}</Text>
-                                                                {iBrand && <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 13, fontWeight: '600', marginTop: 4 }}>• İstenen Marka: {iBrand}</Text>}
-                                                                {iSpec && <Text allowFontScaling={false} style={{ color: '#38bdf8', fontSize: 13, fontWeight: '600', marginTop: 2 }}>• İstenen Özellik: {iSpec}</Text>}
+                                                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontSize: 18, fontWeight: '900' }}>{itemName}</Text>
+                                                                {iBrand && <Text allowFontScaling={false} style={{ color: isDarkMode ? '#D4AF37' : '#8C6200', fontSize: 13, fontWeight: '600', marginTop: 4 }}>• İstenen Marka: {iBrand}</Text>}
+                                                                {iSpec && <Text allowFontScaling={false} style={{ color: isDarkMode ? '#38bdf8' : '#0284C7', fontSize: 13, fontWeight: '600', marginTop: 2 }}>• İstenen Özellik: {iSpec}</Text>}
                                                             </View>
                                                         );
                                                     })()}
@@ -285,37 +289,37 @@ export default function MarketOffersScreen() {
                                             </View>
                                         </View>
                                         <View style={{ backgroundColor: 'rgba(74, 222, 128, 0.1)', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 12, fontWeight: 'bold', letterSpacing: 1 }}>SİPARİŞ MİKTARI:</Text>
-                                            <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 18, fontWeight: '900' }}>{request?.items?.[0]?.quantity || request?.quantity || '-'}</Text>
+                                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#4ADE80' : '#16A34A', fontSize: 12, fontWeight: 'bold', letterSpacing: 1 }}>SİPARİŞ MİKTARI:</Text>
+                                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#4ADE80' : '#16A34A', fontSize: 18, fontWeight: '900' }}>{request?.items?.[0]?.quantity || request?.quantity || '-'}</Text>
                                         </View>
                                     </View>
 
                                     {/* Firmanın Teklifi Başlık Alanı */}
                                     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, marginTop: 8, paddingHorizontal: 4 }}>
                                         <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(255, 215, 0, 0.12)', alignItems: 'center', justifyContent: 'center', marginRight: 14, borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.3)' }}>
-                                            <MaterialCommunityIcons name="handshake-outline" size={26} color="#FFD700" />
+                                            <MaterialCommunityIcons name="handshake-outline" size={26} color={isDarkMode ? '#FFD700' : '#8C6200'} />
                                         </View>
                                         <View>
                                             <View style={{ backgroundColor: 'rgba(255, 215, 0, 0.15)', alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 }}>
-                                                <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>FİRMANIN TEKLİFİ</Text>
+                                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFD700' : '#B8860B', fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>FİRMANIN TEKLİFİ</Text>
                                             </View>
                                         </View>
                                     </View>
 
                                     {/* Fiyat Bilgisi */}
-                                    <View style={{ backgroundColor: '#0a1628', borderRadius: 16, padding: 18, marginBottom: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderLeftWidth: 4, borderLeftColor: '#FFD700', borderWidth: 1, borderColor: 'rgba(255,215,0,0.2)' }}>
+                                    <View style={{ backgroundColor: isDarkMode ? '#0a1628' : theme.background, borderRadius: 16, padding: 18, marginBottom: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderLeftWidth: 4, borderLeftColor: '#FFD700', borderWidth: 1, borderColor: isDarkMode ? 'rgba(255,215,0,0.2)' : theme.borderLight }}>
                                         <View style={{ flex: 1 }}>
-                                            <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 11, fontWeight: '800', letterSpacing: 1.5 }}>BİRİM FİYAT</Text>
-                                            <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 34, fontWeight: '900', marginTop: 4, letterSpacing: -0.5 }}>{unitPrice.toLocaleString('tr-TR')} ₺</Text>
+                                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#64748b' : theme.textSecondary, fontSize: 11, fontWeight: '800', letterSpacing: 1.5 }}>BİRİM FİYAT</Text>
+                                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFD700' : '#B8860B', fontSize: 34, fontWeight: '900', marginTop: 4, letterSpacing: -0.5 }}>{unitPrice.toLocaleString('tr-TR')} ₺</Text>
                                             
                                             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
                                                 {parsed.vatIncluded ? (
-                                                    <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 13, fontWeight: '800', backgroundColor: 'rgba(74,222,128,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>KDV Dahil</Text>
+                                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#4ADE80' : '#16A34A', fontSize: 13, fontWeight: '800', backgroundColor: 'rgba(74,222,128,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>KDV Dahil</Text>
                                                 ) : (
-                                                    <Text allowFontScaling={false} style={{ color: '#fb923c', fontSize: 13, fontWeight: '800', backgroundColor: 'rgba(251,146,60,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>KDV</Text>
+                                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#fb923c' : '#D97706', fontSize: 13, fontWeight: '800', backgroundColor: 'rgba(251,146,60,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>KDV</Text>
                                                 )}
                                                 {parsed.pumpFee && (
-                                                    <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 12, fontWeight: 'bold', marginLeft: 8 }}>
+                                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#D4AF37' : '#8C6200', fontSize: 12, fontWeight: 'bold', marginLeft: 8 }}>
                                                         & Pompa {parsed.pumpFee}₺
                                                     </Text>
                                                 )}
@@ -324,10 +328,10 @@ export default function MarketOffersScreen() {
                                         
                                         {totalAmnt > 0 && (
                                             <View style={{ alignItems: 'flex-end', justifyContent: 'center', paddingLeft: 12, borderLeftWidth: 1, borderLeftColor: 'rgba(255,255,255,0.1)' }}>
-                                                <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 11, fontWeight: '800', letterSpacing: 1, marginBottom: 6, textAlign: 'right', maxWidth: 100 }}>
+                                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#64748b' : theme.textSecondary, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginBottom: 6, textAlign: 'right', maxWidth: 100 }}>
                                                     {String(request?.items?.[0]?.quantity || request?.quantity || '').toUpperCase()} TOPLAM
                                                 </Text>
-                                                <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 26, fontWeight: '900', marginTop: 2 }}>≈ {totalAmnt.toLocaleString('tr-TR')} ₺</Text>
+                                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#4ADE80' : '#16A34A', fontSize: 26, fontWeight: '900', marginTop: 2 }}>≈ {totalAmnt.toLocaleString('tr-TR')} ₺</Text>
                                             </View>
                                         )}
                                     </View>
@@ -336,12 +340,12 @@ export default function MarketOffersScreen() {
                                     <View>
                                         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
                                             <View style={{ backgroundColor: 'rgba(212, 175, 55, 0.08)', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.25)', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                                <MaterialCommunityIcons name="receipt" size={16} color="#D4AF37" />
-                                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '600' }}>KDV: {parsed.vatIncluded ? 'Dahil' : 'Hariç'}</Text>
+                                                <MaterialCommunityIcons name="receipt" size={16} color={isDarkMode ? '#D4AF37' : '#8C6200'} />
+                                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontSize: 13, fontWeight: '600' }}>KDV: {parsed.vatIncluded ? 'Dahil' : 'Hariç'}</Text>
                                             </View>
                                             <View style={{ backgroundColor: 'rgba(212, 175, 55, 0.08)', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.25)', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                                <MaterialCommunityIcons name="truck-delivery-outline" size={16} color="#D4AF37" />
-                                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '600' }}>
+                                                <MaterialCommunityIcons name="truck-delivery-outline" size={16} color={isDarkMode ? '#D4AF37' : '#8C6200'} />
+                                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontSize: 13, fontWeight: '600' }}>
                                                     Nakliye: {parsed.shippingType || 'Belirtilmedi'}
                                                     {parsed.shippingFee ? (
                                                         <Text style={{ color: '#FCD34D' }}>
@@ -351,27 +355,27 @@ export default function MarketOffersScreen() {
                                                 </Text>
                                             </View>
                                             <View style={{ backgroundColor: 'rgba(212, 175, 55, 0.08)', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.25)', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                                <MaterialCommunityIcons name="package-variant" size={16} color="#D4AF37" />
-                                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '600' }}>Stok: {parsed.stockStatus === 'immediate' ? 'Hemen Teslim' : (parsed.stockStatus === 'wait' ? '~ 2-3 Gün' : 'Belirtilmedi')}</Text>
+                                                <MaterialCommunityIcons name="package-variant" size={16} color={isDarkMode ? '#D4AF37' : '#8C6200'} />
+                                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontSize: 13, fontWeight: '600' }}>Stok: {parsed.stockStatus === 'immediate' ? 'Hemen Teslim' : (parsed.stockStatus === 'wait' ? '~ 2-3 Gün' : 'Belirtilmedi')}</Text>
                                             </View>
                                             <View style={{ backgroundColor: 'rgba(212, 175, 55, 0.08)', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.25)', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                                <MaterialCommunityIcons name="clock-outline" size={16} color="#D4AF37" />
-                                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '600' }}>Vade: {parsed.paymentTerm || '—'}</Text>
+                                                <MaterialCommunityIcons name="clock-outline" size={16} color={isDarkMode ? '#D4AF37' : '#8C6200'} />
+                                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontSize: 13, fontWeight: '600' }}>Vade: {parsed.paymentTerm || '—'}</Text>
                                             </View>
                                             <View style={{ backgroundColor: 'rgba(212, 175, 55, 0.08)', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.25)', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                                <MaterialCommunityIcons name="shield-check-outline" size={16} color="#D4AF37" />
-                                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '600' }}>Geçerlilik: {parsed.validity ? (parsed.validity >= 168 ? '1 Hafta' : `${parsed.validity} Saat`) : '24 Saat'}</Text>
+                                                <MaterialCommunityIcons name="shield-check-outline" size={16} color={isDarkMode ? '#D4AF37' : '#8C6200'} />
+                                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontSize: 13, fontWeight: '600' }}>Geçerlilik: {parsed.validity ? (parsed.validity >= 168 ? '1 Hafta' : `${parsed.validity} Saat`) : '24 Saat'}</Text>
                                             </View>
                                             {parsed.offerBrand && (
                                                 <View style={{ backgroundColor: 'rgba(56, 189, 248, 0.1)', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(56, 189, 248, 0.4)', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                                    <Ionicons name="pricetag" size={16} color="#38bdf8" />
-                                                    <Text allowFontScaling={false} style={{ color: '#38bdf8', fontSize: 13, fontWeight: '700' }}>Gelen Teklifteki Marka: {parsed.offerBrand}</Text>
+                                                    <Ionicons name="pricetag" size={16} color={isDarkMode ? '#38bdf8' : '#0284C7'} />
+                                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#38bdf8' : '#0284C7', fontSize: 13, fontWeight: '700' }}>Gelen Teklifteki Marka: {parsed.offerBrand}</Text>
                                                 </View>
                                             )}
                                             {parsed.offerTechSpec && (
                                                 <View style={{ backgroundColor: 'rgba(244, 114, 182, 0.1)', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(244, 114, 182, 0.4)', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                                    <MaterialCommunityIcons name="tune-vertical-variant" size={16} color="#f472b6" />
-                                                    <Text allowFontScaling={false} style={{ color: '#f472b6', fontSize: 13, fontWeight: '700' }}>Gelen Teklifteki Özellik: {parsed.offerTechSpec}</Text>
+                                                    <MaterialCommunityIcons name="tune-vertical-variant" size={16} color={isDarkMode ? '#f472b6' : '#BE185D'} />
+                                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#f472b6' : '#BE185D', fontSize: 13, fontWeight: '700' }}>Gelen Teklifteki Özellik: {parsed.offerTechSpec}</Text>
                                                 </View>
                                             )}
                                         </View>
@@ -398,7 +402,7 @@ export default function MarketOffersScreen() {
                                     activeOpacity={0.85}
                                 >
                                     <LinearGradient
-                                        colors={['#FFD700', '#FF9100']}
+                                        colors={isDarkMode ? ['#FFD700', '#FF9100'] : ['#D4AF37', '#E8890C']}
                                         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                                         style={{ paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}
                                     >
@@ -418,7 +422,7 @@ export default function MarketOffersScreen() {
 
                 {/* Shared Request Detail Modal for Admin */}
                 <Modal visible={showRequestModal} animationType="slide" transparent={true}>
-                    <View style={{ flex: 1, backgroundColor: '#000' }}>
+                    <View style={{ flex: 1, backgroundColor: isDarkMode ? '#000' : theme.background }}>
                         <SharedRequestDetail
                             request={request}
                             type="market"
@@ -436,47 +440,47 @@ export default function MarketOffersScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#000' },
+const getStyles = (theme, isDarkMode) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: isDarkMode ? '#000' : theme.background },
     content: { padding: 16, paddingTop: 8 },
 
     header: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         paddingHorizontal: 16, paddingVertical: 12, marginBottom: 8
     },
-    headerTitle: { color: '#FFD700', fontSize: 15, fontWeight: '900', letterSpacing: 1.5 },
+    headerTitle: { color: isDarkMode ? '#FFD700' : '#B8860B', fontSize: 15, fontWeight: '900', letterSpacing: 1.5 },
     backBtn: {
         width: 40, height: 40, alignItems: 'center', justifyContent: 'center',
-        borderRadius: 12, backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#1e293b'
+        borderRadius: 12, backgroundColor: isDarkMode ? '#0f172a' : theme.background, borderWidth: 1, borderColor: isDarkMode ? '#1e293b' : theme.borderLight
     },
 
     summaryCard: {
         borderRadius: 16, padding: 16, borderWidth: 1,
-        borderColor: 'rgba(255,215,0,0.2)', marginBottom: 20
+        borderColor: isDarkMode ? 'rgba(255,215,0,0.2)' : theme.borderLight, marginBottom: 20
     },
 
     groupCard: {
-        backgroundColor: '#0f172a', borderRadius: 20, borderWidth: 1,
-        borderColor: '#1e293b', marginBottom: 20, overflow: 'hidden', paddingTop: 4
+        backgroundColor: isDarkMode ? '#0f172a' : theme.background, borderRadius: 20, borderWidth: 1,
+        borderColor: isDarkMode ? '#1e293b' : theme.borderLight, marginBottom: 20, overflow: 'hidden', paddingTop: 4
     },
     firmHeader: {
         paddingHorizontal: 16, paddingVertical: 14,
-        borderBottomWidth: 1, borderBottomColor: '#1e293b'
+        borderBottomWidth: 1, borderBottomColor: isDarkMode ? '#1e293b' : theme.borderLight
     },
     avatar: {
         width: 44, height: 44, borderRadius: 22,
         backgroundColor: 'rgba(255,215,0,0.1)', borderWidth: 1,
         borderColor: 'rgba(255,215,0,0.25)', alignItems: 'center', justifyContent: 'center'
     },
-    firmName: { color: '#fff', fontSize: 15, fontWeight: '800' },
-    firmSub: { color: '#475569', fontSize: 12, marginTop: 2 },
+    firmName: { color: isDarkMode ? '#fff' : theme.text, fontSize: 15, fontWeight: '800' },
+    firmSub: { color: isDarkMode ? '#475569' : theme.textSecondary, fontSize: 12, marginTop: 2 },
 
     navigator: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         marginHorizontal: 16, marginTop: 12, marginBottom: 4,
-        backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12,
+        backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : theme.surfaceSecondary, borderRadius: 12,
         paddingVertical: 10, paddingHorizontal: 12,
-        borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)'
+        borderWidth: 1, borderColor: isDarkMode ? 'rgba(255,255,255,0.06)' : theme.borderLight
     },
     navBtn: {
         width: 36, height: 36, borderRadius: 10, alignItems: 'center',
@@ -485,7 +489,7 @@ const styles = StyleSheet.create({
 
     priceCard: {
         marginHorizontal: 16, marginTop: 14, marginBottom: 14,
-        backgroundColor: '#0a1628', borderRadius: 16, padding: 16,
+        backgroundColor: isDarkMode ? '#0a1628' : theme.background, borderRadius: 16, padding: 16,
         flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
         borderLeftWidth: 3, borderLeftColor: '#FFD700',
         borderWidth: 1, borderColor: 'rgba(255,215,0,0.15)'
@@ -497,7 +501,7 @@ const styles = StyleSheet.create({
     },
     infoCell: {
         flex: 1, minWidth: '45%', backgroundColor: '#111827', borderRadius: 12,
-        padding: 12, borderWidth: 1, borderColor: '#1e293b'
+        padding: 12, borderWidth: 1, borderColor: isDarkMode ? '#1e293b' : theme.borderLight
     },
     infoCellLabel: { color: '#334155', fontSize: 10, fontWeight: '800', letterSpacing: 1, marginBottom: 4 },
     infoCellValue: { color: '#e2e8f0', fontSize: 13, fontWeight: '700' },

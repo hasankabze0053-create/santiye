@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import {
     Alert,
     Dimensions,
@@ -21,6 +21,7 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { uploadImageToSupabase } from '../../services/PhotoUploadService';
 import TurkeyLocationPicker from '../../components/TurkeyLocationPicker';
@@ -29,27 +30,26 @@ import BudgetSelector from '../../components/BudgetSelector';
 const { width } = Dimensions.get('window');
 
 // ─── THEME ───────────────────────────────────────────────────────
-const TH = {
-    bg: '#000000', // True Black
-    cardLight: '#1C1C1E', // Elevated dark gray
-    cardDark: '#0A0A0A',
-    gold: '#FFD700', // Premium Gold
-    goldDark: '#CCAC00',
-    goldMuted: 'rgba(255, 215, 0, 0.1)',
-    textPrimary: '#FFFFFF',
-    textMuted: '#8E8E93',
-    border: '#2C2C2E',
-    borderLight: '#3A3A3C',
-    danger: '#EF4444',
-    warningBg: 'rgba(255, 215, 0, 0.08)',
-};
+const getTH = (theme, isDarkMode) => ({
+    bg: theme.background,
+    cardLight: theme.surface,
+    cardDark: theme.surfaceSecondary,
+    gold: theme.accentBright,
+    goldDark: theme.accent,
+    goldMuted: isDarkMode ? 'rgba(255, 215, 0, 0.1)' : 'rgba(140, 98, 0, 0.1)',
+    textPrimary: theme.text,
+    textMuted: theme.textSecondary,
+    border: theme.border,
+    borderLight: theme.borderLight,
+    danger: theme.danger
+});
 
 // ─── DATA ────────────────────────────────────────────────────
 
 const SCOPE_OPTIONS = [
-    { id: 'kitchen', title: 'Sadece Mutfak', image: require('../../../assets/renovation/kitchen_luxury.png') },
-    { id: 'bath', title: 'Sadece Banyo', image: require('../../../assets/renovation/bath_luxury.png') },
-    { id: 'both', title: 'Mutfak ve Banyo', image: require('../../../assets/renovation/kitchen_bath_split.png') },
+    { id: 'kitchen', title: 'Sadece Mutfak', imageDark: require('../../../assets/renovation/kitchen_luxury.png'), imageLight: require('../../../assets/renovation/kitchen_light.png') },
+    { id: 'bath', title: 'Sadece Banyo', imageDark: require('../../../assets/renovation/bath_luxury.png'), imageLight: require('../../../assets/renovation/bath_light.png') },
+    { id: 'both', title: 'Mutfak ve Banyo', imageDark: require('../../../assets/renovation/kitchen_bath_split.png'), imageLight: require('../../../assets/renovation/kitchen_bath_light.png') },
 ];
 
 const WORK_LEVELS = [
@@ -94,14 +94,22 @@ const STYLE_CATALOG = {
 
 // ─── SHARED COMPONENTS ───────────────────────────────────────
 
-const SLabel = ({ text, sub }) => (
+const SLabel = ({ text, sub }) => {
+    const theme = useTheme(); const isDarkMode = theme.isDarkMode;
+    const TH = getTH(theme, isDarkMode);
+    return (
     <View style={{ marginBottom: 14 }}>
         <Text allowFontScaling={false} style={{ color: TH.textPrimary, fontSize: 16, fontWeight: '700' }}>{text}</Text>
         {sub && <Text allowFontScaling={false} style={{ color: TH.textMuted, fontSize: 13, marginTop: 4 }}>{sub}</Text>}
     </View>
-);
+    );
+};
 
-const UploadZone = ({ iconName, label, images, onPick, onRemove }) => (
+const UploadZone = ({ iconName, label, images, onPick, onRemove }) => {
+    const theme = useTheme(); const isDarkMode = theme.isDarkMode;
+    const TH = getTH(theme, isDarkMode);
+    const { uz } = useMemo(() => getStyles(TH), [TH]);
+    return (
     <View style={uz.wrap}>
         <SLabel text={label} />
         {images.length > 0 ? (
@@ -127,20 +135,17 @@ const UploadZone = ({ iconName, label, images, onPick, onRemove }) => (
             </TouchableOpacity>
         )}
     </View>
-);
+    );
+};
 
-const uz = StyleSheet.create({
-    wrap: { marginBottom: 24 },
-    dropzone: { height: 110, borderRadius: 16, borderWidth: 1.5, borderColor: TH.border, borderStyle: 'dashed', backgroundColor: '#1A1A1C', alignItems: 'center', justifyContent: 'center', gap: 10 },
-    dropIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#222', alignItems: 'center', justifyContent: 'center' },
-    dropText: { color: TH.textMuted, fontSize: 14, fontWeight: '500' },
-    imgWrap: { width: 100, height: 100, borderRadius: 16, overflow: 'hidden', backgroundColor: '#222' },
-    removeBtn: { position: 'absolute', top: 6, right: 6, width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
-    addMoreBtn: { width: 100, height: 100, borderRadius: 16, borderWidth: 1.5, borderColor: TH.border, borderStyle: 'dashed', backgroundColor: '#1A1A1C', alignItems: 'center', justifyContent: 'center' },
-});
+
 
 // Custom Slider Component
-const CustomSlider = ({ label, value, min, max, onChange, suffix = 'm²' }) => (
+const CustomSlider = ({ label, value, min, max, onChange, suffix = 'm²' }) => {
+    const theme = useTheme(); const isDarkMode = theme.isDarkMode;
+    const TH = getTH(theme, isDarkMode);
+    const { slStyle } = useMemo(() => getStyles(TH), [TH]);
+    return (
     <View style={{ marginBottom: 24 }}>
         <View style={slStyle.header}>
             <Text allowFontScaling={false} style={slStyle.label}>{label}</Text>
@@ -164,19 +169,17 @@ const CustomSlider = ({ label, value, min, max, onChange, suffix = 'm²' }) => (
             <Text allowFontScaling={false} style={slStyle.rangeText}>{max} {suffix}</Text>
         </View>
     </View>
-);
-const slStyle = StyleSheet.create({
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: -4 },
-    label: { color: TH.textMuted, fontSize: 14, fontWeight: '500' },
-    valBadge: { backgroundColor: 'rgba(255,215,0,0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: TH.gold },
-    valText: { color: TH.gold, fontSize: 13, fontWeight: '700' },
-    rangeRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 },
-    rangeText: { color: TH.textMuted, fontSize: 11 },
-});
+    );
+};
+
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────
 
 export default function KitchenBathWizardScreen() {
+    const theme = useTheme(); const isDarkMode = theme.isDarkMode;
+    const TH = useMemo(() => getTH(theme, isDarkMode), [theme, isDarkMode]);
+    const { styles, s, s1, s2, s3, s4, s5 } = useMemo(() => getStyles(TH), [TH]);
+
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
     const scrollRef = useRef(null);
@@ -329,9 +332,10 @@ export default function KitchenBathWizardScreen() {
         <View style={s.stepBlock}>
             {SCOPE_OPTIONS.map(opt => {
                 const isSel = selectedScope === opt.id;
+                const activeImage = isDarkMode ? opt.imageDark : opt.imageLight;
                 return (
                     <TouchableOpacity key={opt.id} style={[s1.card, isSel && s1.cardActive]} onPress={() => setSelectedScope(opt.id)} activeOpacity={0.9}>
-                        <Image source={typeof opt.image === 'string' ? { uri: opt.image } : opt.image} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+                        <Image source={typeof activeImage === 'string' ? { uri: activeImage } : activeImage} style={StyleSheet.absoluteFillObject} contentFit="cover" />
                         {/* Critical gradient for text legibility */}
                         <LinearGradient colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.95)']} style={StyleSheet.absoluteFillObject} start={{ x: 0, y: 0.3 }} end={{ x: 0, y: 1 }} />
                         {isSel && <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(255,215,0,0.08)' }]} />}
@@ -453,7 +457,7 @@ export default function KitchenBathWizardScreen() {
                 return (
                     <TouchableOpacity key={level.id} style={[s3.scopeCard, isPrem && s3.scopePrem, isSel && s3.scopeCardActive, isSel && isPrem && s3.scopePremActive]} onPress={() => setWorkLevel(level.id)} activeOpacity={0.85}>
                         <View style={s3.scopeRow}>
-                            <MaterialCommunityIcons name={level.icon} size={28} color={isPrem ? TH.gold : (isSel ? TH.gold : '#FFF')} />
+                            <MaterialCommunityIcons name={level.icon} size={28} color={isPrem ? TH.gold : (isSel ? TH.gold : 'transparent')} />
                             <View style={{ flex: 1, paddingLeft: 14 }}>
                                 <Text allowFontScaling={false} style={[s3.scopeTitle, isSel && { color: TH.gold }]}>{level.title}</Text>
                                 <Text allowFontScaling={false} style={s3.scopeDesc}>{level.desc}</Text>
@@ -562,7 +566,7 @@ export default function KitchenBathWizardScreen() {
                 >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                         <Ionicons name="location" size={22} color={TH.gold} />
-                        <Text allowFontScaling={false} style={{ color: city ? '#FFF' : TH.textMuted, fontSize: 16, fontWeight: 'bold' }}>
+                        <Text allowFontScaling={false} style={{ color: city ? TH.textPrimary : TH.textMuted, fontSize: 16, fontWeight: 'bold' }}>
                             {city ? `${city} / ${district}` : 'İl ve İlçe Seçin'}
                         </Text>
                     </View>
@@ -680,109 +684,136 @@ export default function KitchenBathWizardScreen() {
 
 // ─── STYLES ──────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: TH.bg },
-    header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16, backgroundColor: TH.bg, zIndex: 10 },
-    backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: TH.cardLight, alignItems: 'center', justifyContent: 'center' },
-    progressWrap: { flex: 1, flexDirection: 'row', gap: 6, marginHorizontal: 16, height: 4 },
-    progSeg: { flex: 1, height: '100%', borderRadius: 2, backgroundColor: TH.border },
-    progSegActive: { backgroundColor: TH.gold },
-    stepIndicator: { color: TH.textMuted, fontSize: 13, fontWeight: '700' },
-    scrollContent: { paddingHorizontal: 20, paddingBottom: 40, paddingTop: 10 },
-    headerTitles: { marginBottom: 30 },
-    mainTitle: { color: TH.textPrimary, fontSize: 28, fontWeight: '800', lineHeight: 36, letterSpacing: -0.5 },
-    subTitle: { color: TH.textMuted, fontSize: 14, marginTop: 8 },
-    bottomBar: { flexDirection: 'row', paddingHorizontal: 20, paddingTop: 16, borderTopWidth: 1, borderTopColor: TH.border, backgroundColor: TH.bg, gap: 12 },
-    bottomBackBtn: { height: 56, paddingHorizontal: 24, borderRadius: 30, borderWidth: 1, borderColor: '#444', alignItems: 'center', justifyContent: 'center' },
-    bottomBackText: { color: '#CCC', fontSize: 15, fontWeight: '600' },
-    primaryBtn: { flex: 1, height: 56, borderRadius: 30, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', overflow: 'hidden' },
-    primaryBtnText: { color: '#1A1A1A', fontSize: 16, fontWeight: '900', letterSpacing: 1, zIndex: 2 },
-});
 
-const s = StyleSheet.create({
-    stepBlock: { width: '100%' },
-    rowHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
-    rowTitle: { color: TH.textPrimary, fontSize: 18, fontWeight: '700' },
-});
+
+
 
 // Step 1
-const s1 = StyleSheet.create({
-    card: { height: 160, borderRadius: 20, overflow: 'hidden', marginBottom: 16, borderWidth: 2, borderColor: 'transparent', backgroundColor: TH.cardLight },
-    cardActive: { borderColor: TH.gold },
-    contentWrap: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, zIndex: 10 },
-    title: { color: TH.textPrimary, fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
-    radio: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: '#FFF', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.3)' },
-    radioActive: { borderColor: TH.gold },
-    radioInner: { width: 14, height: 14, borderRadius: 7, backgroundColor: TH.gold },
-});
+
 
 // Step 2
-const s2 = StyleSheet.create({
-    cardBlock: { backgroundColor: TH.cardLight, borderRadius: 24, padding: 20, marginBottom: 20, borderWidth: 1, borderColor: TH.borderLight },
-    subLabel: { color: TH.textMuted, fontSize: 13, marginBottom: 10, fontWeight: '500' },
-    pillWrap: { flexDirection: 'row', backgroundColor: '#111', borderRadius: 16, padding: 6, borderWidth: 1, borderColor: TH.borderLight },
-    pillBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 12 },
-    pillBtnActive: { backgroundColor: '#FFF' },
-    pillText: { color: TH.textMuted, fontSize: 14, fontWeight: '600' },
-    typeBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 14, backgroundColor: '#111', borderWidth: 1, borderColor: TH.borderLight },
-    typeBtnActive: { borderColor: TH.gold, backgroundColor: TH.warningBg },
-    typeBtnText: { color: TH.textMuted, fontSize: 14, fontWeight: '600' },
-    circRow: { flexDirection: 'row', gap: 14, marginBottom: 10 },
-    circBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#111', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: TH.borderLight },
-    circBtnActive: { borderColor: TH.gold, overflow: 'hidden' }, // Ensure gradient stays inside
-    circText: { color: TH.textMuted, fontSize: 16, fontWeight: '600' },
-});
+
 
 // Step 3
-const s3 = StyleSheet.create({
-    scopeCard: { backgroundColor: TH.cardLight, borderRadius: 20, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: TH.borderLight },
-    scopeCardActive: { borderColor: TH.gold, backgroundColor: TH.warningBg },
-    scopePrem: { borderColor: TH.gold, borderWidth: 1 },
-    scopePremActive: { backgroundColor: 'rgba(255,215,0,0.1)' },
-    scopeRow: { flexDirection: 'row', alignItems: 'center' },
-    scopeTitle: { color: TH.textPrimary, fontSize: 16, fontWeight: '700', marginBottom: 4 },
-    scopeDesc: { color: TH.textMuted, fontSize: 13, lineHeight: 18 },
-    ageWrap: { flexDirection: 'row', backgroundColor: '#111', borderRadius: 14, padding: 6, borderWidth: 1, borderColor: TH.borderLight },
-    ageBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderRadius: 10 },
-    ageBtnActive: { backgroundColor: '#FFF' },
-    ageText: { color: TH.textMuted, fontSize: 14, fontWeight: '600' },
-});
+
 
 // Step 4
-const s4 = StyleSheet.create({
-    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-    imgCard: { width: (width - 40 - 12) / 2, height: 210, borderRadius: 20, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent' },
-    imgCardActive: { borderColor: TH.gold },
-    checkBadge: { position: 'absolute', top: 12, right: 12, width: 28, height: 28, borderRadius: 14, backgroundColor: TH.gold, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-    imgTextWrap: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, zIndex: 5 },
-    imgTitle: { color: '#FFF', fontSize: 15, fontWeight: '800', marginBottom: 4 },
-    imgDesc: { color: 'rgba(255,255,255,0.7)', fontSize: 11, lineHeight: 16 },
-    unCard: { width: '100%', height: 110, borderRadius: 20, borderWidth: 1.5, borderColor: TH.border, borderStyle: 'dashed', backgroundColor: '#111', alignItems: 'center', justifyContent: 'center', marginTop: 4 },
-    unCardActive: { borderColor: TH.gold, backgroundColor: 'rgba(255, 215, 0, 0.05)' },
-    unTitle: { color: TH.textMuted, fontSize: 16, fontWeight: '700', marginTop: 8, marginBottom: 2 },
-    unSub: { color: '#666', fontSize: 13 },
-});
+
 
 // Step 5
-const s5 = StyleSheet.create({
-    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-    locationBtn: {
-        backgroundColor: '#1A1A1C',
-        padding: 18,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: TH.border,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-    },
-    budgCard: { width: (width - 40 - 12) / 2, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: TH.border, backgroundColor: TH.cardLight, flexDirection: 'row', alignItems: 'center' },
-    budgCardActive: { borderColor: TH.gold },
-    budgTitle: { color: TH.textPrimary, fontSize: 13, fontWeight: '700', marginBottom: 2 },
-    budgSub: { color: TH.textMuted, fontSize: 11 },
-    textAreaWrap: { position: 'relative' },
-    textArea: { height: 150, backgroundColor: TH.cardLight, borderRadius: 16, borderWidth: 1, borderColor: TH.border, color: TH.textPrimary, fontSize: 15, padding: 16, paddingRight: 50, textAlignVertical: 'top' },
-    micBtn: { position: 'absolute', right: 12, bottom: 12, width: 44, height: 44, borderRadius: 22, backgroundColor: '#222', alignItems: 'center', justifyContent: 'center' },
-    accessory: { backgroundColor: '#1A1A1C', padding: 12, alignItems: 'flex-end', borderTopWidth: 1, borderTopColor: TH.border },
-    accessoryBtn: { color: TH.gold, fontSize: 16, fontWeight: '800', marginRight: 10 },
+
+
+const getStyles = (TH) => ({
+    styles: StyleSheet.create({
+        container: { flex: 1, backgroundColor: TH.bg },
+        header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16, backgroundColor: TH.bg, zIndex: 10 },
+        backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: TH.cardLight, alignItems: 'center', justifyContent: 'center' },
+        progressWrap: { flex: 1, flexDirection: 'row', gap: 6, marginHorizontal: 16, height: 4 },
+        progSeg: { flex: 1, height: '100%', borderRadius: 2, backgroundColor: TH.border },
+        progSegActive: { backgroundColor: TH.gold },
+        stepIndicator: { color: TH.textMuted, fontSize: 13, fontWeight: '700' },
+        scrollContent: { paddingHorizontal: 20, paddingBottom: 40, paddingTop: 10 },
+        headerTitles: { marginBottom: 30 },
+        mainTitle: { color: TH.textPrimary, fontSize: 28, fontWeight: '800', lineHeight: 36, letterSpacing: -0.5 },
+        subTitle: { color: TH.textMuted, fontSize: 14, marginTop: 8 },
+        bottomBar: { flexDirection: 'row', paddingHorizontal: 20, paddingTop: 16, borderTopWidth: 1, borderTopColor: TH.border, backgroundColor: TH.bg, gap: 12 },
+        bottomBackBtn: { height: 56, paddingHorizontal: 24, borderRadius: 30, borderWidth: 1, borderColor: TH.borderLight, alignItems: 'center', justifyContent: 'center' },
+        bottomBackText: { color: TH.textMuted, fontSize: 15, fontWeight: '600' },
+        primaryBtn: { flex: 1, height: 56, borderRadius: 30, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', overflow: 'hidden' },
+        primaryBtnText: { color: '#1A1A1A', fontSize: 16, fontWeight: '900', letterSpacing: 1, zIndex: 2 },
+    }),
+    s: StyleSheet.create({
+        stepBlock: { width: '100%' },
+        rowHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
+        rowTitle: { color: TH.textPrimary, fontSize: 18, fontWeight: '700' },
+    }),
+    s1: StyleSheet.create({
+        card: { height: 160, borderRadius: 20, overflow: 'hidden', marginBottom: 16, borderWidth: 2, borderColor: 'transparent', backgroundColor: TH.cardLight },
+        cardActive: { borderColor: TH.gold },
+        contentWrap: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, zIndex: 10 },
+        title: { color: '#FFF', fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
+        radio: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: '#FFF', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.3)' },
+        radioActive: { borderColor: TH.gold },
+        radioInner: { width: 14, height: 14, borderRadius: 7, backgroundColor: TH.gold },
+    }),
+    s2: StyleSheet.create({
+        cardBlock: { backgroundColor: TH.cardLight, borderRadius: 24, padding: 20, marginBottom: 20, borderWidth: 1, borderColor: TH.borderLight },
+        subLabel: { color: TH.textMuted, fontSize: 13, marginBottom: 10, fontWeight: '500' },
+        pillWrap: { flexDirection: 'row', backgroundColor: TH.cardDark, borderRadius: 16, padding: 6, borderWidth: 1, borderColor: TH.borderLight },
+        pillBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 12 },
+        pillBtnActive: { backgroundColor: TH.textPrimary },
+        pillText: { color: TH.textMuted, fontSize: 14, fontWeight: '600' },
+        typeBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 14, backgroundColor: TH.cardDark, borderWidth: 1, borderColor: TH.borderLight },
+        typeBtnActive: { borderColor: TH.gold, backgroundColor: TH.warningBg },
+        typeBtnText: { color: TH.textMuted, fontSize: 14, fontWeight: '600' },
+        circRow: { flexDirection: 'row', gap: 14, marginBottom: 10 },
+        circBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: TH.cardDark, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: TH.borderLight },
+        circBtnActive: { borderColor: TH.gold, overflow: 'hidden' },
+        circText: { color: TH.textMuted, fontSize: 16, fontWeight: '600' },
+    }),
+    s3: StyleSheet.create({
+        scopeCard: { backgroundColor: TH.cardLight, borderRadius: 20, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: TH.borderLight },
+        scopeCardActive: { borderColor: TH.gold, backgroundColor: TH.warningBg },
+        scopePrem: {},
+        scopePremActive: { backgroundColor: TH.goldMuted },
+        scopeRow: { flexDirection: 'row', alignItems: 'center' },
+        scopeTitle: { color: TH.textPrimary, fontSize: 16, fontWeight: '700', marginBottom: 4 },
+        scopeDesc: { color: TH.textMuted, fontSize: 13, lineHeight: 18 },
+        ageWrap: { flexDirection: 'row', backgroundColor: TH.cardDark, borderRadius: 14, padding: 6, borderWidth: 1, borderColor: TH.borderLight },
+        ageBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderRadius: 10 },
+        ageBtnActive: { backgroundColor: TH.textPrimary },
+        ageText: { color: TH.textMuted, fontSize: 14, fontWeight: '600' },
+    }),
+    s4: StyleSheet.create({
+        grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+        imgCard: { width: (width - 40 - 12) / 2, height: 210, borderRadius: 20, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent' },
+        imgCardActive: { borderColor: TH.gold },
+        checkBadge: { position: 'absolute', top: 12, right: 12, width: 28, height: 28, borderRadius: 14, backgroundColor: TH.gold, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+        imgTextWrap: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, zIndex: 5 },
+        imgTitle: { color: '#FFF', fontSize: 15, fontWeight: '800', marginBottom: 4 },
+        imgDesc: { color: 'rgba(255,255,255,0.7)', fontSize: 11, lineHeight: 16 },
+        unCard: { width: '100%', height: 110, borderRadius: 20, borderWidth: 1.5, borderColor: TH.border, borderStyle: 'dashed', backgroundColor: TH.cardDark, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+        unCardActive: { borderColor: TH.gold, backgroundColor: TH.goldMuted },
+        unTitle: { color: TH.textMuted, fontSize: 16, fontWeight: '700', marginTop: 8, marginBottom: 2 },
+        unSub: { color: TH.textMuted, fontSize: 13 },
+    }),
+    s5: StyleSheet.create({
+        grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+        locationBtn: {
+            backgroundColor: TH.cardDark,
+            padding: 18,
+            borderRadius: 16,
+            borderWidth: 1,
+            borderColor: TH.border,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+        },
+        budgCard: { width: (width - 40 - 12) / 2, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: TH.border, backgroundColor: TH.cardLight, flexDirection: 'row', alignItems: 'center' },
+        budgCardActive: { borderColor: TH.gold },
+        budgTitle: { color: TH.textPrimary, fontSize: 13, fontWeight: '700', marginBottom: 2 },
+        budgSub: { color: TH.textMuted, fontSize: 11 },
+        textAreaWrap: { position: 'relative' },
+        textArea: { height: 150, backgroundColor: TH.cardLight, borderRadius: 16, borderWidth: 1, borderColor: TH.border, color: TH.textPrimary, fontSize: 15, padding: 16, paddingRight: 50, textAlignVertical: 'top' },
+        micBtn: { position: 'absolute', right: 12, bottom: 12, width: 44, height: 44, borderRadius: 22, backgroundColor: TH.cardDark, alignItems: 'center', justifyContent: 'center' },
+        accessory: { backgroundColor: TH.cardDark, padding: 12, alignItems: 'flex-end', borderTopWidth: 1, borderTopColor: TH.border },
+        accessoryBtn: { color: TH.gold, fontSize: 16, fontWeight: '800', marginRight: 10 },
+    }),
+    uz: StyleSheet.create({
+        wrap: { marginBottom: 24 },
+        dropzone: { height: 110, borderRadius: 16, borderWidth: 1.5, borderColor: TH.border, borderStyle: 'dashed', backgroundColor: TH.cardDark, alignItems: 'center', justifyContent: 'center', gap: 10 },
+        dropIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: TH.cardLight, alignItems: 'center', justifyContent: 'center' },
+        dropText: { color: TH.textMuted, fontSize: 14, fontWeight: '500' },
+        imgWrap: { width: 100, height: 100, borderRadius: 16, overflow: 'hidden', backgroundColor: TH.cardDark },
+        removeBtn: { position: 'absolute', top: 6, right: 6, width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
+        addMoreBtn: { width: 100, height: 100, borderRadius: 16, borderWidth: 1.5, borderColor: TH.border, borderStyle: 'dashed', backgroundColor: TH.cardDark, alignItems: 'center', justifyContent: 'center' },
+    }),
+    slStyle: StyleSheet.create({
+        header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: -4 },
+        label: { color: TH.textMuted, fontSize: 14, fontWeight: '500' },
+        valBadge: { backgroundColor: TH.goldMuted, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: TH.gold },
+        valText: { color: TH.gold, fontSize: 13, fontWeight: '700' },
+        rangeRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 },
+        rangeText: { color: TH.textMuted, fontSize: 11 },
+    })
 });

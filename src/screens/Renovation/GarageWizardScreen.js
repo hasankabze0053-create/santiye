@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useTheme } from '../../context/ThemeContext';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -32,6 +33,19 @@ const garageOptions = [
 ];
 
 export default function GarageWizardScreen({ navigation }) {
+  const theme = useTheme(); const isDarkMode = theme.isDarkMode;
+  const TH = useMemo(() => ({
+    gold: theme.accentBright,
+    bg: theme.background,
+    cardBg: theme.surface,
+    border: theme.border,
+    text: theme.text,
+    textSub: theme.textSecondary,
+    glassBg: isDarkMode ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)',
+    iconBg: isDarkMode ? 'rgba(255, 215, 0, 0.1)' : 'rgba(140, 98, 0, 0.1)'
+  }), [theme, isDarkMode]);
+  const styles = useMemo(() => getStyles(TH, isDarkMode), [TH, isDarkMode]);
+
   const handleSelect = (option) => {
     // Burada ileride her biri için ayrı form açılabilir
     navigation.navigate('CustomRequest', { 
@@ -43,13 +57,13 @@ export default function GarageWizardScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <LinearGradient colors={['#000', '#111']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={[TH.bg, TH.cardBg]} style={StyleSheet.absoluteFill} />
       
       <SafeAreaView style={{ flex: 1 }}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <MaterialCommunityIcons name="chevron-left" size={32} color={COLORS.gold} />
+            <MaterialCommunityIcons name="chevron-left" size={32} color={TH.gold} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Garaj & Kapı Sistemleri</Text>
           <View style={{ width: 32 }} />
@@ -68,20 +82,20 @@ export default function GarageWizardScreen({ navigation }) {
             >
               <View style={styles.cardOverlay}>
                 <LinearGradient
-                  colors={['transparent', 'rgba(0,0,0,0.8)']}
+                  colors={['transparent', TH.glassBg]}
                   style={StyleSheet.absoluteFill}
                 />
               </View>
               
               <View style={styles.cardContent}>
                 <View style={styles.iconCircle}>
-                  <MaterialCommunityIcons name={item.icon} size={28} color={COLORS.gold} />
+                  <MaterialCommunityIcons name={item.icon} size={28} color={TH.gold} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.cardTitle}>{item.title}</Text>
                   <Text style={styles.cardDesc}>{item.desc}</Text>
                 </View>
-                <MaterialCommunityIcons name="arrow-right-circle" size={24} color={COLORS.gold} />
+                <MaterialCommunityIcons name="arrow-right-circle" size={24} color={TH.gold} />
               </View>
             </TouchableOpacity>
           ))}
@@ -91,10 +105,10 @@ export default function GarageWizardScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (TH, isDarkMode) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: TH.bg,
   },
   header: {
     flexDirection: 'row',
@@ -107,7 +121,7 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   headerTitle: {
-    color: '#FFF',
+    color: TH.text,
     fontSize: 18,
     fontFamily: FONTS.bold,
   },
@@ -115,30 +129,30 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   sectionTitle: {
-    color: COLORS.gold,
+    color: TH.gold,
     fontSize: 24,
     fontFamily: FONTS.bold,
     marginBottom: 8,
   },
   sectionSub: {
-    color: '#888',
+    color: TH.textSub,
     fontSize: 14,
     fontFamily: FONTS.medium,
     marginBottom: 25,
   },
   card: {
     height: 140,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: TH.cardBg,
     borderRadius: 20,
     marginBottom: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.1)',
+    borderColor: TH.iconBg,
     justifyContent: 'flex-end',
   },
   cardOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'transparent',
   },
   cardContent: {
     flexDirection: 'row',
@@ -150,17 +164,17 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    backgroundColor: TH.iconBg,
     justifyContent: 'center',
     alignItems: 'center',
   },
   cardTitle: {
-    color: '#FFF',
+    color: TH.text,
     fontSize: 16,
     fontFamily: FONTS.bold,
   },
   cardDesc: {
-    color: '#AAA',
+    color: TH.textSub,
     fontSize: 12,
     fontFamily: FONTS.medium,
     marginTop: 4,

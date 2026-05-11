@@ -20,17 +20,13 @@ import {
     TouchableWithoutFeedback
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../../context/ThemeContext';
 import { ElevatorService } from '../../services/ElevatorService';
 
 const { width, height } = Dimensions.get('window');
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
-const GOLD = '#D4AF37';
-const GOLD_LIGHT = '#F7E5A8';
-const GOLD_DARK = '#8C6A30';
-const BG_DARK = '#0A0A0A';
-const CARD_BG = '#141414';
-const BORDER = '#252525';
+const getTH = (theme, isDarkMode) => ({ GOLD: theme.accentBright, GOLD_LIGHT: isDarkMode ? '#F7E5A8' : '#B8820F', GOLD_DARK: theme.accent, BG_DARK: theme.background, CARD_BG: theme.surface, CARD_BG_SEC: theme.surfaceSecondary, BORDER: theme.border, BORDER_LIGHT: theme.borderLight, TEXT: theme.text, TEXT_MUTED: theme.textSecondary, GLASS_BG: isDarkMode ? 'rgba(255,255,255,0.02)' : 'rgba(140,98,0,0.04)', ICON_BG: isDarkMode ? 'rgba(212, 175, 55, 0.1)' : 'rgba(140, 98, 0, 0.1)' });
 
 // ─── TÜRKİYE İL VE İLÇE VERİSİ ───────────────────────────────────────────────
 const CITIES_DISTRICTS = {
@@ -129,6 +125,10 @@ const CITY_NAMES = getSortedCities();
 
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 export default function ElevatorWizardScreen({ navigation }) {
+    const theme = useTheme(); const isDarkMode = theme.isDarkMode;
+    const TH = useMemo(() => getTH(theme, isDarkMode), [theme, isDarkMode]);
+    const { styles } = useMemo(() => getStyles(TH, isDarkMode), [TH, isDarkMode]);
+
     const [mode, setMode] = useState('type_selection'); 
     const [selectedType, setSelectedType] = useState(null);
     const [selectedCity, setSelectedCity] = useState(null);
@@ -225,8 +225,8 @@ export default function ElevatorWizardScreen({ navigation }) {
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={BG_DARK} />
-            <LinearGradient colors={[BG_DARK, '#0D0D0D', BG_DARK]} style={StyleSheet.absoluteFillObject} />
+            <StatusBar barStyle="light-content" backgroundColor={TH.BG_DARK} />
+            <LinearGradient colors={[TH.BG_DARK, isDarkMode ? '#0D0D0D' : TH.CARD_BG_SEC, TH.BG_DARK]} style={StyleSheet.absoluteFillObject} />
 
             <SafeAreaView style={{ flex: 1 }} edges={['top']}>
                 {/* HEADER */}
@@ -237,11 +237,11 @@ export default function ElevatorWizardScreen({ navigation }) {
                         else if (mode === 'city') setMode('type_selection');
                         else navigation.goBack();
                     }}>
-                        <MaterialCommunityIcons name="arrow-left" size={24} color="#FFF" />
+                        <MaterialCommunityIcons name="arrow-left" size={24} color={TH.TEXT} />
                     </TouchableOpacity>
                     <View style={styles.headerCenter}>
                         <View style={styles.headerIconRow}>
-                            <MaterialCommunityIcons name="elevator-passenger" size={18} color={GOLD} />
+                            <MaterialCommunityIcons name="elevator-passenger" size={18} color={TH.GOLD} />
                             <Text allowFontScaling={false} style={styles.headerTag}>ASANSÖR ARIZA BAKIM</Text>
                         </View>
                         <Text allowFontScaling={false} style={styles.headerTitle}>Talep Formu</Text>
@@ -260,17 +260,17 @@ export default function ElevatorWizardScreen({ navigation }) {
                             activeOpacity={0.7}
                         >
                             <LinearGradient 
-                                colors={selectedType === 'malfunction' ? [GOLD_DARK, '#1A1A1A'] : ['#141414', '#0A0A0A']} 
+                                colors={selectedType === 'malfunction' ? [TH.GOLD_DARK, isDarkMode ? '#1A1A1A' : TH.CARD_BG] : [TH.CARD_BG, TH.CARD_BG_SEC]} 
                                 style={StyleSheet.absoluteFillObject} 
                             />
                             <View style={styles.typeIconBox}>
-                                <MaterialCommunityIcons name="alert-circle-outline" size={32} color={GOLD} />
+                                <MaterialCommunityIcons name="alert-circle-outline" size={32} color={TH.GOLD} />
                             </View>
                             <View style={styles.typeContent}>
                                 <Text allowFontScaling={false} style={styles.typeTitle}>Asansör Arıza Onarımı</Text>
                                 <Text allowFontScaling={false} style={styles.typeDesc}>Asansörünüzde teknik bir sorun varsa hızlı müdahale için seçin.</Text>
                             </View>
-                            <MaterialCommunityIcons name="chevron-right" size={24} color={BORDER} />
+                            <MaterialCommunityIcons name="chevron-right" size={24} color={TH.BORDER} />
                         </TouchableOpacity>
 
                         <TouchableOpacity 
@@ -279,17 +279,17 @@ export default function ElevatorWizardScreen({ navigation }) {
                             activeOpacity={0.7}
                         >
                             <LinearGradient 
-                                colors={selectedType === 'maintenance' ? [GOLD_DARK, '#1A1A1A'] : ['#141414', '#0A0A0A']} 
+                                colors={selectedType === 'maintenance' ? [TH.GOLD_DARK, isDarkMode ? '#1A1A1A' : TH.CARD_BG] : [TH.CARD_BG, TH.CARD_BG_SEC]} 
                                 style={StyleSheet.absoluteFillObject} 
                             />
                             <View style={styles.typeIconBox}>
-                                <MaterialCommunityIcons name="shield-check-outline" size={32} color={GOLD} />
+                                <MaterialCommunityIcons name="shield-check-outline" size={32} color={TH.GOLD} />
                             </View>
                             <View style={styles.typeContent}>
                                 <Text allowFontScaling={false} style={styles.typeTitle}>Asansör Periyodik Bakım</Text>
                                 <Text allowFontScaling={false} style={styles.typeDesc}>Güvenli kullanım için düzenli kontrol ve yağlama hizmeti.</Text>
                             </View>
-                            <MaterialCommunityIcons name="chevron-right" size={24} color={BORDER} />
+                            <MaterialCommunityIcons name="chevron-right" size={24} color={TH.BORDER} />
                         </TouchableOpacity>
                     </Animated.View>
                 )}
@@ -302,7 +302,7 @@ export default function ElevatorWizardScreen({ navigation }) {
                         style={[styles.toggleBtn, mode === 'city' && styles.toggleBtnActive]}
                         onPress={() => { animateTransition(() => setMode('city')); setSearchText(''); }}
                     >
-                        <MaterialCommunityIcons name="map-marker" size={16} color={mode === 'city' ? '#000' : GOLD} />
+                        <MaterialCommunityIcons name="map-marker" size={16} color={mode === 'city' ? '#000' : TH.GOLD} />
                         <View style={styles.toggleLabelCol}>
                             <Text allowFontScaling={false} style={[styles.toggleLabel, mode === 'city' && styles.toggleLabelActive]}>İl Seçimi</Text>
                             <Text allowFontScaling={false} style={[styles.toggleVal, mode === 'city' && styles.toggleValActive]} numberOfLines={1}>
@@ -317,7 +317,7 @@ export default function ElevatorWizardScreen({ navigation }) {
                         style={[styles.toggleBtn, (mode === 'district' || mode === 'phone') && styles.toggleBtnActive, !selectedCity && { opacity: 0.4 }]}
                         onPress={() => { animateTransition(() => setMode('district')); setSearchText(''); }}
                     >
-                        <MaterialCommunityIcons name="city-variant" size={16} color={(mode === 'district' || mode === 'phone') ? '#000' : GOLD} />
+                        <MaterialCommunityIcons name="city-variant" size={16} color={(mode === 'district' || mode === 'phone') ? '#000' : TH.GOLD} />
                         <View style={styles.toggleLabelCol}>
                             <Text allowFontScaling={false} style={[styles.toggleLabel, (mode === 'district' || mode === 'phone') && styles.toggleLabelActive]}>İlçe Seçimi</Text>
                             <Text allowFontScaling={false} style={[styles.toggleVal, (mode === 'district' || mode === 'phone') && styles.toggleValActive]} numberOfLines={1}>
@@ -338,7 +338,7 @@ export default function ElevatorWizardScreen({ navigation }) {
                                 <View style={styles.searchContainer}>
                                     <View style={styles.searchBox}>
                                         <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFillObject} />
-                                        <Ionicons name="search" size={18} color={GOLD} style={{ marginLeft: 12 }} />
+                                        <Ionicons name="search" size={18} color={TH.GOLD} style={{ marginLeft: 12 }} />
                                         <TextInput
                                             allowFontScaling={false}
                                             style={styles.searchInput}
@@ -351,7 +351,7 @@ export default function ElevatorWizardScreen({ navigation }) {
                                         />
                                         {searchText.length > 0 && (
                                             <TouchableOpacity onPress={() => setSearchText('')}>
-                                                <Ionicons name="close-circle" size={18} color="#555" style={{ marginRight: 12 }} />
+                                                <Ionicons name="close-circle" size={18} color={TH.TEXT_MUTED} style={{ marginRight: 12 }} />
                                             </TouchableOpacity>
                                         )}
                                     </View>
@@ -371,9 +371,9 @@ export default function ElevatorWizardScreen({ navigation }) {
                                                         {item}
                                                     </Text>
                                                     {isSelected ? (
-                                                        <MaterialCommunityIcons name="check-circle" size={20} color={GOLD} />
+                                                        <MaterialCommunityIcons name="check-circle" size={20} color={TH.GOLD} />
                                                     ) : (
-                                                        <MaterialCommunityIcons name="chevron-right" size={18} color="#333" />
+                                                        <MaterialCommunityIcons name="chevron-right" size={18} color={TH.TEXT_MUTED} />
                                                     )}
                                                 </TouchableOpacity>
                                             );
@@ -390,7 +390,7 @@ export default function ElevatorWizardScreen({ navigation }) {
                             /* PHONE INPUT VIEW */
                             <View style={styles.phoneModeContainer}>
                                 <BlurView intensity={10} tint="dark" style={styles.phoneBlurCard}>
-                                    <MaterialCommunityIcons name="phone-check" size={48} color={GOLD} style={{ marginBottom: 20 }} />
+                                    <MaterialCommunityIcons name="phone-check" size={48} color={TH.GOLD} style={{ marginBottom: 20 }} />
                                     <View style={styles.phoneHeaderRow}>
                                         <Text allowFontScaling={false} style={styles.phoneTitle}>Son Bir Adım!</Text>
                                         <TouchableOpacity style={styles.doneBtn} onPress={Keyboard.dismiss}>
@@ -423,13 +423,13 @@ export default function ElevatorWizardScreen({ navigation }) {
                                         onPress={handleSubmit} 
                                         disabled={phone.length < 10 || isLoading}
                                     >
-                                        <LinearGradient colors={[GOLD_DARK, GOLD, GOLD_LIGHT, GOLD, GOLD_DARK]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.phoneSubmitGrad}>
+                                        <LinearGradient colors={[TH.GOLD_DARK, TH.GOLD, TH.GOLD_LIGHT, TH.GOLD, TH.GOLD_DARK]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.phoneSubmitGrad}>
                                             {isLoading ? <ActivityIndicator size="small" color="#000" /> : <Text allowFontScaling={false} style={styles.phoneSubmitText}>TALEP OLUŞTUR</Text>}
                                         </LinearGradient>
                                     </TouchableOpacity>
                                     
                                     <View style={styles.selectionSummary}>
-                                        <MaterialCommunityIcons name="map-marker-outline" size={14} color={GOLD} />
+                                        <MaterialCommunityIcons name="map-marker-outline" size={14} color={TH.GOLD} />
                                         <Text allowFontScaling={false} style={styles.summaryText}>{selectedCity} / {selectedDistrict}</Text>
                                     </View>
                                 </BlurView>
@@ -444,73 +444,75 @@ export default function ElevatorWizardScreen({ navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: BG_DARK },
+const getStyles = (TH, isDarkMode) => ({
+    styles: StyleSheet.create({
+    container: { flex: 1, backgroundColor: TH.BG_DARK },
     header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8 },
-    backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#141414', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: BORDER },
+    backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: TH.CARD_BG, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: TH.BORDER },
     headerCenter: { flex: 1, alignItems: 'center' },
     headerIconRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    headerTag: { color: GOLD, fontSize: 10, fontWeight: '800', letterSpacing: 1.2 },
-    headerTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
+    headerTag: { color: TH.GOLD, fontSize: 10, fontWeight: '800', letterSpacing: 1.2 },
+    headerTitle: { color: TH.TEXT, fontSize: 17, fontWeight: '700' },
 
     toggleRow: { flexDirection: 'row', paddingHorizontal: 20, marginVertical: 12, gap: 10 },
-    toggleBtn: { flex: 1, height: 50, borderRadius: 12, backgroundColor: '#111', borderWidth: 1, borderColor: BORDER, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8 },
-    toggleBtnActive: { borderColor: GOLD, backgroundColor: GOLD },
+    toggleBtn: { flex: 1, height: 50, borderRadius: 12, backgroundColor: TH.CARD_BG_SEC, borderWidth: 1, borderColor: TH.BORDER, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8 },
+    toggleBtnActive: { borderColor: TH.GOLD, backgroundColor: TH.GOLD },
     toggleLabelCol: { flex: 1 },
-    toggleLabel: { color: '#666', fontSize: 9, fontWeight: '600' },
-    toggleLabelActive: { color: '#000' },
-    toggleVal: { color: GOLD, fontSize: 13, fontWeight: '700' },
-    toggleValActive: { color: '#000' },
+    toggleLabel: { color: TH.TEXT_MUTED, fontSize: 9, fontWeight: '600' },
+    toggleLabelActive: { color: isDarkMode ? '#000' : '#FFF' },
+    toggleVal: { color: TH.GOLD, fontSize: 13, fontWeight: '700' },
+    toggleValActive: { color: isDarkMode ? '#000' : '#FFF' },
 
     searchContainer: { paddingHorizontal: 20, marginBottom: 12 },
-    searchBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#161616', height: 46, borderRadius: 12, borderWidth: 1, borderColor: BORDER, overflow: 'hidden' },
-    searchInput: { flex: 1, color: '#FFF', fontSize: 14, paddingHorizontal: 12 },
+    searchBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: TH.CARD_BG_SEC, height: 46, borderRadius: 12, borderWidth: 1, borderColor: TH.BORDER, overflow: 'hidden' },
+    searchInput: { flex: 1, color: TH.TEXT, fontSize: 14, paddingHorizontal: 12 },
 
     scrollContent: { paddingBottom: 60 },
     listContainer: { paddingHorizontal: 20 },
-    listItem: { flexDirection: 'row', alignItems: 'center', height: 52, borderBottomWidth: 1, borderBottomColor: '#1A1A1A', paddingHorizontal: 4 },
-    listItemActive: { borderBottomColor: GOLD },
-    listItemText: { flex: 1, color: '#999', fontSize: 14, fontWeight: '500' },
-    listItemTextActive: { color: GOLD, fontWeight: '800' },
+    listItem: { flexDirection: 'row', alignItems: 'center', height: 52, borderBottomWidth: 1, borderBottomColor: TH.BORDER_LIGHT, paddingHorizontal: 4 },
+    listItemActive: { borderBottomColor: TH.GOLD },
+    listItemText: { flex: 1, color: TH.TEXT_MUTED, fontSize: 14, fontWeight: '500' },
+    listItemTextActive: { color: TH.GOLD, fontWeight: '800' },
 
     emptyResults: { alignItems: 'center', marginTop: 40 },
-    emptyText: { color: '#444', fontSize: 13 },
+    emptyText: { color: TH.TEXT_MUTED, fontSize: 13 },
 
     // Phone Mode
     phoneModeContainer: { flex: 1, padding: 24, justifyContent: 'center' },
-    phoneBlurCard: { borderRadius: 24, padding: 30, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.02)', borderWidth: 1, borderColor: BORDER },
+    phoneBlurCard: { borderRadius: 24, padding: 30, alignItems: 'center', backgroundColor: TH.GLASS_BG, borderWidth: 1, borderColor: TH.BORDER },
     phoneHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', position: 'relative' },
-    phoneTitle: { color: '#FFF', fontSize: 24, fontWeight: '800' },
+    phoneTitle: { color: TH.TEXT, fontSize: 24, fontWeight: '800' },
     doneBtn: { position: 'absolute', right: 0 },
-    doneBtnText: { color: GOLD, fontSize: 14, fontWeight: '600' },
-    phoneSub: { color: '#666', fontSize: 14, textAlign: 'center', lineHeight: 20, marginTop: 8, marginBottom: 30 },
-    phoneInputRow: { flexDirection: 'row', alignItems: 'center', height: 60, backgroundColor: '#000', borderRadius: 14, borderWidth: 1.5, borderColor: GOLD, overflow: 'hidden', marginBottom: 20 },
-    phonePrefixBox: { paddingHorizontal: 18, borderRightWidth: 1, borderRightColor: '#222' },
-    phonePrefixText: { color: GOLD, fontSize: 16, fontWeight: '800' },
-    phoneMainInput: { flex: 1, color: '#FFF', fontSize: 20, fontWeight: '600', paddingHorizontal: 18, letterSpacing: 2 },
-    phoneSubmitBtn: { width: '100%', borderRadius: 14, overflow: 'hidden', elevation: 12, shadowColor: GOLD, shadowOpacity: 0.5, shadowRadius: 20 },
+    doneBtnText: { color: TH.GOLD, fontSize: 14, fontWeight: '600' },
+    phoneSub: { color: TH.TEXT_MUTED, fontSize: 14, textAlign: 'center', lineHeight: 20, marginTop: 8, marginBottom: 30 },
+    phoneInputRow: { flexDirection: 'row', alignItems: 'center', height: 60, backgroundColor: TH.CARD_BG, borderRadius: 14, borderWidth: 1.5, borderColor: TH.GOLD, overflow: 'hidden', marginBottom: 20 },
+    phonePrefixBox: { paddingHorizontal: 18, borderRightWidth: 1, borderRightColor: TH.BORDER },
+    phonePrefixText: { color: TH.GOLD, fontSize: 16, fontWeight: '800' },
+    phoneMainInput: { flex: 1, color: TH.TEXT, fontSize: 20, fontWeight: '600', paddingHorizontal: 18, letterSpacing: 2 },
+    phoneSubmitBtn: { width: '100%', borderRadius: 14, overflow: 'hidden', elevation: 12, shadowColor: TH.GOLD, shadowOpacity: 0.5, shadowRadius: 20 },
     phoneSubmitGrad: { height: 64, justifyContent: 'center', alignItems: 'center' },
-    phoneSubmitText: { color: '#000', fontSize: 16, fontWeight: '900', letterSpacing: 1.5 },
+    phoneSubmitText: { color: isDarkMode ? '#000' : '#FFF', fontSize: 16, fontWeight: '900', letterSpacing: 1.5 },
     selectionSummary: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 24, opacity: 0.5 },
-    summaryText: { color: '#FFF', fontSize: 12, fontWeight: '500' },
+    summaryText: { color: TH.TEXT, fontSize: 12, fontWeight: '500' },
 
     // Type Selection
     typeContainer: { flex: 1, padding: 20, paddingTop: 40 },
-    typePrompt: { color: '#FFF', fontSize: 20, fontWeight: '800', marginBottom: 30, textAlign: 'center' },
+    typePrompt: { color: TH.TEXT, fontSize: 20, fontWeight: '800', marginBottom: 30, textAlign: 'center' },
     typeCard: { 
         flexDirection: 'row', 
         alignItems: 'center', 
-        backgroundColor: '#141414', 
+        backgroundColor: TH.CARD_BG, 
         borderRadius: 20, 
         padding: 20, 
         marginBottom: 16, 
         borderWidth: 1.5, 
-        borderColor: BORDER,
+        borderColor: TH.BORDER,
         overflow: 'hidden'
     },
-    typeCardActive: { borderColor: GOLD },
-    typeIconBox: { width: 56, height: 56, borderRadius: 16, backgroundColor: 'rgba(212, 175, 55, 0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 16 },
+    typeCardActive: { borderColor: TH.GOLD },
+    typeIconBox: { width: 56, height: 56, borderRadius: 16, backgroundColor: TH.ICON_BG, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
     typeContent: { flex: 1 },
-    typeTitle: { color: '#FFF', fontSize: 18, fontWeight: '700', marginBottom: 4 },
-    typeDesc: { color: '#888', fontSize: 13, lineHeight: 18 },
+    typeTitle: { color: TH.TEXT, fontSize: 18, fontWeight: '700', marginBottom: 4 },
+    typeDesc: { color: TH.TEXT_MUTED, fontSize: 13, lineHeight: 18 },
+})
 });

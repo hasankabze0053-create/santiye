@@ -25,6 +25,7 @@ import PremiumBackground from '../../components/PremiumBackground';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import SharedRequestDetail from '../../components/SharedRequestDetail';
+import { useTheme } from '../../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -65,6 +66,8 @@ const numberToTurkishWords = (num) => {
 };
 
 export default function OfferDetailScreen() {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
     const { user } = useAuth();
     const navigation = useNavigation();
     const route = useRoute();
@@ -77,6 +80,7 @@ export default function OfferDetailScreen() {
     const [isSchemaModalVisible, setIsSchemaModalVisible] = useState(false);
     const [showRequestModal, setShowRequestModal] = useState(false);
     const [viewerMode, setViewerMode] = useState('contractor');
+    const styles = getStyles(theme, isDarkMode);
 
     const scrollX = useRef(new Animated.Value(0)).current;
     const slidesRef = useRef(null);
@@ -277,7 +281,7 @@ export default function OfferDetailScreen() {
                     <GlassCard style={styles.firmCard}>
                         <View style={styles.firmHeaderRow}>
                             <View style={styles.avatarContainer}>
-                                <View style={styles.avatarPlaceholder}><MaterialCommunityIcons name="store-outline" size={24} color="#D4AF37" /></View>
+                                <View style={styles.avatarPlaceholder}><MaterialCommunityIcons name="store-outline" size={24} color={isDarkMode ? '#D4AF37' : '#8C6200'} /></View>
                                 <View style={styles.onlineBadge} />
                             </View>
                             <View style={styles.firmMeta}>
@@ -293,9 +297,9 @@ export default function OfferDetailScreen() {
                         </View>
                         {isAdminView && (
                             <TouchableOpacity style={[styles.adminRequestBtn, { marginTop: 15, marginBottom: 5 }]} onPress={() => setShowRequestModal(true)}>
-                                <MaterialCommunityIcons name="file-document-outline" size={18} color="#D4AF37" />
+                                <MaterialCommunityIcons name="file-document-outline" size={18} color={isDarkMode ? '#D4AF37' : '#8C6200'} />
                                 <Text allowFontScaling={false} style={styles.adminRequestBtnText}>TALEBİ GÖRÜNTÜLE</Text>
-                                <Ionicons name="chevron-forward" size={14} color="#D4AF37" style={{ marginLeft: 'auto' }} />
+                                <Ionicons name="chevron-forward" size={14} color={isDarkMode ? '#D4AF37' : '#8C6200'} style={{ marginLeft: 'auto' }} />
                             </TouchableOpacity>
                         )}
                     </GlassCard>
@@ -310,8 +314,8 @@ export default function OfferDetailScreen() {
                         </View>
 
                         <View style={{ marginBottom: 20 }}>
-                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 4 }}>MALZEME</Text>
-                            <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 20, fontWeight: '900' }}>{itemName}</Text>
+                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#888' : theme.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4 }}>MALZEME</Text>
+                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontSize: 20, fontWeight: '900' }}>{itemName}</Text>
                             
                             <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
                                 {(parsed.providerBrand || parsed.offerBrand) && (
@@ -329,15 +333,15 @@ export default function OfferDetailScreen() {
                             </View>
                         </View>
 
-                        <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginBottom: 20 }} />
+                        <View style={{ height: 1, backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : theme.surfaceSecondary, marginBottom: 20 }} />
 
                         <View style={{ flexDirection: 'row', gap: 20, marginBottom: 20 }}>
                             <View style={{ flex: 1 }}>
-                                <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 4 }}>MİKTAR</Text>
-                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 18, fontWeight: '900' }}>{quantityVal}</Text>
+                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#888' : theme.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4 }}>MİKTAR</Text>
+                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontSize: 18, fontWeight: '900' }}>{quantityVal}</Text>
                             </View>
                             <View style={{ flex: 2 }}>
-                                <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 4 }}>BİRİM FİYAT</Text>
+                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#888' : theme.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4 }}>BİRİM FİYAT</Text>
                                 <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
                                     <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 24, fontWeight: '900' }}>{unitPrice.toLocaleString('tr-TR')} ₺</Text>
                                     <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 12, fontWeight: 'bold' }}>{parsed.vatIncluded ? '(KDV Dahil)' : '(+KDV)'}</Text>
@@ -345,22 +349,22 @@ export default function OfferDetailScreen() {
                             </View>
                         </View>
 
-                        <View style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 16, padding: 15, flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                        <View style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : theme.surface, borderRadius: 16, padding: 15, flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
                              <View style={{ width: '47%' }}>
                                 <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', marginBottom: 2 }}>STOK</Text>
-                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '700' }}>{parsed.stockStatus || 'Hemen Teslim'}</Text>
+                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontSize: 13, fontWeight: '700' }}>{parsed.stockStatus || 'Hemen Teslim'}</Text>
                              </View>
                              <View style={{ width: '47%' }}>
                                 <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', marginBottom: 2 }}>NAKLİYE</Text>
-                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '700' }}>{parsed.shippingType || 'Hariç'}</Text>
+                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontSize: 13, fontWeight: '700' }}>{parsed.shippingType || 'Hariç'}</Text>
                              </View>
                              <View style={{ width: '47%' }}>
                                 <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', marginBottom: 2 }}>VADE</Text>
-                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '700' }}>{parsed.paymentTerm || 'EFT'}</Text>
+                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontSize: 13, fontWeight: '700' }}>{parsed.paymentTerm || 'EFT'}</Text>
                              </View>
                              <View style={{ width: '47%' }}>
                                 <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', marginBottom: 2 }}>GEÇERLİLİK</Text>
-                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '700' }}>{parsed.validity || '48'} Saat</Text>
+                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontSize: 13, fontWeight: '700' }}>{parsed.validity || '48'} Saat</Text>
                              </View>
                         </View>
 
@@ -385,11 +389,11 @@ export default function OfferDetailScreen() {
                         <View style={styles.avatarContainer}>
                             {contractor?.avatar_url ? (
                                 <View style={styles.avatarPlaceholder}>
-                                    <MaterialCommunityIcons name="office-building" size={24} color="#D4AF37" />
+                                    <MaterialCommunityIcons name="office-building" size={24} color={isDarkMode ? '#D4AF37' : '#8C6200'} />
                                 </View>
                             ) : (
                                 <View style={styles.avatarPlaceholder}>
-                                    <MaterialCommunityIcons name="office-building" size={24} color="#D4AF37" />
+                                    <MaterialCommunityIcons name="office-building" size={24} color={isDarkMode ? '#D4AF37' : '#8C6200'} />
                                 </View>
                             )}
                             <View style={styles.onlineBadge} />
@@ -416,9 +420,9 @@ export default function OfferDetailScreen() {
                             style={[styles.adminRequestBtn, { marginTop: 15, marginBottom: 5 }]}
                             onPress={() => setShowRequestModal(true)}
                         >
-                            <MaterialCommunityIcons name="file-document-outline" size={18} color="#D4AF37" />
+                            <MaterialCommunityIcons name="file-document-outline" size={18} color={isDarkMode ? '#D4AF37' : '#8C6200'} />
                             <Text style={styles.adminRequestBtnText}>TALEBİ GÖRÜNTÜLE</Text>
-                            <Ionicons name="chevron-forward" size={14} color="#D4AF37" style={{ marginLeft: 'auto' }} />
+                            <Ionicons name="chevron-forward" size={14} color={isDarkMode ? '#D4AF37' : '#8C6200'} style={{ marginLeft: 'auto' }} />
                         </TouchableOpacity>
                     )}
 
@@ -427,10 +431,10 @@ export default function OfferDetailScreen() {
                         onPress={() => navigation.navigate('ProviderPublicProfile', { providerId: contractor?.id })}
                     >
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <MaterialCommunityIcons name="store-outline" size={18} color="#D4AF37" style={{ marginRight: 8 }} />
+                            <MaterialCommunityIcons name="store-outline" size={18} color={isDarkMode ? '#D4AF37' : '#8C6200'} style={{ marginRight: 8 }} />
                             <Text allowFontScaling={false} style={styles.visitBtnText}>Firma Sayfasını Ziyaret Et</Text>
                         </View>
-                        <MaterialCommunityIcons name="chevron-right" size={20} color="#D4AF37" />
+                        <MaterialCommunityIcons name="chevron-right" size={20} color={isDarkMode ? '#D4AF37' : '#8C6200'} />
                     </TouchableOpacity>
                 </GlassCard>
 
@@ -518,18 +522,18 @@ export default function OfferDetailScreen() {
                         <GlassCard style={{ padding: 20, borderRadius: 16, borderLeftWidth: 4, borderColor: '#FFD700', backgroundColor: 'rgba(255,215,0,0.02)' }}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 }}>
                                 <View>
-                                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: 'bold' }}>PROJE TİPİ</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 14, fontWeight: 'bold' }}>{projeTipi}</Text>
+                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#888' : theme.textSecondary, fontSize: 10, fontWeight: 'bold' }}>PROJE TİPİ</Text>
+                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontSize: 14, fontWeight: 'bold' }}>{projeTipi}</Text>
                                 </View>
                                 <View style={{ alignItems: 'flex-end' }}>
-                                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: 'bold' }}>KONUM</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 14, fontWeight: 'bold' }}>{lokasyon}</Text>
+                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#888' : theme.textSecondary, fontSize: 10, fontWeight: 'bold' }}>KONUM</Text>
+                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontSize: 14, fontWeight: 'bold' }}>{lokasyon}</Text>
                                 </View>
                             </View>
                             
-                            <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginBottom: 15 }} />
+                            <View style={{ height: 1, backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : theme.surfaceSecondary, marginBottom: 15 }} />
                             
-                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: 'bold', marginBottom: 8 }}>İSTENEN İŞLEMLER</Text>
+                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#888' : theme.textSecondary, fontSize: 10, fontWeight: 'bold', marginBottom: 8 }}>İSTENEN İŞLEMLER</Text>
                             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                                 {teknikItems.map((item, idx) => (
                                     <View key={idx} style={{ backgroundColor: 'rgba(255,215,0,0.1)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,215,0,0.2)' }}>
@@ -557,7 +561,7 @@ export default function OfferDetailScreen() {
                         {/* Info Note */}
                         <GlassCard style={styles.infoNoteCard}>
                             <View style={{ flexDirection: 'row', gap: 10 }}>
-                                <MaterialCommunityIcons name="shield-check" size={20} color="#D4AF37" />
+                                <MaterialCommunityIcons name="shield-check" size={20} color={isDarkMode ? '#D4AF37' : '#8C6200'} />
                                 <View style={{ flex: 1 }}>
                                     <Text allowFontScaling={false} style={styles.infoNoteTitle}>GÜVENLİ İLETİŞİM NOTU</Text>
                                     <Text allowFontScaling={false} style={styles.infoNoteText}>
@@ -634,7 +638,7 @@ export default function OfferDetailScreen() {
     if (loading) {
         return (
             <View style={styles.center}>
-                <ActivityIndicator color="#D4AF37" size="large" />
+                <ActivityIndicator color={isDarkMode ? '#D4AF37' : '#8C6200'} size="large" />
             </View>
         );
     }
@@ -651,13 +655,13 @@ export default function OfferDetailScreen() {
                         style={styles.backBtn}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                        <Ionicons name="arrow-back" size={24} color="#FFF" />
+                        <Ionicons name="arrow-back" size={24} color={isDarkMode ? '#FFF' : theme.text} />
                     </TouchableOpacity>
                     <View style={{ alignItems: 'center' }}>
                         <Text allowFontScaling={false} style={styles.headerTitle}>{contractor?.company_name?.toUpperCase() || contractor?.full_name?.toUpperCase() || 'MÜTEAHHİT'}</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                            <MaterialCommunityIcons name="check-decagram" size={14} color="#D4AF37" />
-                            <Text allowFontScaling={false} style={{ color: '#BBB', fontSize: 11 }}>
+                            <MaterialCommunityIcons name="check-decagram" size={14} color={isDarkMode ? '#D4AF37' : '#8C6200'} />
+                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#BBB' : theme.textSecondary, fontSize: 11 }}>
                                 {request?.offer_type === 'anahtar_teslim_tadilat' ? 'Onaylı Tadilat Firması' : 'Onaylı Yüklenici'}
                             </Text>
                         </View>
@@ -666,7 +670,7 @@ export default function OfferDetailScreen() {
                         style={styles.backBtn}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                        <MaterialCommunityIcons name="dots-horizontal" size={24} color="#FFF" />
+                        <MaterialCommunityIcons name="dots-horizontal" size={24} color={isDarkMode ? '#FFF' : theme.text} />
                     </TouchableOpacity>
                 </View>
 
@@ -723,9 +727,9 @@ export default function OfferDetailScreen() {
                 <Modal visible={isSchemaModalVisible} animationType="slide" transparent={true} onRequestClose={() => setIsSchemaModalVisible(false)}>
                     <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.95)', justifyContent: 'center', padding: 20 }}>
                         <TouchableOpacity style={{ position: 'absolute', top: 50, right: 20, zIndex: 10 }} onPress={() => setIsSchemaModalVisible(false)}>
-                            <Ionicons name="close-circle" size={40} color="#FFF" />
+                            <Ionicons name="close-circle" size={40} color={isDarkMode ? '#FFF' : theme.text} />
                         </TouchableOpacity>
-                        <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 16, fontWeight: 'bold', textAlign: 'center', marginTop: 40, marginBottom: 20 }}>
+                        <Text allowFontScaling={false} style={{ color: isDarkMode ? '#D4AF37' : '#8C6200', fontSize: 16, fontWeight: 'bold', textAlign: 'center', marginTop: 40, marginBottom: 20 }}>
                             DETAYLI KAT PLANI
                         </Text>
                         <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
@@ -749,7 +753,7 @@ export default function OfferDetailScreen() {
                     transparent={true} 
                     onRequestClose={() => setShowRequestModal(false)}
                 >
-                    <View style={{ flex: 1, backgroundColor: '#000' }}>
+                    <View style={{ flex: 1, backgroundColor: isDarkMode ? '#000' : theme.background }}>
                         <SharedRequestDetail
                             request={request}
                             type={request?.offer_type === 'anahtar_teslim_tadilat' ? 'construction' : 'construction'} // Handle mapping
@@ -768,8 +772,8 @@ export default function OfferDetailScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    center: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
+const getStyles = (theme, isDarkMode) => StyleSheet.create({
+    center: { flex: 1, backgroundColor: isDarkMode ? '#000' : theme.background, alignItems: 'center', justifyContent: 'center' },
     header: { 
         flexDirection: 'row', 
         alignItems: 'center', 
@@ -777,40 +781,40 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15, 
         paddingVertical: 15 
     },
-    headerTitle: { color: '#D4AF37', fontSize: 16, fontWeight: 'bold', letterSpacing: 1 },
+    headerTitle: { color: isDarkMode ? '#D4AF37' : '#8C6200', fontSize: 16, fontWeight: 'bold', letterSpacing: 1 },
     backBtn: { 
         width: 44, 
         height: 44, 
         alignItems: 'center', 
         justifyContent: 'center', 
         borderRadius: 22, 
-        backgroundColor: 'rgba(255,255,255,0.12)',
+        backgroundColor: isDarkMode ? 'rgba(255,255,255,0.12)' : theme.surfaceSecondary,
         marginLeft: 5
     },
 
     tabContainer: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: 10 },
     tabDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#333' },
     tabDotActive: { backgroundColor: '#D4AF37', width: 24 },
-    swipeHint: { textAlign: 'center', color: '#666', fontSize: 10, marginBottom: 10, marginTop: 4 },
+    swipeHint: { textAlign: 'center', color: isDarkMode ? '#666' : theme.textSecondary, fontSize: 10, marginBottom: 10, marginTop: 4 },
 
     card: { padding: 20, borderRadius: 16, marginBottom: 0 },
     cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    cardTitle: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
+    cardTitle: { color: isDarkMode ? '#FFF' : theme.text, fontSize: 16, fontWeight: 'bold' },
     badge: { backgroundColor: '#D4AF37', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
     badgeText: { color: '#000', fontSize: 10, fontWeight: 'bold' },
 
     divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.1)', marginVertical: 16 },
 
-    label: { color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 4 },
-    priceValue: { color: '#D4AF37', fontSize: 24, fontWeight: 'bold' },
-    priceWords: { color: '#666', fontSize: 11, fontStyle: 'italic' },
-    subValue: { color: '#FFF', fontSize: 16, fontWeight: 'bold', marginTop: 2 },
-    value: { color: '#FFF', fontSize: 15, fontWeight: '600' },
+    label: { color: isDarkMode ? '#888' : theme.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4 },
+    priceValue: { color: isDarkMode ? '#D4AF37' : '#8C6200', fontSize: 24, fontWeight: 'bold' },
+    priceWords: { color: isDarkMode ? '#666' : theme.textSecondary, fontSize: 11, fontStyle: 'italic' },
+    subValue: { color: isDarkMode ? '#FFF' : theme.text, fontSize: 16, fontWeight: 'bold', marginTop: 2 },
+    value: { color: isDarkMode ? '#FFF' : theme.text, fontSize: 15, fontWeight: '600' },
 
-    sectionTitle: { color: '#D4AF37', fontSize: 13, fontWeight: 'bold', marginTop: 24, marginBottom: 12, marginLeft: 4 },
-    schemaContainer: { backgroundColor: 'rgba(255,255,255,0.02)', padding: 0, borderRadius: 16, borderWidth: 1, borderColor: '#222', overflow: 'hidden' },
+    sectionTitle: { color: isDarkMode ? '#D4AF37' : '#8C6200', fontSize: 13, fontWeight: 'bold', marginTop: 24, marginBottom: 12, marginLeft: 4 },
+    schemaContainer: { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.02)' : theme.surfaceSecondary, padding: 0, borderRadius: 16, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight, overflow: 'hidden' },
 
-    noteText: { color: '#DDD', fontSize: 14, lineHeight: 22 },
+    noteText: { color: isDarkMode ? '#DDD' : theme.textSecondary, fontSize: 14, lineHeight: 22 },
     infoNoteCard: {
         padding: 16,
         borderRadius: 16,
@@ -820,14 +824,14 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     infoNoteTitle: {
-        color: '#D4AF37',
+        color: isDarkMode ? '#D4AF37' : '#8C6200',
         fontSize: 11,
         fontWeight: 'bold',
         marginBottom: 4,
         letterSpacing: 0.5,
     },
     infoNoteText: {
-        color: '#BBB',
+        color: isDarkMode ? '#BBB' : theme.textSecondary,
         fontSize: 13,
         lineHeight: 20,
         fontWeight: '500',
@@ -844,7 +848,7 @@ const styles = StyleSheet.create({
         padding: 20,
         borderRadius: 20,
         marginBottom: 20,
-        backgroundColor: 'rgba(255,255,255,0.03)',
+        backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : theme.surface,
         borderWidth: 1,
         borderColor: 'rgba(212,175,55,0.15)',
         shadowColor: '#D4AF37',
@@ -902,12 +906,12 @@ const styles = StyleSheet.create({
         marginRight: 6,
     },
     statusText: {
-        color: '#888',
+        color: isDarkMode ? '#888' : theme.textSecondary,
         fontSize: 11,
         fontWeight: '500',
     },
     firmLabel: {
-        color: '#D4AF37',
+        color: isDarkMode ? '#D4AF37' : '#8C6200',
         fontSize: 10,
         fontWeight: 'bold',
         letterSpacing: 1.2,
@@ -915,7 +919,7 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
     },
     firmName: {
-        color: '#FFF',
+        color: isDarkMode ? '#FFF' : theme.text,
         fontSize: 20,
         fontWeight: '900',
         letterSpacing: 0.5,
@@ -932,7 +936,7 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(212,175,55,0.25)',
     },
     visitBtnText: {
-        color: '#D4AF37',
+        color: isDarkMode ? '#D4AF37' : '#8C6200',
         fontSize: 14,
         fontWeight: 'bold',
     },
@@ -949,7 +953,7 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(212,175,55,0.3)',
     },
     adminRequestBtnText: {
-        color: '#D4AF37',
+        color: isDarkMode ? '#D4AF37' : '#8C6200',
         fontSize: 10,
         fontWeight: 'bold',
     },
@@ -985,6 +989,6 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(33, 150, 243, 0.05)',
     },
 
-    secondaryBtn: { flexDirection: 'row', paddingVertical: 14, alignItems: 'center', justifyContent: 'center', borderRadius: 12, borderWidth: 1, borderColor: '#333', backgroundColor: 'rgba(255,255,255,0.05)' },
-    secondaryBtnText: { color: '#FFF', fontWeight: '600', fontSize: 14 },
+    secondaryBtn: { flexDirection: 'row', paddingVertical: 14, alignItems: 'center', justifyContent: 'center', borderRadius: 12, borderWidth: 1, borderColor: isDarkMode ? '#333' : theme.borderLight, backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : theme.surfaceSecondary },
+    secondaryBtnText: { color: isDarkMode ? '#FFF' : theme.text, fontWeight: '600', fontSize: 14 },
 });

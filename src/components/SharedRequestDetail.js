@@ -1,6 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
+import { useTheme } from '../context/ThemeContext';
 import {
     ActivityIndicator,
     Image,
@@ -29,7 +30,7 @@ const getStatusColor = (status) => {
     }
 };
 
-const StatusBadge = ({ status }) => (
+const StatusBadge = ({ status, theme, isDarkMode, styles }) => (
     <View style={[styles.statusBadge, { borderColor: getStatusColor(status) }]}>
         <View style={[styles.statusDot, { backgroundColor: getStatusColor(status) }]} />
         <Text allowFontScaling={false} style={[styles.statusText, { color: getStatusColor(status) }]}>
@@ -53,6 +54,10 @@ const SharedRequestDetail = ({
     showActions = true,
     additionalFooter = null // For admin specific buttons
 }) => {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const styles = getStyles(theme, isDarkMode);
+
     const [selectedImage, setSelectedImage] = useState(null);
 
     const getField = (tag) => {
@@ -73,17 +78,17 @@ const SharedRequestDetail = ({
     if (type === 'logistics') {
         return (
             <View style={styles.container}>
-                <StatusBar barStyle="light-content" />
-                <LinearGradient colors={['#000000', '#0D0D0D']} style={StyleSheet.absoluteFillObject} />
+                <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
+                <LinearGradient colors={isDarkMode ? ['#000000', '#0D0D0D'] : [theme.background, theme.background]} style={StyleSheet.absoluteFillObject} />
                 <SafeAreaView style={{ flex: 1 }} edges={['top']}>
                     {/* Header */}
                     <View style={styles.header}>
                         <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.backBtn}>
-                            <Ionicons name="arrow-back" size={24} color="#FFF" />
+                            <Ionicons name="arrow-back" size={24} color={theme.text} />
                         </TouchableOpacity>
                         <View style={{ alignItems: 'center' }}>
                             <Text allowFontScaling={false} style={styles.headerTitle}>NAKLİYE TALEBİ</Text>
-                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: 'bold', marginTop: 2 }}>#{request.id?.toString().toUpperCase()}</Text>
+                            <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 10, fontWeight: 'bold', marginTop: 2 }}>#{request.id?.toString().toUpperCase()}</Text>
                         </View>
                         <View style={{ width: 40 }} />
                     </View>
@@ -92,7 +97,7 @@ const SharedRequestDetail = ({
                         
                         {/* Route Summary Card */}
                         <LinearGradient
-                            colors={['#0F172A', '#020617']}
+                            colors={isDarkMode ? ['#0F172A', '#020617'] : [theme.surface, theme.surface]}
                             style={{ marginHorizontal: 16, marginTop: 8, marginBottom: 20, borderRadius: 24, padding: 24, borderWidth: 1, borderColor: 'rgba(56, 189, 248, 0.2)', overflow: 'hidden' }}
                         >
                             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
@@ -101,9 +106,9 @@ const SharedRequestDetail = ({
                                 </View>
                                 <View style={{ flex: 1 }}>
                                     <Text allowFontScaling={false} style={{ color: '#38BDF8', fontSize: 20, fontWeight: '900', letterSpacing: 0.5 }}>Lojistik Sevkiyat</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 13, marginTop: 2 }}>Taşıma & Nakliye Talebi</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13, marginTop: 2 }}>Taşıma & Nakliye Talebi</Text>
                                 </View>
-                                <StatusBadge status={request.status || 'OPEN'} />
+                                <StatusBadge status={request.status || 'OPEN'} theme={theme} isDarkMode={isDarkMode} styles={styles} />
                             </View>
 
                             {/* Route Visualizer */}
@@ -112,14 +117,14 @@ const SharedRequestDetail = ({
                                 
                                 <View style={{ marginBottom: 25 }}>
                                     <View style={{ position: 'absolute', left: -25, width: 12, height: 12, borderRadius: 6, backgroundColor: '#38BDF8', top: 4, borderWidth: 2, borderColor: '#0F172A' }} />
-                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 10, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase' }}>ÇIKIŞ NOKTASI</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 16, fontWeight: '700', marginTop: 4 }}>{request.from_location || '-'}</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 10, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase' }}>ÇIKIŞ NOKTASI</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 16, fontWeight: '700', marginTop: 4 }}>{request.from_location || '-'}</Text>
                                 </View>
 
                                 <View>
                                     <View style={{ position: 'absolute', left: -25, width: 12, height: 12, borderRadius: 6, backgroundColor: '#F87171', top: 4, borderWidth: 2, borderColor: '#0F172A' }} />
-                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 10, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase' }}>VARIŞ NOKTASI</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 16, fontWeight: '700', marginTop: 4 }}>{request.to_location || '-'}</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 10, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase' }}>VARIŞ NOKTASI</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 16, fontWeight: '700', marginTop: 4 }}>{request.to_location || '-'}</Text>
                                 </View>
                             </View>
                         </LinearGradient>
@@ -128,37 +133,37 @@ const SharedRequestDetail = ({
                         <View style={{ marginHorizontal: 16, marginBottom: 16 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                                 <MaterialCommunityIcons name="package-variant-closed" size={18} color="#38BDF8" />
-                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>YÜK VE ARAÇ BİLGİLERİ</Text>
+                                <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>YÜK VE ARAÇ BİLGİLERİ</Text>
                             </View>
                             
-                            <View style={{ backgroundColor: '#111', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#222', gap: 14 }}>
+                            <View style={{ backgroundColor: isDarkMode ? '#111' : theme.background, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight, gap: 14 }}>
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 13 }}>Yük Tipi</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 14, fontWeight: '700' }}>{request.load_type || '-'}</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13 }}>Yük Tipi</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 14, fontWeight: '700' }}>{request.load_type || '-'}</Text>
                                 </View>
                                 <View style={styles.divider} />
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 13 }}>Tahmini Ağırlık</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13 }}>Tahmini Ağırlık</Text>
                                     <Text allowFontScaling={false} style={{ color: '#38BDF8', fontSize: 14, fontWeight: '900' }}>{request.weight || '-'}</Text>
                                 </View>
                                 <View style={styles.divider} />
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 13 }}>Tercih Edilen Araç</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 14, fontWeight: '700' }}>{request.vehicle_type || '-'}</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13 }}>Tercih Edilen Araç</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 14, fontWeight: '700' }}>{request.vehicle_type || '-'}</Text>
                                 </View>
                                 {request.load_details && (
                                     <>
                                         <View style={styles.divider} />
                                         <View>
-                                            <Text allowFontScaling={false} style={{ color: '#666', fontSize: 13, marginBottom: 8 }}>Ek Detaylar</Text>
-                                            <Text allowFontScaling={false} style={{ color: '#DDD', fontSize: 14, lineHeight: 20 }}>{request.load_details}</Text>
+                                            <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13, marginBottom: 8 }}>Ek Detaylar</Text>
+                                            <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 14, lineHeight: 20 }}>{request.load_details}</Text>
                                         </View>
                                     </>
                                 )}
                                 <View style={styles.divider} />
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 13 }}>İletişim Kanalları</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 14, fontWeight: '700' }}>{request.contact_phone || '-'}</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13 }}>İletişim Kanalları</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 14, fontWeight: '700' }}>{request.contact_phone || '-'}</Text>
                                 </View>
                             </View>
                         </View>
@@ -169,17 +174,17 @@ const SharedRequestDetail = ({
                                 <Text allowFontScaling={false} style={styles.sectionTitle}>GELEN TEKLİFLER</Text>
                                 <View style={{ gap: 12 }}>
                                     {bids.map((bid) => (
-                                        <View key={bid.id} style={{ backgroundColor: '#111', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#222' }}>
+                                        <View key={bid.id} style={{ backgroundColor: isDarkMode ? '#111' : theme.background, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight }}>
                                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                                     <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(56, 189, 248, 0.1)', alignItems: 'center', justifyContent: 'center' }}>
                                                         <MaterialCommunityIcons name="truck-check" size={18} color="#38BDF8" />
                                                     </View>
-                                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontWeight: 'bold' }}>{bid.profiles?.full_name || 'Tedarikçi'}</Text>
+                                                    <Text allowFontScaling={false} style={{ color: theme.text, fontWeight: 'bold' }}>{bid.profiles?.full_name || 'Tedarikçi'}</Text>
                                                 </View>
                                                 <Text allowFontScaling={false} style={{ color: '#38BDF8', fontWeight: '900', fontSize: 16 }}>{bid.price} ₺</Text>
                                             </View>
-                                            {bid.notes && <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, fontStyle: 'italic' }}>{bid.notes}</Text>}
+                                            {bid.notes && <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 12, fontStyle: 'italic' }}>{bid.notes}</Text>}
                                         </View>
                                     ))}
                                 </View>
@@ -215,17 +220,17 @@ const SharedRequestDetail = ({
         
         return (
             <View style={styles.container}>
-                <StatusBar barStyle="light-content" />
-                <LinearGradient colors={['#000000', '#0D0D0D']} style={StyleSheet.absoluteFillObject} />
+                <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
+                <LinearGradient colors={isDarkMode ? ['#000000', '#0D0D0D'] : [theme.background, theme.background]} style={StyleSheet.absoluteFillObject} />
                 <SafeAreaView style={{ flex: 1 }} edges={['top']}>
                     {/* Header */}
                     <View style={styles.header}>
                         <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.backBtn}>
-                            <Ionicons name="arrow-back" size={24} color="#FFF" />
+                            <Ionicons name="arrow-back" size={24} color={theme.text} />
                         </TouchableOpacity>
                         <View style={{ alignItems: 'center' }}>
                             <Text allowFontScaling={false} style={styles.headerTitle}>ASANSÖR TALEBİ</Text>
-                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: 'bold', marginTop: 2 }}>#{request.id?.slice(0, 8).toUpperCase()}</Text>
+                            <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 10, fontWeight: 'bold', marginTop: 2 }}>#{request.id?.slice(0, 8).toUpperCase()}</Text>
                         </View>
                         <View style={{ width: 40 }} />
                     </View>
@@ -234,7 +239,7 @@ const SharedRequestDetail = ({
                         
                         {/* Hero Card */}
                         <LinearGradient
-                            colors={['#1A1200', '#0D0D0D']}
+                            colors={isDarkMode ? ['#1A1200', '#0D0D0D'] : [theme.surface, theme.surface]}
                             style={{ marginHorizontal: 16, marginTop: 8, marginBottom: 20, borderRadius: 24, padding: 24, borderWidth: 1, borderColor: 'rgba(212,175,55,0.3)', overflow: 'hidden' }}
                         >
                             <LinearGradient
@@ -247,29 +252,29 @@ const SharedRequestDetail = ({
                                     <MaterialCommunityIcons name="elevator-passenger" size={28} color="#D4AF37" />
                                 </View>
                                 <View style={{ flex: 1 }}>
-                                    <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 20, fontWeight: '900', letterSpacing: 0.5 }}>{faultType}</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 13, marginTop: 2 }}>Asansör Servis Talebi</Text>
+                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFD700' : '#B8860B', fontSize: 20, fontWeight: '900', letterSpacing: 0.5 }}>{faultType}</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13, marginTop: 2 }}>Asansör Servis Talebi</Text>
                                 </View>
-                                <StatusBadge status={request.status || 'pending'} />
+                                <StatusBadge status={request.status || 'pending'} theme={theme} isDarkMode={isDarkMode} styles={styles} />
                             </View>
 
                             <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: 'rgba(212,175,55,0.15)', paddingTop: 16 }}>
                                 <View style={{ flex: 1, alignItems: 'center' }}>
-                                    <MaterialCommunityIcons name="map-marker-radius" size={20} color="#FFD700" />
-                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 9, fontWeight: '900', marginTop: 6, letterSpacing: 1 }}>ŞEHİR</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '800', marginTop: 3 }}>{request.city || '-'}</Text>
+                                    <MaterialCommunityIcons name="map-marker-radius" size={20} color={isDarkMode ? '#FFD700' : '#B8860B'} />
+                                    <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 9, fontWeight: '900', marginTop: 6, letterSpacing: 1 }}>ŞEHİR</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 13, fontWeight: '800', marginTop: 3 }}>{request.city || '-'}</Text>
                                 </View>
                                 <View style={{ width: 1, backgroundColor: 'rgba(212,175,55,0.15)' }} />
                                 <View style={{ flex: 1, alignItems: 'center' }}>
-                                    <MaterialCommunityIcons name="map-marker-outline" size={20} color="#FFD700" />
-                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 9, fontWeight: '900', marginTop: 6, letterSpacing: 1 }}>İLÇE</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '800', marginTop: 3 }}>{request.district || '-'}</Text>
+                                    <MaterialCommunityIcons name="map-marker-outline" size={20} color={isDarkMode ? '#FFD700' : '#B8860B'} />
+                                    <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 9, fontWeight: '900', marginTop: 6, letterSpacing: 1 }}>İLÇE</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 13, fontWeight: '800', marginTop: 3 }}>{request.district || '-'}</Text>
                                 </View>
                                 <View style={{ width: 1, backgroundColor: 'rgba(212,175,55,0.15)' }} />
                                 <View style={{ flex: 1, alignItems: 'center' }}>
-                                    <MaterialCommunityIcons name="phone-outline" size={20} color="#FFD700" />
-                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 9, fontWeight: '900', marginTop: 6, letterSpacing: 1 }}>İLETİŞİM</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 13, fontWeight: '800', marginTop: 3 }}>{request.phone || '-'}</Text>
+                                    <MaterialCommunityIcons name="phone-outline" size={20} color={isDarkMode ? '#FFD700' : '#B8860B'} />
+                                    <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 9, fontWeight: '900', marginTop: 6, letterSpacing: 1 }}>İLETİŞİM</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 13, fontWeight: '800', marginTop: 3 }}>{request.phone || '-'}</Text>
                                 </View>
                             </View>
                         </LinearGradient>
@@ -277,22 +282,22 @@ const SharedRequestDetail = ({
                         {/* Info Section */}
                         <View style={{ marginHorizontal: 16, marginBottom: 16 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                                <MaterialCommunityIcons name="information-outline" size={18} color="#FFD700" />
-                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>HİZMET BİLGİLERİ</Text>
+                                <MaterialCommunityIcons name="information-outline" size={18} color={isDarkMode ? '#FFD700' : '#B8860B'} />
+                                <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>HİZMET BİLGİLERİ</Text>
                             </View>
-                            <View style={{ backgroundColor: '#111', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#222', gap: 14 }}>
+                            <View style={{ backgroundColor: isDarkMode ? '#111' : theme.background, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight, gap: 14 }}>
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 13 }}>Hizmet Türü</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 14, fontWeight: '900' }}>{faultType}</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13 }}>Hizmet Türü</Text>
+                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFD700' : '#B8860B', fontSize: 14, fontWeight: '900' }}>{faultType}</Text>
                                 </View>
                                 <View style={{ height: 1, backgroundColor: '#1E1E1E' }} />
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 13 }}>Kategori</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 14, fontWeight: '700' }}>Asansör Arıza & Bakım</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13 }}>Kategori</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 14, fontWeight: '700' }}>Asansör Arıza & Bakım</Text>
                                 </View>
                                 <View style={{ height: 1, backgroundColor: '#1E1E1E' }} />
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text allowFontScaling={false} style={{ color: '#666', fontSize: 13 }}>Sertifika Durumu</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13 }}>Sertifika Durumu</Text>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                                         <MaterialCommunityIcons name="shield-check" size={14} color="#34C759" />
                                         <Text allowFontScaling={false} style={{ color: '#34C759', fontSize: 12, fontWeight: 'bold' }}>Yetkili Servis</Text>
@@ -305,7 +310,7 @@ const SharedRequestDetail = ({
                         <View style={{ marginHorizontal: 16, marginBottom: 30 }}>
                              <View style={{ backgroundColor: 'rgba(212,175,55,0.05)', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: 'rgba(212,175,55,0.15)', borderStyle: 'dashed', alignItems: 'center' }}>
                                 <MaterialCommunityIcons name="headset" size={24} color="#D4AF37" style={{ marginBottom: 10 }} />
-                                <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 13, textAlign: 'center', lineHeight: 20 }}>
+                                <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13, textAlign: 'center', lineHeight: 20 }}>
                                     Talebiniz bölgenizdeki en yakın uzmanlarımıza iletilmiştir.{'\n'}Ortalama yanıt süresi 30 dakikadır.
                                 </Text>
                              </View>
@@ -368,17 +373,17 @@ const SharedRequestDetail = ({
 
             return (
                 <View style={styles.container}>
-                    <StatusBar barStyle="light-content" />
-                    <LinearGradient colors={['#000000', '#0A0A0A']} style={StyleSheet.absoluteFillObject} />
+                    <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
+                    <LinearGradient colors={isDarkMode ? ['#000000', '#0A0A0A'] : [theme.background, theme.background]} style={StyleSheet.absoluteFillObject} />
                     <SafeAreaView style={{ flex: 1 }} edges={['top']}>
                         {/* Header */}
                         <View style={styles.header}>
                             <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.backBtn}>
-                                <Ionicons name="arrow-back" size={24} color="#FFF" />
+                                <Ionicons name="arrow-back" size={24} color={theme.text} />
                             </TouchableOpacity>
                             <View style={{ alignItems: 'center' }}>
                                 <Text allowFontScaling={false} style={styles.headerTitle}>PROJE DETAYI</Text>
-                                <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: 'bold', marginTop: 2 }}>
+                                <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 10, fontWeight: 'bold', marginTop: 2 }}>
                                     {request.ad_no ? `İLAN NO: ${request.ad_no.toString().padStart(7, '0')}` : `#${request.id?.slice(0, 8).toUpperCase()}`}
                                 </Text>
                             </View>
@@ -389,7 +394,7 @@ const SharedRequestDetail = ({
 
                             {/* ── HERO KART ── */}
                             <LinearGradient
-                                colors={['#1A1200', '#0D0D0D']}
+                                colors={isDarkMode ? ['#1A1200', '#0D0D0D'] : [theme.surface, theme.surface]}
                                 style={{ marginHorizontal: 16, marginTop: 8, marginBottom: 20, borderRadius: 24, padding: 24, borderWidth: 1, borderColor: 'rgba(212,175,55,0.3)', overflow: 'hidden' }}
                             >
                                 <LinearGradient
@@ -402,29 +407,29 @@ const SharedRequestDetail = ({
                                         <MaterialCommunityIcons name="home-city" size={28} color="#D4AF37" />
                                     </View>
                                     <View style={{ flex: 1 }}>
-                                        <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 18, fontWeight: '900', letterSpacing: 0.5 }}>Kentsel Dönüşüm</Text>
-                                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 13, marginTop: 2 }}>{request.district || ''}{request.neighborhood ? `, ${request.neighborhood}` : ''}</Text>
+                                        <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFD700' : '#B8860B', fontSize: 18, fontWeight: '900', letterSpacing: 0.5 }}>Kentsel Dönüşüm</Text>
+                                        <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13, marginTop: 2 }}>{request.district || ''}{request.neighborhood ? `, ${request.neighborhood}` : ''}</Text>
                                     </View>
-                                    <StatusBadge status={request.status || 'pending'} />
+                                    <StatusBadge status={request.status || 'pending'} theme={theme} isDarkMode={isDarkMode} styles={styles} />
                                 </View>
                                 {/* Stat Satırı */}
                                 <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: 'rgba(212,175,55,0.15)', paddingTop: 16 }}>
                                     <View style={{ flex: 1, alignItems: 'center' }}>
-                                        <MaterialCommunityIcons name="map-marker-radius" size={20} color="#FFD700" />
-                                        <Text allowFontScaling={false} style={{ color: '#666', fontSize: 9, fontWeight: '900', marginTop: 6, letterSpacing: 1 }}>ŞEHİR</Text>
-                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: '800', marginTop: 3, textAlign: 'center' }} numberOfLines={1}>{request.city || '-'}</Text>
+                                        <MaterialCommunityIcons name="map-marker-radius" size={20} color={isDarkMode ? '#FFD700' : '#B8860B'} />
+                                        <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 9, fontWeight: '900', marginTop: 6, letterSpacing: 1 }}>ŞEHİR</Text>
+                                        <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 12, fontWeight: '800', marginTop: 3, textAlign: 'center' }} numberOfLines={1}>{request.city || '-'}</Text>
                                     </View>
                                     <View style={{ width: 1, backgroundColor: 'rgba(212,175,55,0.15)' }} />
                                     <View style={{ flex: 1, alignItems: 'center' }}>
-                                        <MaterialCommunityIcons name="handshake-outline" size={20} color="#FFD700" />
-                                        <Text allowFontScaling={false} style={{ color: '#666', fontSize: 9, fontWeight: '900', marginTop: 6, letterSpacing: 1 }}>MODEL</Text>
-                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 11, fontWeight: '800', marginTop: 3, textAlign: 'center' }} numberOfLines={2}>{isFlatForLand ? 'Kat Karşılığı' : 'Anahtar Teslim'}</Text>
+                                        <MaterialCommunityIcons name="handshake-outline" size={20} color={isDarkMode ? '#FFD700' : '#B8860B'} />
+                                        <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 9, fontWeight: '900', marginTop: 6, letterSpacing: 1 }}>MODEL</Text>
+                                        <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 11, fontWeight: '800', marginTop: 3, textAlign: 'center' }} numberOfLines={2}>{isFlatForLand ? 'Kat Karşılığı' : 'Anahtar Teslim'}</Text>
                                     </View>
                                     <View style={{ width: 1, backgroundColor: 'rgba(212,175,55,0.15)' }} />
                                     <View style={{ flex: 1, alignItems: 'center' }}>
-                                        <MaterialCommunityIcons name="clock-outline" size={20} color="#FFD700" />
-                                        <Text allowFontScaling={false} style={{ color: '#666', fontSize: 9, fontWeight: '900', marginTop: 6, letterSpacing: 1 }}>DURUM</Text>
-                                        <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 11, fontWeight: '800', marginTop: 3, textAlign: 'center' }}>
+                                        <MaterialCommunityIcons name="clock-outline" size={20} color={isDarkMode ? '#FFD700' : '#B8860B'} />
+                                        <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 9, fontWeight: '900', marginTop: 6, letterSpacing: 1 }}>DURUM</Text>
+                                        <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFD700' : '#B8860B', fontSize: 11, fontWeight: '800', marginTop: 3, textAlign: 'center' }}>
                                             {request.status === 'pending' || request.status === 'OPEN' ? 'Açık' : 'İşlemde'}
                                         </Text>
                                     </View>
@@ -434,7 +439,7 @@ const SharedRequestDetail = ({
                             {/* ── YARISİ BİZDEN ── */}
                             <View style={{ marginHorizontal: 16, marginBottom: 16 }}>
                                 <LinearGradient
-                                    colors={request.is_campaign_active ? ['rgba(52,199,89,0.08)', '#111'] : ['#111', '#111']}
+                                    colors={request.is_campaign_active ? ['rgba(52,199,89,0.08)', isDarkMode ? '#111' : theme.surface] : [isDarkMode ? '#111' : theme.surface, isDarkMode ? '#111' : theme.surface]}
                                     style={{ borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: request.is_campaign_active ? 'rgba(52,199,89,0.3)' : '#222' }}
                                 >
                                     <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: request.is_campaign_active ? 'rgba(52,199,89,0.15)' : 'rgba(239,68,68,0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 14 }}>
@@ -444,7 +449,7 @@ const SharedRequestDetail = ({
                                         <Text allowFontScaling={false} style={{ color: request.is_campaign_active ? '#34C759' : '#EF4444', fontSize: 13, fontWeight: '900', letterSpacing: 0.5 }}>
                                             {request.is_campaign_active ? 'YARISI BİZDEN KAMPANYALI' : 'YARISI BİZDEN KAMPANYASI YOK'}
                                         </Text>
-                                        <Text allowFontScaling={false} style={{ color: '#666', fontSize: 11, marginTop: 3 }}>
+                                        <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 11, marginTop: 3 }}>
                                             {request.is_campaign_active ? 'Devlet destekli dönüşüm kapsamında' : 'Standart kentsel dönüşüm projesi'}
                                         </Text>
                                     </View>
@@ -455,23 +460,23 @@ const SharedRequestDetail = ({
                             {request.is_campaign_active && (
                                 <View style={{ marginHorizontal: 16, marginBottom: 20 }}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                                        <MaterialCommunityIcons name="home-group" size={18} color="#FFD700" />
-                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>KAMPANYA KAPSAMINDAKİ BİRİMLER</Text>
+                                        <MaterialCommunityIcons name="home-group" size={18} color={isDarkMode ? '#FFD700' : '#B8860B'} />
+                                        <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>KAMPANYA KAPSAMINDAKİ BİRİMLER</Text>
                                     </View>
                                     <View style={{ flexDirection: 'row', gap: 12 }}>
-                                        <LinearGradient colors={['#1A1200', '#0D0D0D']} style={{ flex: 1, borderRadius: 16, padding: 18, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(212,175,55,0.25)' }}>
-                                            <MaterialCommunityIcons name="home-outline" size={24} color="#FFD700" />
-                                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: '900', marginTop: 8, letterSpacing: 1 }}>KONUT</Text>
-                                            <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 32, fontWeight: '900', marginTop: 4 }}>{request.campaign_unit_count || 0}</Text>
+                                        <LinearGradient colors={isDarkMode ? ['#1A1200', '#0D0D0D'] : [theme.surface, theme.surface]} style={{ flex: 1, borderRadius: 16, padding: 18, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(212,175,55,0.25)' }}>
+                                            <MaterialCommunityIcons name="home-outline" size={24} color={isDarkMode ? '#FFD700' : '#B8860B'} />
+                                            <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 10, fontWeight: '900', marginTop: 8, letterSpacing: 1 }}>KONUT</Text>
+                                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFD700' : '#B8860B', fontSize: 32, fontWeight: '900', marginTop: 4 }}>{request.campaign_unit_count || 0}</Text>
                                             <View style={{ marginTop: 8, backgroundColor: 'rgba(52,199,89,0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(52,199,89,0.3)' }}>
                                                 <Text allowFontScaling={false} style={{ color: '#34C759', fontSize: 11, fontWeight: '900' }}>{formatCurrency((request.campaign_unit_count || 0) * 1750000)} ₺</Text>
                                                 <Text allowFontScaling={false} style={{ color: 'rgba(52,199,89,0.7)', fontSize: 8, fontWeight: 'bold', textAlign: 'center', marginTop: 2 }}>TOPLAM DESTEK</Text>
                                             </View>
                                         </LinearGradient>
-                                        <LinearGradient colors={['#1A1200', '#0D0D0D']} style={{ flex: 1, borderRadius: 16, padding: 18, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(212,175,55,0.25)' }}>
-                                            <MaterialCommunityIcons name="store-outline" size={24} color="#FFD700" />
-                                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: '900', marginTop: 8, letterSpacing: 1 }}>TİCARİ</Text>
-                                            <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 32, fontWeight: '900', marginTop: 4 }}>{request.campaign_commercial_count || 0}</Text>
+                                        <LinearGradient colors={isDarkMode ? ['#1A1200', '#0D0D0D'] : [theme.surface, theme.surface]} style={{ flex: 1, borderRadius: 16, padding: 18, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(212,175,55,0.25)' }}>
+                                            <MaterialCommunityIcons name="store-outline" size={24} color={isDarkMode ? '#FFD700' : '#B8860B'} />
+                                            <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 10, fontWeight: '900', marginTop: 8, letterSpacing: 1 }}>TİCARİ</Text>
+                                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFD700' : '#B8860B', fontSize: 32, fontWeight: '900', marginTop: 4 }}>{request.campaign_commercial_count || 0}</Text>
                                             <View style={{ marginTop: 8, backgroundColor: 'rgba(52,199,89,0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(52,199,89,0.3)' }}>
                                                 <Text allowFontScaling={false} style={{ color: '#34C759', fontSize: 11, fontWeight: '900' }}>{formatCurrency((request.campaign_commercial_count || 0) * 875000)} ₺</Text>
                                                 <Text allowFontScaling={false} style={{ color: 'rgba(52,199,89,0.7)', fontSize: 8, fontWeight: 'bold', textAlign: 'center', marginTop: 2 }}>TOPLAM DESTEK</Text>
@@ -484,17 +489,17 @@ const SharedRequestDetail = ({
                             {/* ── TEKLİF MODELİ ── */}
                             <View style={{ marginHorizontal: 16, marginBottom: 16 }}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                                    <MaterialCommunityIcons name="handshake" size={18} color="#FFD700" />
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>TEKLİF MODELİ</Text>
+                                    <MaterialCommunityIcons name="handshake" size={18} color={isDarkMode ? '#FFD700' : '#B8860B'} />
+                                    <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>TEKLİF MODELİ</Text>
                                 </View>
-                                <View style={{ backgroundColor: '#111', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#222', flexDirection: 'row', alignItems: 'center' }}>
+                                <View style={{ backgroundColor: isDarkMode ? '#111' : theme.background, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight, flexDirection: 'row', alignItems: 'center' }}>
                                     <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: 'rgba(212,175,55,0.1)', borderWidth: 1, borderColor: 'rgba(212,175,55,0.3)', alignItems: 'center', justifyContent: 'center', marginRight: 16 }}>
                                         <MaterialCommunityIcons name={offerIcon} size={26} color="#D4AF37" />
                                     </View>
                                     <View style={{ flex: 1 }}>
-                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 16, fontWeight: '900' }}>{offerLabel}</Text>
+                                        <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 16, fontWeight: '900' }}>{offerLabel}</Text>
                                         {isFlatForLand && (
-                                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, marginTop: 4, lineHeight: 17 }}>Müteahhit firma arsa payı / daire karşılığında projeyi üstlenir.</Text>
+                                            <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 12, marginTop: 4, lineHeight: 17 }}>Müteahhit firma arsa payı / daire karşılığında projeyi üstlenir.</Text>
                                         )}
                                     </View>
                                 </View>
@@ -503,18 +508,18 @@ const SharedRequestDetail = ({
                             {/* ── TAPU & KONUM ── */}
                             <View style={{ marginHorizontal: 16, marginBottom: 16 }}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                                    <MaterialCommunityIcons name="map-legend" size={18} color="#FFD700" />
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>TAPU VE KONUM BİLGİLERİ</Text>
+                                    <MaterialCommunityIcons name="map-legend" size={18} color={isDarkMode ? '#FFD700' : '#B8860B'} />
+                                    <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>TAPU VE KONUM BİLGİLERİ</Text>
                                 </View>
-                                <View style={{ backgroundColor: '#111', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#222', gap: 14 }}>
+                                <View style={{ backgroundColor: isDarkMode ? '#111' : theme.background, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight, gap: 14 }}>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <Text allowFontScaling={false} style={{ color: '#666', fontSize: 13 }}>İl / İlçe</Text>
-                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 14, fontWeight: '700' }}>{request.city} / {request.district}</Text>
+                                        <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13 }}>İl / İlçe</Text>
+                                        <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 14, fontWeight: '700' }}>{request.city} / {request.district}</Text>
                                     </View>
                                     <View style={{ height: 1, backgroundColor: '#1E1E1E' }} />
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <Text allowFontScaling={false} style={{ color: '#666', fontSize: 13 }}>Mahalle</Text>
-                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 14, fontWeight: '700' }}>{request.neighborhood || '-'}</Text>
+                                        <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13 }}>Mahalle</Text>
+                                        <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 14, fontWeight: '700' }}>{request.neighborhood || '-'}</Text>
                                     </View>
                                     <View style={{ height: 1, backgroundColor: '#1E1E1E' }} />
                                     {/* ADA / PARSEL / PAFTA */}
@@ -524,8 +529,8 @@ const SharedRequestDetail = ({
                                             { label: 'PARSEL', val: request.parsel },
                                             { label: 'PAFTA', val: request.pafta },
                                         ].map((item, i) => (
-                                            <View key={i} style={{ flex: 1, alignItems: 'center', backgroundColor: '#161616', borderRadius: 12, padding: 12, marginHorizontal: i === 1 ? 8 : 0, borderWidth: 1, borderColor: '#222' }}>
-                                                <Text allowFontScaling={false} style={{ color: '#555', fontSize: 10, fontWeight: '900', letterSpacing: 1, marginBottom: 6 }}>{item.label}</Text>
+                                            <View key={i} style={{ flex: 1, alignItems: 'center', backgroundColor: isDarkMode ? '#161616' : theme.surface, borderRadius: 12, padding: 12, marginHorizontal: i === 1 ? 8 : 0, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight }}>
+                                                <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 10, fontWeight: '900', letterSpacing: 1, marginBottom: 6 }}>{item.label}</Text>
                                                 <Text allowFontScaling={false} style={{ color: item.val ? '#FFD700' : '#444', fontSize: 20, fontWeight: '900' }}>{item.val || '-'}</Text>
                                             </View>
                                         ))}
@@ -534,8 +539,8 @@ const SharedRequestDetail = ({
                                         <>
                                             <View style={{ height: 1, backgroundColor: '#1E1E1E' }} />
                                             <View>
-                                                <Text allowFontScaling={false} style={{ color: '#555', fontSize: 10, fontWeight: '900', letterSpacing: 1, marginBottom: 4 }}>AÇIK ADRES</Text>
-                                                <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 13, lineHeight: 20 }}>{request.full_address}</Text>
+                                                <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 10, fontWeight: '900', letterSpacing: 1, marginBottom: 4 }}>AÇIK ADRES</Text>
+                                                <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13, lineHeight: 20 }}>{request.full_address}</Text>
                                             </View>
                                         </>
                                     )}
@@ -546,11 +551,11 @@ const SharedRequestDetail = ({
                             {request.description && (
                                 <View style={{ marginHorizontal: 16, marginBottom: 16 }}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                                        <MaterialCommunityIcons name="message-text-outline" size={18} color="#FFD700" />
-                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>PROJE NOTLARI & DETAYLAR</Text>
+                                        <MaterialCommunityIcons name="message-text-outline" size={18} color={isDarkMode ? '#FFD700' : '#B8860B'} />
+                                        <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>PROJE NOTLARI & DETAYLAR</Text>
                                     </View>
-                                    <View style={{ backgroundColor: '#111', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#222' }}>
-                                        <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 14, lineHeight: 22 }}>{request.description}</Text>
+                                    <View style={{ backgroundColor: isDarkMode ? '#111' : theme.background, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight }}>
+                                        <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 14, lineHeight: 22 }}>{request.description}</Text>
                                     </View>
                                 </View>
                             )}
@@ -558,8 +563,8 @@ const SharedRequestDetail = ({
                             {/* ── BELGELER ── */}
                             <View style={{ marginBottom: 16 }}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12, marginHorizontal: 16 }}>
-                                    <MaterialCommunityIcons name="file-document-multiple-outline" size={18} color="#FFD700" />
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>BELGELER VE GÖRSELLER</Text>
+                                    <MaterialCommunityIcons name="file-document-multiple-outline" size={18} color={isDarkMode ? '#FFD700' : '#B8860B'} />
+                                    <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>BELGELER VE GÖRSELLER</Text>
                                 </View>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingHorizontal: 16, paddingBottom: 12 }}>
                                     {request.deed_image_url && (
@@ -570,14 +575,14 @@ const SharedRequestDetail = ({
                                     )}
                                     {hasPhotos && request.document_urls.map((url, idx) => (
                                         <TouchableOpacity key={idx} onPress={() => setSelectedImage(url)} activeOpacity={0.8}>
-                                            <Image source={{ uri: url }} style={{ width: 150, height: 150, borderRadius: 16, borderWidth: 1, borderColor: '#222' }} />
-                                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, textAlign: 'center', marginTop: 6 }}>Belge #{idx + 1}</Text>
+                                            <Image source={{ uri: url }} style={{ width: 150, height: 150, borderRadius: 16, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight }} />
+                                            <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 10, textAlign: 'center', marginTop: 6 }}>Belge #{idx + 1}</Text>
                                         </TouchableOpacity>
                                     ))}
                                     {!request.deed_image_url && !hasPhotos && (
-                                        <View style={{ width: 220, height: 130, justifyContent: 'center', alignItems: 'center', borderStyle: 'dashed', borderWidth: 1, borderColor: '#333', borderRadius: 16 }}>
-                                            <MaterialCommunityIcons name="image-off-outline" size={32} color="#444" />
-                                            <Text allowFontScaling={false} style={{ color: '#555', marginTop: 8, fontSize: 12 }}>Belge yüklenmemiş</Text>
+                                        <View style={{ width: 220, height: 130, justifyContent: 'center', alignItems: 'center', borderStyle: 'dashed', borderWidth: 1, borderColor: isDarkMode ? '#333' : theme.border, borderRadius: 16 }}>
+                                            <MaterialCommunityIcons name="image-off-outline" size={32} color={theme.textSecondary} />
+                                            <Text allowFontScaling={false} style={{ color: theme.textSecondary, marginTop: 8, fontSize: 12 }}>Belge yüklenmemiş</Text>
                                         </View>
                                     )}
                                 </ScrollView>
@@ -587,24 +592,24 @@ const SharedRequestDetail = ({
                             {isOwner && (
                                 <View style={{ marginHorizontal: 16, marginBottom: 20 }}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                                        <MaterialCommunityIcons name="email-multiple-outline" size={18} color="#FFD700" />
-                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>GELEN TEKLİFLER</Text>
+                                        <MaterialCommunityIcons name="email-multiple-outline" size={18} color={isDarkMode ? '#FFD700' : '#B8860B'} />
+                                        <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 12, fontWeight: '900', letterSpacing: 1.5 }}>GELEN TEKLİFLER</Text>
                                     </View>
                                     {constructionOffers.length === 0 ? (
-                                        <View style={{ padding: 30, backgroundColor: '#0A0A0A', borderRadius: 20, borderWidth: 1, borderColor: '#222', alignItems: 'center', borderStyle: 'dashed' }}>
-                                            <MaterialCommunityIcons name="timer-sand" size={32} color="#333" />
-                                            <Text allowFontScaling={false} style={{ color: '#555', fontSize: 13, marginTop: 12, textAlign: 'center', lineHeight: 20 }}>Henüz teklif gelmedi.{'\n'}Müteahhitler projenizi inceliyor.</Text>
+                                        <View style={{ padding: 30, backgroundColor: isDarkMode ? '#0A0A0A' : theme.surface, borderRadius: 20, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight, alignItems: 'center', borderStyle: 'dashed' }}>
+                                            <MaterialCommunityIcons name="timer-sand" size={32} color={theme.textSecondary} />
+                                            <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13, marginTop: 12, textAlign: 'center', lineHeight: 20 }}>Henüz teklif gelmedi.{'\n'}Müteahhitler projenizi inceliyor.</Text>
                                         </View>
                                     ) : (
                                         <View style={{ borderRadius: 24, borderWidth: 1, borderColor: 'rgba(212,175,55,0.35)', overflow: 'hidden' }}>
-                                            <LinearGradient colors={['#1A1200', '#0A0A0A']} style={StyleSheet.absoluteFillObject} />
+                                            <LinearGradient colors={isDarkMode ? ['#1A1200', '#0A0A0A'] : ['rgba(212,175,55,0.08)', 'rgba(212,175,55,0.02)']} style={StyleSheet.absoluteFillObject} />
                                             <LinearGradient colors={['rgba(212,175,55,0)', 'rgba(212,175,55,0.6)', 'rgba(212,175,55,0)']} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2 }} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
                                             <View style={{ alignItems: 'center', paddingVertical: 36, paddingHorizontal: 20, zIndex: 5 }}>
                                                 <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: 'rgba(212,175,55,0.1)', borderWidth: 1, borderColor: 'rgba(212,175,55,0.4)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
                                                     <MaterialCommunityIcons name="email-multiple-outline" size={34} color="#E8B923" />
                                                 </View>
-                                                <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 20, fontWeight: '900', letterSpacing: 0.5, marginBottom: 24, textAlign: 'center' }}>
-                                                    <Text style={{ color: '#FFD700', fontSize: 26 }}>{constructionOffers.length}</Text> ADET TEKLİF ALINDI
+                                                <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 20, fontWeight: '900', letterSpacing: 0.5, marginBottom: 24, textAlign: 'center' }}>
+                                                    <Text style={{ color: isDarkMode ? '#FFD700' : '#B8860B', fontSize: 26 }}>{constructionOffers.length}</Text> ADET TEKLİF ALINDI
                                                 </Text>
                                                 <TouchableOpacity activeOpacity={0.8} style={{ width: '100%', overflow: 'hidden', borderRadius: 16 }}
                                                     onPress={() => {
@@ -637,8 +642,8 @@ const SharedRequestDetail = ({
                                     </TouchableOpacity>
                                     {isOwner && isAdmin && (
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, justifyContent: 'center', opacity: 0.7 }}>
-                                            <MaterialCommunityIcons name="shield-account" size={14} color="#666" />
-                                            <Text allowFontScaling={false} style={{ color: '#666', fontSize: 11 }}>Admin Test Modu Aktif</Text>
+                                            <MaterialCommunityIcons name="shield-account" size={14} color={theme.textSecondary} />
+                                            <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 11 }}>Admin Test Modu Aktif</Text>
                                         </View>
                                     )}
                                 </View>
@@ -661,9 +666,9 @@ const SharedRequestDetail = ({
                         </ScrollView>
 
                         <Modal visible={!!selectedImage} transparent={true} animationType="fade" onRequestClose={() => setSelectedImage(null)}>
-                            <View style={{ flex: 1, backgroundColor: 'black', justifyContent: 'center', alignItems: 'center' }}>
+                            <View style={{ flex: 1, backgroundColor: isDarkMode ? 'black' : theme.background, justifyContent: 'center', alignItems: 'center' }}>
                                 <TouchableOpacity style={{ position: 'absolute', top: 50, right: 20, zIndex: 10, padding: 10 }} onPress={() => setSelectedImage(null)}>
-                                    <Ionicons name="close-circle" size={40} color="white" />
+                                    <Ionicons name="close-circle" size={40} color={theme.text} />
                                 </TouchableOpacity>
                                 {selectedImage && <Image source={{ uri: selectedImage }} style={{ width: '100%', height: '80%', resizeMode: 'contain' }} />}
                             </View>
@@ -678,43 +683,43 @@ const SharedRequestDetail = ({
         // =============================================
         return (
             <View style={styles.container}>
-                <StatusBar barStyle="light-content" />
-                <LinearGradient colors={['#000000', '#0D0D0D']} style={StyleSheet.absoluteFillObject} />
+                <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
+                <LinearGradient colors={isDarkMode ? ['#000000', '#0D0D0D'] : [theme.background, theme.background]} style={StyleSheet.absoluteFillObject} />
                 <SafeAreaView style={{ flex: 1 }} edges={['top']}>
                     
                     {/* Header */}
                     <View style={styles.header}>
                         <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.backBtn}>
-                            <Ionicons name="arrow-back" size={24} color="#FFF" />
+                            <Ionicons name="arrow-back" size={24} color={theme.text} />
                         </TouchableOpacity>
                         <View style={{ alignItems: 'center' }}>
                             <Text allowFontScaling={false} style={styles.headerTitle}>TALEBİMİN DETAYI</Text>
-                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: 'bold', marginTop: 2 }}>#{request.id?.slice(0, 8).toUpperCase()}</Text>
+                            <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 10, fontWeight: 'bold', marginTop: 2 }}>#{request.id?.slice(0, 8).toUpperCase()}</Text>
                         </View>
                         <TouchableOpacity style={styles.backBtn}>
-                            <Ionicons name="share-outline" size={22} color="#FFF" />
+                            <Ionicons name="share-outline" size={22} color={theme.text} />
                         </TouchableOpacity>
                     </View>
 
                     <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
                         
                         {/* 1. ÖZET KART */}
-                        <LinearGradient colors={['#1F1F1F', '#111']} style={styles.mainSummaryCard}>
+                        <LinearGradient colors={isDarkMode ? ['#1F1F1F', '#111'] : [theme.surface, theme.surface]} style={styles.mainSummaryCard}>
                             <View style={styles.summaryRow}>
                                 <View style={styles.summaryItem}>
-                                    <MaterialCommunityIcons name="map-marker-radius" size={22} color="#FFD700" />
+                                    <MaterialCommunityIcons name="map-marker-radius" size={22} color={isDarkMode ? '#FFD700' : '#B8860B'} />
                                     <Text allowFontScaling={false} style={styles.summaryLabel}>KONUM</Text>
                                     <Text allowFontScaling={false} style={styles.summaryValue} numberOfLines={1}>{lokasyon}</Text>
                                 </View>
                                 <View style={styles.summaryDivider} />
                                 <View style={styles.summaryItem}>
-                                    <MaterialCommunityIcons name="chart-line" size={22} color="#FFD700" />
+                                    <MaterialCommunityIcons name="chart-line" size={22} color={isDarkMode ? '#FFD700' : '#B8860B'} />
                                     <Text allowFontScaling={false} style={styles.summaryLabel}>BÜTÇE</Text>
                                     <Text allowFontScaling={false} style={styles.summaryValue}>{butce}</Text>
                                 </View>
                                 <View style={styles.summaryDivider} />
                                 <View style={styles.summaryItem}>
-                                    <MaterialCommunityIcons name="clock-outline" size={22} color="#FFD700" />
+                                    <MaterialCommunityIcons name="clock-outline" size={22} color={isDarkMode ? '#FFD700' : '#B8860B'} />
                                     <Text allowFontScaling={false} style={styles.summaryLabel}>DURUM</Text>
                                     <Text allowFontScaling={false} style={styles.summaryValue}>{request.status === 'pending' || request.status === 'OPEN' ? 'TEKLİF BEKLENİYOR' : 'İŞLEMDE'}</Text>
                                 </View>
@@ -724,14 +729,14 @@ const SharedRequestDetail = ({
                         {/* ─── PREMIUM PROJE ÖZET BRİFİNGİ ─── */}
                         <View style={styles.sectionHeader}>
                             <View style={styles.sectionTitleWrap}>
-                                <MaterialCommunityIcons name="clipboard-text-outline" size={20} color="#FFD700" />
+                                <MaterialCommunityIcons name="clipboard-text-outline" size={20} color={isDarkMode ? '#FFD700' : '#B8860B'} />
                                 <Text allowFontScaling={false} style={styles.sectionTitle}>PROJE ÖZET BRİFİNGİ</Text>
                             </View>
                         </View>
                         <View style={[styles.card, { marginBottom: 8 }]}>
                             {(() => {
                                 const rows = [
-                                    { icon: 'home-edit-outline', label: 'Proje Tipi', value: projeTipi, color: '#FFD700' },
+                                    { icon: 'home-edit-outline', label: 'Proje Tipi', value: projeTipi, color: isDarkMode ? '#FFD700' : '#B8860B' },
                                     durum && durum !== '-' && { icon: 'floor-plan', label: 'Mekan / Durum', value: durum, color: '#D4AF37' },
                                     tarz && tarz !== 'Belirtilmedi' && { icon: 'palette-swatch', label: 'İstenen Tasarım', value: tarz, color: '#A78BFA' },
                                     butce && butce !== '-' && { icon: 'currency-try', label: 'Bütçe Aralığı', value: butce, color: '#4ADE80' },
@@ -747,8 +752,8 @@ const SharedRequestDetail = ({
                                                         <MaterialCommunityIcons name={row.icon} size={18} color={row.color} />
                                                     </View>
                                                     <View style={{ flex: 1 }}>
-                                                        <Text allowFontScaling={false} style={{ color: '#555', fontSize: 10, fontWeight: '800', letterSpacing: 1, marginBottom: 3 }}>{row.label.toUpperCase()}</Text>
-                                                        <Text allowFontScaling={false} style={{ color: '#EEE', fontSize: 14, fontWeight: '600', lineHeight: 20 }}>{row.value}</Text>
+                                                        <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 10, fontWeight: '800', letterSpacing: 1, marginBottom: 3 }}>{row.label.toUpperCase()}</Text>
+                                                        <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 14, fontWeight: '600', lineHeight: 20 }}>{row.value}</Text>
                                                     </View>
                                                 </View>
                                                 {idx < rows.length - 1 && <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.05)' }} />}
@@ -756,8 +761,8 @@ const SharedRequestDetail = ({
                                         ))}
                                         {notes && notes !== 'Ek not bulunmuyor.' && (
                                             <View style={{ marginTop: 12, backgroundColor: 'rgba(212,175,55,0.06)', borderRadius: 12, padding: 14, borderLeftWidth: 3, borderLeftColor: '#D4AF37' }}>
-                                                <Text allowFontScaling={false} style={{ color: '#666', fontSize: 10, fontWeight: '800', letterSpacing: 1, marginBottom: 6 }}>EK NOT</Text>
-                                                <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 13, lineHeight: 20, fontStyle: 'italic' }}>"{notes}"</Text>
+                                                <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 10, fontWeight: '800', letterSpacing: 1, marginBottom: 6 }}>EK NOT</Text>
+                                                <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13, lineHeight: 20, fontStyle: 'italic' }}>"{notes}"</Text>
                                             </View>
                                         )}
                                     </View>
@@ -768,7 +773,7 @@ const SharedRequestDetail = ({
                         {/* 2. TEKNİK BİLGİLER */}
                         <View style={styles.sectionHeader}>
                             <View style={styles.sectionTitleWrap}>
-                                <MaterialCommunityIcons name="hammer-wrench" size={20} color="#FFD700" />
+                                <MaterialCommunityIcons name="hammer-wrench" size={20} color={isDarkMode ? '#FFD700' : '#B8860B'} />
                                 <Text allowFontScaling={false} style={styles.sectionTitle}>TEKNİK DETAYLAR</Text>
                             </View>
                         </View>
@@ -780,7 +785,7 @@ const SharedRequestDetail = ({
                             </View>
                             <View style={styles.infoRow}>
                                 <Text allowFontScaling={false} style={styles.infoLabel}>Mevcut Durum</Text>
-                                <Text allowFontScaling={false} style={[styles.infoValue, { color: '#FFD700' }]}>{durum}</Text>
+                                <Text allowFontScaling={false} style={[styles.infoValue, { color: isDarkMode ? '#FFD700' : '#B8860B' }]}>{durum}</Text>
                             </View>
                             
                             <View style={styles.separator} />
@@ -788,27 +793,27 @@ const SharedRequestDetail = ({
                             <Text allowFontScaling={false} style={styles.subHeader}>YENİLENECEK ALANLAR</Text>
                             {teknikItems.length > 0 ? teknikItems.map((item, idx) => (
                                 <View key={idx} style={styles.techItem}>
-                                    <MaterialCommunityIcons name="check-circle-outline" size={20} color="#FFD700" />
+                                    <MaterialCommunityIcons name="check-circle-outline" size={20} color={isDarkMode ? '#FFD700' : '#B8860B'} />
                                     <Text allowFontScaling={false} style={styles.techItemText}>{item}</Text>
                                 </View>
                             )) : (
-                                <Text allowFontScaling={false} style={{ color: '#666', fontStyle: 'italic' }}>Kapsam belirtilmedi</Text>
+                                <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontStyle: 'italic' }}>Kapsam belirtilmedi</Text>
                             )}
                         </View>
 
                         {/* 3. TASARIM */}
                         <View style={styles.sectionHeader}>
                             <View style={styles.sectionTitleWrap}>
-                                <MaterialCommunityIcons name="palette-swatch" size={20} color="#FFD700" />
+                                <MaterialCommunityIcons name="palette-swatch" size={20} color={isDarkMode ? '#FFD700' : '#B8860B'} />
                                 <Text allowFontScaling={false} style={styles.sectionTitle}>MİMARİ TARZ TERCİHİ</Text>
                             </View>
                         </View>
                         <View style={styles.card}>
                             <View style={styles.styleBox}>
-                                <MaterialCommunityIcons name="pillar" size={32} color="#FFD700" />
+                                <MaterialCommunityIcons name="pillar" size={32} color={isDarkMode ? '#FFD700' : '#B8860B'} />
                                 <View style={{ flex: 1, marginLeft: 16 }}>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 16, fontWeight: '800' }}>{tarz}</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12, marginTop: 4 }}>Tadilat sonrası hedeflenen görünüm.</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 16, fontWeight: '800' }}>{tarz}</Text>
+                                    <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 12, marginTop: 4 }}>Tadilat sonrası hedeflenen görünüm.</Text>
                                 </View>
                             </View>
                         </View>
@@ -820,7 +825,7 @@ const SharedRequestDetail = ({
                                     <>
                                         <View style={styles.sectionHeader}>
                                             <View style={styles.sectionTitleWrap}>
-                                                <MaterialCommunityIcons name="camera-outline" size={20} color="#FFD700" />
+                                                <MaterialCommunityIcons name="camera-outline" size={20} color={isDarkMode ? '#FFD700' : '#B8860B'} />
                                                 <Text allowFontScaling={false} style={styles.sectionTitle}>MEVCUT DURUM FOTOĞRAFLARI</Text>
                                             </View>
                                         </View>
@@ -840,7 +845,7 @@ const SharedRequestDetail = ({
                                     <>
                                         <View style={styles.sectionHeader}>
                                             <View style={styles.sectionTitleWrap}>
-                                                <MaterialCommunityIcons name="lightbulb-outline" size={20} color="#FFD700" />
+                                                <MaterialCommunityIcons name="lightbulb-outline" size={20} color={isDarkMode ? '#FFD700' : '#B8860B'} />
                                                 <Text allowFontScaling={false} style={styles.sectionTitle}>İLHAM ALINAN FOTOĞRAFLAR</Text>
                                             </View>
                                         </View>
@@ -860,7 +865,7 @@ const SharedRequestDetail = ({
                             <>
                                 <View style={styles.sectionHeader}>
                                     <View style={styles.sectionTitleWrap}>
-                                        <MaterialCommunityIcons name="camera-burst" size={20} color="#FFD700" />
+                                        <MaterialCommunityIcons name="camera-burst" size={20} color={isDarkMode ? '#FFD700' : '#B8860B'} />
                                         <Text allowFontScaling={false} style={styles.sectionTitle}>YÜKLENEN MEDYALAR</Text>
                                     </View>
                                 </View>
@@ -878,8 +883,8 @@ const SharedRequestDetail = ({
                                         </ScrollView>
                                     ) : (
                                         <View style={styles.emptyPhotos}>
-                                            <MaterialCommunityIcons name="image-off-outline" size={32} color="#333" />
-                                            <Text allowFontScaling={false} style={{ color: '#555', fontSize: 12, marginTop: 8 }}>Görsel yüklenmemiş</Text>
+                                            <MaterialCommunityIcons name="image-off-outline" size={32} color={theme.textSecondary} />
+                                            <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 12, marginTop: 8 }}>Görsel yüklenmemiş</Text>
                                         </View>
                                     )}
                                 </View>
@@ -889,7 +894,7 @@ const SharedRequestDetail = ({
                         {/* 5. NOTLAR */}
                         <View style={styles.sectionHeader}>
                             <View style={styles.sectionTitleWrap}>
-                                <MaterialCommunityIcons name="message-text-outline" size={20} color="#FFD700" />
+                                <MaterialCommunityIcons name="message-text-outline" size={20} color={isDarkMode ? '#FFD700' : '#B8860B'} />
                                 <Text allowFontScaling={false} style={styles.sectionTitle}>ÖZEL NOTLARIM</Text>
                             </View>
                         </View>
@@ -902,21 +907,21 @@ const SharedRequestDetail = ({
                         {/* 6. GELEN TEKLİFLER BÖLÜMÜ */}
                         <View style={styles.sectionHeader}>
                             <View style={styles.sectionTitleWrap}>
-                                <MaterialCommunityIcons name="email-multiple-outline" size={20} color="#FFD700" />
+                                <MaterialCommunityIcons name="email-multiple-outline" size={20} color={isDarkMode ? '#FFD700' : '#B8860B'} />
                                 <Text allowFontScaling={false} style={styles.sectionTitle}>GELEN TEKLİFLER</Text>
                             </View>
                         </View>
 
                         {constructionOffers.length === 0 ? (
                             <View style={styles.emptyBidsBox}>
-                                <MaterialCommunityIcons name="timer-sand" size={32} color="#666" />
+                                <MaterialCommunityIcons name="timer-sand" size={32} color={theme.textSecondary} />
                                 <Text allowFontScaling={false} style={styles.emptyText}>Henüz teklif gelmedi. Müteahhitler incelemeye devam ediyor.</Text>
                             </View>
                         ) : (
                             <View style={styles.offersContainer}>
                                 <LinearGradient colors={['#1A1A1A', '#0A0A0A']} style={styles.offersHighlight}>
                                     <Text allowFontScaling={false} style={styles.offersCountText}>
-                                        <Text style={{ color: '#FFD700', fontSize: 24 }}>{constructionOffers.length}</Text> ADET TEKLİF ALINDI
+                                        <Text style={{ color: isDarkMode ? '#FFD700' : '#B8860B', fontSize: 24 }}>{constructionOffers.length}</Text> ADET TEKLİF ALINDI
                                     </Text>
                                     <TouchableOpacity 
                                         style={styles.viewOffersBtn}
@@ -964,7 +969,7 @@ const SharedRequestDetail = ({
                     <Modal visible={!!selectedImage} transparent={true} animationType="fade">
                         <View style={styles.modalBg}>
                             <TouchableOpacity style={styles.modalClose} onPress={() => setSelectedImage(null)}>
-                                <Ionicons name="close-circle" size={42} color="white" />
+                                <Ionicons name="close-circle" size={42} color={theme.text} />
                             </TouchableOpacity>
                             <Image source={{ uri: selectedImage }} style={styles.modalImg} resizeMode="contain" />
                         </View>
@@ -978,12 +983,12 @@ const SharedRequestDetail = ({
     // --- MARKET DETAIL VIEW ---
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" />
-            <LinearGradient colors={['#000000', '#121212']} style={StyleSheet.absoluteFillObject} />
+            <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
+            <LinearGradient colors={isDarkMode ? ['#000000', '#121212'] : [theme.background, theme.background]} style={StyleSheet.absoluteFillObject} />
             <SafeAreaView style={{ flex: 1 }} edges={['top']}>
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.backBtn} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
-                        <Ionicons name="arrow-back" size={24} color="#FFF" />
+                        <Ionicons name="arrow-back" size={24} color={theme.text} />
                     </TouchableOpacity>
                     <Text allowFontScaling={false} style={styles.headerTitle}>TALEP DETAYI</Text>
                     <View style={{ width: 40 }} />
@@ -1004,12 +1009,12 @@ const SharedRequestDetail = ({
                                 <Text allowFontScaling={false} style={styles.label}>BAŞVURU NO</Text>
                                 <Text allowFontScaling={false} style={styles.value}>#{request?.id?.slice(0, 8).toUpperCase()}</Text>
                             </View>
-                            <StatusBadge status={request?.status} />
+                            <StatusBadge status={request?.status} theme={theme} isDarkMode={isDarkMode} styles={styles} />
                         </View>
                         {request?.image_url && (
                             <View style={{ marginTop: 16 }}>
                                 <Text allowFontScaling={false} style={styles.label}>EKLENEN FOTOĞRAF</Text>
-                                <Image source={{ uri: request.image_url }} style={{ width: '100%', height: 200, borderRadius: 12, marginTop: 4, borderWidth: 1, borderColor: '#333' }} resizeMode="cover" />
+                                <Image source={{ uri: request.image_url }} style={{ width: '100%', height: 200, borderRadius: 12, marginTop: 4, borderWidth: 1, borderColor: isDarkMode ? '#333' : theme.border }} resizeMode="cover" />
                             </View>
                         )}
                         {request?.notes && (
@@ -1044,12 +1049,13 @@ const SharedRequestDetail = ({
 
                                 return (
                                     <View key={item.id} style={{
-                                        backgroundColor: '#0c0c0c',
+                                        backgroundColor: isDarkMode ? '#0c0c0c' : theme.surface,
                                         borderRadius: 16,
                                         borderWidth: 1,
                                         borderColor: 'rgba(212, 175, 55, 0.25)',
                                         overflow: 'hidden',
                                         position: 'relative',
+                                backgroundColor: isDarkMode ? '#000' : theme.surface,
                                         padding: 16
                                     }}>
                                         <LinearGradient
@@ -1072,13 +1078,13 @@ const SharedRequestDetail = ({
                                                     <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 16, fontWeight: '900' }}>{index + 1}</Text>
                                                 </View>
                                                 <View style={{ flex: 1, justifyContent: 'center', minHeight: 38 }}>
-                                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 17, fontWeight: '800', lineHeight: 22 }}>
+                                                    <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 17, fontWeight: '800', lineHeight: 22 }}>
                                                         {displayName}
                                                     </Text>
                                                 </View>
                                             </View>
                                             <View style={{ alignItems: 'flex-end', paddingTop: 2 }}>
-                                                <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginBottom: 2 }}>MİKTAR</Text>
+                                                <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginBottom: 2 }}>MİKTAR</Text>
                                                 <Text allowFontScaling={false} style={{ color: '#4ADE80', fontSize: 18, fontWeight: '900' }}>
                                                     {item.quantity}
                                                 </Text>
@@ -1097,21 +1103,21 @@ const SharedRequestDetail = ({
                                                 {brand && (
                                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                                         <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#D4AF37', marginRight: 8 }} />
-                                                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 13, width: 65, fontWeight: '600' }}>Marka:</Text>
+                                                        <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13, width: 65, fontWeight: '600' }}>Marka:</Text>
                                                         <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 14, fontWeight: 'bold', flex: 1 }}>{brand}</Text>
                                                     </View>
                                                 )}
                                                 {spec && (
                                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                                         <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#38bdf8', marginRight: 8 }} />
-                                                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 13, width: 65, fontWeight: '600' }}>Özellik:</Text>
+                                                        <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13, width: 65, fontWeight: '600' }}>Özellik:</Text>
                                                         <Text allowFontScaling={false} style={{ color: '#38bdf8', fontSize: 14, fontWeight: 'bold', flex: 1 }}>{spec}</Text>
                                                     </View>
                                                 )}
                                                 {item.details && (
                                                     <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
                                                         <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#a855f7', marginRight: 8, marginTop: 6 }} />
-                                                        <Text allowFontScaling={false} style={{ color: '#888', fontSize: 13, width: 65, fontWeight: '600', marginTop: 1 }}>Not:</Text>
+                                                        <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 13, width: 65, fontWeight: '600', marginTop: 1 }}>Not:</Text>
                                                         <Text allowFontScaling={false} style={{ color: '#E2E8F0', fontSize: 13, lineHeight: 18, flex: 1 }}>{item.details}</Text>
                                                     </View>
                                                 )}
@@ -1131,15 +1137,16 @@ const SharedRequestDetail = ({
                                 borderWidth: 1,
                                 borderColor: 'rgba(212, 175, 55, 0.25)',
                                 overflow: 'hidden',
-                                elevation: 8,
+                                elevation: isDarkMode ? 8 : 2,
                                 shadowColor: '#000',
                                 shadowOffset: { width: 0, height: 8 },
-                                shadowOpacity: 0.8,
+                                shadowOpacity: isDarkMode ? 0.8 : 0.05,
                                 shadowRadius: 10,
-                                position: 'relative'
+                                position: 'relative',
+                                backgroundColor: isDarkMode ? '#000' : theme.surface
                             }}>
                                 <LinearGradient
-                                    colors={['#17130A', '#0D0C09', '#050505']}
+                                    colors={isDarkMode ? ['#17130A', '#0D0C09', '#050505'] : ['rgba(212,175,55,0.08)', 'rgba(212,175,55,0.04)', 'rgba(212,175,55,0.01)']}
                                     style={{ ...StyleSheet.absoluteFillObject }}
                                     start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
                                 />
@@ -1162,8 +1169,8 @@ const SharedRequestDetail = ({
                                     }}>
                                         <MaterialCommunityIcons name="email-multiple-outline" size={38} color="#E8B923" />
                                     </View>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 24, fontWeight: '900', letterSpacing: 0.5, marginBottom: 24, textAlign: 'center' }}>
-                                        <Text style={{ color: '#FFD700', fontSize: 28 }}>{bids.length}</Text> ADET TEKLİFİNİZ VAR
+                                    <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 24, fontWeight: '900', letterSpacing: 0.5, marginBottom: 24, textAlign: 'center' }}>
+                                        <Text style={{ color: isDarkMode ? '#FFD700' : '#B8860B', fontSize: 28 }}>{bids.length}</Text> ADET TEKLİFİNİZ VAR
                                     </Text>
                                     <TouchableOpacity
                                         activeOpacity={0.8}
@@ -1221,59 +1228,59 @@ const SharedRequestDetail = ({
     );
 };
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#000' },
+const getStyles = (theme, isDarkMode) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: isDarkMode ? '#000' : theme.background },
     content: { padding: 20, paddingBottom: 50 },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 10, marginBottom: 10 },
-    headerTitle: { color: '#FFD700', fontSize: 16, fontWeight: '900', letterSpacing: 1.5, textTransform: 'uppercase' },
-    backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#333' },
-    card: { backgroundColor: '#111', marginHorizontal: 20, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#222', marginBottom: 25 },
+    headerTitle: { color: isDarkMode ? '#FFD700' : '#B8860B', fontSize: 16, fontWeight: '900', letterSpacing: 1.5, textTransform: 'uppercase' },
+    backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: isDarkMode ? '#1A1A1A' : theme.surface, borderWidth: 1, borderColor: isDarkMode ? '#333' : theme.border },
+    card: { backgroundColor: isDarkMode ? '#111' : theme.background, marginHorizontal: 20, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight, marginBottom: 25 },
     cardHeader: { flexDirection: 'row', alignItems: 'center' },
-    title: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
-    date: { color: '#888', fontSize: 12, marginTop: 4 },
+    title: { color: theme.text, fontSize: 18, fontWeight: 'bold' },
+    date: { color: theme.textSecondary, fontSize: 12, marginTop: 4 },
     divider: { height: 1, backgroundColor: '#333', marginVertical: 16 },
     infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, gap: 12 },
-    infoLabel: { color: '#888', fontSize: 13, fontWeight: '600', width: 130 },
-    infoValue: { color: '#FFF', fontSize: 14, fontWeight: '700', flex: 1, textAlign: 'right' },
-    label: { color: '#888', fontSize: 12, fontWeight: 'bold', letterSpacing: 0.5, marginBottom: 6 },
-    value: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
-    noteText: { color: '#FFFFFF', fontSize: 15, lineHeight: 22 },
-    mainSummaryCard: { margin: 20, borderRadius: 24, paddingVertical: 20, borderWidth: 1, borderColor: '#333', overflow: 'hidden' },
+    infoLabel: { color: theme.textSecondary, fontSize: 13, fontWeight: '600', width: 130 },
+    infoValue: { color: theme.text, fontSize: 14, fontWeight: '700', flex: 1, textAlign: 'right' },
+    label: { color: theme.textSecondary, fontSize: 12, fontWeight: 'bold', letterSpacing: 0.5, marginBottom: 6 },
+    value: { color: theme.text, fontSize: 16, fontWeight: '600' },
+    noteText: { color: theme.text, fontSize: 15, lineHeight: 22 },
+    mainSummaryCard: { margin: 20, borderRadius: 24, paddingVertical: 20, borderWidth: 1, borderColor: isDarkMode ? '#333' : theme.border, overflow: 'hidden' },
     summaryRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
     summaryItem: { alignItems: 'center', flex: 1, paddingHorizontal: 5 },
-    summaryLabel: { color: '#888', fontSize: 9, fontWeight: '900', marginTop: 8, letterSpacing: 1 },
-    summaryValue: { color: '#FFF', fontSize: 12, fontWeight: '800', marginTop: 4, textAlign: 'center' },
+    summaryLabel: { color: theme.textSecondary, fontSize: 9, fontWeight: '900', marginTop: 8, letterSpacing: 1 },
+    summaryValue: { color: theme.text, fontSize: 12, fontWeight: '800', marginTop: 4, textAlign: 'center' },
     summaryDivider: { width: 1, height: 40, backgroundColor: '#333' },
     sectionHeader: { paddingHorizontal: 20, marginBottom: 15, marginTop: 10 },
     sectionTitleWrap: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    sectionTitle: { color: '#FFF', fontSize: 13, fontWeight: '900', letterSpacing: 1.5 },
+    sectionTitle: { color: theme.text, fontSize: 13, fontWeight: '900', letterSpacing: 1.5 },
     separator: { height: 1, backgroundColor: '#222', marginVertical: 15 },
-    subHeader: { color: '#666', fontSize: 11, fontWeight: '900', letterSpacing: 1, marginBottom: 15 },
+    subHeader: { color: theme.textSecondary, fontSize: 11, fontWeight: '900', letterSpacing: 1, marginBottom: 15 },
     techItem: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
-    techItemText: { color: '#DDD', fontSize: 14, fontWeight: '600', flex: 1 },
-    styleBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1A1A1A', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#333' },
-    galleryImg: { width: 140, height: 140, borderRadius: 18, borderWidth: 1, borderColor: '#222' },
+    techItemText: { color: theme.textSecondary, fontSize: 14, fontWeight: '600', flex: 1 },
+    styleBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: isDarkMode ? '#1A1A1A' : theme.surface, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: isDarkMode ? '#333' : theme.border },
+    galleryImg: { width: 140, height: 140, borderRadius: 18, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight },
     imgLabel: { position: 'absolute', bottom: 10, left: 10, backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-    imgLabelText: { color: '#FFF', fontSize: 10, fontWeight: 'bold' },
-    emptyPhotos: { height: 120, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111', borderRadius: 20, borderStyle: 'dashed', borderWidth: 1, borderColor: '#222' },
-    notesText: { color: '#CCC', fontSize: 14, lineHeight: 22, fontStyle: 'italic' },
+    imgLabelText: { color: theme.text, fontSize: 10, fontWeight: 'bold' },
+    emptyPhotos: { height: 120, justifyContent: 'center', alignItems: 'center', backgroundColor: isDarkMode ? '#111' : theme.background, borderRadius: 20, borderStyle: 'dashed', borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight },
+    notesText: { color: theme.textSecondary, fontSize: 14, lineHeight: 22, fontStyle: 'italic' },
     offersContainer: { paddingHorizontal: 20, marginBottom: 30 },
     offersHighlight: { borderRadius: 24, padding: 24, borderWidth: 1, borderColor: 'rgba(212,175,55,0.3)', alignItems: 'center' },
-    offersCountText: { color: '#FFF', fontSize: 16, fontWeight: '900', letterSpacing: 1, marginBottom: 20 },
+    offersCountText: { color: theme.text, fontSize: 16, fontWeight: '900', letterSpacing: 1, marginBottom: 20 },
     viewOffersBtn: { width: '100%', height: 54, borderRadius: 16, overflow: 'hidden' },
     viewOffersGradient: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
     viewOffersBtnText: { color: '#000', fontSize: 14, fontWeight: '900', letterSpacing: 1 },
-    emptyBidsBox: { marginHorizontal: 20, padding: 30, backgroundColor: '#0A0A0A', borderRadius: 20, borderWidth: 1, borderColor: '#222', alignItems: 'center', borderStyle: 'dashed' },
-    emptyText: { color: '#666', fontSize: 13, marginTop: 12, textAlign: 'center', lineHeight: 20 },
+    emptyBidsBox: { marginHorizontal: 20, padding: 30, backgroundColor: isDarkMode ? '#0A0A0A' : theme.surface, borderRadius: 20, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight, alignItems: 'center', borderStyle: 'dashed' },
+    emptyText: { color: theme.textSecondary, fontSize: 13, marginTop: 12, textAlign: 'center', lineHeight: 20 },
     deleteBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: 20, paddingVertical: 16, borderRadius: 16, backgroundColor: 'rgba(239, 68, 68, 0.05)', borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.2)', marginTop: 20 },
     deleteBtnText: { color: '#EF4444', fontWeight: 'bold', fontSize: 14, letterSpacing: 1 },
-    modalBg: { flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' },
+    modalBg: { flex: 1, backgroundColor: isDarkMode ? '#000' : theme.background, justifyContent: 'center', alignItems: 'center' },
     modalClose: { position: 'absolute', top: 50, right: 20, zIndex: 10 },
     modalImg: { width: '100%', height: '80%' },
     statusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1 },
     statusDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
     statusText: { fontSize: 10, fontWeight: 'bold' },
-    emptyBids: { height: 100, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0A0A0A', borderRadius: 16, borderStyle: 'dashed', borderWidth: 1, borderColor: '#222', marginTop: 10 }
+    emptyBids: { height: 100, justifyContent: 'center', alignItems: 'center', backgroundColor: isDarkMode ? '#0A0A0A' : theme.surface, borderRadius: 16, borderStyle: 'dashed', borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight, marginTop: 10 }
 });
 
 export default SharedRequestDetail;

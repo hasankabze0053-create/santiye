@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -31,6 +32,9 @@ export default function BuildingSchema({
     isFlatForLand = true,
     turnkeyData = null // { totalPrice: 0, campaignPolicy: 'included' | 'excluded' }
 }) {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const styles = getStyles(theme, isDarkMode);
     const floors = parseInt(floorCount) || 0;
     const basements = parseInt(basementCount) || 1;
 
@@ -120,17 +124,17 @@ export default function BuildingSchema({
                 end={{ x: 0, y: 1 }}
             >
                 {icon && (
-                    <MaterialCommunityIcons name={icon} size={14} color={textColor} style={{ marginBottom: 2 }} />
+                    <MaterialCommunityIcons name={icon} size={14} color={isDarkMode ? textColor : (textColor === '#FFF' || textColor === '#888' ? theme.text : textColor)} style={{ marginBottom: 2 }} />
                 )}
                 <Text allowFontScaling={false} style={[
                     styles.unitText,
-                    { color: textColor },
+                    { color: isDarkMode ? textColor : (textColor === '#FFF' || textColor === '#888' ? theme.text : textColor) },
                     (unit.type === 'shop' || isSelected) && { fontWeight: 'bold' }
                 ]} numberOfLines={1}>
                     {unit.name || `${typeConfig.label} ${index + 1}`}
                 </Text>
                 {unit.area ? (
-                    <Text allowFontScaling={false} style={[styles.unitAreaText, { color: textColor }]}>{unit.area} m²</Text>
+                    <Text allowFontScaling={false} style={[styles.unitAreaText, { color: isDarkMode ? textColor : (textColor === '#FFF' || textColor === '#888' ? theme.text : textColor) }]}>{unit.area} m²</Text>
                 ) : null}
             </LinearGradient>
         );
@@ -265,10 +269,10 @@ export default function BuildingSchema({
                         borderColor: 'rgba(76, 175, 80, 0.3)'
                     }
                 ]}>
-                    <Text allowFontScaling={false} style={[styles.grantLabel, { color: '#4CAF50' }]}>
+                    <Text allowFontScaling={false} style={[styles.grantLabel, { color: isDarkMode ? '#4CAF50' : '#16A34A' }]}>
                         ARSA SAHİBİ ÖDEYECEK (NET)
                     </Text>
-                    <Text allowFontScaling={false} style={[styles.grantAmount, { color: '#FFF', textShadowColor: 'rgba(76, 175, 80, 0.5)' }]}>
+                    <Text allowFontScaling={false} style={[styles.grantAmount, { color: isDarkMode ? '#FFF' : theme.text, textShadowColor: 'rgba(76, 175, 80, 0.5)' }]}>
                         {(() => {
                             const grantAmount = (campaignData.unitCount * 1750000) + (campaignData.commercialCount * 875000);
                             const net = turnkeyData.campaignPolicy === 'included'
@@ -333,7 +337,7 @@ export default function BuildingSchema({
                         borderColor: 'rgba(212, 175, 55, 0.3)'
                     }
                 ]}>
-                    <Text allowFontScaling={false} style={[styles.grantLabel, { color: '#D4AF37' }]}>
+                    <Text allowFontScaling={false} style={[styles.grantLabel, { color: isDarkMode ? '#D4AF37' : '#8C6200' }]}>
                         MÜTEAHHİT FİRMAYA KALACAK DAİRELER
                     </Text>
                     <Text allowFontScaling={false} style={[
@@ -387,19 +391,19 @@ export default function BuildingSchema({
     );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme, isDarkMode) => StyleSheet.create({
     container: {
         marginTop: 24,
         padding: 20,
-        backgroundColor: 'rgba(30,30,30,0.6)',
+        backgroundColor: isDarkMode ? 'rgba(30,30,30,0.6)' : theme.surfaceSecondary,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: 'rgba(212, 175, 55, 0.2)',
+        borderColor: isDarkMode ? 'rgba(212, 175, 55, 0.2)' : theme.borderLight,
         alignItems: 'center',
         width: '100%'
     },
     title: {
-        color: '#D4AF37',
+        color: isDarkMode ? '#D4AF37' : '#8C6200',
         fontSize: 12,
         fontWeight: 'bold',
         marginBottom: 24,
@@ -407,7 +411,7 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase'
     },
     instruction: {
-        color: '#888',
+        color: isDarkMode ? '#888' : theme.textSecondary,
         fontSize: 11,
         marginBottom: 16,
         textAlign: 'center',
@@ -424,14 +428,14 @@ const styles = StyleSheet.create({
         width: '100%'
     },
     grantLabel: {
-        color: '#4CAF50',
+        color: isDarkMode ? '#4CAF50' : '#16A34A',
         fontSize: 10,
         fontWeight: 'bold',
         marginBottom: 4,
         letterSpacing: 1
     },
     grantAmount: {
-        color: '#FFF',
+        color: isDarkMode ? '#FFF' : theme.text,
         fontSize: 18,
         fontWeight: 'bold',
         textShadowColor: 'rgba(76, 175, 80, 0.5)',
@@ -439,7 +443,7 @@ const styles = StyleSheet.create({
         textShadowRadius: 10
     },
     grantSubtext: {
-        color: '#AAA',
+        color: isDarkMode ? '#AAA' : theme.textSecondary,
         fontSize: 10,
         marginTop: 4
     },
@@ -458,7 +462,7 @@ const styles = StyleSheet.create({
     },
     floorLabel: {
         width: 60, // Reduced label width to give more space
-        color: '#CCC',
+        color: isDarkMode ? '#CCC' : theme.textSecondary,
         fontSize: 12,
         textAlign: 'right',
         marginRight: 8,
@@ -468,9 +472,9 @@ const styles = StyleSheet.create({
     floorContent: {
         flex: 1,
         flexDirection: 'row',
-        backgroundColor: '#111',
+        backgroundColor: isDarkMode ? '#111' : theme.surface,
         borderWidth: 1,
-        borderColor: '#333',
+        borderColor: isDarkMode ? '#333' : theme.borderLight,
         height: 60, // Increased height for larger visual
         borderRadius: 4,
         overflow: 'hidden'
@@ -485,7 +489,7 @@ const styles = StyleSheet.create({
         padding: 4
     },
     unitText: {
-        color: '#FFF',
+        color: isDarkMode ? '#FFF' : theme.text,
         fontSize: 11,
         textAlign: 'center',
         fontWeight: 'bold',
@@ -494,7 +498,7 @@ const styles = StyleSheet.create({
         textShadowRadius: 1
     },
     unitAreaText: {
-        color: '#D4AF37',
+        color: isDarkMode ? '#D4AF37' : '#8C6200',
         fontSize: 10,
         textAlign: 'center',
         marginTop: 0,
@@ -520,12 +524,12 @@ const styles = StyleSheet.create({
         marginRight: 6
     },
     legendText: {
-        color: '#CCC',
+        color: isDarkMode ? '#CCC' : theme.textSecondary,
         fontSize: 11,
         fontWeight: '600'
     },
     note: {
-        color: '#555',
+        color: isDarkMode ? '#555' : theme.textSecondary,
         fontSize: 10,
         marginTop: 20,
         fontStyle: 'italic',
