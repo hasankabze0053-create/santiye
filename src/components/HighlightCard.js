@@ -22,14 +22,26 @@ const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, i
   let imageSource;
   if (activeImage) {
       imageSource = { uri: activeImage };
-  } else if (type === 'renovation') {
-      imageSource = require('../assets/highlight/tadilat_premium.jpg');
-  } else if (type === 'market') {
-      imageSource = require('../assets/highlight/market_premium.jpg');
-  } else if (type === 'law') {
-      imageSource = require('../assets/highlight/hukuk_premium.jpg');
+  } else if (!isDarkMode) {
+      if (type === 'renovation' || config?.type === 'highlight_card_renovation') {
+          imageSource = require('../assets/highlight/light/renovation.png');
+      } else if (type === 'market' || config?.type === 'highlight_card_market') {
+          imageSource = require('../assets/highlight/light/market.png');
+      } else if (type === 'law' || config?.type === 'highlight_card_law' || config?.type === 'law') {
+          imageSource = require('../assets/highlight/light/law.png');
+      } else {
+          imageSource = require('../assets/highlight/light/urban.png');
+      }
   } else {
-      imageSource = require('../assets/highlight/kentsel_donusum_premium.png');
+      if (type === 'renovation' || config?.type === 'highlight_card_renovation') {
+          imageSource = require('../assets/highlight/tadilat_premium.jpg');
+      } else if (type === 'market' || config?.type === 'highlight_card_market') {
+          imageSource = require('../assets/highlight/market_premium.jpg');
+      } else if (type === 'law' || config?.type === 'highlight_card_law' || config?.type === 'law') {
+          imageSource = require('../assets/highlight/hukuk_premium.jpg');
+      } else {
+          imageSource = require('../assets/highlight/kentsel_donusum_premium.png');
+      }
   }
 
   // Theme Colors
@@ -64,7 +76,11 @@ const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, i
   const pillsOffsetY = config?.pillsTranslateY || 0;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.95}>
+    <TouchableOpacity 
+      style={[styles.card, !isDarkMode && styles.cardLight]} 
+      onPress={onPress} 
+      activeOpacity={0.95}
+    >
       
       {/* 1. BACKGROUND IMAGE */}
       <View style={StyleSheet.absoluteFill}>
@@ -106,6 +122,11 @@ const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, i
               <Stop offset="0.5" stopColor="#D6A23A" />
               <Stop offset="1" stopColor="#9A6A12" />
             </SvgGradient>
+
+            <SvgGradient id="textGoldGradientLight" x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0" stopColor="#B8820F" />
+              <Stop offset="1" stopColor="#8C6200" />
+            </SvgGradient>
           </Defs>
 
           <Path d={curvePath} fill={isDarkMode ? "#0B0B0C" : "#FAF8F3"} />
@@ -115,7 +136,7 @@ const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, i
           {/* Generic SVG Title */}
           <SvgText x="8" y="35" fontSize="21" fontWeight="900" fontFamily={titleFont} letterSpacing="0.3">
             {displayTitle1 ? <TSpan fill={isDarkMode ? "#F3F1EC" : "#1C1208"} x="8" dy="0">{displayTitle1.toUpperCase()}</TSpan> : null}
-            {displayTitle2 ? <TSpan fill="url(#textGoldGradient)" x={displayTitle1 ? "28" : "8"} dy={displayTitle1 ? "26" : "0"}>{displayTitle2.toUpperCase()}</TSpan> : null}
+            {displayTitle2 ? <TSpan fill={isDarkMode ? "url(#textGoldGradient)" : "url(#textGoldGradientLight)"} x={displayTitle1 ? "28" : "8"} dy={displayTitle1 ? "26" : "0"}>{displayTitle2.toUpperCase()}</TSpan> : null}
           </SvgText>
         </Svg>
       </View>
@@ -144,8 +165,8 @@ const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, i
           {config?.pills && config.pills.length > 0 && (
               <View style={[styles.pillsContainer, { justifyContent: align, transform: [{ translateX: pillsOffsetX }, { translateY: pillsOffsetY }] }]}>
                   {config.pills.map((pill, idx) => (
-                      <View key={idx} style={[styles.renovationPill, { borderColor: themePillsBorder, backgroundColor: themePillsBg }]}>
-                          <Text style={[styles.renovationPillText, { color: themePillsText }]}>{pill}</Text>
+                      <View key={idx} style={[styles.renovationPill, { borderColor: isDarkMode ? themePillsBorder : '#8C6200', backgroundColor: isDarkMode ? themePillsBg : 'rgba(140, 98, 0, 0.05)' }]}>
+                          <Text style={[styles.renovationPillText, { color: isDarkMode ? themePillsText : '#8C6200' }]}>{pill}</Text>
                       </View>
                   ))}
               </View>
@@ -197,6 +218,10 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.08)',
     height: 220,
     elevation: 15,
+  },
+  cardLight: {
+    backgroundColor: '#FAF8F3',
+    borderColor: '#D4C4A8',
   },
   backgroundImage: {
     flex: 1,

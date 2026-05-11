@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 
 export default function AccountSettingsScreen({ route }) {
@@ -15,6 +16,18 @@ export default function AccountSettingsScreen({ route }) {
     const [companyData, setCompanyData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [fetchingCompany, setFetchingCompany] = useState(false);
+    const { isDarkMode } = useTheme();
+
+    const theme = {
+        background:        isDarkMode ? '#000000' : '#EDE5D5',
+        card:              isDarkMode ? '#1C1C1E' : '#FAF8F3',
+        text:              isDarkMode ? '#FFFFFF' : '#1C1208',
+        subText:           isDarkMode ? '#8E8E93' : '#4A3D28',
+        icon:              isDarkMode ? '#FDCB58' : '#8C6200',
+        border:            isDarkMode ? '#333333' : '#D4C4A8',
+        iconBg:            isDarkMode ? '#2C2C2E' : '#EDE0CA',
+        placeholder:       isDarkMode ? '#2C2C2E' : '#F0E8D8',
+    };
 
     // The Corporate Card ALWAYS keeps this Dark/Gold scheme
     const corporateTheme = {
@@ -81,34 +94,34 @@ export default function AccountSettingsScreen({ route }) {
     };
 
     return (
-        <View style={styles.container}>
-            {/* Custom Header (Matches NotificationSettings) */}
-            <View style={styles.header}>
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
+            {/* Custom Header */}
+            <View style={[styles.header, { borderBottomColor: theme.border }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#FFD700" />
+                    <Ionicons name="arrow-back" size={24} color={theme.icon} />
                 </TouchableOpacity>
-                <Text allowFontScaling={false} style={styles.headerTitle}>Hesap Bilgileri</Text>
+                <Text allowFontScaling={false} style={[styles.headerTitle, { color: theme.text }]}>Hesap Bilgileri</Text>
             </View>
 
             <ScrollView contentContainerStyle={styles.content}>
-                <Text allowFontScaling={false} style={styles.label}>Ad Soyad</Text>
+                <Text allowFontScaling={false} style={[styles.label, { color: theme.icon }]}>Ad Soyad</Text>
                 <TextInput allowFontScaling={false}
-                    style={styles.input}
+                    style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
                     value={fullName}
                     onChangeText={setFullName}
                     placeholder="Adınız Soyadınız"
-                    placeholderTextColor="#666"
+                    placeholderTextColor={theme.subText}
                 />
 
-                <Text allowFontScaling={false} style={styles.label}>E-Posta (Değiştirilemez)</Text>
-                <View style={[styles.input, styles.disabledInput]}>
-                    <Text allowFontScaling={false} style={{ color: '#aaa' }}>{user?.email}</Text>
+                <Text allowFontScaling={false} style={[styles.label, { color: theme.icon }]}>E-Posta (Değiştirilemez)</Text>
+                <View style={[styles.input, styles.disabledInput, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                    <Text allowFontScaling={false} style={{ color: theme.subText }}>{user?.email}</Text>
                 </View>
 
                 {/* New User Type Field */}
-                <Text allowFontScaling={false} style={styles.label}>Kullanıcı Tipi</Text>
-                <View style={[styles.input, styles.disabledInput]}>
-                    <Text allowFontScaling={false} style={{ color: '#aaa' }}>
+                <Text allowFontScaling={false} style={[styles.label, { color: theme.icon }]}>Kullanıcı Tipi</Text>
+                <View style={[styles.input, styles.disabledInput, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                    <Text allowFontScaling={false} style={{ color: theme.subText }}>
                         {profileData?.user_type === 'corporate' ? 'Kurumsal Üye' : 'Bireysel Kullanıcı'}
                     </Text>
                 </View>
@@ -117,53 +130,57 @@ export default function AccountSettingsScreen({ route }) {
                 {profileData?.user_type === 'corporate' && (
                     <View style={{ marginTop: 25 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15, gap: 8 }}>
-                            <MaterialCommunityIcons name="domain" size={20} color="#FFD700" />
-                            <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 16, fontWeight: 'bold' }}>Kurumsal Firma Bilgileri</Text>
+                            <MaterialCommunityIcons name="domain" size={20} color={theme.icon} />
+                            <Text allowFontScaling={false} style={{ color: theme.icon, fontSize: 16, fontWeight: 'bold' }}>Kurumsal Firma Bilgileri</Text>
                         </View>
 
                         {fetchingCompany ? (
-                            <ActivityIndicator color="#FFD700" style={{ marginVertical: 20 }} />
+                            <ActivityIndicator color={theme.icon} style={{ marginVertical: 20 }} />
                         ) : companyData ? (
-                            <View style={styles.corporateDetailsContainer}>
+                            <View style={[styles.corporateDetailsContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
                                 <View style={styles.detailRow}>
-                                    <Text allowFontScaling={false} style={styles.detailLabel}>Firma Ünvanı</Text>
-                                    <Text allowFontScaling={false} style={styles.detailValue}>{companyData.company_name || '-'}</Text>
+                                    <Text allowFontScaling={false} style={[styles.detailLabel, { color: theme.subText }]}>Firma Ünvanı</Text>
+                                    <Text allowFontScaling={false} style={[styles.detailValue, { color: theme.text }]}>{companyData.company_name || '-'}</Text>
                                 </View>
 
                                 <View style={{ flexDirection: 'row', gap: 15 }}>
                                     <View style={{ flex: 1 }}>
-                                        <Text allowFontScaling={false} style={styles.detailLabel}>Vergi No</Text>
-                                        <Text allowFontScaling={false} style={styles.detailValue}>{companyData.tax_number || '-'}</Text>
+                                        <Text allowFontScaling={false} style={[styles.detailLabel, { color: theme.subText }]}>Vergi No</Text>
+                                        <Text allowFontScaling={false} style={[styles.detailValue, { color: theme.text }]}>{companyData.tax_number || '-'}</Text>
                                     </View>
                                     <View style={{ flex: 1 }}>
-                                        <Text allowFontScaling={false} style={styles.detailLabel}>Vergi Dairesi</Text>
-                                        <Text allowFontScaling={false} style={styles.detailValue}>{companyData.tax_office || '-'}</Text>
+                                        <Text allowFontScaling={false} style={[styles.detailLabel, { color: theme.subText }]}>Vergi Dairesi</Text>
+                                        <Text allowFontScaling={false} style={[styles.detailValue, { color: theme.text }]}>{companyData.tax_office || '-'}</Text>
                                     </View>
                                 </View>
 
                                 <View style={styles.detailRow}>
-                                    <Text allowFontScaling={false} style={styles.detailLabel}>İletişim Tel</Text>
-                                    <Text allowFontScaling={false} style={styles.detailValue}>{companyData.phone || '-'}</Text>
+                                    <Text allowFontScaling={false} style={[styles.detailLabel, { color: theme.subText }]}>İletişim Tel</Text>
+                                    <Text allowFontScaling={false} style={[styles.detailValue, { color: theme.text }]}>{companyData.phone || '-'}</Text>
                                 </View>
 
                                 <View style={styles.detailRow}>
-                                    <Text allowFontScaling={false} style={styles.detailLabel}>Firma Adresi</Text>
-                                    <Text allowFontScaling={false} style={styles.detailValue}>{companyData.address || '-'}</Text>
+                                    <Text allowFontScaling={false} style={[styles.detailLabel, { color: theme.subText }]}>Firma Adresi</Text>
+                                    <Text allowFontScaling={false} style={[styles.detailValue, { color: theme.text }]}>{companyData.address || '-'}</Text>
                                 </View>
                             </View>
                         ) : (
-                            <View style={styles.corporateDetailsContainer}>
-                                <Text allowFontScaling={false} style={{ color: '#888', fontStyle: 'italic', textAlign: 'center' }}>Firma bilgileri bulunamadı.</Text>
+                            <View style={[styles.corporateDetailsContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                                <Text allowFontScaling={false} style={{ color: theme.subText, fontStyle: 'italic', textAlign: 'center' }}>Firma bilgileri bulunamadı.</Text>
                             </View>
                         )}
                     </View>
                 )}
 
-                <TouchableOpacity style={styles.saveButton} onPress={handleUpdate} disabled={loading}>
+                <TouchableOpacity 
+                    style={[styles.saveButton, { backgroundColor: isDarkMode ? '#FDCB58' : '#8C6200', shadowColor: isDarkMode ? '#FDCB58' : '#8C6200' }]} 
+                    onPress={handleUpdate} 
+                    disabled={loading}
+                >
                     {loading ? (
-                        <ActivityIndicator color="#000" />
+                        <ActivityIndicator color={isDarkMode ? '#000' : '#FFF'} />
                     ) : (
-                        <Text allowFontScaling={false} style={styles.saveButtonText}>Değişiklikleri Kaydet</Text>
+                        <Text allowFontScaling={false} style={[styles.saveButtonText, { color: isDarkMode ? '#000' : '#FFF' }]}>Değişiklikleri Kaydet</Text>
                     )}
                 </TouchableOpacity>
 

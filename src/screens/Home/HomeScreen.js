@@ -156,8 +156,8 @@ export default function HomeScreen({ navigation }) {
     const visibleCategories = categories.filter(c => isAdmin || c.is_active);
 
     return (
-        <View style={[styles.container, { backgroundColor: COLORS.pageBackground }]}>
-            <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+        <View style={[styles.container, { backgroundColor: isDarkMode ? COLORS.pageBackground : '#EDE5D5' }]}>
+            <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
             <SafeAreaView style={{ flex: 1 }}>
                 <ScrollView 
                     showsVerticalScrollIndicator={false}
@@ -174,6 +174,7 @@ export default function HomeScreen({ navigation }) {
                         categories={categoryChips.filter(c => c.is_visible || isAdmin).map(c => ({ ...c, key: c.id, title: c.title }))}
                         activeCategory={activeCategory}
                         isAdmin={isAdmin}
+                        isDarkMode={isDarkMode}
                         onSelect={(cat) => {
                             if (cat === 'all') {
                                 setActiveCategory('all');
@@ -181,7 +182,11 @@ export default function HomeScreen({ navigation }) {
                                 setActiveCategory(cat.key);
                                 // Navigate using route from chip
                                 if (cat.metadata?.route) {
-                                    navigation.navigate(cat.metadata.route);
+                                    let routeName = cat.metadata.route;
+                                    if (routeName === 'Market') routeName = 'MarketStack';
+                                    if (routeName === 'Renovation') routeName = 'Tadilat';
+                                    if (routeName === 'AsansorBakim') routeName = 'ElevatorWizard';
+                                    navigation.navigate(routeName);
                                 }
                             }
                         }}
@@ -217,7 +222,12 @@ export default function HomeScreen({ navigation }) {
                                     type={configItem.metadata?.type || 'urban'}
                                     onPress={() => {
                                         if (configItem.metadata?.linkedModule) {
-                                            navigation.navigate(configItem.metadata.linkedModule);
+                                            let routeName = configItem.metadata.linkedModule;
+                                            if (routeName === 'Market') routeName = 'MarketStack';
+                                            if (routeName === 'Renovation') routeName = 'Tadilat';
+                                            if (routeName === 'AsansorBakim') routeName = 'ElevatorWizard';
+                                            if (routeName === 'GarajOtomasyon') routeName = 'GarageWizard';
+                                            navigation.navigate(routeName);
                                         }
                                     }}
                                     isAdmin={isAdmin}
@@ -254,6 +264,7 @@ export default function HomeScreen({ navigation }) {
                                     onPress={() => handleCategoryPress(cat)}
                                     isAdmin={isAdmin}
                                     isHidden={!cat.is_active}
+                                    isDarkMode={isDarkMode}
                                     onEdit={() => {
                                         setEditingModule(cat);
                                         setIsModuleEditVisible(true);
@@ -303,6 +314,9 @@ export default function HomeScreen({ navigation }) {
                     } else {
                         setCategoryChips(prev => prev.map(c => c.id === newChip.id ? newChip : c));
                     }
+                }}
+                onDeleteSuccess={(deletedChipId) => {
+                    setCategoryChips(prev => prev.filter(c => c.id !== deletedChipId));
                 }}
             />
         </View>

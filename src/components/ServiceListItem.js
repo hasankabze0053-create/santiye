@@ -3,10 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, FONTS } from '../theme';
 
-const ServiceListItem = ({ title, subtitle, icon, onPress, onEdit, isAdmin, isHidden }) => {
+const ServiceListItem = ({ title, subtitle, icon, onPress, onEdit, isAdmin, isHidden, isDarkMode }) => {
   return (
     <TouchableOpacity 
-      style={[styles.container, isHidden && styles.hiddenContainer]} 
+      style={[styles.container, !isDarkMode && styles.containerLight, isHidden && styles.hiddenContainer]} 
       onPress={onPress} 
       activeOpacity={0.7}
     >
@@ -15,14 +15,14 @@ const ServiceListItem = ({ title, subtitle, icon, onPress, onEdit, isAdmin, isHi
         <View style={styles.goldLine} />
         
         {/* 2. Icon in Box */}
-        <View style={styles.iconBox}>
-          <MaterialCommunityIcons name={icon} size={20} color={COLORS.gold} />
+        <View style={[styles.iconBox, !isDarkMode && styles.iconBoxLight]}>
+          <MaterialCommunityIcons name={icon} size={20} color={isDarkMode ? COLORS.gold : '#8C6200'} />
         </View>
 
         {/* 3. Text Info */}
         <View style={styles.textContainer}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>{subtitle}</Text>
+          <Text style={[styles.title, !isDarkMode && { color: '#1C1208' }]}>{title}</Text>
+          <Text style={[styles.subtitle, !isDarkMode && { color: '#4A3D28' }]}>{subtitle}</Text>
         </View>
       </View>
 
@@ -30,14 +30,14 @@ const ServiceListItem = ({ title, subtitle, icon, onPress, onEdit, isAdmin, isHi
       <View style={styles.rightSection}>
         {isAdmin && onEdit && (
           <TouchableOpacity 
-            style={styles.editBtn} 
+            style={[styles.editBtn, !isDarkMode && styles.editBtnLight]} 
             onPress={onEdit}
             hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
           >
-            <MaterialCommunityIcons name="pencil" size={18} color="#D4AF37" />
+            <MaterialCommunityIcons name="pencil" size={18} color={isDarkMode ? "#D4AF37" : "#8C6200"} />
           </TouchableOpacity>
         )}
-        <MaterialCommunityIcons name="chevron-right" size={20} color="#333" />
+        <MaterialCommunityIcons name="chevron-right" size={20} color={isDarkMode ? "#333" : "#D4C4A8"} />
       </View>
     </TouchableOpacity>
   );
@@ -56,6 +56,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.04)',
+  },
+  containerLight: {
+    backgroundColor: '#FAF8F3',
+    borderColor: '#D4C4A8',
   },
   leftSection: {
     flexDirection: 'row',
@@ -79,6 +83,10 @@ const styles = StyleSheet.create({
     marginRight: 16,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
+  },
+  iconBoxLight: {
+    backgroundColor: '#EDE0CA',
+    borderColor: 'rgba(140, 98, 0, 0.1)',
   },
   textContainer: {
     flex: 1,
@@ -110,6 +118,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(212, 175, 55, 0.3)',
     marginRight: 4,
+  },
+  editBtnLight: {
+    backgroundColor: 'rgba(140, 98, 0, 0.1)',
+    borderColor: 'rgba(140, 98, 0, 0.3)',
   },
   hiddenContainer: {
     opacity: 0.4,

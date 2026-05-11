@@ -1,37 +1,49 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function HelpCenterScreen() {
     const navigation = useNavigation();
+    const { isDarkMode } = useTheme();
+
+    const theme = {
+        background:        isDarkMode ? '#000000' : '#EDE5D5',
+        card:              isDarkMode ? '#1a1a1a' : '#FAF8F3',
+        text:              isDarkMode ? '#FFFFFF' : '#1C1208',
+        subText:           isDarkMode ? '#999999' : '#4A3D28',
+        icon:              isDarkMode ? '#FFD700' : '#8C6200',
+        border:            isDarkMode ? '#1a1a1a' : '#D4C4A8',
+        placeholder:       isDarkMode ? '#666666' : '#8C7050',
+    };
 
     const FAQItem = ({ question, answer }) => (
         <View style={styles.faqContainer}>
-            <Text allowFontScaling={false} style={styles.question}>{question}</Text>
-            <Text allowFontScaling={false} style={styles.answer}>{answer}</Text>
+            <Text allowFontScaling={false} style={[styles.question, { color: theme.text }]}>{question}</Text>
+            <Text allowFontScaling={false} style={[styles.answer, { color: theme.subText }]}>{answer}</Text>
         </View>
     );
 
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
+            <View style={[styles.header, { borderBottomColor: theme.border }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#FFD700" />
+                    <Ionicons name="arrow-back" size={24} color={theme.icon} />
                 </TouchableOpacity>
-                <Text allowFontScaling={false} style={styles.headerTitle}>Yardım Merkezi</Text>
+                <Text allowFontScaling={false} style={[styles.headerTitle, { color: theme.text }]}>Yardım Merkezi</Text>
             </View>
 
-            <View style={styles.searchContainer}>
-                <Ionicons name="search" size={20} color="#666" style={{ marginRight: 10 }} />
+            <View style={[styles.searchContainer, { backgroundColor: theme.card }]}>
+                <Ionicons name="search" size={20} color={theme.placeholder} style={{ marginRight: 10 }} />
                 <TextInput allowFontScaling={false}
                     placeholder="Nasıl yardımcı olabiliriz?"
-                    placeholderTextColor="#666"
-                    style={styles.searchInput}
+                    placeholderTextColor={theme.placeholder}
+                    style={[styles.searchInput, { color: theme.text }]}
                 />
             </View>
 
             <ScrollView contentContainerStyle={styles.content}>
-                <Text allowFontScaling={false} style={styles.sectionTitle}>SIKÇA SORULAN SORULAR</Text>
+                <Text allowFontScaling={false} style={[styles.sectionTitle, { color: theme.icon }]}>SIKÇA SORULAN SORULAR</Text>
 
                 <FAQItem
                     question="Nasıl teklif alabilirim?"

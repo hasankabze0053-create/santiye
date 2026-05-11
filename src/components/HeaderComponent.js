@@ -3,10 +3,12 @@ import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-nati
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Svg, { Defs, LinearGradient as SvgGradient, Stop, Text as SvgText, TSpan } from 'react-native-svg';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { COLORS, FONTS } from '../theme';
 
 const HeaderComponent = ({ navigation }) => {
   const { profile } = useAuth();
+  const { isDarkMode } = useTheme();
 
   return (
     <View style={styles.headerContainer}>
@@ -19,6 +21,10 @@ const HeaderComponent = ({ navigation }) => {
                 <Stop offset="0.5" stopColor="#D6A23A" />
                 <Stop offset="1" stopColor="#9A6A12" />
               </SvgGradient>
+              <SvgGradient id="logoGoldGradientLight" x1="0" y1="0" x2="0" y2="1">
+                <Stop offset="0" stopColor="#B8820F" />
+                <Stop offset="1" stopColor="#8C6200" />
+              </SvgGradient>
             </Defs>
             <SvgText
               x="0"
@@ -28,21 +34,21 @@ const HeaderComponent = ({ navigation }) => {
               fontFamily={FONTS.bold}
               letterSpacing="-0.5"
             >
-              <TSpan fill="#F3F1EC">Cepte</TSpan>
-              <TSpan fill="url(#logoGoldGradient)">Şef</TSpan>
+              <TSpan fill={isDarkMode ? "#F3F1EC" : "#1C1208"}>Cepte</TSpan>
+              <TSpan fill={isDarkMode ? "url(#logoGoldGradient)" : "url(#logoGoldGradientLight)"}>Şef</TSpan>
             </SvgText>
           </Svg>
         </View>
-        <Text style={styles.brandSubtitle}>İNŞAAT & HİZMET PLATFORMU</Text>
+        <Text style={[styles.brandSubtitle, !isDarkMode && { color: '#4A3D28' }]}>İNŞAAT & HİZMET PLATFORMU</Text>
       </View>
 
       <View style={styles.actionGroup}>
         <TouchableOpacity 
-          style={styles.outlineBtn} 
+          style={[styles.outlineBtn, !isDarkMode && { borderColor: 'rgba(140, 98, 0, 0.4)' }]} 
           onPress={() => navigation.navigate('ProviderDashboard')}
         >
-          <Text style={styles.outlineBtnText}>Hizmet Paneli</Text>
-          <MaterialCommunityIcons name="briefcase-outline" size={14} color={COLORS.gold} />
+          <Text style={[styles.outlineBtnText, !isDarkMode && { color: '#8C6200' }]}>Hizmet Paneli</Text>
+          <MaterialCommunityIcons name="briefcase-outline" size={14} color={isDarkMode ? COLORS.gold : '#8C6200'} />
         </TouchableOpacity>
 
         <TouchableOpacity 

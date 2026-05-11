@@ -121,21 +121,25 @@ export const AppAssetService = {
     // Upload Image specifically for Highlight Card
     async uploadHighlightImage(uri, theme = 'dark') {
         try {
-            const fetchResponse = await fetch(uri);
-            const blob = await fetchResponse.blob();
-
             const fileExt = uri.split('.').pop() || 'jpg';
             const fileName = `highlight_${theme}_${Date.now()}.${fileExt}`;
             const filePath = `${fileName}`;
 
+            const formData = new FormData();
+            formData.append('file', {
+                uri: uri,
+                name: fileName,
+                type: `image/${fileExt}`
+            });
+
             const { data, error } = await supabase.storage
-                .from('transformation-images')
-                .upload(filePath, blob, { contentType: `image/${fileExt}`, upsert: true });
+                .from('construction-documents')
+                .upload(filePath, formData, { contentType: `image/${fileExt}` });
 
             if (error) throw error;
 
             const { data: { publicUrl } } = supabase.storage
-                .from('transformation-images')
+                .from('construction-documents')
                 .getPublicUrl(filePath);
 
             return publicUrl;
@@ -165,6 +169,22 @@ export const AppAssetService = {
             return { success: true };
         } catch (error) {
             console.error(`AppAssetService.updateCategoryChip error:`, error);
+            return { success: false, error };
+        }
+    },
+
+    // Delete Category Chip (Admin Only)
+    async deleteCategoryChip(id) {
+        try {
+            const { error } = await supabase
+                .from('screen_section_config')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error(`AppAssetService.deleteCategoryChip error:`, error);
             return { success: false, error };
         }
     },

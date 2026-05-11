@@ -21,11 +21,11 @@ const THEMES = [
 
 const MODULES = [
     { id: 'KentselDonusum', name: 'Kentsel Dönüşüm' },
-    { id: 'Renovation', name: 'Tadilat & Mimari' },
-    { id: 'Market', name: 'İnşaat Marketi' },
+    { id: 'Tadilat', name: 'Tadilat & Mimari' },
+    { id: 'MarketStack', name: 'İnşaat Marketi' },
     { id: 'Hukuk', name: 'Hukuk Danışmanlığı' },
-    { id: 'AsansorBakim', name: 'Asansör Bakım' },
-    { id: 'GarajOtomasyon', name: 'Garaj Otomasyonu' },
+    { id: 'ElevatorWizard', name: 'Asansör Bakım' },
+    { id: 'GarageWizard', name: 'Garaj Otomasyonu' },
     { id: 'RentalStack', name: 'Kiralama' },
     { id: 'TeknikOfis', name: 'Teknik Ofis' }
 ];

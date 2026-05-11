@@ -7,24 +7,23 @@ import { COLORS, FONTS } from '../theme';
 
 const AVAILABLE_ROUTES = [
     { id: 'KentselDonusum', name: 'Kentsel Dönüşüm Ana' },
-    { id: 'Renovation', name: 'Tadilat & Mimari' },
-    { id: 'Market', name: 'İnşaat Marketi' },
+    { id: 'Tadilat', name: 'Tadilat & Mimari' },
+    { id: 'MarketStack', name: 'İnşaat Marketi' },
     { id: 'Hukuk', name: 'Hukuk Danışmanlığı' },
-    { id: 'AsansorBakim', name: 'Asansör Bakım' },
+    { id: 'ElevatorWizard', name: 'Asansör Bakım' },
     { id: 'RentalStack', name: 'Kiralama (Stack)' },
     { id: 'TeknikOfis', name: 'Teknik Ofis' },
     { id: '', name: 'Yönlendirme Yok' }
 ];
 
-const CategoryChipEditModal = ({ visible, onClose, initialConfig, onSaveSuccess, type = 'edit' }) => {
+const CategoryChipEditModal = ({ visible, onClose, initialConfig, onSaveSuccess, onDeleteSuccess, type = 'edit' }) => {
     const isNew = type === 'new';
     const [loading, setLoading] = useState(false);
     
     const [config, setConfig] = useState({
         id: '',
         title: '',
-        route: '',
-        is_visible: true
+        route: ''
     });
 
     useEffect(() => {
@@ -33,15 +32,13 @@ const CategoryChipEditModal = ({ visible, onClose, initialConfig, onSaveSuccess,
                 setConfig({
                     id: `category_chip_custom_${Date.now()}`,
                     title: '',
-                    route: '',
-                    is_visible: true
+                    route: ''
                 });
             } else if (initialConfig) {
                 setConfig({
                     id: initialConfig.id || '',
                     title: initialConfig.title || '',
-                    route: initialConfig.metadata?.route || '',
-                    is_visible: initialConfig.is_visible !== false
+                    route: initialConfig.metadata?.route || ''
                 });
             }
         }
@@ -59,7 +56,7 @@ const CategoryChipEditModal = ({ visible, onClose, initialConfig, onSaveSuccess,
             config.id, 
             config.title, 
             config.route, 
-            config.is_visible, 
+            true, // Always visible now
             isNew, 
             99 // Default sort order for new ones
         );
@@ -70,7 +67,7 @@ const CategoryChipEditModal = ({ visible, onClose, initialConfig, onSaveSuccess,
                 id: config.id,
                 title: config.title,
                 metadata: { route: config.route },
-                is_visible: config.is_visible,
+                is_visible: true,
                 sort_order: isNew ? 99 : (initialConfig?.sort_order || 99)
             };
             onSaveSuccess(updatedChip, isNew);
@@ -78,6 +75,31 @@ const CategoryChipEditModal = ({ visible, onClose, initialConfig, onSaveSuccess,
         } else {
             Alert.alert("Hata", "Ayarlar kaydedilemedi.");
         }
+    };
+
+    const handleDelete = () => {
+        Alert.alert(
+            "Silme İşlemi",
+            "Bu butonu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
+            [
+                { text: "İptal", style: "cancel" },
+                { 
+                    text: "Sil", 
+                    style: "destructive",
+                    onPress: async () => {
+                        setLoading(true);
+                        const res = await AppAssetService.deleteCategoryChip(config.id);
+                        setLoading(false);
+                        if (res.success) {
+                            onDeleteSuccess(config.id);
+                            onClose();
+                        } else {
+                            Alert.alert("Hata", "Silinemedi.");
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     return (
@@ -117,21 +139,6 @@ const CategoryChipEditModal = ({ visible, onClose, initialConfig, onSaveSuccess,
                                 </TouchableOpacity>
                             ))}
                         </View>
-
-                        <View style={styles.switchContainer}>
-                            <View>
-                                <Text style={[styles.label, { marginTop: 0 }]}>Görünürlük</Text>
-                                <Text style={styles.helperText}>
-                                    {config.is_visible ? 'Kullanıcılar bu butonu görebilir' : 'Sadece yöneticiler silik olarak görebilir'}
-                                </Text>
-                            </View>
-                            <Switch 
-                                value={config.is_visible}
-                                onValueChange={v => setConfig(prev => ({...prev, is_visible: v}))}
-                                trackColor={{ false: '#3A3A3C', true: '#D4AF37' }}
-                                thumbColor={config.is_visible ? '#FFF' : '#AAA'}
-                            />
-                        </View>
                     </ScrollView>
 
                     <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={loading}>
@@ -139,6 +146,12 @@ const CategoryChipEditModal = ({ visible, onClose, initialConfig, onSaveSuccess,
                             {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.saveText}>AYARLARI KAYDET</Text>}
                         </LinearGradient>
                     </TouchableOpacity>
+
+                    {!isNew && (
+                        <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete} disabled={loading}>
+                            <Text style={styles.deleteText}>BU BUTONU SİL</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             </KeyboardAvoidingView>
             </View>
@@ -168,10 +181,11 @@ const styles = StyleSheet.create({
     routeChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: '#3A3A3C', backgroundColor: '#2C2C2E' },
     activeRouteChip: { backgroundColor: '#D4AF37', borderColor: '#D4AF37' },
     routeText: { color: '#AAA', fontFamily: FONTS.medium, fontSize: 12 },
-    switchContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 30, backgroundColor: '#2C2C2E', padding: 15, borderRadius: 12, borderWidth: 1, borderColor: '#3A3A3C' },
-    saveBtn: { marginTop: 20, marginBottom: 20, borderRadius: 15, overflow: 'hidden' },
+    saveBtn: { marginTop: 20, marginBottom: 15, borderRadius: 15, overflow: 'hidden' },
     saveGradient: { height: 55, justifyContent: 'center', alignItems: 'center' },
-    saveText: { color: '#FFF', fontSize: 16, fontFamily: FONTS.bold }
+    saveText: { color: '#FFF', fontSize: 16, fontFamily: FONTS.bold },
+    deleteBtn: { height: 55, justifyContent: 'center', alignItems: 'center', borderRadius: 15, borderWidth: 1, borderColor: '#FF3B30', backgroundColor: 'rgba(255,59,48,0.1)', marginBottom: 20 },
+    deleteText: { color: '#FF3B30', fontSize: 16, fontFamily: FONTS.bold }
 });
 
 export default CategoryChipEditModal;

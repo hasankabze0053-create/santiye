@@ -2,7 +2,7 @@ import React from 'react';
 import { ScrollView, TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import { COLORS, FONTS } from '../theme';
 
-const CategoryChip = ({ categories, activeCategory, onSelect, onLongPress, isAdmin, onAddNew }) => {
+const CategoryChip = ({ categories, activeCategory, onSelect, onLongPress, isAdmin, onAddNew, isDarkMode }) => {
   return (
     <View style={styles.outerContainer}>
       <ScrollView 
@@ -11,30 +11,30 @@ const CategoryChip = ({ categories, activeCategory, onSelect, onLongPress, isAdm
         contentContainerStyle={styles.scrollContent}
       >
         <TouchableOpacity 
-          style={[styles.chip, activeCategory === 'all' && styles.activeChip]}
+          style={[styles.chip, !isDarkMode && { backgroundColor: '#FAF8F3', borderColor: '#D4C4A8' }, activeCategory === 'all' && styles.activeChip, activeCategory === 'all' && !isDarkMode && styles.activeChipLight]}
           onPress={() => onSelect('all')}
         >
-          <Text style={[styles.chipText, activeCategory === 'all' && styles.activeText]}>Tümü</Text>
+          <Text style={[styles.chipText, !isDarkMode && { color: '#4A3D28' }, activeCategory === 'all' && styles.activeText, activeCategory === 'all' && !isDarkMode && styles.activeTextLight]}>Tümü</Text>
         </TouchableOpacity>
 
         {categories.map((cat) => (
           <TouchableOpacity 
             key={cat.key}
-            style={[styles.chip, activeCategory === cat.key && styles.activeChip]}
+            style={[styles.chip, !isDarkMode && { backgroundColor: '#FAF8F3', borderColor: '#D4C4A8' }, activeCategory === cat.key && styles.activeChip, activeCategory === cat.key && !isDarkMode && styles.activeChipLight]}
             onPress={() => onSelect(cat)}
             onLongPress={() => onLongPress && onLongPress(cat)}
             delayLongPress={500}
           >
-            <Text style={[styles.chipText, activeCategory === cat.key && styles.activeText]}>{cat.title}</Text>
+            <Text style={[styles.chipText, !isDarkMode && { color: '#4A3D28' }, activeCategory === cat.key && styles.activeText, activeCategory === cat.key && !isDarkMode && styles.activeTextLight]}>{cat.title}</Text>
           </TouchableOpacity>
         ))}
 
         {isAdmin && (
           <TouchableOpacity 
-            style={[styles.chip, styles.addNewChip]}
+            style={[styles.chip, styles.addNewChip, !isDarkMode && styles.addNewChipLight]}
             onPress={onAddNew}
           >
-            <Text style={styles.addNewText}>+ Yeni Ekle</Text>
+            <Text style={[styles.addNewText, !isDarkMode && styles.addNewTextLight]}>+ Yeni Ekle</Text>
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -62,6 +62,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(212, 175, 55, 0.1)',
     borderColor: COLORS.gold,
   },
+  activeChipLight: {
+    backgroundColor: '#EDE0CA',
+    borderColor: '#8C6200',
+  },
   chipText: {
     color: '#666',
     fontSize: 12,
@@ -69,6 +73,9 @@ const styles = StyleSheet.create({
   },
   activeText: {
     color: COLORS.gold,
+  },
+  activeTextLight: {
+    color: '#8C6200',
   },
   addNewChip: {
     borderStyle: 'dashed',
@@ -79,6 +86,13 @@ const styles = StyleSheet.create({
     color: COLORS.gold,
     fontSize: 12,
     fontFamily: FONTS.bold,
+  },
+  addNewChipLight: {
+    borderColor: 'rgba(140, 98, 0, 0.4)',
+    backgroundColor: 'rgba(140, 98, 0, 0.05)',
+  },
+  addNewTextLight: {
+    color: '#8C6200',
   }
 });
 

@@ -1,31 +1,42 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function PrivacySecurityScreen() {
     const navigation = useNavigation();
 
+    const { isDarkMode } = useTheme();
+
+    const theme = {
+        background:        isDarkMode ? '#000000' : '#EDE5D5',
+        text:              isDarkMode ? '#FFFFFF' : '#1C1208',
+        subText:           isDarkMode ? '#8E8E93' : '#4A3D28',
+        icon:              isDarkMode ? '#FDCB58' : '#8C6200',
+        border:            isDarkMode ? '#333333' : '#D4C4A8',
+    };
+
     const ActionItem = ({ label, icon, onPress, isDestructive }) => (
-        <TouchableOpacity style={styles.itemContainer} onPress={onPress}>
+        <TouchableOpacity style={[styles.itemContainer, { borderBottomColor: theme.border }]} onPress={onPress}>
             <View style={styles.leftContent}>
-                <Ionicons name={icon} size={22} color={isDestructive ? '#FF3B30' : '#FFD700'} />
-                <Text allowFontScaling={false} style={[styles.label, isDestructive && styles.destructiveText]}>{label}</Text>
+                <Ionicons name={icon} size={22} color={isDestructive ? '#FF3B30' : theme.icon} />
+                <Text allowFontScaling={false} style={[styles.label, { color: theme.text }, isDestructive && styles.destructiveText]}>{label}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#666" />
+            <Ionicons name="chevron-forward" size={20} color={theme.subText} />
         </TouchableOpacity>
     );
 
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
+            <View style={[styles.header, { borderBottomColor: theme.border }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#FFD700" />
+                    <Ionicons name="arrow-back" size={24} color={theme.icon} />
                 </TouchableOpacity>
-                <Text allowFontScaling={false} style={styles.headerTitle}>Gizlilik ve Güvenlik</Text>
+                <Text allowFontScaling={false} style={[styles.headerTitle, { color: theme.text }]}>Gizlilik ve Güvenlik</Text>
             </View>
 
             <ScrollView contentContainerStyle={styles.content}>
-                <Text allowFontScaling={false} style={styles.sectionTitle}>HESAP GÜVENLİĞİ</Text>
+                <Text allowFontScaling={false} style={[styles.sectionTitle, { color: theme.subText }]}>HESAP GÜVENLİĞİ</Text>
                 <ActionItem
                     label="Şifre Değiştir"
                     icon="key-outline"
@@ -37,7 +48,7 @@ export default function PrivacySecurityScreen() {
                     onPress={() => Alert.alert('Yakında', 'Bu özellik yakında eklenecek.')}
                 />
 
-                <Text allowFontScaling={false} style={styles.sectionTitle}>GİZLİLİK</Text>
+                <Text allowFontScaling={false} style={[styles.sectionTitle, { color: theme.subText }]}>GİZLİLİK</Text>
                 <ActionItem
                     label="Gizlilik Politikası"
                     icon="document-text-outline"
@@ -49,7 +60,7 @@ export default function PrivacySecurityScreen() {
                     onPress={() => Alert.alert('Link', 'Kullanım koşulları sayfasına yönlendiriliyorsunuz.')}
                 />
 
-                <Text allowFontScaling={false} style={styles.sectionTitle}>VERİ YÖNETİMİ</Text>
+                <Text allowFontScaling={false} style={[styles.sectionTitle, { color: theme.subText }]}>VERİ YÖNETİMİ</Text>
                 <ActionItem
                     label="Hesabımı Dondur"
                     icon="snow-outline"

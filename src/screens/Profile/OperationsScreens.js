@@ -52,9 +52,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChatService } from '../../services/ChatService';
-import { ConstructionService } from '../../services/ConstructionService'; // Added ConstructionService
+import { ConstructionService } from '../../services/ConstructionService';
 import { MarketService } from '../../services/MarketService';
 import { ElevatorService } from '../../services/ElevatorService';
+import { useTheme } from '../../context/ThemeContext';
 
 // --- MOCK DATA ---
 
@@ -155,8 +156,7 @@ const SegmentedTab = ({ tabs, activeTab, onTabChange, theme, badges }) => (
 
 // --- 1. REQUESTS SCREEN (Taleplerim) ---
 export const RequestsScreen = () => {
-    const colorScheme = useColorScheme();
-    const isDarkMode = colorScheme === 'dark' || true;
+    const { isDarkMode } = useTheme();
     const [activeTab, setActiveTab] = useState('Aktif');
     const [selectedCategory, setSelectedCategory] = useState('Tüm Talepler');
     const [requests, setRequests] = useState([]);
@@ -272,8 +272,8 @@ export const RequestsScreen = () => {
                 style={[
                     styles.card, 
                     { 
-                        backgroundColor: '#1A1A1A', 
-                        borderColor: '#2A2A2A', 
+                        backgroundColor: theme.card, 
+                        borderColor: theme.border, 
                         borderWidth: 1, 
                         flexDirection: 'column',
                         padding: 16,
@@ -295,30 +295,30 @@ export const RequestsScreen = () => {
                         width: 48, 
                         height: 48, 
                         borderRadius: 14, 
-                        backgroundColor: isTadilat || item.type === 'elevator' ? 'rgba(255, 215, 0, 0.1)' : 'rgba(100, 181, 246, 0.1)', 
+                        backgroundColor: isTadilat || item.type === 'elevator' ? (isDarkMode ? 'rgba(255, 215, 0, 0.1)' : 'rgba(140, 98, 0, 0.1)') : (isDarkMode ? 'rgba(100, 181, 246, 0.1)' : 'rgba(0, 100, 200, 0.1)'), 
                         alignItems: 'center', 
                         justifyContent: 'center', 
                         marginRight: 14,
                         borderWidth: 1,
-                        borderColor: isTadilat || item.type === 'elevator' ? 'rgba(255, 215, 0, 0.2)' : 'rgba(100, 181, 246, 0.2)'
+                        borderColor: isTadilat || item.type === 'elevator' ? (isDarkMode ? 'rgba(255, 215, 0, 0.2)' : 'rgba(140, 98, 0, 0.2)') : (isDarkMode ? 'rgba(100, 181, 246, 0.2)' : 'rgba(0, 100, 200, 0.2)')
                     }}>
                         <MaterialCommunityIcons 
                             name={isTadilat ? "home-edit" : (item.type === 'elevator' ? 'elevator-passenger' : (item.type === 'construction' ? "office-building-cog" : "package-variant-closed"))} 
                             size={26} 
-                            color={isTadilat || item.type === 'elevator' ? "#FFD700" : "#64B5F6"} 
+                            color={isTadilat || item.type === 'elevator' ? (isDarkMode ? "#FFD700" : "#8C6200") : (isDarkMode ? "#64B5F6" : "#0064C8")} 
                         />
                     </View>
                     
                     <View style={{ flex: 1, justifyContent: 'center', gap: 2 }}>
-                        <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800' }} numberOfLines={1}>
+                        <Text allowFontScaling={false} style={{ color: theme.text, fontSize: 16, fontWeight: '800' }} numberOfLines={1}>
                             {item.title}
                         </Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                            <Text allowFontScaling={false} style={{ color: '#888', fontSize: 12 }}>
+                            <Text allowFontScaling={false} style={{ color: theme.subText, fontSize: 12 }}>
                                 {new Date(item.created_at).toLocaleDateString('tr-TR')}
                             </Text>
-                            <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#444' }} />
-                            <Text allowFontScaling={false} style={{ color: '#666', fontSize: 11, fontWeight: '500' }}>
+                            <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: theme.border }} />
+                            <Text allowFontScaling={false} style={{ color: theme.subText, fontSize: 11, fontWeight: '500' }}>
                                 {item.category}
                             </Text>
                         </View>
@@ -330,14 +330,14 @@ export const RequestsScreen = () => {
                         borderRadius: 12, 
                         justifyContent: 'center', 
                         alignItems: 'center', 
-                        backgroundColor: isWaiting ? 'rgba(255, 255, 255, 0.05)' : '#FFD700',
+                        backgroundColor: isWaiting ? (isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)') : (isDarkMode ? '#FFD700' : '#8C6200'),
                         borderWidth: isWaiting ? 1 : 0,
-                        borderColor: 'rgba(255, 255, 255, 0.1)'
+                        borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
                     }}>
                         <Text allowFontScaling={false} style={{ 
                             fontSize: 11, 
                             fontWeight: '900', 
-                            color: isWaiting ? '#888' : '#121212' 
+                            color: isWaiting ? theme.subText : (isDarkMode ? '#121212' : '#FFF') 
                         }}>
                             {isWaiting ? "BEKLENİYOR" : `${item.bids.length} TEKLİF`}
                         </Text>
@@ -346,8 +346,8 @@ export const RequestsScreen = () => {
 
                 {/* Subtitle / Description context */}
                 {item.subtitle && (
-                    <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.05)' }}>
-                        <Text allowFontScaling={false} style={{ color: '#A0A0A0', fontSize: 12 }} numberOfLines={1}>
+                    <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border }}>
+                        <Text allowFontScaling={false} style={{ color: theme.subText, fontSize: 12 }} numberOfLines={1}>
                             {item.subtitle}
                         </Text>
                     </View>
@@ -383,15 +383,15 @@ export const RequestsScreen = () => {
                                 key={cat}
                                 onPress={() => setSelectedCategory(cat)}
                                 style={{
-                                    backgroundColor: isSelected ? '#D4AF37' : '#2A2A2A',
+                                    backgroundColor: isSelected ? (isDarkMode ? '#D4AF37' : '#8C6200') : theme.iconBg,
                                     paddingHorizontal: 16,
                                     paddingVertical: 8,
                                     borderRadius: 20,
                                     borderWidth: 1,
-                                    borderColor: isSelected ? '#D4AF37' : '#3A3A3C'
+                                    borderColor: isSelected ? (isDarkMode ? '#D4AF37' : '#8C6200') : theme.border
                                 }}
                             >
-                                <Text allowFontScaling={false} style={{ color: isSelected ? '#000' : '#E5E5EA', fontWeight: 'bold', fontSize: 13 }}>{cat}</Text>
+                                <Text allowFontScaling={false} style={{ color: isSelected ? (isDarkMode ? '#000' : '#FFF') : theme.text, fontWeight: 'bold', fontSize: 13 }}>{cat}</Text>
                             </TouchableOpacity>
                         );
                     })}
@@ -419,8 +419,7 @@ export const RequestsScreen = () => {
 
 // --- 2. OFFERS SCREEN (Tekliflerim) ---
 export const OffersScreen = () => {
-    const colorScheme = useColorScheme();
-    const isDarkMode = colorScheme === 'dark' || true;
+    const { isDarkMode } = useTheme();
     const [activeTab, setActiveTab] = useState('Verilen');
 
     const theme = getTheme(isDarkMode);
@@ -451,8 +450,7 @@ export const OffersScreen = () => {
 
 // --- 3. INBOX SCREEN (Gelen Kutusu / Teklifler) ---
 export const InboxScreen = () => {
-    const colorScheme = useColorScheme();
-    const isDarkMode = colorScheme === 'dark' || true;
+    const { isDarkMode } = useTheme();
     const [activeTab, setActiveTab] = useState('Mesajlar');
     const [chats, setChats] = useState([]);
     const [notifications, setNotifications] = useState([]);
@@ -595,7 +593,7 @@ export const InboxScreen = () => {
             const isUnread = !item.isRead;
             return (
                 <TouchableOpacity
-                    style={styles.premiumChatCard}
+                    style={[styles.premiumChatCard, { backgroundColor: theme.card, borderColor: isDarkMode ? 'rgba(212, 175, 55, 0.1)' : theme.border }]}
                     onPress={() => {
                         navigation.navigate('Chat', {
                             receiver_id: item.otherPartyId,
@@ -621,23 +619,23 @@ export const InboxScreen = () => {
                                 )}
                                 <View style={{ marginLeft: 12, flex: 1 }}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <Text allowFontScaling={false} style={styles.premiumCompanyName} numberOfLines={1}>
+                                        <Text allowFontScaling={false} style={[styles.premiumCompanyName, { color: theme.text }]} numberOfLines={1}>
                                             {item.title}
                                         </Text>
-                                        <MaterialCommunityIcons name="check-decagram" size={14} color="#D4AF37" style={{ marginLeft: 4 }} />
+                                        <MaterialCommunityIcons name="check-decagram" size={14} color={theme.accent} style={{ marginLeft: 4 }} />
                                     </View>
-                                    <Text allowFontScaling={false} style={styles.premiumLocationText} numberOfLines={1}>
+                                    <Text allowFontScaling={false} style={[styles.premiumLocationText, { color: theme.subText }]} numberOfLines={1}>
                                         Sohbet • {item.request?.title || 'Genel'}
                                     </Text>
                                 </View>
                             </View>
                             <View style={{ alignItems: 'flex-end' }}>
-                                <Text allowFontScaling={false} style={styles.premiumTimeText}>
+                                <Text allowFontScaling={false} style={[styles.premiumTimeText, { color: theme.subText }]}>
                                     {item.created_at ? new Date(item.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
                                 </Text>
                                 {isUnread && (
-                                    <View style={styles.premiumUnreadBadge}>
-                                        <Text allowFontScaling={false} style={styles.premiumUnreadText}>YENİ</Text>
+                                    <View style={[styles.premiumUnreadBadge, { backgroundColor: isDarkMode ? '#D4AF37' : '#8C6200' }]}>
+                                        <Text allowFontScaling={false} style={[styles.premiumUnreadText, { color: isDarkMode ? '#000' : '#FFF' }]}>YENİ</Text>
                                     </View>
                                 )}
                             </View>
@@ -645,7 +643,8 @@ export const InboxScreen = () => {
 
                         <Text allowFontScaling={false} numberOfLines={2} style={[
                             styles.premiumChatPreview,
-                            isUnread && { color: '#FFF', fontWeight: '600' }
+                            { color: theme.subText },
+                            isUnread && { color: theme.text, fontWeight: '600' }
                         ]}>
                             {item.subtitle || 'Mesaj gönderildi'}
                         </Text>
@@ -657,7 +656,7 @@ export const InboxScreen = () => {
         // --- PREMIUM NOTIFICATION CARD ---
         return (
             <TouchableOpacity
-                style={styles.premiumNotificationCard}
+                style={[styles.premiumNotificationCard, { backgroundColor: theme.card, borderColor: isDarkMode ? 'rgba(212, 175, 55, 0.2)' : theme.border }]}
                 onPress={() => {
                     if (item.type === 'construction') {
                         navigation.navigate('OfferDetail', {
@@ -677,45 +676,45 @@ export const InboxScreen = () => {
                     }
                 }}
             >
-                <View style={styles.premiumCardGlow} />
+                <View style={[styles.premiumCardGlow, { backgroundColor: isDarkMode ? '#D4AF37' : '#8C6200' }]} />
 
                 <View style={styles.premiumCardContent}>
                     {/* Header: Company & Time */}
                     <View style={styles.premiumHeader}>
                         <View style={{ flex: 1 }}>
-                            <Text allowFontScaling={false} style={styles.premiumCompanyName}>
+                            <Text allowFontScaling={false} style={[styles.premiumCompanyName, { color: theme.text }]}>
                                 {item.type === 'market' ? 'İnşaat Marketi' : (item.request?.offer_type === 'anahtar_teslim_tadilat' || item.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat Merkezi' : 'Kentsel Dönüşüm Merkezi')}
                             </Text>
                             <View style={styles.locationContainer}>
-                                <MaterialCommunityIcons name="map-marker" size={12} color="#D4AF37" />
-                                <Text allowFontScaling={false} style={styles.premiumLocationText}>
+                                <MaterialCommunityIcons name="map-marker" size={12} color={theme.accent} />
+                                <Text allowFontScaling={false} style={[styles.premiumLocationText, { color: theme.subText }]}>
                                     {item.location || 'Sistem Bildirimi'}
                                 </Text>
                             </View>
                         </View>
-                        <Text allowFontScaling={false} style={styles.premiumTimeText}>
+                        <Text allowFontScaling={false} style={[styles.premiumTimeText, { color: theme.subText }]}>
                             {new Date(item.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                         </Text>
                     </View>
 
-                    <View style={styles.premiumDivider} />
+                    <View style={[styles.premiumDivider, { backgroundColor: theme.border }]} />
 
                     {/* Body: Request Type & Button */}
                     <View style={styles.premiumBody}>
                         <View style={{ flex: 1 }}>
-                            <Text allowFontScaling={false} style={styles.premiumLabelText}>TALEP TÜRÜ</Text>
-                            <Text allowFontScaling={false} style={styles.premiumValueText}>
+                            <Text allowFontScaling={false} style={[styles.premiumLabelText, { color: theme.accent }]}>TALEP TÜRÜ</Text>
+                            <Text allowFontScaling={false} style={[styles.premiumValueText, { color: theme.text }]}>
                                 {item.type === 'market' ? 'Malzeme Talebi' : (item.requestType || 'Detaylı Talep')}
                             </Text>
                         </View>
 
                         <LinearGradient
-                            colors={['#D4AF37', '#AA8A2E']}
+                            colors={isDarkMode ? ['#D4AF37', '#AA8A2E'] : ['#8C6200', '#D4AF37']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 1 }}
                             style={styles.premiumActionButton}
                         >
-                            <Text allowFontScaling={false} style={styles.premiumActionText}>+ İNCELE</Text>
+                            <Text allowFontScaling={false} style={[styles.premiumActionText, { color: isDarkMode ? '#000' : '#FFF' }]}>+ İNCELE</Text>
                         </LinearGradient>
                     </View>
                 </View>
@@ -755,12 +754,13 @@ export const InboxScreen = () => {
 
 const getTheme = (isDarkMode) => ({
     isDark: isDarkMode,
-    background: isDarkMode ? '#000000' : '#F2F2F7',
-    card: isDarkMode ? '#1C1C1E' : '#FFFFFF',
-    text: isDarkMode ? '#FFFFFF' : '#121212',
-    subText: isDarkMode ? '#8E8E93' : '#636366',
-    accent: isDarkMode ? '#FDCB58' : '#121212',
-    iconBg: isDarkMode ? '#2C2C2E' : '#E5E5EA',
+    background: isDarkMode ? '#000000' : '#EDE5D5',
+    card: isDarkMode ? '#1C1C1E' : '#FAF8F3',
+    text: isDarkMode ? '#FFFFFF' : '#1C1208',
+    subText: isDarkMode ? '#8E8E93' : '#4A3D28',
+    accent: isDarkMode ? '#FDCB58' : '#8C6200',
+    iconBg: isDarkMode ? '#2C2C2E' : '#EDE0CA',
+    border: isDarkMode ? '#333333' : '#D4C4A8',
 });
 
 const ScreenLayout = ({ title, theme, activeTab, setActiveTab, tabs, children, icon = "filter-variant", badges = {} }) => {

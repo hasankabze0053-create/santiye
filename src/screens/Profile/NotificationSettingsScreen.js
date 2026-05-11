@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function NotificationSettingsScreen() {
     const navigation = useNavigation();
@@ -9,15 +10,26 @@ export default function NotificationSettingsScreen() {
     const [emailEnabled, setEmailEnabled] = useState(true);
     const [smsEnabled, setSmsEnabled] = useState(false);
     const [promoEnabled, setPromoEnabled] = useState(true);
+    const { isDarkMode } = useTheme();
+
+    const theme = {
+        background:        isDarkMode ? '#000000' : '#EDE5D5',
+        card:              isDarkMode ? '#1C1C1E' : '#FAF8F3',
+        text:              isDarkMode ? '#FFFFFF' : '#1C1208',
+        subText:           isDarkMode ? '#8E8E93' : '#4A3D28',
+        icon:              isDarkMode ? '#FDCB58' : '#8C6200',
+        border:            isDarkMode ? '#333333' : '#D4C4A8',
+        switchTrackActive: isDarkMode ? '#FDCB58' : '#8C6200',
+    };
 
     const ToggleItem = ({ label, value, onValueChange, description }) => (
-        <View style={styles.itemContainer}>
+        <View style={[styles.itemContainer, { borderBottomColor: theme.border }]}>
             <View style={styles.textContainer}>
-                <Text allowFontScaling={false} style={styles.label}>{label}</Text>
-                {description && <Text allowFontScaling={false} style={styles.description}>{description}</Text>}
+                <Text allowFontScaling={false} style={[styles.label, { color: theme.text }]}>{label}</Text>
+                {description && <Text allowFontScaling={false} style={[styles.description, { color: theme.subText }]}>{description}</Text>}
             </View>
             <Switch
-                trackColor={{ false: "#767577", true: "#FDCB58" }}
+                trackColor={{ false: "#767577", true: theme.switchTrackActive }}
                 thumbColor={value ? "#fff" : "#f4f3f4"}
                 ios_backgroundColor="#3e3e3e"
                 onValueChange={onValueChange}
@@ -27,16 +39,16 @@ export default function NotificationSettingsScreen() {
     );
 
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
+            <View style={[styles.header, { borderBottomColor: theme.border }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#FFD700" />
+                    <Ionicons name="arrow-back" size={24} color={theme.icon} />
                 </TouchableOpacity>
-                <Text allowFontScaling={false} style={styles.headerTitle}>Bildirim Ayarları</Text>
+                <Text allowFontScaling={false} style={[styles.headerTitle, { color: theme.text }]}>Bildirim Ayarları</Text>
             </View>
 
             <ScrollView contentContainerStyle={styles.content}>
-                <Text allowFontScaling={false} style={styles.sectionTitle}>GENEL BİLDİRİMLER</Text>
+                <Text allowFontScaling={false} style={[styles.sectionTitle, { color: theme.subText }]}>GENEL BİLDİRİMLER</Text>
                 <ToggleItem
                     label="Anlık Bildirimler"
                     description="Uygulama içi önemli güncellemeler ve uyarılar."
@@ -44,7 +56,7 @@ export default function NotificationSettingsScreen() {
                     onValueChange={setPushEnabled}
                 />
 
-                <Text allowFontScaling={false} style={styles.sectionTitle}>İLETİŞİM KANALLARI</Text>
+                <Text allowFontScaling={false} style={[styles.sectionTitle, { color: theme.subText }]}>İLETİŞİM KANALLARI</Text>
                 <ToggleItem
                     label="E-Posta Bildirimleri"
                     description="Sipariş durumu ve fatura detayları."
@@ -58,7 +70,7 @@ export default function NotificationSettingsScreen() {
                     onValueChange={setSmsEnabled}
                 />
 
-                <Text allowFontScaling={false} style={styles.sectionTitle}>PAZARLAMA</Text>
+                <Text allowFontScaling={false} style={[styles.sectionTitle, { color: theme.subText }]}>PAZARLAMA</Text>
                 <ToggleItem
                     label="Kampanyalar ve Fırsatlar"
                     description="Özel tekliflerden haberdar olun."
