@@ -10,6 +10,8 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import PremiumBackground from '../../components/PremiumBackground';
+import { useTheme } from '../../context/ThemeContext';
 
 const GOLD = '#D4AF37';
 const GOLD_LIGHT = '#F7E5A8';
@@ -19,6 +21,22 @@ const BTN_GRADIENT = [GOLD_DARK, GOLD, GOLD_LIGHT, GOLD, GOLD_DARK];
 
 export default function ElevatorSuccessScreen({ navigation, route }) {
     const { city, district } = route?.params || {};
+    const { isDarkMode } = useTheme();
+
+    const T = {
+        text: isDarkMode ? '#FFF' : '#1C1208',
+        textSub: isDarkMode ? '#BBB' : '#4A3D28',
+        cardBg: isDarkMode ? '#111' : 'rgba(255,255,255,0.05)',
+        cardBorder: isDarkMode ? 'rgba(212,175,55,0.2)' : '#D4C4A8',
+        divider: isDarkMode ? '#1E1E1E' : '#D4C4A8',
+        tagText: isDarkMode ? '#000' : '#FFFFFF',
+        tagBg: isDarkMode ? GOLD : '#8C6200',
+        glow: isDarkMode ? GOLD : '#8C6200',
+        btnText: isDarkMode ? '#1a1a1a' : '#FFFFFF',
+        btnStart: isDarkMode ? GOLD_DARK : '#8C6200',
+        btnEnd: isDarkMode ? GOLD_DARK : '#B8820F',
+        iconColor: isDarkMode ? GOLD : '#8C6200',
+    };
 
     // Animated scale for the icon
     const scaleAnim = new Animated.Value(0.5);
@@ -39,50 +57,47 @@ export default function ElevatorSuccessScreen({ navigation, route }) {
     });
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" />
-            <LinearGradient colors={['#000000', '#0D0D0D', '#000000']} style={StyleSheet.absoluteFill} />
-
+        <PremiumBackground>
             {/* Ambient glow */}
-            <Animated.View style={[styles.ambientGlow, { opacity: glowAnim }]} />
+            <Animated.View style={[styles.ambientGlow, { opacity: glowAnim, backgroundColor: T.glow }]} />
 
             <SafeAreaView style={styles.content}>
                 {/* Icon */}
                 <Animated.View style={[styles.iconContainer, { transform: [{ scale: scaleAnim }], opacity: opacityAnim }]}>
-                    <View style={styles.glow} />
-                    <View style={styles.iconRing}>
-                        <MaterialCommunityIcons name="check-decagram" size={96} color={GOLD} />
+                    <View style={[styles.glow, { backgroundColor: T.glow, shadowColor: T.glow }]} />
+                    <View style={[styles.iconRing, { borderColor: isDarkMode ? 'rgba(212,175,55,0.3)' : 'rgba(140,98,0,0.3)', backgroundColor: isDarkMode ? 'rgba(212,175,55,0.08)' : 'rgba(140,98,0,0.08)' }]}>
+                        <MaterialCommunityIcons name="check-decagram" size={96} color={T.iconColor} />
                     </View>
                 </Animated.View>
 
                 {/* Title */}
                 <Animated.View style={{ opacity: opacityAnim, alignItems: 'center' }}>
-                    <View style={styles.tagRow}>
-                        <MaterialCommunityIcons name="elevator-passenger" size={14} color="#000" />
-                        <Text allowFontScaling={false} style={styles.tag}>ASANSÖR ARIZA BAKIM</Text>
+                    <View style={[styles.tagRow, { backgroundColor: T.tagBg }]}>
+                        <MaterialCommunityIcons name="elevator-passenger" size={14} color={T.tagText} />
+                        <Text allowFontScaling={false} style={[styles.tag, { color: T.tagText }]}>ASANSÖR ARIZA BAKIM</Text>
                     </View>
 
-                    <Text allowFontScaling={false} style={styles.title}>Talebiniz Alındı!</Text>
+                    <Text allowFontScaling={false} style={[styles.title, { color: T.text }]}>Talebiniz Alındı!</Text>
 
-                    <Text allowFontScaling={false} style={styles.subtitle}>
-                        <Text style={{ color: GOLD }}>{city}{district ? ` / ${district}` : ''}</Text>
+                    <Text allowFontScaling={false} style={[styles.subtitle, { color: T.textSub }]}>
+                        <Text style={{ color: T.iconColor, fontWeight: '700' }}>{city}{district ? ` / ${district}` : ''}</Text>
                         {' '}bölgenizdeki sertifikalı asansör bakım uzmanlarımıza talebiniz başarıyla iletildi.
                     </Text>
 
-                    <View style={styles.infoCard}>
+                    <View style={[styles.infoCard, { backgroundColor: T.cardBg, borderColor: T.cardBorder }]}>
                         <View style={styles.infoRow}>
-                            <MaterialCommunityIcons name="clock-fast" size={18} color={GOLD} />
-                            <Text allowFontScaling={false} style={styles.infoText}>Ortalama yanıt süresi: <Text style={{ color: GOLD, fontWeight: '700' }}>30 dakika</Text></Text>
+                            <MaterialCommunityIcons name="clock-fast" size={18} color={T.iconColor} />
+                            <Text allowFontScaling={false} style={[styles.infoText, { color: T.textSub }]}>Ortalama yanıt süresi: <Text style={{ color: T.iconColor, fontWeight: '700' }}>30 dakika</Text></Text>
                         </View>
-                        <View style={styles.infoDivider} />
+                        <View style={[styles.infoDivider, { backgroundColor: T.divider }]} />
                         <View style={styles.infoRow}>
-                            <MaterialCommunityIcons name="phone-check" size={18} color={GOLD} />
-                            <Text allowFontScaling={false} style={styles.infoText}>Uzmanımız kayıtlı numaranızı arayacaktır.</Text>
+                            <MaterialCommunityIcons name="phone-check" size={18} color={T.iconColor} />
+                            <Text allowFontScaling={false} style={[styles.infoText, { color: T.textSub }]}>Uzmanımız kayıtlı numaranızı arayacaktır.</Text>
                         </View>
-                        <View style={styles.infoDivider} />
+                        <View style={[styles.infoDivider, { backgroundColor: T.divider }]} />
                         <View style={styles.infoRow}>
-                            <MaterialCommunityIcons name="shield-check" size={18} color={GOLD} />
-                            <Text allowFontScaling={false} style={styles.infoText}>Tüm teknisyenlerimiz sertifikalı ve sigortalıdır.</Text>
+                            <MaterialCommunityIcons name="shield-check" size={18} color={T.iconColor} />
+                            <Text allowFontScaling={false} style={[styles.infoText, { color: T.textSub }]}>Tüm teknisyenlerimiz sertifikalı ve sigortalıdır.</Text>
                         </View>
                     </View>
                 </Animated.View>
@@ -91,26 +106,25 @@ export default function ElevatorSuccessScreen({ navigation, route }) {
             {/* Footer */}
             <View style={styles.footer}>
                 <TouchableOpacity
-                    style={styles.button}
+                    style={[styles.button, { shadowColor: T.iconColor }]}
                     onPress={() => navigation.navigate('MainTabs')}
                     activeOpacity={0.85}
                 >
                     <LinearGradient
-                        colors={BTN_GRADIENT}
-                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                        colors={[T.btnStart, T.btnEnd]}
+                        start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }}
                         style={styles.gradientButton}
                     >
-                        <Ionicons name="home" size={20} color="#1a1a1a" style={{ marginRight: 10 }} />
-                        <Text allowFontScaling={false} style={styles.buttonText}>ANA SAYFAYA DÖN</Text>
+                        <Ionicons name="home" size={20} color={T.btnText} style={{ marginRight: 10 }} />
+                        <Text allowFontScaling={false} style={[styles.buttonText, { color: T.btnText }]}>ANA SAYFAYA DÖN</Text>
                     </LinearGradient>
                 </TouchableOpacity>
             </View>
-        </View>
+        </PremiumBackground>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#000' },
 
     ambientGlow: {
         position: 'absolute',

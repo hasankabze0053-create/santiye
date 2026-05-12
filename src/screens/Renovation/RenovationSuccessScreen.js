@@ -2,56 +2,75 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import PremiumBackground from '../../components/PremiumBackground';
+import { useTheme } from '../../context/ThemeContext';
 
 const THEME = {
     goldPrimary: '#D4AF37',
     goldHighlight: '#F7E5A8',
 };
 
-const BTN_GRADIENT = ['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30'];
+const GOLD_DARK = '#8C6A30';
+const GOLD = '#D4AF37';
 
-export default function RenovationSuccessScreen({ navigation }) {
+export default function RenovationSuccessScreen({ navigation, route }) {
+    const { isDarkMode } = useTheme();
+
+    const T = {
+        text: isDarkMode ? '#FFF' : '#1C1208',
+        textSub: isDarkMode ? '#CCC' : '#4A3D28',
+        textInfo: isDarkMode ? '#888' : '#665A48',
+        glow: isDarkMode ? THEME.goldPrimary : '#8C6200',
+        btnText: isDarkMode ? '#1a1a1a' : '#FFFFFF',
+        btnStart: isDarkMode ? GOLD_DARK : '#8C6200',
+        btnEnd: isDarkMode ? GOLD_DARK : '#B8820F',
+        iconColor: isDarkMode ? THEME.goldPrimary : '#8C6200',
+    };
+
+    const category = route?.params?.category || '';
+    const isGarage = category === 'Garaj & Kapı Sistemleri';
+    
+    const expertText = isGarage ? 'Otomatik Kapı & Garaj Sistemleri' : 'Mimarlık & Tadilat';
+    const targetText = isGarage ? 'uzmanlarına' : 'ofislerine';
+    const contactText = isGarage ? 'Uzman firmalar talebinizi' : 'Ofisler projeni';
+
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" />
-            <LinearGradient colors={['#000000', '#121212', '#000000']} style={StyleSheet.absoluteFill} />
-
+        <PremiumBackground>
             <SafeAreaView style={styles.content}>
                 <View style={styles.iconContainer}>
-                    <View style={styles.glow} />
-                    <MaterialCommunityIcons name="check-decagram" size={120} color={THEME.goldPrimary} />
+                    <View style={[styles.glow, { backgroundColor: T.glow, shadowColor: T.glow }]} />
+                    <MaterialCommunityIcons name="check-decagram" size={120} color={T.iconColor} />
                 </View>
 
-                <Text allowFontScaling={false} style={styles.title}>Talebiniz Alındı!</Text>
-                <Text allowFontScaling={false} style={styles.subtitle}>
-                    Keşif detaylarınız ve hayalinizdeki tasarım talebi, bölgenizdeki en iyi <Text allowFontScaling={false} style={{ color: THEME.goldPrimary }}>Mimarlık & Tadilat</Text> ofislerine başarıyla iletildi.
+                <Text allowFontScaling={false} style={[styles.title, { color: T.text }]}>Talebiniz Alındı!</Text>
+                <Text allowFontScaling={false} style={[styles.subtitle, { color: T.textSub }]}>
+                    Keşif detaylarınız ve hayalinizdeki tasarım talebi, bölgenizdeki en iyi <Text allowFontScaling={false} style={{ color: T.iconColor }}>{expertText}</Text> {targetText} başarıyla iletildi.
                 </Text>
-                <Text allowFontScaling={false} style={styles.info}>
-                    Ofisler projeni inceleyip en kısa sürede seninle iletişime geçecekler.
+                <Text allowFontScaling={false} style={[styles.info, { color: T.textInfo }]}>
+                    {contactText} inceleyip en kısa sürede sizinle iletişime geçecekler.
                 </Text>
             </SafeAreaView>
 
             <View style={styles.footer}>
                 <TouchableOpacity
-                    style={styles.button}
+                    style={[styles.button, { shadowColor: T.iconColor }]}
                     onPress={() => navigation.navigate('MainTabs')}
                 >
                     <LinearGradient
-                        colors={BTN_GRADIENT}
-                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                        colors={[T.btnStart, T.btnEnd]}
+                        start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }}
                         style={styles.gradientButton}
                     >
-                        <Text allowFontScaling={false} style={styles.buttonText}>ANA SAYFAYA DÖN</Text>
-                        <Ionicons name="home" size={18} color="#1a1a1a" style={{ marginLeft: 8 }} />
+                        <Text allowFontScaling={false} style={[styles.buttonText, { color: T.btnText }]}>ANA SAYFAYA DÖN</Text>
+                        <Ionicons name="home" size={18} color={T.btnText} style={{ marginLeft: 8 }} />
                     </LinearGradient>
                 </TouchableOpacity>
             </View>
-        </View>
+        </PremiumBackground>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#000' },
     content: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 30 },
 
     iconContainer: { marginBottom: 30, alignItems: 'center', justifyContent: 'center' },

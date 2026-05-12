@@ -20,8 +20,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { uploadImageToSupabase } from '../../services/PhotoUploadService';
-import BudgetSelector from '../../components/BudgetSelector';
 import TurkeyLocationPicker from '../../components/TurkeyLocationPicker';
+import PremiumBackground from '../../components/PremiumBackground';
+import { useTheme } from '../../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -43,11 +44,29 @@ export default function CustomRequestScreen({ navigation, route }) {
     const [loading, setLoading] = useState(false);
     const [currentImages, setCurrentImages] = useState([]);
     const [inspirationImages, setInspirationImages] = useState([]);
-    const [budget, setBudget] = useState('Standart');
     const [city, setCity] = useState('');
     const [district, setDistrict] = useState('');
     const [isLocationPickerVisible, setIsLocationPickerVisible] = useState(false);
-    const { area, propertyType, selectedStyle } = route.params || {};
+    const { area, propertyType, selectedStyle, category } = route.params || {};
+    const { isDarkMode } = useTheme();
+
+    const T = {
+        bg: isDarkMode ? '#000000' : '#FAF8F3',
+        text: isDarkMode ? '#FFFFFF' : '#1C1208',
+        textSub: isDarkMode ? '#666' : '#8C7050',
+        inputBg: isDarkMode ? '#1A1A1C' : 'rgba(140,98,0,0.02)',
+        inputBorder: isDarkMode ? 'rgba(212, 175, 55, 0.3)' : 'rgba(140,98,0,0.2)',
+        gold: isDarkMode ? THEME.goldPrimary : '#8C6200',
+        goldGlow: isDarkMode ? 'rgba(212, 175, 55, 0.1)' : 'rgba(140,98,0,0.08)',
+        btnStart: isDarkMode ? '#8C6A30' : '#8C6200',
+        btnEnd: isDarkMode ? '#D4AF37' : '#B8820F',
+        btnText: isDarkMode ? '#1a1a1a' : '#FFFFFF',
+        placeholder: isDarkMode ? THEME.placeholder : '#8C7050',
+        backBtnBg: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+        backBtnColor: isDarkMode ? '#FFF' : '#1C1208',
+        slotBorder: isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(140,98,0,0.2)',
+        slotBg: isDarkMode ? 'rgba(255,255,255,0.02)' : 'rgba(140,98,0,0.02)',
+    };
 
     const handlePickImage = async (type) => {
         Alert.alert(
@@ -109,7 +128,7 @@ export default function CustomRequestScreen({ navigation, route }) {
         <TouchableOpacity
             style={[
                 styles.uploadSlot,
-                { borderColor: isGold ? THEME.goldPrimary : '#444' }
+                { borderColor: isGold ? T.gold : T.slotBorder, backgroundColor: T.slotBg }
             ]}
             activeOpacity={0.7}
             onPress={() => handlePickImage(type)}
@@ -117,11 +136,11 @@ export default function CustomRequestScreen({ navigation, route }) {
             <MaterialCommunityIcons
                 name="camera-plus-outline"
                 size={24}
-                color={isGold ? THEME.goldPrimary : '#888'}
+                color={isGold ? T.gold : T.textSub}
             />
             <Text allowFontScaling={false} style={[
                 styles.uploadText,
-                { color: isGold ? THEME.goldPrimary : '#888' }
+                { color: isGold ? T.gold : T.textSub }
             ]}>
                 {label}
             </Text>
@@ -157,10 +176,10 @@ export default function CustomRequestScreen({ navigation, route }) {
             const inspirationUrls = await Promise.all(inspirationImages.map(uri => uploadImageToSupabase(uri)));
             
             // Build comprehensive description with professional markers
-            let fullDescription = `[PROJE TİPİ] Anahtar Teslim Tadilat\n`;
+            const projectTypeDisplay = category === 'Garaj & Kapı Sistemleri' ? 'Otomatik Garaj & Kapı Sistemleri' : 'Anahtar Teslim Tadilat';
+            let fullDescription = `PROJE TİPİ: ${projectTypeDisplay}\n`;
             fullDescription += `[MEKAN] ${propertyType || 'Belirtilmedi'} (${area || 0} m²)\n`;
             fullDescription += `[TASARIM] ${selectedStyle || 'Belirtilmedi'}\n`;
-            fullDescription += `[BÜTÇE] ${budget}\n`;
             fullDescription += `[LOKASYON] ${city} / ${district}\n\n`;
             
             if (note) fullDescription += `[NOTLARI]\n${note}\n`;
@@ -188,7 +207,7 @@ export default function CustomRequestScreen({ navigation, route }) {
 
             if (error) throw error;
 
-            navigation.navigate('RenovationSuccess');
+            navigation.navigate('RenovationSuccess', { category });
         } catch (error) {
             console.error('Submit Error:', error);
             Alert.alert("Hata", "Talebiniz alınırken bir sorun oluştu.");
@@ -198,20 +217,17 @@ export default function CustomRequestScreen({ navigation, route }) {
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" />
-            <LinearGradient colors={['#000000', '#121212', '#000000']} style={StyleSheet.absoluteFill} />
-
+        <PremiumBackground>
             <SafeAreaView style={styles.safeArea}>
 
                 {/* HEADER */}
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={24} color="#FFF" />
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backButton, { backgroundColor: T.backBtnBg }]}>
+                        <Ionicons name="arrow-back" size={24} color={T.backBtnColor} />
                     </TouchableOpacity>
                     <View style={styles.headerTitleContainer}>
-                        <Text allowFontScaling={false} style={styles.headerTitle}>Detaylar &</Text>
-                        <Text allowFontScaling={false} style={[styles.headerTitle, { color: THEME.goldPrimary }]}> İstekler</Text>
+                        <Text allowFontScaling={false} style={[styles.headerTitle, { color: T.text }]}>Detaylar &</Text>
+                        <Text allowFontScaling={false} style={[styles.headerTitle, { color: T.gold }]}> İstekler</Text>
                     </View>
                     <View style={{ width: 40 }} />
                 </View>
@@ -226,19 +242,19 @@ export default function CustomRequestScreen({ navigation, route }) {
                     >
                         {/* SECTION 0: LOCATION PICKER */}
                         <View style={styles.section}>
-                            <Text allowFontScaling={false} style={styles.sectionLabel}>Proje Konumu</Text>
+                            <Text allowFontScaling={false} style={[styles.sectionLabel, { color: T.text }]}>Proje Konumu</Text>
                             <TouchableOpacity 
-                                style={styles.locationBtn}
+                                style={[styles.locationBtn, { backgroundColor: T.inputBg, borderColor: T.inputBorder }]}
                                 onPress={() => setIsLocationPickerVisible(true)}
                                 activeOpacity={0.7}
                             >
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                                    <Ionicons name="location" size={22} color={THEME.goldPrimary} />
-                                    <Text allowFontScaling={false} style={{ color: city ? '#FFF' : THEME.placeholder, fontSize: 16, fontWeight: 'bold' }}>
+                                    <Ionicons name="location" size={22} color={T.gold} />
+                                    <Text allowFontScaling={false} style={{ color: city ? T.text : T.placeholder, fontSize: 16, fontWeight: 'bold' }}>
                                         {city ? `${city} / ${district}` : 'İl ve İlçe Seçin'}
                                     </Text>
                                 </View>
-                                <Ionicons name="chevron-down" size={20} color={THEME.placeholder} />
+                                <Ionicons name="chevron-down" size={20} color={T.placeholder} />
                             </TouchableOpacity>
                         </View>
 
@@ -253,20 +269,10 @@ export default function CustomRequestScreen({ navigation, route }) {
                             currentDistrict={district}
                         />
 
-                        {/* SECTION 1: BUDGET SELECTION */}
-                        <View style={styles.section}>
-                            <Text allowFontScaling={false} style={styles.sectionLabel}>Tahmini Bütçe Segmenti</Text>
-                            <Text allowFontScaling={false} style={styles.sectionSubLabel}>Hizmet kalitesi ve malzeme seçimlerini belirler.</Text>
-                            <BudgetSelector 
-                                selectedSegment={budget} 
-                                onSelect={setBudget} 
-                            />
-                        </View>
-
                         {/* SECTION 2: CURRENT STATE UPLOAD */}
                         <View style={styles.section}>
-                            <Text allowFontScaling={false} style={styles.sectionLabel}>Mevcut Alan Fotoğrafları</Text>
-                            <Text allowFontScaling={false} style={styles.sectionSubLabel}>Proje yapılacak alanın şu anki hali (Opsiyonel).</Text>
+                            <Text allowFontScaling={false} style={[styles.sectionLabel, { color: T.text }]}>Mevcut Alan Fotoğrafları</Text>
+                            <Text allowFontScaling={false} style={[styles.sectionSubLabel, { color: T.textSub }]}>Proje yapılacak alanın şu anki hali (Opsiyonel).</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
                                 {currentImages.map((uri, i) => renderImageItem(uri, i, 'current'))}
                                 {renderUploadSlot('Alan Ekle', false, 'current')}
@@ -276,28 +282,28 @@ export default function CustomRequestScreen({ navigation, route }) {
 
                         {/* SECTION 3: SPECIAL NOTES */}
                         <View style={styles.section}>
-                            <Text allowFontScaling={false} style={styles.sectionLabel}>Özel İstekleriniz</Text>
+                            <Text allowFontScaling={false} style={[styles.sectionLabel, { color: T.text }]}>Özel İstekleriniz</Text>
                             <View style={styles.inputContainer}>
                                 <TextInput allowFontScaling={false}
-                                    style={styles.textInput}
-                                    placeholder="Örn: Salonda şömine istiyorum, zemin mermer olsun..."
-                                    placeholderTextColor={THEME.placeholder}
+                                    style={[styles.textInput, { backgroundColor: T.inputBg, borderColor: T.inputBorder, color: T.text }]}
+                                    placeholder="Özel istekleriniz varsa opsiyonel olarak ekleyebilirsiniz."
+                                    placeholderTextColor={T.placeholder}
                                     multiline
                                     textAlignVertical="top"
                                     value={note}
                                     onChangeText={setNote}
                                 />
                                 {/* Mic Icon Overlay */}
-                                <TouchableOpacity style={styles.micButton}>
-                                    <Ionicons name="mic" size={20} color={THEME.goldPrimary} />
+                                <TouchableOpacity style={[styles.micButton, { backgroundColor: T.goldGlow, borderColor: T.inputBorder }]}>
+                                    <Ionicons name="mic" size={20} color={T.gold} />
                                 </TouchableOpacity>
                             </View>
                         </View>
 
                         {/* SECTION 4: INSPIRATION UPLOAD */}
                         <View style={[styles.section, { marginBottom: 100 }]}>
-                            <Text allowFontScaling={false} style={styles.sectionLabel}>İlham Aldığınız Görseller</Text>
-                            <Text allowFontScaling={false} style={styles.sectionSubLabel}>Beğendiğiniz tasarımları ekleyin.</Text>
+                            <Text allowFontScaling={false} style={[styles.sectionLabel, { color: T.text }]}>Referans Görsel</Text>
+                            <Text allowFontScaling={false} style={[styles.sectionSubLabel, { color: T.textSub }]}>Beğendiğiniz tasarımları ekleyin.</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
                                 {inspirationImages.map((uri, i) => renderImageItem(uri, i, 'inspiration'))}
                                 {renderUploadSlot('Örnek Ekle', true, 'inspiration')}
@@ -311,24 +317,24 @@ export default function CustomRequestScreen({ navigation, route }) {
 
                 {/* FOOTER BUTTON */}
                 <View style={styles.footerContainer}>
-                    <LinearGradient colors={['transparent', '#000']} style={styles.bottomFade} pointerEvents="none" />
+                    <LinearGradient colors={isDarkMode ? ['transparent', '#000'] : ['transparent', '#FAF8F3']} style={styles.bottomFade} pointerEvents="none" />
 
                     <TouchableOpacity
-                        style={styles.continueButton}
+                        style={[styles.continueButton, { shadowColor: T.gold }]}
                         onPress={handleSubmit}
                         disabled={loading}
                     >
                         <LinearGradient
-                            colors={BTN_GRADIENT}
-                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                            colors={[T.btnStart, T.btnEnd]}
+                            start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }}
                             style={styles.gradientButton}
                         >
                             {loading ? (
-                                <ActivityIndicator color="#000" />
+                                <ActivityIndicator color={T.btnText} />
                             ) : (
                                 <>
-                                    <Text allowFontScaling={false} style={styles.buttonText}>KEŞİF & TEKLİF İSTE</Text>
-                                    <MaterialCommunityIcons name="check-decagram" size={20} color="#1a1a1a" style={{ marginLeft: 8 }} />
+                                    <Text allowFontScaling={false} style={[styles.buttonText, { color: T.btnText }]}>KEŞİF & TEKLİF İSTE</Text>
+                                    <MaterialCommunityIcons name="check-decagram" size={20} color={T.btnText} style={{ marginLeft: 8 }} />
                                 </>
                             )}
                         </LinearGradient>
@@ -336,7 +342,7 @@ export default function CustomRequestScreen({ navigation, route }) {
                 </View>
 
             </SafeAreaView>
-        </View>
+        </PremiumBackground>
     );
 }
 

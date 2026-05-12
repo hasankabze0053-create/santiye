@@ -188,7 +188,8 @@ export const RequestsScreen = () => {
                 
                 // Parse specific service type from description for Tadilat
                 if (item.offer_type === 'anahtar_teslim_tadilat' && item.description) {
-                    const projMatch = item.description.match(/PROJE TİPİ:\s*(.+)/);
+                    // Match either "PROJE TİPİ:" or "[PROJE TİPİ]"
+                    const projMatch = item.description.match(/(?:PROJE TİPİ:|\[PROJE TİPİ\])\s*(.+)/);
                     if (projMatch) {
                         title = projMatch[1].split('\n')[0].trim();
                     }
