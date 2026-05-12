@@ -14,7 +14,7 @@ const CategoryChip = ({ categories, activeCategory, onSelect, onLongPress, isAdm
           style={[styles.chip, !isDarkMode && { backgroundColor: '#FAF8F3', borderColor: '#D4C4A8' }, activeCategory === 'all' && styles.activeChip, activeCategory === 'all' && !isDarkMode && styles.activeChipLight]}
           onPress={() => onSelect('all')}
         >
-          <Text style={[styles.chipText, !isDarkMode && { color: '#4A3D28' }, activeCategory === 'all' && styles.activeText, activeCategory === 'all' && !isDarkMode && styles.activeTextLight]}>Tümü</Text>
+          <Text maxFontSizeMultiplier={1.2} style={[styles.chipText, !isDarkMode && { color: '#4A3D28' }, activeCategory === 'all' && styles.activeText, activeCategory === 'all' && !isDarkMode && styles.activeTextLight]}>Tümü</Text>
         </TouchableOpacity>
 
         {categories.map((cat) => (
@@ -25,7 +25,7 @@ const CategoryChip = ({ categories, activeCategory, onSelect, onLongPress, isAdm
             onLongPress={() => onLongPress && onLongPress(cat)}
             delayLongPress={500}
           >
-            <Text style={[styles.chipText, !isDarkMode && { color: '#4A3D28' }, activeCategory === cat.key && styles.activeText, activeCategory === cat.key && !isDarkMode && styles.activeTextLight]}>{cat.title}</Text>
+            <Text maxFontSizeMultiplier={1.2} style={[styles.chipText, !isDarkMode && { color: '#4A3D28' }, activeCategory === cat.key && styles.activeText, activeCategory === cat.key && !isDarkMode && styles.activeTextLight]}>{cat.title}</Text>
           </TouchableOpacity>
         ))}
 
@@ -34,7 +34,7 @@ const CategoryChip = ({ categories, activeCategory, onSelect, onLongPress, isAdm
             style={[styles.chip, styles.addNewChip, !isDarkMode && styles.addNewChipLight]}
             onPress={onAddNew}
           >
-            <Text style={[styles.addNewText, !isDarkMode && styles.addNewTextLight]}>+ Yeni Ekle</Text>
+            <Text maxFontSizeMultiplier={1.2} style={[styles.addNewText, !isDarkMode && styles.addNewTextLight]}>+ Yeni Ekle</Text>
           </TouchableOpacity>
         )}
       </ScrollView>

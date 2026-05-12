@@ -34,8 +34,12 @@ const COLOR_PALETTE = [
     { name: 'Kırmızı', code: '#EF4444' },
 ];
 
-const getLocalImage = (ref) => {
-    if (ref === 'urban_transformation_hero') return require('../../../assets/urban_transformation_hero.jpg');
+const getLocalImage = (ref, isDarkMode) => {
+    if (ref === 'urban_transformation_hero') {
+        return isDarkMode 
+            ? require('../../../assets/urban_transformation_hero.jpg')
+            : require('../../../assets/urban_transformation_hero_light.png');
+    }
     return null;
 };
 
@@ -373,11 +377,18 @@ export default function UrbanTransformationScreen({ navigation }) {
                 );
 
             case 'urban_construction_quotes':
+                const cardIconBg = isDarkMode ? '#D4AF37' : '#8C6200';
+                const cardIconColor = isDarkMode ? '#000' : '#FFF';
+                const btnGradient = isDarkMode 
+                    ? ['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30'] 
+                    : ['#A87B1E', '#8C6200'];
+                const btnTextColor = isDarkMode ? '#000' : '#FFF';
+
                 return (
                     <View key={sectionId} style={[styles.premiumActionCard, { backgroundColor: T.surface, borderColor: T.border }]}>
                         <View style={styles.premiumActionHeader}>
-                            <View style={styles.premiumActionIconBox}>
-                                <MaterialCommunityIcons name="crane" size={24} color="#000" />
+                            <View style={[styles.premiumActionIconBox, { backgroundColor: cardIconBg }]}>
+                                <MaterialCommunityIcons name="crane" size={24} color={cardIconColor} />
                             </View>
                             <View style={{ flex: 1 }}>
                                 <Text allowFontScaling={false} style={[styles.premiumActionTitle, { color: T.text }]}>Anahtar Teslim İnşaat Teklifi</Text>
@@ -386,15 +397,13 @@ export default function UrbanTransformationScreen({ navigation }) {
                         </View>
                         <TouchableOpacity activeOpacity={0.9} onPress={handleGetQuotes}>
                             <LinearGradient
-                                colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']}
+                                colors={btnGradient}
                                 style={styles.premiumActionButton}
                                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                             >
-                                <Text allowFontScaling={false} style={styles.premiumActionButtonText}>HEMEN TEKLİF AL</Text>
+                                <Text allowFontScaling={false} style={[styles.premiumActionButtonText, { color: btnTextColor }]}>HEMEN TEKLİF AL</Text>
                             </LinearGradient>
                         </TouchableOpacity>
-
-
                     </View>
                 );
 
@@ -485,60 +494,83 @@ export default function UrbanTransformationScreen({ navigation }) {
                             onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: true })}
                             scrollEventThrottle={16}
                         >
-                            {showcaseItems.map((slide) => (
-                                <TouchableOpacity
-                                    key={slide.id}
-                                    style={styles.slide}
-                                    activeOpacity={0.9}
-                                    onPress={() => setCampaignModalVisible(true)}
-                                >
-                                    <Image
-                                        source={slide.is_local ? getLocalImage(slide.image_ref) : { uri: slide.image_url }}
-                                        style={[
-                                            styles.heroImage,
-                                            { transform: [{ scale: slide.image_scale || 1 }] }
-                                        ]}
-                                        contentFit="cover"
-                                        transition={500}
-                                    />
-                                    <LinearGradient colors={['transparent', 'rgba(0,0,0,0.9)']} style={StyleSheet.absoluteFillObject} />
+                            {showcaseItems.map((slide) => {
+                                    const overlayColors = isDarkMode 
+                                        ? ['transparent', 'transparent', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.9)']
+                                        : ['transparent', 'transparent', 'rgba(237,229,213,0.8)', '#EDE5D5'];
                                     
-                                    <View style={[
-                                        styles.heroTextContainer,
-                                        {
-                                            transform: [
-                                                { translateX: slide.text_offset_x || 0 },
-                                                { translateY: slide.text_offset_y || 0 }
-                                            ]
-                                        }
-                                    ]}>
-                                        <View style={[
-                                            styles.tagBadge,
-                                            { backgroundColor: slide.tag_color || '#D4AF37', alignSelf: 'flex-start', marginBottom: 8 }
-                                        ]}>
-                                            <Text allowFontScaling={false} style={styles.tagBadgeText}>{slide.tag}</Text>
-                                        </View>
-                                        <Text allowFontScaling={false} style={[styles.heroTitle, { color: slide.title_color || '#FFF' }]} numberOfLines={1} adjustsFontSizeToFit>{slide.title}</Text>
-                                        <Text allowFontScaling={false} style={[styles.heroDesc, { color: slide.subtitle_color || '#888' }]}>{slide.subtitle}</Text>
-                                    </View>
+                                    const titleColor = (slide.title_color === '#FFF' || slide.title_color === '#FFFFFF' || !slide.title_color) ? (isDarkMode ? '#FFF' : '#8C6200') : slide.title_color;
+                                    const subtitleColor = (slide.subtitle_color === '#888' || slide.subtitle_color === '#888888' || slide.subtitle_color === '#FFFFFF' || !slide.subtitle_color) ? (isDarkMode ? '#888' : '#4A3D28') : slide.subtitle_color;
+                                    const tagBgColor = (slide.tag_color === '#D4AF37' || !slide.tag_color) ? (isDarkMode ? '#D4AF37' : '#8C6200') : slide.tag_color;
+                                    const tagTextColor = isDarkMode ? '#000' : '#FFF';
+                                    const btnColor = isDarkMode ? '#FFD700' : '#8C6200';
 
-                                    {/* Detail Button */}
-                                    <View style={styles.heroDetailBtn}>
-                                        <Text allowFontScaling={false} style={styles.heroDetailText}>{slide.button_text || 'DETAYLAR'}</Text>
-                                        <Ionicons name="arrow-forward" size={20} color="#FFD700" />
-                                    </View>
-
-                                    {/* Admin Slider Edit Shortcut */}
-                                    {isAdmin && (
-                                        <TouchableOpacity 
-                                            style={styles.heroEditShortcut} 
-                                            onPress={() => setEditingShowcaseItem(slide)}
+                                    return (
+                                        <TouchableOpacity
+                                            key={slide.id}
+                                            style={styles.slide}
+                                            activeOpacity={0.9}
+                                            onPress={() => setCampaignModalVisible(true)}
                                         >
-                                            <MaterialCommunityIcons name="pencil" size={20} color="#000" />
+                                            <Image
+                                                source={slide.is_local ? getLocalImage(slide.image_ref, isDarkMode) : { uri: slide.image_url }}
+                                                style={[
+                                                    styles.heroImage,
+                                                    { transform: [{ scale: slide.image_scale || 1 }] }
+                                                ]}
+                                                contentFit="cover"
+                                                transition={500}
+                                            />
+                                            <LinearGradient 
+                                                colors={overlayColors} 
+                                                locations={[0, 0.5, 0.8, 1]}
+                                                style={StyleSheet.absoluteFillObject} 
+                                            />
+                                            
+                                            <View style={[
+                                                styles.heroTextContainer,
+                                                {
+                                                    transform: [
+                                                        { translateX: slide.text_offset_x || 0 },
+                                                        { translateY: slide.text_offset_y || 0 }
+                                                    ]
+                                                }
+                                            ]}>
+                                                <View style={[
+                                                    styles.tagBadge,
+                                                    { backgroundColor: tagBgColor, alignSelf: 'flex-start', marginBottom: 8 }
+                                                ]}>
+                                                    <Text allowFontScaling={false} style={[styles.tagBadgeText, { color: tagTextColor }]}>{slide.tag}</Text>
+                                                </View>
+                                                {/* <Text allowFontScaling={false} style={[styles.heroTitle, { color: titleColor }]} numberOfLines={1} adjustsFontSizeToFit>{slide.title}</Text> */}
+                                                <Text allowFontScaling={false} style={[styles.heroDesc, { color: subtitleColor }]}>{slide.subtitle}</Text>
+                                            </View>
+
+                                            {/* Detail Button */}
+                                            <View style={[
+                                                styles.heroDetailBtn, 
+                                                !isDarkMode && { 
+                                                    borderColor: 'rgba(140, 98, 0, 0.4)',
+                                                    backgroundColor: 'rgba(237, 229, 213, 0.9)' 
+                                                }
+                                            ]}>
+                                                <Text allowFontScaling={false} style={[styles.heroDetailText, { color: btnColor }]}>{slide.button_text || 'DETAYLAR'}</Text>
+                                                <Ionicons name="arrow-forward" size={20} color={btnColor} />
+                                            </View>
+
+                                            {/* Admin Slider Edit Shortcut */}
+                                            {isAdmin && (
+                                                <TouchableOpacity 
+                                                    style={styles.heroEditShortcut} 
+                                                    onPress={() => setEditingShowcaseItem(slide)}
+                                                >
+                                                    <MaterialCommunityIcons name="pencil" size={20} color="#000" />
+                                                </TouchableOpacity>
+                                            )}
                                         </TouchableOpacity>
-                                    )}
-                                </TouchableOpacity>
-                            ))}
+                                    );
+                                }
+                            )}
                         </Animated.ScrollView>
 
                         {/* Pagination Dots */}
@@ -1125,9 +1157,9 @@ const styles = StyleSheet.create({
 
     // New Showcase Styles
     carouselContainer: { marginBottom: 20 },
-    slide: { width: width, height: 220, overflow: 'hidden' },
+    slide: { width: width, height: 280, overflow: 'hidden' },
     heroImage: { width: '100%', height: '100%', resizeMode: 'cover' },
-    heroTextContainer: { position: 'absolute', bottom: 30, left: 20, right: 100 },
+    heroTextContainer: { position: 'absolute', bottom: 12, left: 20, right: 135 },
     heroTitle: { color: '#fff', fontSize: 24, fontWeight: '900', marginBottom: 5 },
     heroDesc: { color: '#ccc', fontSize: 13, lineHeight: 18 },
     
@@ -1145,7 +1177,7 @@ const styles = StyleSheet.create({
 
     heroDetailBtn: {
         position: 'absolute',
-        bottom: 25,
+        bottom: 15,
         right: 20,
         flexDirection: 'row',
         alignItems: 'center',

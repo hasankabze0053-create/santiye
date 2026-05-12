@@ -199,7 +199,7 @@ export const RequestsScreen = () => {
                     ...item,
                     type: 'construction', // Tag to distinguish
                     title: title,
-                    subtitle: item.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat & Yenileme' : `${item.district} / ${item.neighborhood}`,
+                    subtitle: `${item.district} / ${item.city}`,
                     created_at: item.created_at,
                     status: item.status === 'pending' ? 'OPEN' : item.status, // Map status
                     category: item.offer_type === 'anahtar_teslim_tadilat' ? 'Tadilat Talepleri' : 'Kentsel Dönüşüm',

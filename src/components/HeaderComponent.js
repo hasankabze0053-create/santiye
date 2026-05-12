@@ -39,7 +39,7 @@ const HeaderComponent = ({ navigation }) => {
             </SvgText>
           </Svg>
         </View>
-        <Text style={[styles.brandSubtitle, !isDarkMode && { color: '#4A3D28' }]}>İNŞAAT & HİZMET PLATFORMU</Text>
+        <Text allowFontScaling={false} style={[styles.brandSubtitle, !isDarkMode && { color: '#4A3D28' }]}>İNŞAAT & HİZMET PLATFORMU</Text>
       </View>
 
       <View style={styles.actionGroup}>
@@ -48,7 +48,7 @@ const HeaderComponent = ({ navigation }) => {
             style={[styles.outlineBtn, !isDarkMode && { borderColor: 'rgba(140, 98, 0, 0.4)' }]} 
             onPress={() => navigation.navigate('ProviderDashboard')}
           >
-            <Text style={[styles.outlineBtnText, !isDarkMode && { color: '#8C6200' }]}>Hizmet Paneli</Text>
+            <Text allowFontScaling={false} style={[styles.outlineBtnText, !isDarkMode && { color: '#8C6200' }]}>Hizmet Paneli</Text>
             <MaterialCommunityIcons name="briefcase-outline" size={14} color={isDarkMode ? COLORS.gold : '#8C6200'} />
           </TouchableOpacity>
         )}
@@ -58,7 +58,7 @@ const HeaderComponent = ({ navigation }) => {
           onPress={() => navigation.navigate('ProfileMain')}
         >
           <View style={styles.avatarCircle}>
-            <Text style={styles.avatarLabel}>
+            <Text allowFontScaling={false} style={styles.avatarLabel}>
               {profile?.full_name ? profile.full_name.substring(0, 2).toUpperCase() : 'KZ'}
             </Text>
           </View>

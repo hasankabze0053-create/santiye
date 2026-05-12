@@ -214,10 +214,11 @@ function BottomTabNavigator() {
                     borderTopRightRadius: 20,
                 },
                 tabBarLabelStyle: {
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: '600',
                     marginTop: 4,
                 },
+                tabBarAllowFontScaling: false,
                 tabBarActiveTintColor: theme.active,
                 tabBarInactiveTintColor: theme.inactive,
             }}

@@ -21,8 +21,8 @@ const ServiceListItem = ({ title, subtitle, icon, onPress, onEdit, isAdmin, isHi
 
         {/* 3. Text Info */}
         <View style={styles.textContainer}>
-          <Text style={[styles.title, !isDarkMode && { color: '#1C1208' }]}>{title}</Text>
-          <Text style={[styles.subtitle, !isDarkMode && { color: '#4A3D28' }]}>{subtitle}</Text>
+          <Text maxFontSizeMultiplier={1.3} ellipsizeMode="tail" numberOfLines={1} style={[styles.title, !isDarkMode && { color: '#1C1208' }]}>{title}</Text>
+          <Text maxFontSizeMultiplier={1.3} ellipsizeMode="tail" numberOfLines={1} style={[styles.subtitle, !isDarkMode && { color: '#4A3D28' }]}>{subtitle}</Text>
         </View>
       </View>
 
