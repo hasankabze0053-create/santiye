@@ -271,6 +271,10 @@ export default function MarketScreen() {
         const loadData = async () => {
             // 1. FAST: Try to load from local cache first
             const localCats = await MarketService.getLocalCategories();
+            const localShowcase = await MarketService.getLocalShowcaseItems();
+            if (localShowcase && localShowcase.length > 0) {
+                setShowcaseItems(localShowcase);
+            }
             if (localCats) {
                 setMarketCategories(localCats);
                 setIsLoading(false); // Show content immediately
@@ -376,7 +380,7 @@ export default function MarketScreen() {
         ? selectedCategory.items.filter(item => item.subcategory === selectedSubCategory)
         : [];
 
-    if (isLoading) {
+    if (false) {
         return (
             <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
                 <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />

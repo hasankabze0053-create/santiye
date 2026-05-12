@@ -21,6 +21,7 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -54,6 +55,8 @@ const MOCK_LAWYERS = [
 
 // ─── SCANNER OVERLAY ──────────────────────────────────────────────────────────
 function ScannerOverlay({ visible, onComplete, hasFile, fileName }) {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
     const scanY   = useRef(new Animated.Value(0)).current;
     const opacity = useRef(new Animated.Value(0)).current;
 
@@ -76,7 +79,7 @@ function ScannerOverlay({ visible, onComplete, hasFile, fileName }) {
 
     if (!visible) return null;
     return (
-        <Animated.View style={[StyleSheet.absoluteFillObject, { opacity, backgroundColor: 'rgba(0,0,0,0.82)', zIndex: 99 }]}>
+        <Animated.View style={[StyleSheet.absoluteFillObject, { opacity, backgroundColor: isDarkMode ? 'rgba(0,0,0,0.82)' : 'rgba(255,255,255,0.92)', zIndex: 99 }]}>
             {/* Grid lines */}
             {[...Array(10)].map((_, i) => (
                 <View key={i} style={{ position: 'absolute', top: i * 60, left: 0, right: 0, height: 1, backgroundColor: 'rgba(212,175,55,0.08)' }} />
@@ -95,7 +98,7 @@ function ScannerOverlay({ visible, onComplete, hasFile, fileName }) {
                 <Text allowFontScaling={false} style={{ color: GOLD, fontSize: 14, fontWeight: 'bold', marginTop: 16, letterSpacing: 2, textAlign: 'center' }}>
                     {hasFile ? 'BELGELER ANALİZ EDİLİYOR' : 'VAKA ANALİZ EDİLİYOR'}
                 </Text>
-                <Text allowFontScaling={false} style={{ color: '#888', fontSize: 11, marginTop: 6, textAlign: 'center' }}>
+                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#888' : theme.textSecondary, fontSize: 11, marginTop: 6, textAlign: 'center' }}>
                     {hasFile ? `"${fileName}" taranıyor...` : 'Girdiğiniz detaylar inceleniyor...'}
                 </Text>
             </View>
@@ -105,6 +108,8 @@ function ScannerOverlay({ visible, onComplete, hasFile, fileName }) {
 
 // ─── RISK GAUGE ───────────────────────────────────────────────────────────────
 function RiskGauge({ score }) {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
     const size = 110;
     const strokeWidth = 9;
     const radius = (size - strokeWidth) / 2;
@@ -132,12 +137,12 @@ function RiskGauge({ score }) {
                 {/* SVG-like circle via borders */}
                 <View style={{
                     position: 'absolute', width: size, height: size, borderRadius: size / 2,
-                    borderWidth: strokeWidth, borderColor: '#1e1e1e',
+                    borderWidth: strokeWidth, borderColor: isDarkMode ? '#1e1e1e' : theme.borderLight,
                 }} />
                 {/* Score text */}
                 <View style={{ alignItems: 'center' }}>
                     <Text allowFontScaling={false} style={{ color: riskColor, fontSize: 28, fontWeight: '900', lineHeight: 30 }}>{score}</Text>
-                    <Text allowFontScaling={false} style={{ color: '#555', fontSize: 9, fontWeight: '600' }}>/10</Text>
+                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#555' : theme.textSecondary, fontSize: 9, fontWeight: '600' }}>/10</Text>
                     <Text allowFontScaling={false} style={{ color: riskColor, fontSize: 10, fontWeight: 'bold', marginTop: 2 }}>{riskLabel}</Text>
                 </View>
                 {/* Arc indicator - rendered as colored border segment */}
@@ -145,19 +150,22 @@ function RiskGauge({ score }) {
                     position: 'absolute', width: size, height: size, borderRadius: size / 2,
                     borderWidth: strokeWidth,
                     borderTopColor: riskColor,
-                    borderRightColor: score >= 3 ? riskColor : '#1e1e1e',
-                    borderBottomColor: score >= 6 ? riskColor : '#1e1e1e',
-                    borderLeftColor: score >= 8 ? riskColor : '#1e1e1e',
+                    borderRightColor: score >= 3 ? riskColor : (isDarkMode ? '#1e1e1e' : theme.borderLight),
+                    borderBottomColor: score >= 6 ? riskColor : (isDarkMode ? '#1e1e1e' : theme.borderLight),
+                    borderLeftColor: score >= 8 ? riskColor : (isDarkMode ? '#1e1e1e' : theme.borderLight),
                     transform: [{ rotate: '-45deg' }],
                 }} />
             </View>
-            <Text allowFontScaling={false} style={{ color: '#666', fontSize: 9, marginTop: 4, letterSpacing: 1 }}>RİSK SKORU</Text>
+            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#666' : theme.textSecondary, fontSize: 9, marginTop: 4, letterSpacing: 1 }}>RİSK SKORU</Text>
         </Animated.View>
     );
 }
 
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 export default function LawAnalysisResultScreen() {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const s = getStyles(theme, isDarkMode);
     const navigation = useNavigation();
     const route      = useRoute();
 
@@ -223,7 +231,7 @@ export default function LawAnalysisResultScreen() {
 
     return (
         <View style={s.root}>
-            <StatusBar barStyle="light-content" backgroundColor={BG} />
+            <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={isDarkMode ? BG : theme.background} />
             <LinearGradient colors={['rgba(212,175,55,0.05)', 'transparent']} style={StyleSheet.absoluteFillObject} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.35 }} pointerEvents="none" />
 
             {/* Scanner overlay */}
@@ -254,7 +262,7 @@ export default function LawAnalysisResultScreen() {
                 >
                     {/* ── RISK SCORE HERO ── */}
                     <View style={s.heroCard}>
-                        <LinearGradient colors={['#181818', '#111']} style={StyleSheet.absoluteFillObject} borderRadius={20} />
+                        <LinearGradient colors={isDarkMode ? ['#181818', '#111'] : [theme.surfaceSecondary, theme.surface]} style={StyleSheet.absoluteFillObject} borderRadius={20} />
                         <View style={s.heroBorder} />
                         {/* Left: case title */}
                         <View style={{ flex: 1, paddingRight: 16 }}>
@@ -349,7 +357,7 @@ export default function LawAnalysisResultScreen() {
                     </View>
                     <View style={s.tagsRow}>
                         {legalArticles.map((art, i) => (
-                            <LinearGradient key={i} colors={['#1e1a0e', '#252010']} style={s.tag}>
+                            <LinearGradient key={i} colors={isDarkMode ? ['#1e1a0e', '#252010'] : ['#FDF6E3', '#F9F0D4']} style={s.tag}>
                                 <View style={s.tagDot} />
                                 <Text allowFontScaling={false} style={s.tagText}>{art}</Text>
                             </LinearGradient>
@@ -403,7 +411,7 @@ export default function LawAnalysisResultScreen() {
                                         <LinearGradient colors={[GOLD + '18', 'transparent']} style={StyleSheet.absoluteFillObject} borderRadius={16} />
                                     )}
                                     {/* Avatar */}
-                                    <LinearGradient colors={[lawyer.color, '#0a0a0a']} style={s.lawyerAvatar}>
+                                    <LinearGradient colors={isDarkMode ? [lawyer.color, '#0a0a0a'] : [lawyer.color, theme.surface]} style={s.lawyerAvatar}>
                                         <Text allowFontScaling={false} style={s.lawyerAvatarText}>{lawyer.initials}</Text>
                                     </LinearGradient>
                                     {/* Info */}
@@ -448,7 +456,7 @@ export default function LawAnalysisResultScreen() {
             <Modal visible={showConfirmModal} transparent animationType="slide" onRequestClose={() => setShowConfirm(false)}>
                 <View style={s.modalOverlay}>
                     <View style={s.confirmModal}>
-                        <LinearGradient colors={['#1a1a1a', '#111']} style={StyleSheet.absoluteFillObject} borderRadius={24} />
+                        <LinearGradient colors={isDarkMode ? ['#1a1a1a', '#111'] : [theme.surfaceSecondary, theme.surface]} style={StyleSheet.absoluteFillObject} borderRadius={24} />
                         {/* Header */}
                         <View style={s.confirmHeader}>
                             <MaterialCommunityIcons name="robot-outline" size={28} color={GOLD} />
@@ -464,7 +472,7 @@ export default function LawAnalysisResultScreen() {
                         {/* Lawyer */}
                         {selectedLawyer && (
                             <View style={s.confirmLawyerRow}>
-                                <LinearGradient colors={[selectedLawyer.color, '#111']} style={s.lawyerAvatarSm}>
+                                <LinearGradient colors={isDarkMode ? [selectedLawyer.color, '#111'] : [selectedLawyer.color, theme.surface]} style={s.lawyerAvatarSm}>
                                     <Text allowFontScaling={false} style={s.lawyerAvatarTextSm}>{selectedLawyer.initials}</Text>
                                 </LinearGradient>
                                 <View>
@@ -490,13 +498,13 @@ export default function LawAnalysisResultScreen() {
 }
 
 // ─── STYLES ───────────────────────────────────────────────────────────────────
-const s = StyleSheet.create({
-    root: { flex: 1, backgroundColor: BG },
+const getStyles = (theme, isDarkMode) => StyleSheet.create({
+    root: { flex: 1, backgroundColor: isDarkMode ? BG : theme.background },
 
     // Disclaimer
     disclaimerCard: {
         flexDirection: 'row',
-        backgroundColor: '#1a1810',
+        backgroundColor: isDarkMode ? '#1a1810' : theme.surfaceSecondary,
         borderRadius: 14,
         padding: 12,
         marginBottom: 24,
@@ -513,52 +521,52 @@ const s = StyleSheet.create({
         justifyContent: 'center'
     },
     disclaimerTitle: { color: GOLD, fontSize: 10, fontWeight: '900', letterSpacing: 1, marginBottom: 2 },
-    disclaimerText: { color: '#888', fontSize: 11, lineHeight: 16 },
+    disclaimerText: { color: isDarkMode ? '#888' : theme.textSecondary, fontSize: 11, lineHeight: 16 },
 
     // Insufficient Info
     insufficientBox: {
-        backgroundColor: '#111',
+        backgroundColor: isDarkMode ? '#111' : theme.surface,
         borderRadius: 20,
         padding: 24,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#222',
+        borderColor: isDarkMode ? '#222' : theme.borderLight,
         marginBottom: 24,
         gap: 12
     },
-    insufficientTitle: { color: '#fff', fontSize: 16, fontWeight: '800' },
-    insufficientText: { color: '#777', fontSize: 13, textAlign: 'center', lineHeight: 20 },
+    insufficientTitle: { color: isDarkMode ? '#fff' : theme.text, fontSize: 16, fontWeight: '800' },
+    insufficientText: { color: isDarkMode ? '#777' : theme.textSecondary, fontSize: 13, textAlign: 'center', lineHeight: 20 },
     insufficientBtn: { backgroundColor: GOLD + '15', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: GOLD + '44', marginTop: 8 },
     insufficientBtnText: { color: GOLD, fontSize: 13, fontWeight: '700' },
 
     // Header
     header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
-    headerBtn: { width: 38, height: 38, borderRadius: 12, backgroundColor: '#1a1a1a', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#2a2a2a' },
+    headerBtn: { width: 38, height: 38, borderRadius: 12, backgroundColor: isDarkMode ? '#1a1a1a' : theme.surfaceSecondary, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: isDarkMode ? '#2a2a2a' : theme.borderLight },
     headerTitle: { color: GOLD, fontSize: 12, fontWeight: '900', letterSpacing: 2 },
-    headerSub: { color: '#555', fontSize: 10, marginTop: 2 },
+    headerSub: { color: isDarkMode ? '#555' : theme.textSecondary, fontSize: 10, marginTop: 2 },
 
     // Scroll
     scroll: { paddingHorizontal: 16, paddingTop: 8 },
 
     // Hero card
-    heroCard: { borderRadius: 20, padding: 20, flexDirection: 'row', alignItems: 'center', overflow: 'hidden', marginBottom: 24, borderWidth: 1, borderColor: '#2a2a2a' },
+    heroCard: { borderRadius: 20, padding: 20, flexDirection: 'row', alignItems: 'center', overflow: 'hidden', marginBottom: 24, borderWidth: 1, borderColor: isDarkMode ? '#2a2a2a' : theme.borderLight },
     heroBorder: { position: 'absolute', top: 0, left: 0, right: 0, height: 1, backgroundColor: GOLD + '55' },
     heroEye: { color: GOLD, fontSize: 9, fontWeight: '700', letterSpacing: 2, marginBottom: 6 },
-    heroTitle: { color: '#fff', fontSize: 15, fontWeight: '800', lineHeight: 20 },
+    heroTitle: { color: isDarkMode ? '#fff' : theme.text, fontSize: 15, fontWeight: '800', lineHeight: 20 },
     heroIdRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 5 },
-    heroIdText: { color: '#444', fontSize: 10 },
+    heroIdText: { color: isDarkMode ? '#444' : theme.textSecondary, fontSize: 10 },
 
     // Sections
     sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8, flexWrap: 'wrap' },
     sectionDot: { width: 3, height: 16, backgroundColor: GOLD, borderRadius: 2 },
-    sectionTitle: { color: '#ccc', fontSize: 13, fontWeight: '700' },
-    sectionSub: { color: '#555', fontSize: 11, marginLeft: 'auto' },
+    sectionTitle: { color: isDarkMode ? '#ccc' : theme.textSecondary, fontSize: 13, fontWeight: '700' },
+    sectionSub: { color: isDarkMode ? '#555' : theme.textSecondary, fontSize: 11, marginLeft: 'auto' },
 
     // Glass card
-    glassCard: { backgroundColor: '#101010', borderRadius: 16, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: '#222', overflow: 'hidden' },
+    glassCard: { backgroundColor: isDarkMode ? '#101010' : theme.surface, borderRadius: 16, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight, overflow: 'hidden' },
     glassAccent: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, backgroundColor: GOLD },
-    caseSummaryText: { color: '#999', fontSize: 13, lineHeight: 20, paddingLeft: 10 },
-    caseSummaryInput: { color: '#ccc', minHeight: 80, paddingLeft: 10, textAlignVertical: 'top' },
+    caseSummaryText: { color: isDarkMode ? '#999' : theme.textSecondary, fontSize: 13, lineHeight: 20, paddingLeft: 10 },
+    caseSummaryInput: { color: isDarkMode ? '#ccc' : theme.textSecondary, minHeight: 80, paddingLeft: 10, textAlignVertical: 'top' },
 
     // Edit button
     editBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: 'auto', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, borderWidth: 1, borderColor: GOLD + '55', backgroundColor: GOLD + '11' },
@@ -568,7 +576,7 @@ const s = StyleSheet.create({
     findingsContainer: { marginBottom: 24, gap: 10 },
     findingRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
     findingIconBox: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-    findingText: { color: '#bbb', fontSize: 13, lineHeight: 19, flex: 1, paddingTop: 8 },
+    findingText: { color: isDarkMode ? '#bbb' : theme.textSecondary, fontSize: 13, lineHeight: 19, flex: 1, paddingTop: 8 },
 
     // Tags
     tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 },
@@ -578,31 +586,31 @@ const s = StyleSheet.create({
 
     // Docs
     docRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingLeft: 10, paddingVertical: 6 },
-    docText: { color: '#777', fontSize: 13 },
+    docText: { color: isDarkMode ? '#777' : theme.textSecondary, fontSize: 13 },
 
     // Actions
     actionRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingLeft: 10, paddingVertical: 6 },
     actionNum: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 },
     actionNumText: { color: '#000', fontSize: 11, fontWeight: '900' },
-    actionText: { color: '#aaa', fontSize: 13, lineHeight: 19, flex: 1 },
+    actionText: { color: isDarkMode ? '#aaa' : theme.textSecondary, fontSize: 13, lineHeight: 19, flex: 1 },
 
     // Lawyer cards
-    lawyerCard: { backgroundColor: '#0e0e0e', borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: '#222', overflow: 'hidden' },
+    lawyerCard: { backgroundColor: isDarkMode ? '#0e0e0e' : theme.surfaceSecondary, borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight, overflow: 'hidden' },
     lawyerCardSelected: { borderColor: GOLD + '88' },
     lawyerAvatar: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
-    lawyerAvatarText: { color: '#fff', fontSize: 18, fontWeight: '900' },
-    lawyerName: { color: '#fff', fontSize: 14, fontWeight: '800', marginBottom: 4 },
+    lawyerAvatarText: { color: isDarkMode ? '#fff' : theme.text, fontSize: 18, fontWeight: '900' },
+    lawyerName: { color: isDarkMode ? '#fff' : theme.text, fontSize: 14, fontWeight: '800', marginBottom: 4 },
     lawyerSpecRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
     lawyerSpecBold: { color: GOLD, fontSize: 12, fontWeight: '700', flex: 1 },
-    lawyerSpec: { color: '#666', fontSize: 11, marginBottom: 6 },
+    lawyerSpec: { color: isDarkMode ? '#666' : theme.textSecondary, fontSize: 11, marginBottom: 6 },
     lawyerTagRow: { flexDirection: 'row', gap: 6 },
-    lawyerTag: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#1a1508', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+    lawyerTag: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: isDarkMode ? '#1a1508' : '#FDF6E3', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
     lawyerTagText: { color: GOLD, fontSize: 10, fontWeight: '600' },
-    lawyerSelectCircle: { width: 26, height: 26, borderRadius: 13, borderWidth: 2, borderColor: '#333', alignItems: 'center', justifyContent: 'center' },
+    lawyerSelectCircle: { width: 26, height: 26, borderRadius: 13, borderWidth: 2, borderColor: isDarkMode ? '#333' : theme.borderLight, alignItems: 'center', justifyContent: 'center' },
     lawyerSelectCircleActive: { backgroundColor: GOLD, borderColor: GOLD },
 
     // Bottom CTA
-    bottomCta: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 16, paddingBottom: 28, paddingTop: 12, backgroundColor: BG + 'EE' },
+    bottomCta: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 16, paddingBottom: 28, paddingTop: 12, backgroundColor: isDarkMode ? BG + 'EE' : 'rgba(255,255,255,0.95)' },
     ctaBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 16, gap: 10 },
     ctaText: { color: '#000', fontSize: 14, fontWeight: '900', letterSpacing: 1 },
 
@@ -610,18 +618,18 @@ const s = StyleSheet.create({
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.88)', justifyContent: 'flex-end' },
     confirmModal: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40, overflow: 'hidden', borderTopWidth: 1, borderColor: GOLD + '44' },
     confirmHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 },
-    confirmTitle: { color: '#fff', fontSize: 17, fontWeight: '800' },
-    confirmSummaryBox: { backgroundColor: '#181818', borderRadius: 14, padding: 16, marginBottom: 20, overflow: 'hidden', borderWidth: 1, borderColor: '#2a2a2a' },
+    confirmTitle: { color: isDarkMode ? '#fff' : theme.text, fontSize: 17, fontWeight: '800' },
+    confirmSummaryBox: { backgroundColor: isDarkMode ? '#181818' : theme.surfaceSecondary, borderRadius: 14, padding: 16, marginBottom: 20, overflow: 'hidden', borderWidth: 1, borderColor: isDarkMode ? '#2a2a2a' : theme.borderLight },
     confirmSummaryLabel: { color: GOLD, fontSize: 9, fontWeight: '700', letterSpacing: 2, marginBottom: 6, paddingLeft: 10 },
-    confirmSummaryTitle: { color: '#fff', fontSize: 14, fontWeight: '700', paddingLeft: 10 },
-    confirmSummaryRisk: { color: '#888', fontSize: 12, marginTop: 4, paddingLeft: 10 },
-    confirmLawyerRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 20, backgroundColor: '#141414', borderRadius: 14, padding: 12, borderWidth: 1, borderColor: '#222' },
+    confirmSummaryTitle: { color: isDarkMode ? '#fff' : theme.text, fontSize: 14, fontWeight: '700', paddingLeft: 10 },
+    confirmSummaryRisk: { color: isDarkMode ? '#888' : theme.textSecondary, fontSize: 12, marginTop: 4, paddingLeft: 10 },
+    confirmLawyerRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 20, backgroundColor: isDarkMode ? '#141414' : theme.surfaceSecondary, borderRadius: 14, padding: 12, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight },
     lawyerAvatarSm: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
-    lawyerAvatarTextSm: { color: '#fff', fontSize: 15, fontWeight: '900' },
-    confirmLawyerName: { color: '#fff', fontSize: 14, fontWeight: '700' },
-    confirmLawyerSpec: { color: '#777', fontSize: 11 },
+    lawyerAvatarTextSm: { color: isDarkMode ? '#fff' : theme.text, fontSize: 15, fontWeight: '900' },
+    confirmLawyerName: { color: isDarkMode ? '#fff' : theme.text, fontSize: 14, fontWeight: '700' },
+    confirmLawyerSpec: { color: isDarkMode ? '#777' : theme.textSecondary, fontSize: 11 },
     confirmApproveBtn: { paddingVertical: 15, borderRadius: 14, alignItems: 'center' },
     confirmApproveBtnText: { color: '#000', fontSize: 14, fontWeight: '900', letterSpacing: 0.5 },
     confirmCancelBtn: { alignItems: 'center', paddingVertical: 14 },
-    confirmCancelText: { color: '#555', fontSize: 13 },
+    confirmCancelText: { color: isDarkMode ? '#555' : theme.textSecondary, fontSize: 13 },
 });

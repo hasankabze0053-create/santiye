@@ -33,6 +33,7 @@ import AiOraclePulse from './components/AiOraclePulse';
 import InsightPanel from './components/InsightPanel';
 import SOSBanner from './components/SOSBanner';
 import { PermissionService } from '../../services/PermissionService';
+import { useTheme } from '../../context/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -44,6 +45,9 @@ const GREEN     = '#10B981';
 
 // ─── ANALYZING OVERLAY ───────────────────────────────────────────────────────
 function AnalyzingOverlay({ visible }) {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const s = getStyles(theme, isDarkMode);
     const opacity = useRef(new Animated.Value(0)).current;
     const ring1   = useRef(new Animated.Value(0.7)).current;
     const ring2   = useRef(new Animated.Value(0.7)).current;
@@ -83,6 +87,9 @@ function AnalyzingOverlay({ visible }) {
 
 // ─── WAVE BARS (voice) ───────────────────────────────────────────────────────
 function WaveBar({ delay }) {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const s = getStyles(theme, isDarkMode);
     const h = useRef(new Animated.Value(4)).current;
     useEffect(() => {
         Animated.loop(Animated.sequence([
@@ -95,11 +102,14 @@ function WaveBar({ delay }) {
 
 // ─── RECENT CASE CARD ────────────────────────────────────────────────────────
 function RecentCard({ cat, score, time, onPress, onDelete }) {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const s = getStyles(theme, isDarkMode);
     const c = score >= 8 ? DANGER : score >= 5 ? ORANGE : GREEN;
     return (
         <TouchableOpacity style={s.recentCard} onPress={onPress} activeOpacity={0.85}>
             <LinearGradient 
-                colors={['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)']} 
+                colors={isDarkMode ? ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)'] : ['rgba(0,0,0,0.02)', 'rgba(0,0,0,0.01)']} 
                 style={StyleSheet.absoluteFillObject} 
                 borderRadius={18} 
             />
@@ -125,9 +135,12 @@ function RecentCard({ cat, score, time, onPress, onDelete }) {
 
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 export default function LawScreen() {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
     const navigation = useNavigation();
     const scrollRef    = useRef(null);
     const inputWrapRef = useRef(null);
+    const s = getStyles(theme, isDarkMode);
 
     const [inputText, setInputText]           = useState('');
     const [isRecording, setIsRecording]       = useState(false);
@@ -274,7 +287,7 @@ export default function LawScreen() {
 
     return (
         <View style={s.container}>
-            <StatusBar barStyle="light-content" backgroundColor="#070707" />
+            <StatusBar barStyle="light-content" backgroundColor={isDarkMode ? '#070707' : theme.background} />
 
             {/* Deep background */}
             <View style={s.bgBase} />
@@ -297,7 +310,7 @@ export default function LawScreen() {
                         {/* ── HEADER ── */}
                         <View style={s.header}>
                             <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerBtn}>
-                                <Ionicons name="arrow-back" size={18} color="#fff" />
+                                <Ionicons name="arrow-back" size={18} color={isDarkMode ? '#fff' : theme.text} />
                             </TouchableOpacity>
                             <View style={s.headerCenter}>
                                 <Text allowFontScaling={false} style={s.headerEye}>⚖️  CEFTE ŞEF</Text>
@@ -348,7 +361,7 @@ export default function LawScreen() {
                                 <TextInput allowFontScaling={false}
                                     style={s.input}
                                     placeholder={'Probleminizi buraya yazın, ses veya belge yükleyin…'}
-                                    placeholderTextColor="rgba(255,255,255,0.25)"
+                                    placeholderTextColor={isDarkMode ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.4)'}
                                     multiline
                                     value={inputText}
                                     onChangeText={setInputText}
@@ -407,7 +420,7 @@ export default function LawScreen() {
                                     <FontAwesome5 name="file-pdf" size={11} color={GOLD} />
                                     <Text allowFontScaling={false} style={s.fileChipText} numberOfLines={1}>{attachedFile.name}</Text>
                                     <TouchableOpacity onPress={() => setAttachedFile(null)}>
-                                        <Ionicons name="close-circle" size={15} color="#555" />
+                                        <Ionicons name="close-circle" size={15} color={isDarkMode ? '#555' : theme.textSecondary} />
                                     </TouchableOpacity>
                                 </View>
                             )}
@@ -443,7 +456,7 @@ export default function LawScreen() {
                                 </View>
                             ) : recentAnalyses.length === 0 ? (
                                 <View style={s.emptyHistory}>
-                                    <MaterialCommunityIcons name="text-box-search-outline" size={32} color="#222" />
+                                    <MaterialCommunityIcons name="text-box-search-outline" size={32} color={isDarkMode ? '#222' : theme.textSecondary} />
                                     <Text allowFontScaling={false} style={s.emptyHistoryText}>Henüz bir analiziniz bulunmuyor.</Text>
                                 </View>
                             ) : (
@@ -507,9 +520,9 @@ export default function LawScreen() {
 }
 
 // ─── STYLES ──────────────────────────────────────────────────────────────────
-const s = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#070707' },
-    bgBase: { ...StyleSheet.absoluteFillObject, backgroundColor: '#070707' },
+const getStyles = (theme, isDarkMode) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: isDarkMode ? '#070707' : theme.background },
+    bgBase: { ...StyleSheet.absoluteFillObject, backgroundColor: isDarkMode ? '#070707' : theme.background },
     bgAmbient: { position: 'absolute', top: 0, left: 0, right: 0, height: height * 0.4 },
     scrollContent: { paddingBottom: 48 },
 
@@ -520,20 +533,20 @@ const s = StyleSheet.create({
     },
     headerBtn: {
         width: 40, height: 40, borderRadius: 13,
-        backgroundColor: 'rgba(255,255,255,0.04)',
-        borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+        backgroundColor: isDarkMode ? 'rgba(255,255,255,0.04)' : theme.surfaceSecondary,
+        borderWidth: 1, borderColor: isDarkMode ? 'rgba(255,255,255,0.08)' : theme.borderLight,
         alignItems: 'center', justifyContent: 'center',
     },
     headerBtnActive: { borderColor: GOLD + '55' },
     headerCenter: { alignItems: 'center' },
     headerEye: { color: GOLD, fontSize: 9, fontWeight: '700', letterSpacing: 2.5 },
-    headerSub: { color: 'rgba(255,255,255,0.5)', fontSize: 11, marginTop: 2, letterSpacing: 0.3 },
+    headerSub: { color: isDarkMode ? 'rgba(255,255,255,0.5)' : theme.textSecondary, fontSize: 11, marginTop: 2, letterSpacing: 0.3 },
 
     // Hero
     heroBlock: { paddingHorizontal: 24, marginBottom: 0 },
     heroEye: { color: GOLD, fontSize: 10, fontWeight: '700', letterSpacing: 3, marginBottom: 8 },
     heroTitle: {
-        color: '#ffffff',
+        color: isDarkMode ? '#ffffff' : theme.text,
         fontSize: 40,
         fontWeight: '900',
         letterSpacing: -0.5,
@@ -561,7 +574,7 @@ const s = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'rgba(212,175,55,0.20)',
         overflow: 'hidden',
-        backgroundColor: '#141414',
+        backgroundColor: isDarkMode ? '#141414' : theme.surface,
         minHeight: 170,
     },
     glassBorderTop: {
@@ -571,7 +584,7 @@ const s = StyleSheet.create({
         opacity: 0.6,
     },
     input: {
-        color: '#FFFFFF',
+        color: isDarkMode ? '#FFFFFF' : theme.text,
         fontSize: 15,
         lineHeight: 24,
         padding: 18,
@@ -585,15 +598,15 @@ const s = StyleSheet.create({
         flexDirection: 'row', alignItems: 'center',
         paddingHorizontal: 14, paddingBottom: 12, paddingTop: 4, gap: 8,
     },
-    charCount: { color: 'rgba(255,255,255,0.2)', fontSize: 11, flex: 1 },
+    charCount: { color: isDarkMode ? 'rgba(255,255,255,0.2)' : theme.textSecondary, fontSize: 11, flex: 1 },
     waveRow: { flexDirection: 'row', alignItems: 'center', gap: 3, flex: 1 },
     waveBar: { width: 3, borderRadius: 2, backgroundColor: GOLD },
     recLabel: { color: DANGER, fontSize: 11, fontWeight: '700', marginLeft: 4 },
     footerBtns: { flexDirection: 'row', gap: 8 },
     iconBtn: {
         width: 36, height: 36, borderRadius: 10,
-        backgroundColor: 'rgba(255,255,255,0.06)',
-        borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+        backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : theme.surfaceSecondary,
+        borderWidth: 1, borderColor: isDarkMode ? 'rgba(255,255,255,0.10)' : theme.borderLight,
         alignItems: 'center', justifyContent: 'center',
     },
     iconBtnActive: { borderColor: GOLD + '66' },
@@ -630,7 +643,7 @@ const s = StyleSheet.create({
         paddingLeft: 12
     },
     premiumTitle: { 
-        color: '#fff', 
+        color: isDarkMode ? '#fff' : theme.text, 
         fontSize: 18, 
         fontWeight: '900', 
         letterSpacing: 1.5,
@@ -638,12 +651,12 @@ const s = StyleSheet.create({
         textShadowOffset: { width: 0, height: 0 },
         textShadowRadius: 10
     },
-    premiumSub: { color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2, fontWeight: '500' },
+    premiumSub: { color: isDarkMode ? 'rgba(255,255,255,0.4)' : theme.textSecondary, fontSize: 11, marginTop: 2, fontWeight: '500' },
 
     recentCard: {
         flexDirection: 'row', alignItems: 'center',
         borderRadius: 18, padding: 16, marginBottom: 12,
-        borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
+        borderWidth: 1, borderColor: isDarkMode ? 'rgba(255,255,255,0.06)' : theme.borderLight,
         overflow: 'hidden'
     },
     recentIconBox: {
@@ -652,8 +665,8 @@ const s = StyleSheet.create({
         alignItems: 'center', justifyContent: 'center',
         borderWidth: 1, borderColor: GOLD + '33'
     },
-    recentCat: { color: '#fff', fontSize: 14, fontWeight: '700', marginBottom: 2 },
-    recentTime: { color: 'rgba(255,255,255,0.25)', fontSize: 11 },
+    recentCat: { color: isDarkMode ? '#fff' : theme.text, fontSize: 14, fontWeight: '700', marginBottom: 2 },
+    recentTime: { color: isDarkMode ? 'rgba(255,255,255,0.25)' : theme.textSecondary, fontSize: 11 },
     
     scoreTag: {
         flexDirection: 'row', alignItems: 'center',
@@ -673,7 +686,7 @@ const s = StyleSheet.create({
     },
 
     viewAllBtn: {
-        height: 48, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+        height: 48, borderRadius: 14, borderWidth: 1, borderColor: isDarkMode ? 'rgba(255,255,255,0.08)' : theme.borderLight,
         alignItems: 'center', justifyContent: 'center',
         marginTop: 8, marginBottom: 40,
         overflow: 'hidden'
@@ -689,10 +702,10 @@ const s = StyleSheet.create({
     ring: { position: 'absolute', width: 100, height: 100, borderRadius: 50, borderWidth: 1 },
     ring1: { borderColor: GOLD + '55' },
     ring2: { borderColor: GOLD + '30', width: 140, height: 140, borderRadius: 70 },
-    overlayTitle: { color: '#fff', fontSize: 18, fontWeight: '800', marginTop: 70, letterSpacing: 0.5 },
-    overlaySub: { color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 6 },
+    overlayTitle: { color: isDarkMode ? '#fff' : theme.text, fontSize: 18, fontWeight: '800', marginTop: 70, letterSpacing: 0.5 },
+    overlaySub: { color: isDarkMode ? 'rgba(255,255,255,0.4)' : theme.textSecondary, fontSize: 12, marginTop: 6 },
 
     // Accessory
-    accessory: { backgroundColor: '#111', padding: 10, alignItems: 'flex-end', borderTopWidth: 1, borderTopColor: '#222' },
+    accessory: { backgroundColor: isDarkMode ? '#111' : theme.background, padding: 10, alignItems: 'flex-end', borderTopWidth: 1, borderTopColor: isDarkMode ? '#222' : theme.borderLight },
     accessoryText: { color: GOLD, fontWeight: '700', fontSize: 14 },
 });

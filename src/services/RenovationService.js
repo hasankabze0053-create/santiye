@@ -1,6 +1,16 @@
 import { supabase } from '../lib/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const RenovationService = {
+    getCachedShowcaseItems: async () => {
+        try {
+            const cached = await AsyncStorage.getItem('renovation_showcase_cache');
+            return cached ? JSON.parse(cached) : null;
+        } catch (error) {
+            return null;
+        }
+    },
+
     getShowcaseItems: async () => {
         try {
             const { data, error } = await supabase
@@ -9,6 +19,9 @@ export const RenovationService = {
                 .order('sort_order', { ascending: true });
             
             if (error) throw error;
+            if (data && data.length > 0) {
+                await AsyncStorage.setItem('renovation_showcase_cache', JSON.stringify(data));
+            }
             return data || [];
         } catch (error) {
             console.error('RenovationService.getShowcaseItems error:', error);

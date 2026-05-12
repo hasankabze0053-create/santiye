@@ -156,22 +156,39 @@ export default function UrbanTransformationScreen({ navigation }) {
     const [sections, setSections] = useState(DEFAULT_SECTIONS);
     const [loadingConfig, setLoadingConfig] = useState(true);
 
-    useEffect(() => {
-        loadScreenConfig();
-        checkAdminStatus();
-        fetchShowcase();
-    }, []);
-
-    // Showcase State
     const [showcaseItems, setShowcaseItems] = useState([]);
     const scrollX = useRef(new Animated.Value(0)).current;
     const [isShowcaseManagerVisible, setIsShowcaseManagerVisible] = useState(false);
     const [editingShowcaseItem, setEditingShowcaseItem] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
 
+    useEffect(() => {
+        // 1. Try to load from cache instantly to prevent UI blocking
+        ScreenConfigService.getCachedConfig('UrbanTransformationScreen').then(cached => {
+            if (cached && cached.length > 0) {
+                setSections(cached);
+                setLoadingConfig(false); // Disable spinner instantly!
+            }
+        });
+
+        // Instant load for showcase slider
+        TransformationService.getCachedShowcaseItems().then(cachedItems => {
+            if (cachedItems && cachedItems.length > 0) {
+                setShowcaseItems(cachedItems);
+            }
+        });
+
+        // 2. Fetch fresh data in background
+        loadScreenConfig();
+        checkAdminStatus();
+        fetchShowcase();
+    }, []);
+
     const fetchShowcase = async () => {
         const items = await TransformationService.getShowcaseItems();
-        setShowcaseItems(items || []);
+        if (items && items.length > 0) {
+            setShowcaseItems(items);
+        }
     };
 
     const handlePickShowcaseImage = async () => {
@@ -236,12 +253,15 @@ export default function UrbanTransformationScreen({ navigation }) {
             const config = await ScreenConfigService.fetchConfig('UrbanTransformationScreen');
             if (config && config.length > 0) {
                 setSections(config);
+            } else if (!loadingConfig) {
+                // Keep existing cache if we already loaded it, else fallback to defaults
             } else {
                 setSections(DEFAULT_SECTIONS);
             }
         } catch (error) {
             console.warn('Error loading screen config:', error);
-            setSections(DEFAULT_SECTIONS);
+            // Only set defaults if we don't have cache
+            if (loadingConfig) setSections(DEFAULT_SECTIONS);
         } finally {
             setLoadingConfig(false);
         }
@@ -567,8 +587,13 @@ export default function UrbanTransformationScreen({ navigation }) {
                         </View>
                     </View>
 
-                    {/* Dynamic Sections - Optimistic UI (Always Show Content) */}
-                    {sections.length > 0 ? (
+                    {/* Dynamic Sections - Wait for config to avoid flickering */}
+                    {loadingConfig ? (
+                        <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+                            <ActivityIndicator size="large" color="#FFD700" />
+                            <Text allowFontScaling={false} style={{ color: '#666', marginTop: 10, fontSize: 12 }}>İçerik Yükleniyor...</Text>
+                        </View>
+                    ) : sections.length > 0 ? (
                         sections
                             .filter(s => s.is_visible || isAdmin) // Admins see everything
                             .map(section => (

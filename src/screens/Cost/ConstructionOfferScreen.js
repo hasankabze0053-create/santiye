@@ -49,6 +49,18 @@ if (Platform.OS === 'android') {
 const SelectionModal = ({ visible, onClose, title, items, onSelect }) => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const [searchText, setSearchText] = useState('');
+    const { isDarkMode } = useTheme();
+
+    const M = {
+        bgStart: isDarkMode ? '#1a1a1a' : '#FAF8F3',
+        bgEnd: isDarkMode ? '#0F0F0F' : '#E0D4BF',
+        text: isDarkMode ? '#FFFFFF' : '#1C1208',
+        subText: isDarkMode ? '#555' : '#888',
+        tint: isDarkMode ? 'dark' : 'light',
+        searchBg: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(140,98,0,0.05)',
+        itemBorder: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(140,98,0,0.1)',
+        placeholder: isDarkMode ? '#555' : '#8C7050'
+    };
 
     useEffect(() => {
         if (visible) {
@@ -70,10 +82,10 @@ const SelectionModal = ({ visible, onClose, title, items, onSelect }) => {
         <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
             <TouchableWithoutFeedback onPress={onClose}>
                 <View style={localStyles.modalOverlay}>
-                    <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFillObject} />
+                    <BlurView intensity={20} tint={M.tint} style={StyleSheet.absoluteFillObject} />
                     <TouchableWithoutFeedback>
                         <Animated.View style={[localStyles.modalContent, { opacity: fadeAnim, transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [100, 0] }) }] }]}>
-                            <LinearGradient colors={['#1a1a1a', '#0F0F0F']} style={localStyles.modalGradient}>
+                            <LinearGradient colors={[M.bgStart, M.bgEnd]} style={localStyles.modalGradient}>
                                 <View style={localStyles.modalHeader}>
                                     <View>
                                         <Text allowFontScaling={false} style={localStyles.modalTitle}>{title}</Text>
@@ -84,12 +96,12 @@ const SelectionModal = ({ visible, onClose, title, items, onSelect }) => {
                                     </TouchableOpacity>
                                 </View>
 
-                                <View style={localStyles.searchContainer}>
+                                <View style={[localStyles.searchContainer, { backgroundColor: M.searchBg }]}>
                                     <Ionicons name="search" size={20} color="#D4AF37" style={{ marginRight: 10 }} />
                                     <TextInput allowFontScaling={false}
-                                        style={localStyles.searchInput}
+                                        style={[localStyles.searchInput, { color: M.text }]}
                                         placeholder="Ara..."
-                                        placeholderTextColor="#555"
+                                        placeholderTextColor={M.placeholder}
                                         value={searchText}
                                         onChangeText={setSearchText}
                                         autoCorrect={false}
@@ -104,9 +116,9 @@ const SelectionModal = ({ visible, onClose, title, items, onSelect }) => {
                                     renderItem={({ item }) => {
                                         const isPriority = ['İstanbul', 'Ankara', 'İzmir'].includes(item);
                                         return (
-                                            <TouchableOpacity style={localStyles.modalItem} onPress={() => { onSelect(item); onClose(); }}>
+                                            <TouchableOpacity style={[localStyles.modalItem, { borderBottomColor: M.itemBorder }]} onPress={() => { onSelect(item); onClose(); }}>
                                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                                                    <Text allowFontScaling={false} style={[localStyles.modalItemText, isPriority && { color: '#D4AF37', fontWeight: 'bold' }]}>{item}</Text>
+                                                    <Text allowFontScaling={false} style={[localStyles.modalItemText, { color: M.text }, isPriority && { color: '#D4AF37', fontWeight: 'bold' }]}>{item}</Text>
                                                 </View>
                                                 <Ionicons name="chevron-forward" size={16} color="rgba(212, 175, 55, 0.3)" />
                                             </TouchableOpacity>

@@ -2,6 +2,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 
 export const ScreenConfigService = {
+    // Get configuration immediately from cache for instant UI rendering
+    async getCachedConfig(screenId) {
+        try {
+            const cached = await AsyncStorage.getItem(`screen_config_${screenId}`);
+            return cached ? JSON.parse(cached) : null;
+        } catch (e) {
+            return null;
+        }
+    },
+
     // Fetch configuration for a specific screen with Caching (Stale-while-revalidate)
     async fetchConfig(screenId) {
         const CACHE_KEY = `screen_config_${screenId}`;

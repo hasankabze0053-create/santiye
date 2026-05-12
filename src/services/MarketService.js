@@ -15,6 +15,15 @@ export const MarketService = {
         }
     },
 
+    getLocalShowcaseItems: async () => {
+        try {
+            const jsonValue = await AsyncStorage.getItem('market_showcase_cache');
+            return jsonValue != null ? JSON.parse(jsonValue) : null;
+        } catch (e) {
+            return null;
+        }
+    },
+
     // 2. Sunucudan Güncel Getir ve Kaydet
     getRemoteCategories: async () => {
         try {
@@ -402,6 +411,9 @@ export const MarketService = {
                 .order('sort_order', { ascending: true });
             
             if (error) throw error;
+            if (data && data.length > 0) {
+                await AsyncStorage.setItem('market_showcase_cache', JSON.stringify(data));
+            }
             return data || [];
         } catch (error) {
             console.error('getShowcaseItems error:', error);

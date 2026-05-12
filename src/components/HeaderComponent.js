@@ -43,13 +43,15 @@ const HeaderComponent = ({ navigation }) => {
       </View>
 
       <View style={styles.actionGroup}>
-        <TouchableOpacity 
-          style={[styles.outlineBtn, !isDarkMode && { borderColor: 'rgba(140, 98, 0, 0.4)' }]} 
-          onPress={() => navigation.navigate('ProviderDashboard')}
-        >
-          <Text style={[styles.outlineBtnText, !isDarkMode && { color: '#8C6200' }]}>Hizmet Paneli</Text>
-          <MaterialCommunityIcons name="briefcase-outline" size={14} color={isDarkMode ? COLORS.gold : '#8C6200'} />
-        </TouchableOpacity>
+        {profile?.user_type === 'corporate' && profile?.approval_status === 'approved' && (
+          <TouchableOpacity 
+            style={[styles.outlineBtn, !isDarkMode && { borderColor: 'rgba(140, 98, 0, 0.4)' }]} 
+            onPress={() => navigation.navigate('ProviderDashboard')}
+          >
+            <Text style={[styles.outlineBtnText, !isDarkMode && { color: '#8C6200' }]}>Hizmet Paneli</Text>
+            <MaterialCommunityIcons name="briefcase-outline" size={14} color={isDarkMode ? COLORS.gold : '#8C6200'} />
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity 
           style={styles.avatarWrapper} 

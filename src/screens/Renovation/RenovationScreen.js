@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import Slider from '@react-native-community/slider';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
     ActivityIndicator,
     Alert,
@@ -139,6 +140,24 @@ export default function RenovationScreen({ navigation }) {
     const [isEditMode, setIsEditMode] = useState(false);
 
     useEffect(() => {
+        // Instant load for showcase slider
+        RenovationService.getCachedShowcaseItems().then(cachedItems => {
+            if (cachedItems && cachedItems.length > 0) {
+                setShowcaseItems(cachedItems);
+            }
+        });
+
+        // Instant load for services grid
+        AsyncStorage.getItem('renovation_services_cache').then(cached => {
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (parsed && parsed.length > 0) {
+                    setServices(parsed);
+                    setIsLoadingServices(false);
+                }
+            }
+        });
+
         checkUserStatus();
         fetchServices();
         fetchShowcase();
@@ -157,7 +176,9 @@ export default function RenovationScreen({ navigation }) {
 
     const fetchShowcase = async () => {
         const items = await RenovationService.getShowcaseItems();
-        setShowcaseItems(items || []);
+        if (items && items.length > 0) {
+            setShowcaseItems(items);
+        }
     };
 
     const handlePickShowcaseImage = async () => {
@@ -218,7 +239,9 @@ export default function RenovationScreen({ navigation }) {
     };
 
     const fetchServices = async () => {
-        setIsLoadingServices(true);
+        // Only show loading state if we have no cached data
+        if (services.length === 0) setIsLoadingServices(true);
+        
         const { data, error } = await supabase
             .from('renovation_services')
             .select('*')
@@ -227,7 +250,12 @@ export default function RenovationScreen({ navigation }) {
         if (error) {
             console.error('Error fetching services:', error.message);
         } else {
-            setServices(data || []);
+            if (data && data.length > 0) {
+                await AsyncStorage.setItem('renovation_services_cache', JSON.stringify(data));
+                setServices(data);
+            } else {
+                setServices([]);
+            }
         }
         setIsLoadingServices(false);
     };

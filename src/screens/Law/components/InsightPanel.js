@@ -17,6 +17,7 @@ import {
     View,
 } from 'react-native';
 import { MOCK_LAWYERS } from '../../../services/legalAiService';
+import { useTheme } from '../../../context/ThemeContext';
 
 const { height } = Dimensions.get('window');
 const GOLD = '#D4AF37';
@@ -51,6 +52,10 @@ const rs = StyleSheet.create({
 });
 
 function LawyerCard({ lawyer, rank, onConnect }) {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const s = getStyles(theme, isDarkMode);
+    const lc = getLcStyles(theme, isDarkMode);
     return (
         <View style={lc.card}>
             {rank === 1 && <LinearGradient colors={['rgba(212,175,55,0.07)', 'transparent']} style={StyleSheet.absoluteFill} />}
@@ -75,22 +80,25 @@ function LawyerCard({ lawyer, rank, onConnect }) {
         </View>
     );
 }
-const lc = StyleSheet.create({
-    card: { backgroundColor: '#111', borderRadius: 20, borderWidth: 1, borderColor: '#222', padding: 16, marginBottom: 12, overflow: 'hidden' },
+const getLcStyles = (theme, isDarkMode) => StyleSheet.create({
+    card: { backgroundColor: isDarkMode ? '#111' : theme.surface, borderRadius: 20, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight, padding: 16, marginBottom: 12, overflow: 'hidden' },
     topBadge: { position: 'absolute', top: 10, right: 12, backgroundColor: GOLD + '22', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, borderWidth: 1, borderColor: GOLD + '44' },
     topText: { color: GOLD, fontSize: 9, fontWeight: '800', letterSpacing: 1 },
     row: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 },
-    avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#1E1E1E', borderWidth: 1, borderColor: '#333', alignItems: 'center', justifyContent: 'center' },
-    name: { color: '#fff', fontSize: 15, fontWeight: '700' },
-    spec: { color: '#777', fontSize: 11, marginTop: 2 },
+    avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: isDarkMode ? '#1E1E1E' : theme.surfaceSecondary, borderWidth: 1, borderColor: isDarkMode ? '#333' : theme.borderLight, alignItems: 'center', justifyContent: 'center' },
+    name: { color: isDarkMode ? '#fff' : theme.text, fontSize: 15, fontWeight: '700' },
+    spec: { color: isDarkMode ? '#777' : theme.textSecondary, fontSize: 11, marginTop: 2 },
     stats: { alignItems: 'flex-end', gap: 4 },
-    statVal: { color: '#aaa', fontSize: 11, fontWeight: '600' },
+    statVal: { color: isDarkMode ? '#aaa' : theme.textSecondary, fontSize: 11, fontWeight: '600' },
     btn: { borderRadius: 12, overflow: 'hidden', height: 42 },
     btnGrad: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
     btnText: { color: '#000', fontSize: 12, fontWeight: '900', letterSpacing: 0.8 },
 });
 
 export default function InsightPanel({ visible, data, onClose, onConfirm, onReAnalyze }) {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const s = getStyles(theme, isDarkMode);
     const translateY = useRef(new Animated.Value(height)).current;
     const scoreAnim  = useRef(new Animated.Value(0)).current;
     const scrollIndicatorAnim = useRef(new Animated.Value(0)).current;
@@ -296,48 +304,48 @@ export default function InsightPanel({ visible, data, onClose, onConfirm, onReAn
     );
 }
 
-const s = StyleSheet.create({
+const getStyles = (theme, isDarkMode) => StyleSheet.create({
     overlay: { flex: 1, justifyContent: 'flex-end' },
     sheet: { height: height * 0.92, borderTopLeftRadius: 32, borderTopRightRadius: 32, overflow: 'hidden', shadowColor: GOLD, shadowOpacity: 0.12, shadowRadius: 24, elevation: 20 },
-    bg: { ...StyleSheet.absoluteFillObject, backgroundColor: '#0C0C0C' },
-    handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#2A2A2A', alignSelf: 'center', marginTop: 12, marginBottom: 2 },
+    bg: { ...StyleSheet.absoluteFillObject, backgroundColor: isDarkMode ? '#0C0C0C' : theme.surface },
+    handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: isDarkMode ? '#2A2A2A' : theme.borderLight, alignSelf: 'center', marginTop: 12, marginBottom: 2 },
     sosAlert: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(239,68,68,0.10)', marginHorizontal: 20, borderRadius: 12, padding: 12, marginBottom: 4, borderWidth: 1, borderColor: DANGER + '33', marginTop: 4 },
     sosAlertText: { color: DANGER, fontWeight: '700', fontSize: 12 },
     header: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 22, paddingTop: 16, paddingBottom: 12, gap: 12 },
     catLabel: { color: GOLD, fontSize: 9, fontWeight: '800', letterSpacing: 2 },
-    title: { color: '#fff', fontSize: 19, fontWeight: '800', marginTop: 3 },
-    backBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center' },
-    summaryCard: { flexDirection: 'row', gap: 10, marginHorizontal: 20, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 14, padding: 14, marginBottom: 18, borderWidth: 1, borderColor: '#1E1E1E' },
+    title: { color: isDarkMode ? '#fff' : theme.text, fontSize: 19, fontWeight: '800', marginTop: 3 },
+    backBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: isDarkMode ? '#1A1A1A' : theme.surfaceSecondary, alignItems: 'center', justifyContent: 'center' },
+    summaryCard: { flexDirection: 'row', gap: 10, marginHorizontal: 20, backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : theme.surfaceSecondary, borderRadius: 14, padding: 14, marginBottom: 18, borderWidth: 1, borderColor: isDarkMode ? '#1E1E1E' : theme.borderLight },
     summaryLine: { width: 3, borderRadius: 2, backgroundColor: GOLD, alignSelf: 'stretch' },
-    summaryText: { color: '#bbb', fontSize: 13, lineHeight: 21, flex: 1 },
-    sectionTitle: { color: '#fff', fontSize: 13, fontWeight: '700', marginBottom: 10, paddingHorizontal: 20 },
+    summaryText: { color: isDarkMode ? '#bbb' : theme.textSecondary, fontSize: 13, lineHeight: 21, flex: 1 },
+    sectionTitle: { color: isDarkMode ? '#fff' : theme.text, fontSize: 13, fontWeight: '700', marginBottom: 10, paddingHorizontal: 20 },
     riskRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingHorizontal: 20, marginBottom: 9 },
     riskDot: { width: 7, height: 7, borderRadius: 3.5, marginTop: 4.5, flexShrink: 0 },
-    riskText: { color: '#bbb', fontSize: 13, lineHeight: 20, flex: 1 },
+    riskText: { color: isDarkMode ? '#bbb' : theme.textSecondary, fontSize: 13, lineHeight: 20, flex: 1 },
     lawRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingHorizontal: 20, marginBottom: 10 },
     lawBadge: { backgroundColor: GOLD + '18', borderRadius: 7, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: GOLD + '33' },
     lawBadgeText: { color: GOLD, fontSize: 10, fontWeight: '800' },
-    lawTitle: { color: '#ddd', fontSize: 12, fontWeight: '600' },
-    lawSub: { color: '#666', fontSize: 11, marginTop: 1 },
+    lawTitle: { color: isDarkMode ? '#ddd' : theme.text, fontSize: 12, fontWeight: '600' },
+    lawSub: { color: isDarkMode ? '#666' : theme.textSecondary, fontSize: 11, marginTop: 1 },
     docRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, marginBottom: 7 },
-    docText: { color: '#999', fontSize: 13 },
+    docText: { color: isDarkMode ? '#999' : theme.textSecondary, fontSize: 13 },
     actRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingHorizontal: 20, marginBottom: 10 },
     actNum: { width: 22, height: 22, borderRadius: 11, backgroundColor: GOLD + '20', borderWidth: 1, borderColor: GOLD + '44', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 },
     actNumText: { color: GOLD, fontSize: 10, fontWeight: '800' },
-    actText: { color: '#bbb', fontSize: 13, lineHeight: 20, flex: 1 },
+    actText: { color: isDarkMode ? '#bbb' : theme.textSecondary, fontSize: 13, lineHeight: 20, flex: 1 },
     ctaBtn: { marginHorizontal: 20, borderRadius: 18, overflow: 'hidden', height: 58, marginTop: 24, shadowColor: GOLD, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6 },
     ctaGrad: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
     ctaText: { color: '#000', fontSize: 13, fontWeight: '900', letterSpacing: 0.5 },
     
     // New Styles for UX Fixes
-    closeIconBtn: { position: 'absolute', top: 20, right: 20, zIndex: 10, width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.05)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333' },
-    summaryInput: { minHeight: 80, color: '#fff', fontSize: 13, lineHeight: 21, padding: 8, backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 8, borderWidth: 1, borderColor: '#333', textAlignVertical: 'top' },
+    closeIconBtn: { position: 'absolute', top: 20, right: 20, zIndex: 10, width: 32, height: 32, borderRadius: 16, backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : theme.surfaceSecondary, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: isDarkMode ? '#333' : theme.borderLight },
+    summaryInput: { minHeight: 80, color: isDarkMode ? '#fff' : theme.text, fontSize: 13, lineHeight: 21, padding: 8, backgroundColor: isDarkMode ? 'rgba(0,0,0,0.4)' : theme.surfaceSecondary, borderRadius: 8, borderWidth: 1, borderColor: isDarkMode ? '#333' : theme.borderLight, textAlignVertical: 'top' },
     editActionsRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 20, marginTop: 24 },
     reanalyzeBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 50, borderRadius: 14, borderWidth: 1, borderColor: GOLD + '55', backgroundColor: 'rgba(212,175,55,0.08)' },
     reanalyzeBtnText: { color: GOLD, fontSize: 12, fontWeight: '800' },
     saveEditBtn: { flex: 1, height: 50, borderRadius: 14, overflow: 'hidden' },
     btnFullGrad: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-    saveEditBtnText: { color: '#fff', fontSize: 13, fontWeight: '800' },
+    saveEditBtnText: { color: isDarkMode ? '#fff' : theme.text, fontSize: 13, fontWeight: '800' },
     scrollIndicator: { alignItems: 'center', marginTop: 30, marginBottom: 10 },
     scrollIndicatorText: { color: GOLD, fontSize: 10, fontWeight: '600', marginTop: 2, opacity: 0.8 },
 });
