@@ -2,12 +2,12 @@ import { Asset } from 'expo-asset';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { Dimensions, Image, StyleSheet, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
 // Import all assets to preload
 const ASSETS_TO_LOAD = [
-    require('../../assets/splash_8k_final.png'), // The splash logo itself
     // Preload Home Category Images to fix slow loading
     require('../../assets/categories/cat_kiralama.png'),
     require('../../assets/categories/cat_market.png'),
@@ -53,12 +53,37 @@ export default function CustomSplashScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <StatusBar hidden />
-            {/* Show Logo */}
-            <Image
-                source={require('../../assets/splash_8k_final.png')}
-                style={styles.image}
-                resizeMode="contain"
-            />
+            {/* Image Wrapper with Blend Masks */}
+            <View style={styles.imageWrapper}>
+                <Image
+                    source={require('../../assets/splash_ceptesef_premium.jpg')}
+                    style={styles.image}
+                    resizeMode="contain"
+                />
+                
+                {/* Top Blend */}
+                <LinearGradient
+                    colors={['#EEDDC9', 'rgba(238, 221, 201, 0)']}
+                    style={{ position: 'absolute', top: -2, left: 0, right: 0, height: 60 }}
+                />
+                {/* Bottom Blend */}
+                <LinearGradient
+                    colors={['rgba(238, 221, 201, 0)', '#EEDDC9']}
+                    style={{ position: 'absolute', bottom: -2, left: 0, right: 0, height: 60 }}
+                />
+                {/* Left Blend */}
+                <LinearGradient
+                    colors={['#EEDDC9', 'rgba(238, 221, 201, 0)']}
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                    style={{ position: 'absolute', top: 0, bottom: 0, left: -2, width: 60 }}
+                />
+                {/* Right Blend */}
+                <LinearGradient
+                    colors={['rgba(238, 221, 201, 0)', '#EEDDC9']}
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                    style={{ position: 'absolute', top: 0, bottom: 0, right: -2, width: 60 }}
+                />
+            </View>
 
 
 
@@ -69,15 +94,19 @@ export default function CustomSplashScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#EEDDC9',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    imageWrapper: {
+        width: width,
+        height: width, // Square box for the image
         justifyContent: 'center',
         alignItems: 'center',
     },
     image: {
-        width: width,
-        height: height,
-        transform: [{ scale: 1.5 }],
-        // transform removed to show full image, badge covers the logo
+        width: '100%',
+        height: '100%',
     },
 
     loadingText: {

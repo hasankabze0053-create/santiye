@@ -10,9 +10,7 @@ import {
     Dimensions,
     InputAccessoryView,
     Keyboard,
-    KeyboardAvoidingView,
     Platform,
-    ScrollView,
     StatusBar,
     StyleSheet,
     Text,
@@ -26,6 +24,7 @@ import { supabase } from '../../lib/supabase';
 import { uploadImageToSupabase } from '../../services/PhotoUploadService';
 import TurkeyLocationPicker from '../../components/TurkeyLocationPicker';
 import BudgetSelector from '../../components/BudgetSelector';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const { width } = Dimensions.get('window');
 
@@ -235,7 +234,7 @@ export default function KitchenBathWizardScreen() {
         5: "Mimar için bütçe opsiyonu ve referans fotoğrafları ekle.",
     };
 
-    const scrollTop = () => scrollRef.current?.scrollTo({ y: 0, animated: true });
+    const scrollTop = () => scrollRef.current?.scrollToPosition(0, 0, true);
 
     const handleNext = () => {
         if (step < 5) { setStep(s => s + 1); scrollTop(); }
@@ -623,23 +622,29 @@ export default function KitchenBathWizardScreen() {
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor={TH.bg} />
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-
-                {/* Header */}
-                <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-                    <TouchableOpacity onPress={handleBack} style={styles.backBtn} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
-                        <Ionicons name="arrow-back" size={24} color={TH.textPrimary} />
-                    </TouchableOpacity>
-                    <View style={styles.progressWrap}>
-                        {[1, 2, 3, 4, 5].map(idx => (
-                            <View key={idx} style={[styles.progSeg, idx <= step && styles.progSegActive]} />
-                        ))}
-                    </View>
-                    <Text allowFontScaling={false} style={styles.stepIndicator}>Adım {step}/5</Text>
+            {/* Header */}
+            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+                <TouchableOpacity onPress={handleBack} style={styles.backBtn} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
+                    <Ionicons name="arrow-back" size={24} color={TH.textPrimary} />
+                </TouchableOpacity>
+                <View style={styles.progressWrap}>
+                    {[1, 2, 3, 4, 5].map(idx => (
+                        <View key={idx} style={[styles.progSeg, idx <= step && styles.progSegActive]} />
+                    ))}
                 </View>
+                <Text allowFontScaling={false} style={styles.stepIndicator}>Adım {step}/5</Text>
+            </View>
 
-                {/* Body */}
-                <ScrollView ref={scrollRef} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            {/* Body */}
+            <KeyboardAwareScrollView 
+                ref={scrollRef} 
+                style={{ flex: 1 }}
+                contentContainerStyle={styles.scrollContent} 
+                showsVerticalScrollIndicator={false}
+                enableOnAndroid={true}
+                extraScrollHeight={Platform.OS === 'ios' ? 120 : 20}
+                keyboardShouldPersistTaps="handled"
+            >
                     <View style={styles.headerTitles}>
                         <Text allowFontScaling={false} style={styles.mainTitle}>{TITLES[step]}</Text>
                         <Text allowFontScaling={false} style={styles.subTitle}>{SUBS[step]}</Text>
@@ -650,26 +655,24 @@ export default function KitchenBathWizardScreen() {
                     {step === 3 && renderStep3()}
                     {step === 4 && renderStep4()}
                     {step === 5 && renderStep5()}
-                </ScrollView>
+            </KeyboardAwareScrollView>
 
-                {/* Fixed Bottom Bar */}
-                <View style={[styles.bottomBar, { paddingBottom: insets.bottom > 0 ? insets.bottom : 20 }]}>
-                    {step > 1 && (
-                        <TouchableOpacity style={styles.bottomBackBtn} onPress={handleBack} activeOpacity={0.8}>
-                            <Text allowFontScaling={false} style={styles.bottomBackText}>Geri</Text>
-                        </TouchableOpacity>
-                    )}
-                    <TouchableOpacity style={[styles.primaryBtn, (isNextDisabled() || loading) && { opacity: 0.5 }]} disabled={isNextDisabled() || loading} onPress={handleNext} activeOpacity={0.9}>
-                        <LinearGradient colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
-                        <Text allowFontScaling={false} style={styles.primaryBtnText}>
-                            {loading ? 'YÜKLENİYOR...' : (step === 5 ? 'KEŞİF & TEKLİF İSTE' : 'DEVAM ET')}
-                        </Text>
-                        {step < 5 && !loading && <MaterialCommunityIcons name="arrow-right" size={18} color="#000" style={{ marginLeft: 6 }} />}
-                        {step === 5 && !loading && <MaterialCommunityIcons name="check-decagram" size={20} color="#000" style={{ marginLeft: 8 }} />}
+            {/* Fixed Bottom Bar */}
+            <View style={[styles.bottomBar, { paddingBottom: insets.bottom > 0 ? insets.bottom : 20 }]}>
+                {step > 1 && (
+                    <TouchableOpacity style={styles.bottomBackBtn} onPress={handleBack} activeOpacity={0.8}>
+                        <Text allowFontScaling={false} style={styles.bottomBackText}>Geri</Text>
                     </TouchableOpacity>
-                </View>
-
-            </KeyboardAvoidingView>
+                )}
+                <TouchableOpacity style={[styles.primaryBtn, (isNextDisabled() || loading) && { opacity: 0.5 }]} disabled={isNextDisabled() || loading} onPress={handleNext} activeOpacity={0.9}>
+                    <LinearGradient colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+                    <Text allowFontScaling={false} style={styles.primaryBtnText}>
+                        {loading ? 'YÜKLENİYOR...' : (step === 5 ? 'KEŞİF & TEKLİF İSTE' : 'DEVAM ET')}
+                    </Text>
+                    {step < 5 && !loading && <MaterialCommunityIcons name="arrow-right" size={18} color="#000" style={{ marginLeft: 6 }} />}
+                    {step === 5 && !loading && <MaterialCommunityIcons name="check-decagram" size={20} color="#000" style={{ marginLeft: 8 }} />}
+                </TouchableOpacity>
+            </View>
 
             {Platform.OS === 'ios' && (
                 <InputAccessoryView nativeID="KBDecor">

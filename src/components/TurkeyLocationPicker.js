@@ -97,6 +97,7 @@ export default function TurkeyLocationPicker({ visible, onClose, onSelect, curre
                 </View>
 
                 <FlatList
+                    key={view}
                     data={view === 'city' ? filteredCities : filteredDistricts}
                     keyExtractor={(item) => item}
                     contentContainerStyle={styles.list}

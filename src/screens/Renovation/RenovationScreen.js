@@ -493,14 +493,14 @@ export default function RenovationScreen({ navigation }) {
                                         ]}>
                                             <View style={[
                                                 styles.tagContainer,
-                                                { backgroundColor: slide.tag_color || GOLD_ACCENT, alignSelf: 'flex-start' }
+                                                { backgroundColor: T.goldAccent, alignSelf: 'flex-start' }
                                             ]}>
-                                                <Text allowFontScaling={false} style={styles.tagText}>{slide.tag}</Text>
+                                                <Text allowFontScaling={false} style={[styles.tagText, { color: isDarkMode ? '#000' : '#FFF' }]}>{slide.tag}</Text>
                                             </View>
                                             <Text allowFontScaling={false} style={[styles.slideTitle, { color: slide.title_color || '#FFF' }]}>{slide.title}</Text>
-                                            <TouchableOpacity style={styles.offerBtn} onPress={() => navigation.navigate('RenovationProjectSelection')}>
-                                                <Text allowFontScaling={false} style={styles.offerBtnText}>{slide.button_text || 'TEKLİF AL'}</Text>
-                                                <MaterialCommunityIcons name="arrow-right" size={16} color="#000" />
+                                            <TouchableOpacity style={[styles.offerBtn, { backgroundColor: T.goldAccent }]} onPress={() => navigation.navigate('RenovationProjectSelection')}>
+                                                <Text allowFontScaling={false} style={[styles.offerBtnText, { color: isDarkMode ? '#000' : '#FFF' }]}>{slide.button_text || 'TEKLİF AL'}</Text>
+                                                <MaterialCommunityIcons name="arrow-right" size={16} color={isDarkMode ? '#000' : '#FFF'} />
                                             </TouchableOpacity>
                                         </View>
 

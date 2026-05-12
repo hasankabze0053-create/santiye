@@ -142,18 +142,16 @@ const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, i
       </View>
 
       {/* 3. CONTENT AREA */}
-      <View style={[styles.overlayContent, { justifyContent: justify }]}>
-        <View style={[styles.textContainer, { alignItems: align }]}>
-          
-          <View style={{ height: 65 }} />
-          
+      <View style={[styles.overlayContent, { justifyContent: 'space-between', paddingBottom: 60, paddingTop: 75 }]}>
+        <View style={[styles.textContainer, { alignItems: align, flex: 1 }]}>
+
           <Text 
               style={[
                   styles.description, 
                   { 
                       color: themeDescText, 
                       textAlign: align === 'center' ? 'center' : 'left',
-                      transform: [{ translateX: descOffsetX }, { translateY: descOffsetY }]
+                      transform: [{ translateX: descOffsetX }] // Removed Y offset to prevent overlaps
                   }
               ]} 
               numberOfLines={3}
@@ -161,9 +159,11 @@ const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, i
             {config?.description}
           </Text>
           
-          {/* Pills / Tags */}
+          <View style={{ flex: 1 }} />
+
+          {/* Pills / Tags directly above the button */}
           {config?.pills && config.pills.length > 0 && (
-              <View style={[styles.pillsContainer, { justifyContent: align, transform: [{ translateX: pillsOffsetX }, { translateY: pillsOffsetY }] }]}>
+              <View style={[styles.pillsContainer, { justifyContent: align, transform: [{ translateX: pillsOffsetX }] }]}>
                   {config.pills.map((pill, idx) => (
                       <View key={idx} style={[styles.renovationPill, { borderColor: isDarkMode ? themePillsBorder : '#8C6200', backgroundColor: isDarkMode ? themePillsBg : 'rgba(140, 98, 0, 0.05)' }]}>
                           <Text style={[styles.renovationPillText, { color: isDarkMode ? themePillsText : '#8C6200' }]}>{pill}</Text>
@@ -241,11 +241,12 @@ const styles = StyleSheet.create({
   },
   description: {
     color: '#888',
-    fontSize: 10,
-    lineHeight: 15,
+    fontSize: 12.5,
+    lineHeight: 18,
     fontFamily: FONTS.medium,
-    marginBottom: 10,
-    width: '95%',
+    width: '92%',
+    paddingRight: 5,
+    letterSpacing: 0.2,
   },
   infoChip: {
     flexDirection: 'row',
@@ -289,8 +290,10 @@ const styles = StyleSheet.create({
   },
   renovationPillText: {
     color: '#B8820F',
-    fontSize: 9,
+    fontSize: 10,
+    fontWeight: '600',
     fontFamily: FONTS.medium,
+    letterSpacing: 0.3,
   },
   ctaWrapper: {
     position: 'absolute',

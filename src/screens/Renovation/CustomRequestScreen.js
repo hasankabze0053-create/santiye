@@ -7,7 +7,6 @@ import {
     Alert,
     Dimensions,
     Image,
-    KeyboardAvoidingView,
     Platform,
     ScrollView,
     StatusBar,
@@ -23,6 +22,7 @@ import { uploadImageToSupabase } from '../../services/PhotoUploadService';
 import TurkeyLocationPicker from '../../components/TurkeyLocationPicker';
 import PremiumBackground from '../../components/PremiumBackground';
 import { useTheme } from '../../context/ThemeContext';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const { width } = Dimensions.get('window');
 
@@ -232,14 +232,14 @@ export default function CustomRequestScreen({ navigation, route }) {
                     <View style={{ width: 40 }} />
                 </View>
 
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                <KeyboardAwareScrollView
                     style={{ flex: 1 }}
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                    enableOnAndroid={true}
+                    extraScrollHeight={Platform.OS === 'ios' ? 100 : 20}
+                    keyboardShouldPersistTaps="handled"
                 >
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
                         {/* SECTION 0: LOCATION PICKER */}
                         <View style={styles.section}>
                             <Text allowFontScaling={false} style={[styles.sectionLabel, { color: T.text }]}>Proje Konumu</Text>
@@ -273,11 +273,13 @@ export default function CustomRequestScreen({ navigation, route }) {
                         <View style={styles.section}>
                             <Text allowFontScaling={false} style={[styles.sectionLabel, { color: T.text }]}>Mevcut Alan Fotoğrafları</Text>
                             <Text allowFontScaling={false} style={[styles.sectionSubLabel, { color: T.textSub }]}>Proje yapılacak alanın şu anki hali (Opsiyonel).</Text>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-                                {currentImages.map((uri, i) => renderImageItem(uri, i, 'current'))}
-                                {renderUploadSlot('Alan Ekle', false, 'current')}
-                                <View style={{ width: 20 }} />
-                            </ScrollView>
+                            <View style={styles.horizontalScrollWrapper}>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+                                    {currentImages.map((uri, i) => renderImageItem(uri, i, 'current'))}
+                                    {renderUploadSlot('Alan Ekle', false, 'current')}
+                                    <View style={{ width: 20 }} />
+                                </ScrollView>
+                            </View>
                         </View>
 
                         {/* SECTION 3: SPECIAL NOTES */}
@@ -304,15 +306,16 @@ export default function CustomRequestScreen({ navigation, route }) {
                         <View style={[styles.section, { marginBottom: 100 }]}>
                             <Text allowFontScaling={false} style={[styles.sectionLabel, { color: T.text }]}>Referans Görsel</Text>
                             <Text allowFontScaling={false} style={[styles.sectionSubLabel, { color: T.textSub }]}>Beğendiğiniz tasarımları ekleyin.</Text>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-                                {inspirationImages.map((uri, i) => renderImageItem(uri, i, 'inspiration'))}
-                                {renderUploadSlot('Örnek Ekle', true, 'inspiration')}
-                                <View style={{ width: 20 }} />
-                            </ScrollView>
+                            <View style={styles.horizontalScrollWrapper}>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+                                    {inspirationImages.map((uri, i) => renderImageItem(uri, i, 'inspiration'))}
+                                    {renderUploadSlot('Örnek Ekle', true, 'inspiration')}
+                                    <View style={{ width: 20 }} />
+                                </ScrollView>
+                            </View>
                         </View>
 
-                    </ScrollView>
-                </KeyboardAvoidingView>
+                </KeyboardAwareScrollView>
 
 
                 {/* FOOTER BUTTON */}

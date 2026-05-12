@@ -136,11 +136,54 @@ export default function HomeScreen({ navigation }) {
             }
         });
 
+        // 3. ONE-TIME DATABASE FIX (Runs only once for Admin)
+        const runDatabaseFix = async () => {
+            try {
+                if (isAdmin) {
+                    console.log('Running one-time professional DB fix...');
+                    
+                    // 1. Fix Renovation Showcase
+                    const { data: rows } = await supabase.from('renovation_showcase').select('*');
+                    const targetRow = rows?.find(r => r.title && r.title.includes('Modern Salon'));
+                    if (targetRow && targetRow.image_url && targetRow.image_url.includes('1600210492486')) {
+                        await supabase.from('renovation_showcase')
+                            .update({
+                                image_url: 'https://i.imgur.com/HmoPx5P.jpeg',
+                                tag_color: '#B8820F',
+                                button_color: '#B8820F'
+                            })
+                            .eq('id', targetRow.id);
+                        console.log('Fixed Renovation Showcase DB');
+                    }
+
+                    // 2. Fix Urban Highlight Card Pills
+                    const { data: urbanConfig } = await supabase.from('screen_section_config').select('*').eq('id', 'highlight_card_urban').single();
+                    if (urbanConfig && (!urbanConfig.metadata.pills || urbanConfig.metadata.pills.length === 0 || (urbanConfig.metadata.pills.length === 1 && urbanConfig.metadata.pills[0] === 'Ada'))) {
+                        await supabase.from('screen_section_config')
+                            .update({
+                                metadata: {
+                                    ...urbanConfig.metadata,
+                                    pills: ['Ada Parsel Adres']
+                                }
+                            })
+                            .eq('id', 'highlight_card_urban');
+                        console.log('Fixed Urban Highlight Card DB');
+                    }
+                }
+            } catch (e) {
+                console.warn('DB Fix error:', e);
+            }
+        };
+
+        if (isAdmin) {
+            runDatabaseFix();
+        }
+
         return () => {
             unsubscribeFocus();
             appStateSubscription.remove();
         };
-    }, [navigation]);
+    }, [navigation, isAdmin]);
 
     const handleCategoryPress = (cat) => {
         if (cat.title === 'KİRALAMA') navigation.navigate('RentalStack');

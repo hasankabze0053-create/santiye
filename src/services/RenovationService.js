@@ -16,13 +16,27 @@ export const RenovationService = {
             const { data, error } = await supabase
                 .from('renovation_showcase')
                 .select('*')
-                .order('sort_order', { ascending: true });
-            
             if (error) throw error;
-            if (data && data.length > 0) {
-                await AsyncStorage.setItem('renovation_showcase_cache', JSON.stringify(data));
+            
+            // Hardcode premium overrides for Modern Salon slide ONLY IF it has the old Unsplash image.
+            const processedData = (data || []).map(item => {
+                if (item.title && item.title.includes('Modern Salon')) {
+                    if (item.image_url && item.image_url.includes('1600210492486')) {
+                        return {
+                            ...item,
+                            image_url: 'https://i.imgur.com/HmoPx5P.jpeg',
+                            tag_color: '#B8820F',
+                            button_color: '#B8820F'
+                        };
+                    }
+                }
+                return item;
+            });
+
+            if (processedData && processedData.length > 0) {
+                await AsyncStorage.setItem('renovation_showcase_cache', JSON.stringify(processedData));
             }
-            return data || [];
+            return processedData;
         } catch (error) {
             console.error('RenovationService.getShowcaseItems error:', error);
             return [];
