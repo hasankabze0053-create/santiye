@@ -22,22 +22,7 @@ export const AppAssetService = {
                 ];
                 return defaults;
             }
-            const processedData = (data || []).map(item => {
-                if (item.id === 'highlight_card_urban' && item.metadata) {
-                    const currentPills = item.metadata.pills || [];
-                    if (currentPills.length === 0 || (currentPills.length === 1 && currentPills[0] === 'Ada')) {
-                        return {
-                            ...item,
-                            metadata: {
-                                ...item.metadata,
-                                pills: ['Ada Parsel Adres']
-                            }
-                        };
-                    }
-                }
-                return item;
-            });
-            return processedData;
+            return data;
         } catch (error) {
             return [];
         }
