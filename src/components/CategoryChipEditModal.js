@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, Switch, ScrollView, Pressable, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, Platform, Alert, ActivityIndicator, Switch, ScrollView, Pressable, Keyboard } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppAssetService } from '../services/AppAssetService';
@@ -106,7 +107,14 @@ const CategoryChipEditModal = ({ visible, onClose, initialConfig, onSaveSuccess,
         <Modal visible={visible} animationType="slide" transparent statusBarTranslucent>
             <View style={styles.overlay}>
                 <Pressable style={StyleSheet.absoluteFill} onPress={Keyboard.dismiss} />
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+                <KeyboardAwareScrollView 
+                    style={{ flex: 1 }}
+                    contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }}
+                    keyboardShouldPersistTaps="handled"
+                    enableOnAndroid={true}
+                    extraScrollHeight={Platform.OS === 'ios' ? 20 : 0}
+                    bounces={false}
+                >
                     <View style={styles.panel}>
                     <View style={styles.header}>
                         <Text style={styles.modalTitle}>{isNew ? 'Yeni Buton Ekle' : 'Buton Düzenle'}</Text>
@@ -153,7 +161,7 @@ const CategoryChipEditModal = ({ visible, onClose, initialConfig, onSaveSuccess,
                         </TouchableOpacity>
                     )}
                 </View>
-            </KeyboardAvoidingView>
+            </KeyboardAwareScrollView>
             </View>
         </Modal>
     );

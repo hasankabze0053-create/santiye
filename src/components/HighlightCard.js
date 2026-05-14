@@ -145,7 +145,7 @@ const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, i
       </View>
 
       {/* 3. CONTENT AREA */}
-      <View style={[styles.overlayContent, { justifyContent: 'space-between', paddingBottom: 60, paddingTop: 75 }]}>
+      <View style={[styles.overlayContent, { justifyContent: 'space-between', paddingBottom: 50, paddingTop: 60 }]}>
         <View style={[styles.textContainer, { alignItems: align, flex: 1 }]}>
 
           <Text 
@@ -158,7 +158,7 @@ const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, i
                       transform: [{ translateX: descOffsetX }] // Removed Y offset to prevent overlaps
                   }
               ]} 
-              numberOfLines={3}
+              numberOfLines={4}
           >
             {config?.description}
           </Text>
@@ -281,8 +281,9 @@ const styles = StyleSheet.create({
   pillsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 8,
-    width: '95%',
+    marginTop: 6,
+    marginBottom: 4,
+    width: '100%',
     gap: 6,
   },
   renovationPill: {

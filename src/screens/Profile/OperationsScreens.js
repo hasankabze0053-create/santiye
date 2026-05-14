@@ -454,7 +454,7 @@ export const OffersScreen = () => {
 // --- 3. INBOX SCREEN (Gelen Kutusu / Teklifler) ---
 export const InboxScreen = () => {
     const { isDarkMode } = useTheme();
-    const [activeTab, setActiveTab] = useState('Mesajlar');
+    const [activeTab, setActiveTab] = useState('Bildirimler');
     const [chats, setChats] = useState([]);
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
