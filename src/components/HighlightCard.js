@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Platform } from 'react-native';
+import { Image } from 'expo-image';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, Defs, LinearGradient as SvgGradient, Stop, Text as SvgText, TSpan } from 'react-native-svg';
@@ -96,7 +97,9 @@ const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, i
               ]
             }
           ]}
-          resizeMode="cover"
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          transition={250}
         />
         <LinearGradient
           colors={['transparent', isDarkMode ? 'rgba(11,11,12,0.6)' : 'rgba(250,248,243,0.4)']}
@@ -146,6 +149,7 @@ const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, i
         <View style={[styles.textContainer, { alignItems: align, flex: 1 }]}>
 
           <Text 
+              allowFontScaling={false}
               style={[
                   styles.description, 
                   { 
@@ -166,7 +170,7 @@ const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, i
               <View style={[styles.pillsContainer, { justifyContent: align, transform: [{ translateX: pillsOffsetX }] }]}>
                   {config.pills.map((pill, idx) => (
                       <View key={idx} style={[styles.renovationPill, { borderColor: isDarkMode ? themePillsBorder : '#8C6200', backgroundColor: isDarkMode ? themePillsBg : 'rgba(140, 98, 0, 0.05)' }]}>
-                          <Text style={[styles.renovationPillText, { color: isDarkMode ? themePillsText : '#8C6200' }]}>{pill}</Text>
+                          <Text allowFontScaling={false} style={[styles.renovationPillText, { color: isDarkMode ? themePillsText : '#8C6200' }]}>{pill}</Text>
                       </View>
                   ))}
               </View>
@@ -181,7 +185,7 @@ const HighlightCard = ({ title, description, onPress, isAdmin, onEdit, config, i
             end={{ x: 1, y: 1 }}
             style={styles.cta}
           >
-            <Text style={styles.ctaText}>{config?.buttonText || 'Teklif Al'}</Text>
+            <Text allowFontScaling={false} style={styles.ctaText}>{config?.buttonText || 'Teklif Al'}</Text>
             <MaterialCommunityIcons name="arrow-right" size={16} color="#FFF" />
           </LinearGradient>
         </View>

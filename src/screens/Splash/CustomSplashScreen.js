@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { Dimensions, Image, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../context/AuthContext';
 
 const { width, height } = Dimensions.get('window');
@@ -19,6 +20,12 @@ const ASSETS_TO_LOAD = [
     require('../../assets/categories/cat_sigorta.png'),
     require('../../assets/categories/cat_maliyet.png'),
     require('../../assets/categories/cat_usta.png'),
+
+    // Preload Highlight Card (Banner) Premium Backgrounds to fix late loading on Home Screen
+    require('../../assets/highlight/kentsel_donusum_premium.png'),
+    require('../../assets/highlight/tadilat_premium.jpg'),
+    require('../../assets/highlight/market_premium.jpg'),
+    require('../../assets/highlight/hukuk_premium.jpg'),
 ];
 
 export default function CustomSplashScreen({ navigation }) {
@@ -34,16 +41,47 @@ export default function CustomSplashScreen({ navigation }) {
                     return Asset.fromModule(image).downloadAsync();
                 });
 
-                // 2. Wait for images AND minimum 2.5 seconds delay (so user sees the logo)
-                await Promise.all([
+                // 2. Start Preloading Dynamic Admin Images (OTA Support)
+                const dynamicImagePromises = [];
+                try {
+                    const cachedConfigStr = await AsyncStorage.getItem('app_highlight_configs_cache');
+                    if (cachedConfigStr) {
+                        const configs = JSON.parse(cachedConfigStr);
+                        if (configs && configs.length > 0) {
+                            const primaryConfig = configs[0]?.metadata;
+                            if (primaryConfig?.image_dark) {
+                                dynamicImagePromises.push(Image.prefetch(primaryConfig.image_dark));
+                            }
+                            if (primaryConfig?.image_light) {
+                                dynamicImagePromises.push(Image.prefetch(primaryConfig.image_light));
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.log('Dynamic prefetch error:', err);
+                }
+
+                // 3. Set a minimum branding time (1.2s) and maximum timeout (3s) to prevent infinite hanging
+                const minTimePromise = new Promise(resolve => setTimeout(resolve, 1200));
+                
+                const loadAllAssetsPromise = Promise.all([
                     ...cacheImages,
-                    new Promise(resolve => setTimeout(resolve, 2500))
+                    ...dynamicImagePromises
+                ]);
+
+                // We race the asset loading against a 3-second strict timeout.
+                // If network is terrible, we drop the user into the app after 3s max.
+                const maxTimeoutPromise = new Promise(resolve => setTimeout(resolve, 3000));
+
+                await Promise.all([
+                    minTimePromise, // Guarantee at least 1.2s for logo visibility
+                    Promise.race([loadAllAssetsPromise, maxTimeoutPromise]) // Cap loading at 3s
                 ]);
 
             } catch (e) {
                 console.warn("Asset preload error:", e);
             } finally {
-                // Mark assets as fully loaded
+                // Mark assets as fully loaded (or timed out)
                 setAssetsLoaded(true);
             }
         };

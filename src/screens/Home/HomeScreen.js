@@ -83,10 +83,23 @@ export default function HomeScreen({ navigation }) {
             if (data) setMarketCount(data.length);
         };
 
-        const fetchAllHighlights = async () => {
-            const allConfigs = await AppAssetService.getAllHighlightConfigs();
-            setConfigs(allConfigs);
-            return allConfigs;
+        const fetchAllHighlights = async (isSilent = false) => {
+            const CACHE_KEY = 'app_highlight_configs_cache';
+            try {
+                if (!isSilent) {
+                    const cached = await AsyncStorage.getItem(CACHE_KEY);
+                    if (cached) {
+                        setConfigs(JSON.parse(cached));
+                    }
+                }
+                const allConfigs = await AppAssetService.getAllHighlightConfigs();
+                setConfigs(allConfigs);
+                await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(allConfigs));
+                return allConfigs;
+            } catch (err) {
+                console.warn('Highlight fetch error:', err);
+                return [];
+            }
         };
 
         const fetchAllChips = async () => {

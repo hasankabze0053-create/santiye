@@ -57,6 +57,7 @@ import { ConstructionService } from '../../services/ConstructionService';
 import { MarketService } from '../../services/MarketService';
 import { ElevatorService } from '../../services/ElevatorService';
 import { useTheme } from '../../context/ThemeContext';
+import { supabase } from '../../lib/supabase';
 
 // --- MOCK DATA ---
 
@@ -471,17 +472,46 @@ export const InboxScreen = () => {
     const loadInbox = async () => {
         setLoading(true);
         try {
-            const [marketOffers, constructionOffers, activeChats] = await Promise.all([
+            const [marketOffers, constructionOffers, activeChats, userRes] = await Promise.all([
                 MarketService.getIncomingOffers(),
                 ConstructionService.getIncomingOffers(),
-                ChatService.getConversations() // Fetch chats
+                ChatService.getConversations(), // Fetch chats
+                supabase.auth.getUser()
             ]);
 
+            let currentUserType = null;
+            if (userRes?.data?.user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('user_type')
+                    .eq('id', userRes.data.user.id)
+                    .single();
+                if (profile) currentUserType = profile.user_type;
+            }
+
+            const getInitials = (name) => {
+                if (!name) return 'Sohbet';
+                const words = name.trim().split(' ');
+                if (words.length >= 2) return words.map(w => w.charAt(0).toUpperCase()).join('');
+                return name.charAt(0).toUpperCase();
+            };
+
             // Normalize Chats
-            const normChats = (activeChats || []).map(c => ({
+            const normChats = (activeChats || []).map(c => {
+                let displayName = c.otherParty?.company_name || c.otherParty?.full_name || 'Kullanıcı';
+                
+                // Privacy by default: if we are a corporate user, and receiver is individual (or we don't know their type)
+                // we obfuscate.
+                if (currentUserType === 'corporate') {
+                    if (!c.otherParty || c.otherParty.user_type === 'individual' || !c.otherParty.user_type) {
+                        displayName = getInitials(c.otherParty?.full_name || displayName);
+                    }
+                }
+
+                return {
                 id: c.key, // Use conversation key as unique ID
                 type: 'chat',
-                title: c.otherParty?.company_name || c.otherParty?.full_name || 'Kullanıcı',
+                title: displayName,
                 subtitle: c.requestTitle || 'Genel Sohbet',
                 created_at: c.lastMessageDate, // Correct property name for date formatting
                 price: '', // No price for chat
@@ -493,7 +523,8 @@ export const InboxScreen = () => {
                 otherPartyId: c.otherPartyId,
                 requestId: c.requestId,
                 requestOwnerId: c.requestOwnerId
-            }));
+            };
+        });
 
             // Group Construction Offers by Request + Contractor
             const groupedConstruction = {};

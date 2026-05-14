@@ -305,12 +305,20 @@ export default function ChatScreen() {
 
     const getDisplayName = () => {
         if (!receiver_name) return 'Sohbet';
+
+        const getInitials = (name) => {
+            const words = name.trim().split(' ');
+            if (words.length >= 2) return words.map(w => w.charAt(0).toUpperCase()).join('');
+            return name.charAt(0).toUpperCase();
+        };
+
+        // Prevent flash of full name by obfuscating until user types are resolved
+        if (currentUserType === null) {
+            return getInitials(receiver_name);
+        }
+
         if (currentUserType === 'corporate' && (!receiverUserType || receiverUserType === 'individual')) {
-            const words = receiver_name.trim().split(' ');
-            if (words.length >= 2) {
-                return words.map(w => w.charAt(0).toUpperCase()).join('');
-            }
-            return receiver_name.charAt(0).toUpperCase();
+            return getInitials(receiver_name);
         }
         return receiver_name;
     };
