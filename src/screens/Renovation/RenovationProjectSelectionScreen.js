@@ -5,13 +5,13 @@ import { useRef, useState } from 'react';
 import {
     Animated,
     Dimensions,
-    Image,
     StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
     View
 } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -173,14 +173,15 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
                         {/* IMAGE */}
                         <Image
                             source={item.image}
-                            fadeDuration={0}
                             style={{
                                 width: '100%',
                                 height: '100%',
                                 position: 'absolute',
                                 top: 0, left: 0,
                             }}
-                            resizeMode="cover"
+                            contentFit="cover"
+                            cachePolicy="memory-disk"
+                            transition={0}
                         />
 
                         {/* OVERLAY */}
@@ -205,7 +206,7 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
                         <LinearGradient
                             colors={['transparent', T.overlayStart, T.overlayEnd]}
                             locations={[0, 0.6, 1]}
-                            style={[styles.cardGradient, { height: '100%', justifyContent: 'flex-end', paddingBottom: 30 }]}
+                            style={[styles.cardGradient, { height: '55%', justifyContent: 'flex-end', paddingBottom: 30 }]}
                             pointerEvents="none"
                         >
                             <Text allowFontScaling={false} style={[styles.cardTitle, { color: T.goldPrimary, textShadowColor: isDarkMode ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)' }]}>{item.title}</Text>

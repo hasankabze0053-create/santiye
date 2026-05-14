@@ -390,7 +390,8 @@ export default function AppNavigator() {
 
             {/* Renovation */}
             <Stack.Screen name="Tadilat" component={RenovationScreen} />
-            <Stack.Screen name="RenovationProjectSelection" component={RenovationProjectSelectionScreen} options={{ animation: 'slide_from_right' }} />
+            {/* V18: Standardized Wizard Flow Animations */}
+            <Stack.Screen name="RenovationProjectSelection" component={RenovationProjectSelectionScreen} options={{ animation: 'fade' }} />
             <Stack.Screen name="KitchenBathWizard" component={KitchenBathWizardScreen} options={{ headerShown: false, gestureEnabled: true, animation: 'slide_from_bottom' }} />
             <Stack.Screen name="PaintDecorWizard" component={PaintDecorWizardScreen} options={{ headerShown: false, gestureEnabled: true, animation: 'slide_from_bottom' }} />
             <Stack.Screen name="AIRenovationAssistant" component={AIRenovationAssistantScreen} options={{ headerShown: false, gestureEnabled: true, animation: 'slide_from_right' }} />

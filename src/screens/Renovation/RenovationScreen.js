@@ -143,7 +143,7 @@ export default function RenovationScreen({ navigation }) {
         // Instant load for showcase slider
         RenovationService.getCachedShowcaseItems().then(cachedItems => {
             if (cachedItems && cachedItems.length > 0) {
-                setShowcaseItems(cachedItems);
+                setShowcaseItems(injectLocalImages(cachedItems));
             }
         });
 
@@ -174,10 +174,25 @@ export default function RenovationScreen({ navigation }) {
     const [editingShowcaseItem, setEditingShowcaseItem] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
 
+    const injectLocalImages = (items) => {
+        return items.map(item => {
+            if (item.id === 'e433494e-64ea-4918-81b8-a2a37e0a45d8' || (item.title && item.title.includes('Mutfak'))) {
+                return { ...item, title: "Mutfak\nDönüşümü", is_local: true, image: require('../../assets/renovation/mutfak_showcase.png'), title_color: '#FFF' };
+            }
+            if (item.id === '3884aa85-0a2f-4257-830d-1daf626903e9' || (item.title && item.title.includes('Asansör'))) {
+                return { ...item, title: "Asansör\nArıza & Bakım", is_local: true, image: require('../../assets/renovation/asansor_showcase.png'), title_color: '#FFF' };
+            }
+            if (item.id === '99c44660-e0d5-49fe-8f3b-a73674fe5aa2' || (item.title && item.title.includes('Salon'))) {
+                return { ...item, title: "Boya &\nDekorasyon", is_local: true, image: require('../../assets/renovation/boya_showcase.png'), title_color: '#FFF' };
+            }
+            return { ...item, title_color: '#FFF' };
+        });
+    };
+
     const fetchShowcase = async () => {
         const items = await RenovationService.getShowcaseItems();
         if (items && items.length > 0) {
-            setShowcaseItems(items);
+            setShowcaseItems(injectLocalImages(items));
         }
     };
 
@@ -475,11 +490,13 @@ export default function RenovationScreen({ navigation }) {
                                             { transform: [{ scale: slide.image_scale || 1 }] }
                                         ]} 
                                         contentFit="cover" 
-                                        transition={500} 
+                                        transition={0} 
                                     />
-                                    <View style={styles.slideOverlay}>
+                                    <View style={[styles.slideOverlay, { justifyContent: 'center' }]}>
                                         <LinearGradient
-                                            colors={['transparent', 'rgba(0,0,0,0.9)']}
+                                            colors={isDarkMode ? ['rgba(0,0,0,0.85)', 'rgba(0,0,0,0.4)', 'transparent'] : ['rgba(0,0,0,0.7)', 'rgba(0,0,0,0.2)', 'transparent']}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 0.8, y: 0 }}
                                             style={StyleSheet.absoluteFillObject}
                                         />
                                         <View style={[
@@ -488,20 +505,28 @@ export default function RenovationScreen({ navigation }) {
                                                 transform: [
                                                     { translateX: slide.text_offset_x || 0 },
                                                     { translateY: slide.text_offset_y || 0 }
-                                                ]
+                                                ],
+                                                paddingTop: 40
                                             }
                                         ]}>
-                                            <View style={[
-                                                styles.tagContainer,
-                                                { backgroundColor: T.goldAccent, alignSelf: 'flex-start' }
-                                            ]}>
-                                                <Text allowFontScaling={false} style={[styles.tagText, { color: isDarkMode ? '#000' : '#FFF' }]}>{slide.tag}</Text>
+                                            <View style={{ width: '100%' }}>
+                                                <View style={[
+                                                    styles.tagContainer,
+                                                    { backgroundColor: T.goldAccent, alignSelf: 'flex-start', marginBottom: 10 }
+                                                ]}>
+                                                    <Text allowFontScaling={false} style={[styles.tagText, { color: isDarkMode ? '#000' : '#FFF' }]}>{slide.tag}</Text>
+                                                </View>
+
+                                                <Text allowFontScaling={false} style={[
+                                                    styles.slideTitle, 
+                                                    { color: slide.title_color || '#FFF', marginBottom: 15 }
+                                                ]}>{slide.title}</Text>
+
+                                                <TouchableOpacity style={[styles.offerBtn, { backgroundColor: T.goldAccent }]} onPress={() => navigation.navigate('RenovationProjectSelection')}>
+                                                    <Text allowFontScaling={false} style={[styles.offerBtnText, { color: isDarkMode ? '#000' : '#FFF' }]}>{slide.button_text || 'TEKLİF AL'}</Text>
+                                                    <MaterialCommunityIcons name="arrow-right" size={16} color={isDarkMode ? '#000' : '#FFF'} />
+                                                </TouchableOpacity>
                                             </View>
-                                            <Text allowFontScaling={false} style={[styles.slideTitle, { color: slide.title_color || '#FFF' }]}>{slide.title}</Text>
-                                            <TouchableOpacity style={[styles.offerBtn, { backgroundColor: T.goldAccent }]} onPress={() => navigation.navigate('RenovationProjectSelection')}>
-                                                <Text allowFontScaling={false} style={[styles.offerBtnText, { color: isDarkMode ? '#000' : '#FFF' }]}>{slide.button_text || 'TEKLİF AL'}</Text>
-                                                <MaterialCommunityIcons name="arrow-right" size={16} color={isDarkMode ? '#000' : '#FFF'} />
-                                            </TouchableOpacity>
                                         </View>
 
                                         {/* Admin Slider Edit Shortcut */}
@@ -1077,7 +1102,7 @@ const styles = StyleSheet.create({
     slideOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '100%', justifyContent: 'flex-end', padding: 20 },
     tagContainer: { backgroundColor: GOLD_MAIN, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, alignSelf: 'flex-start', marginBottom: 10 },
     tagText: { color: '#000', fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase' },
-    slideTitle: { color: '#fff', fontSize: 28, fontWeight: '300', marginBottom: 15 },
+    slideTitle: { color: '#fff', fontSize: 28, fontWeight: '800', marginBottom: 15, letterSpacing: -0.5 },
     offerBtn: { backgroundColor: GOLD_MAIN, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 5 },
     offerBtnText: { color: '#000', fontSize: 12, fontWeight: '900' },
 

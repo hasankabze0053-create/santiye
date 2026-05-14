@@ -26,6 +26,16 @@ const ASSETS_TO_LOAD = [
     require('../../assets/highlight/tadilat_premium.jpg'),
     require('../../assets/highlight/market_premium.jpg'),
     require('../../assets/highlight/hukuk_premium.jpg'),
+    // Preload Renovation Wizard Images for instant rendering
+    require('../../assets/renovation/daire_warm.png'),
+    require('../../assets/renovation/villa_warm.png'),
+    require('../../assets/renovation/ofis_warm.png'),
+    require('../../assets/renovation/magaza_warm.png'),
+
+    // Preload Renovation Showcase Premium Images for flawless rendering
+    require('../../assets/renovation/mutfak_showcase.png'),
+    require('../../assets/renovation/asansor_showcase.png'),
+    require('../../assets/renovation/boya_showcase.png'),
 ];
 
 export default function CustomSplashScreen({ navigation }) {
