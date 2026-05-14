@@ -183,7 +183,7 @@ export default function BuildingSchema({
         floorItems.push(
             <View key="ground" style={styles.floorRow}>
                 <Text allowFontScaling={false} style={styles.floorLabel}>Zemin</Text>
-                <View style={[styles.floorContent, { borderColor: groundFloorType === 'shop' ? '#D4AF37' : '#444' }]}>
+                <View style={[styles.floorContent, { borderColor: groundFloorType === 'shop' ? (isDarkMode ? '#D4AF37' : '#8C6200') : (isDarkMode ? '#444' : theme.borderLight) }]}>
                     {groundUnits.length > 0 ? groundUnits.map(renderUnit) : (
                         <View style={[styles.unitBox, { backgroundColor: '#222' }]}>
                             <Text allowFontScaling={false} style={styles.unitText}>Giriş</Text>
@@ -483,7 +483,7 @@ const getStyles = (theme, isDarkMode) => StyleSheet.create({
         flex: 1,
         height: '100%',
         borderRightWidth: 1,
-        borderRightColor: 'rgba(0,0,0,0.5)',
+        borderRightColor: isDarkMode ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.1)',
         alignItems: 'center',
         justifyContent: 'center',
         padding: 4

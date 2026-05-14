@@ -2,7 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useState } from 'react';
-import { Dimensions, RefreshControl, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Dimensions, RefreshControl, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ConstructionService } from '../../services/ConstructionService';
 import { useAuth } from '../../context/AuthContext';
@@ -15,6 +15,7 @@ export default function ContractorProviderScreen(props) {
     const { user } = useAuth();
     const [requests, setRequests] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('tenders'); // 'tenders' | 'bids' | 'won'
 
     // Dynamic Provider Info
@@ -26,20 +27,32 @@ export default function ContractorProviderScreen(props) {
         initials: (user?.company_name || user?.full_name || '??').substring(0, 2).toUpperCase()
     };
 
-    useFocusEffect(
-        useCallback(() => {
-            loadRequests();
-        }, [])
-    );
-
-    const loadRequests = async () => {
+    // API Timeout helper
+    const fetchWithTimeout = async (promise, ms = 10000) => {
+        let timeoutId;
+        const timeoutPromise = new Promise((_, reject) => {
+            timeoutId = setTimeout(() => reject(new Error('İstek zaman aşımına uğradı. Lütfen internet bağlantınızı kontrol edin.')), ms);
+        });
         try {
-            setRefreshing(true);
+            const result = await Promise.race([promise, timeoutPromise]);
+            clearTimeout(timeoutId);
+            return result;
+        } catch (error) {
+            clearTimeout(timeoutId);
+            throw error;
+        }
+    };
+
+    const loadRequests = useCallback(async (isManual = false) => {
+        try {
+            if (isManual) setRefreshing(true);
+            else setLoading(true);
+            
             let data = [];
             if (activeTab === 'tenders') {
-                data = await ConstructionService.getOpenRequestsForContractor();
+                data = await fetchWithTimeout(ConstructionService.getOpenRequestsForContractor());
             } else if (activeTab === 'bids') {
-                data = await ConstructionService.getContractorBids();
+                data = await fetchWithTimeout(ConstructionService.getContractorBids());
             } else {
                 // won - future implementation
                 data = [];
@@ -47,16 +60,38 @@ export default function ContractorProviderScreen(props) {
             setRequests(data || []);
         } catch (error) {
             console.warn('ContractorProviderScreen loadRequests error:', error);
+            // Professional UX: Do not wipe existing data on refresh timeout.
+            setRequests(prev => {
+                if (prev.length > 0) {
+                    if (isManual) {
+                        Alert.alert('Bağlantı Hatası', 'Veriler güncellenirken sunucuya ulaşılamadı. Lütfen internetinizi kontrol edin. Mevcut veriler gösterilmeye devam ediyor.');
+                    }
+                    return prev; // Keep old data
+                }
+                // Only show empty state if we had nothing to begin with
+                return []; 
+            });
         } finally {
             setRefreshing(false);
+            setLoading(false);
         }
-    };
+    }, [activeTab]);
 
-    useFocusEffect(
-        useCallback(() => {
-            loadRequests();
-        }, [activeTab])
-    );
+    useEffect(() => {
+        let isActive = true;
+        
+        const initFetch = async () => {
+            if (isActive) {
+                await loadRequests(false);
+            }
+        };
+        
+        initFetch();
+        
+        return () => {
+            isActive = false;
+        };
+    }, [loadRequests]);
 
     const renderTendersTab = () => (
         <View style={styles.tabContent}>
@@ -64,13 +99,17 @@ export default function ContractorProviderScreen(props) {
                 <Text allowFontScaling={false} style={styles.feedTitle}>
                     {activeTab === 'tenders' ? `YERİNDE DÖNÜŞÜM İHALELERİ (${requests.length})` : `VERİLEN TEKLİFLER (${requests.length})`}
                 </Text>
-                <TouchableOpacity onPress={loadRequests} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, padding: 8 }}>
-                    <Ionicons name="filter" size={16} color="#94a3b8" />
-                    <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 13, fontWeight: '500' }}>Filtrele</Text>
+                <TouchableOpacity onPress={() => loadRequests(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, padding: 8 }}>
+                    <Ionicons name="refresh" size={16} color="#94a3b8" />
+                    <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 13, fontWeight: '500' }}>Yenile</Text>
                 </TouchableOpacity>
             </View>
 
-            {requests.length === 0 ? (
+            {loading ? (
+                <View style={{ padding: 40, alignItems: 'center' }}>
+                    <ActivityIndicator size="large" color="#D4AF37" />
+                </View>
+            ) : requests.length === 0 ? (
                 <View style={styles.emptyState}>
                     <MaterialCommunityIcons name={activeTab === 'tenders' ? "home-city-outline" : "file-document-edit-outline"} size={56} color="#334155" />
                     <Text allowFontScaling={false} style={styles.emptyText}>
@@ -190,7 +229,7 @@ export default function ContractorProviderScreen(props) {
                 <ScrollView
                     contentContainerStyle={{ paddingBottom: 40 }}
                     showsVerticalScrollIndicator={false}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadRequests} tintColor="#D4AF37" />}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadRequests(true)} tintColor="#D4AF37" />}
                 >
                     {/* 1. HEADER */}
                     <View style={styles.header}>

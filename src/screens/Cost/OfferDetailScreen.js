@@ -15,7 +15,10 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
+    TextInput,
+    KeyboardAvoidingView,
+    Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BuildingSchema from '../../components/BuildingSchema';
@@ -80,6 +83,9 @@ export default function OfferDetailScreen() {
     const [isSchemaModalVisible, setIsSchemaModalVisible] = useState(false);
     const [showRequestModal, setShowRequestModal] = useState(false);
     const [viewerMode, setViewerMode] = useState('contractor');
+    const [showPhoneModal, setShowPhoneModal] = useState(false);
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [isSharing, setIsSharing] = useState(false);
     const styles = getStyles(theme, isDarkMode);
 
     const scrollX = useRef(new Animated.Value(0)).current;
@@ -133,6 +139,68 @@ export default function OfferDetailScreen() {
         if (!contractor_id) return;
         const { data } = await supabase.from('profiles').select('*').eq('id', contractor_id).single();
         if (data) setContractor(data);
+    };
+
+    const handleShareContact = async () => {
+        try {
+            setIsSharing(true);
+            const { data: profile } = await supabase.from('profiles').select('phone').eq('id', user.id).single();
+            
+            if (profile?.phone) {
+                Alert.alert(
+                    'İletişim Bilgileri',
+                    `${profile.phone} numaralı iletişim numaranız ilgili firmayla paylaşılacaktır. Onaylıyor musunuz?`,
+                    [
+                        { text: 'Vazgeç', style: 'cancel' },
+                        { text: 'Paylaş', onPress: () => executeShare(profile.phone) }
+                    ]
+                );
+            } else {
+                setPhoneNumber('0');
+                setShowPhoneModal(true);
+            }
+        } catch (error) {
+            Alert.alert("Hata", "Bilgiler kontrol edilemedi.");
+        } finally {
+            setIsSharing(false);
+        }
+    };
+
+    const executeShare = async (phoneToShare) => {
+        try {
+            setIsSharing(true);
+            // If phone was just entered, update profile
+            if (phoneToShare === phoneNumber) {
+                await supabase.from('profiles').update({ phone: phoneToShare }).eq('id', user.id);
+            }
+
+            const finalReqId = request_id || request?.id;
+            const finalContId = contractor_id || contractor?.id;
+
+            // Insert system message
+            await supabase.from('messages').insert({
+                request_id: finalReqId,
+                sender_id: user.id,
+                receiver_id: finalContId,
+                content: `SYSTEM_CONTACT_SHARE|${phoneToShare}`,
+                is_read: false
+            });
+
+            // Navigate to chat
+            navigation.navigate('Chat', {
+                receiver_id: finalContId,
+                receiver_name: contractor?.company_name || contractor?.full_name || 'Firma',
+                receiver_avatar: contractor?.avatar_url,
+                request_id: finalReqId,
+                request_title: request?.title || 'Talebiniz'
+            });
+
+        } catch (e) {
+            Alert.alert("Hata", "Bilgiler paylaşılırken bir sorun oluştu.");
+        } finally {
+            setIsSharing(false);
+            setShowPhoneModal(false);
+        }
     };
 
     const fetchOffers = async () => {
@@ -415,16 +483,14 @@ export default function OfferDetailScreen() {
                         </View>
                     </View>
 
-                    {isAdminView && (
-                        <TouchableOpacity 
-                            style={[styles.adminRequestBtn, { marginTop: 15, marginBottom: 5 }]}
-                            onPress={() => setShowRequestModal(true)}
-                        >
-                            <MaterialCommunityIcons name="file-document-outline" size={18} color={isDarkMode ? '#D4AF37' : '#8C6200'} />
-                            <Text style={styles.adminRequestBtnText}>TALEBİ GÖRÜNTÜLE</Text>
-                            <Ionicons name="chevron-forward" size={14} color={isDarkMode ? '#D4AF37' : '#8C6200'} style={{ marginLeft: 'auto' }} />
-                        </TouchableOpacity>
-                    )}
+                    <TouchableOpacity 
+                        style={[styles.adminRequestBtn, { marginTop: 15, marginBottom: 5 }]}
+                        onPress={() => setShowRequestModal(true)}
+                    >
+                        <MaterialCommunityIcons name="file-document-outline" size={18} color={isDarkMode ? '#D4AF37' : '#8C6200'} />
+                        <Text allowFontScaling={false} style={styles.adminRequestBtnText}>TALEBİ İNCELE</Text>
+                        <Ionicons name="chevron-forward" size={14} color={isDarkMode ? '#D4AF37' : '#8C6200'} style={{ marginLeft: 'auto' }} />
+                    </TouchableOpacity>
 
                     <TouchableOpacity 
                         style={styles.visitBtn}
@@ -556,7 +622,7 @@ export default function OfferDetailScreen() {
                 )}
 
                 {/* 4. Action Buttons */}
-                {contractor?.id !== user?.id && !isAdminView && (
+                {viewerMode === 'landowner' && !isAdminView && (
                     <View style={{ marginTop: 30, gap: 12 }}>
                         {/* Info Note */}
                         <GlassCard style={styles.infoNoteCard}>
@@ -573,17 +639,9 @@ export default function OfferDetailScreen() {
                         </GlassCard>
 
                         <TouchableOpacity 
-                            style={styles.primaryBtn}
-                            onPress={() => {
-                                Alert.alert(
-                                    'İletişim Bilgileri',
-                                    'İletişim bilgileriniz firma ile paylaşılacaktır. Onaylıyor musunuz?',
-                                    [
-                                        { text: 'Vazgeç', style: 'cancel' },
-                                        { text: 'Paylaş', onPress: () => Alert.alert('Başarılı', 'Bilgileriniz iletildi. Firma sizinle iletişime geçecektir.') }
-                                    ]
-                                );
-                            }}
+                            style={[styles.primaryBtn, isSharing && { opacity: 0.7 }]}
+                            disabled={isSharing}
+                            onPress={handleShareContact}
                         >
                             <LinearGradient
                                 colors={['#D4AF37', '#B8860B']}
@@ -765,6 +823,55 @@ export default function OfferDetailScreen() {
                             }}
                         />
                     </View>
+                </Modal>
+
+                {/* Phone Collection Modal */}
+                <Modal visible={showPhoneModal} animationType="fade" transparent={true} onRequestClose={() => setShowPhoneModal(false)}>
+                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', padding: 20 }}>
+                        <GlassCard style={{ padding: 24, borderRadius: 24, backgroundColor: isDarkMode ? '#1C1C1E' : theme.surface }}>
+                            <MaterialCommunityIcons name="phone-lock" size={48} color="#D4AF37" style={{ alignSelf: 'center', marginBottom: 16 }} />
+                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 8 }}>İletişim Bilgileriniz Eksik</Text>
+                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#BBB' : theme.textSecondary, fontSize: 13, textAlign: 'center', marginBottom: 20 }}>
+                                Firma ile paylaşabilmek için lütfen iletişim numaranızı girin. Bu numara profilinize güvenli bir şekilde kaydedilecektir.
+                            </Text>
+
+                            <View style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : theme.surfaceSecondary, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 4, marginBottom: 20, borderWidth: 1, borderColor: isDarkMode ? '#333' : theme.borderLight }}>
+                                <TextInput
+                                    allowFontScaling={false}
+                                    style={{ color: isDarkMode ? '#FFF' : theme.text, fontSize: 16, height: 50 }}
+                                    placeholder="05XX XXX XX XX"
+                                    placeholderTextColor={isDarkMode ? '#666' : theme.textSecondary}
+                                    keyboardType="phone-pad"
+                                    value={phoneNumber}
+                                    onChangeText={(val) => {
+                                        // Ensure it always starts with 0
+                                        if (!val.startsWith('0')) {
+                                            setPhoneNumber('0' + val.replace(/^0+/, ''));
+                                        } else {
+                                            setPhoneNumber(val);
+                                        }
+                                    }}
+                                    maxLength={11}
+                                />
+                            </View>
+
+                            <View style={{ flexDirection: 'row', gap: 12 }}>
+                                <TouchableOpacity style={{ flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center' }} onPress={() => setShowPhoneModal(false)} disabled={isSharing}>
+                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : theme.text, fontWeight: 'bold' }}>İPTAL</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity 
+                                    style={{ flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: '#D4AF37', alignItems: 'center' }} 
+                                    onPress={() => {
+                                        if (phoneNumber.length < 11) Alert.alert("Hata", "Lütfen telefon numarasını 11 haneli olacak şekilde (05...) girin.");
+                                        else executeShare(phoneNumber);
+                                    }}
+                                    disabled={isSharing}
+                                >
+                                    {isSharing ? <ActivityIndicator size="small" color="#000" /> : <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold' }}>KAYDET & PAYLAŞ</Text>}
+                                </TouchableOpacity>
+                            </View>
+                        </GlassCard>
+                    </KeyboardAvoidingView>
                 </Modal>
 
             </SafeAreaView>

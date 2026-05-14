@@ -42,6 +42,7 @@ import {
 
 
     FlatList,
+    RefreshControl,
     ScrollView,
     StatusBar,
     StyleSheet,
@@ -407,7 +408,7 @@ export const RequestsScreen = () => {
                 <FlatList
                     data={filteredRequests}
                     renderItem={renderItem}
-                    keyExtractor={i => i.id}
+                    keyExtractor={(i, index) => (i?.id ? i.id.toString() : `req_${index}`)}
                     contentContainerStyle={styles.listContent}
                     ListEmptyComponent={<EmptyState />}
                     onRefresh={loadRequests}
@@ -444,7 +445,7 @@ export const OffersScreen = () => {
 
     return (
         <ScreenLayout title="Tekliflerim" theme={theme} activeTab={activeTab} setActiveTab={setActiveTab} tabs={['Verilen', 'Taslak']} icon="plus">
-            <FlatList data={OFFERS_DATA} renderItem={renderItem} keyExtractor={i => i.id} contentContainerStyle={styles.listContent} />
+            <FlatList data={OFFERS_DATA} renderItem={renderItem} keyExtractor={(i, index) => (i?.id ? i.id.toString() : `offer_${index}`)} contentContainerStyle={styles.listContent} />
         </ScreenLayout>
     );
 };
@@ -455,7 +456,9 @@ export const InboxScreen = () => {
     const [activeTab, setActiveTab] = useState('Mesajlar');
     const [chats, setChats] = useState([]);
     const [notifications, setNotifications] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
     const theme = getTheme(isDarkMode);
     const navigation = useNavigation();
 
@@ -499,6 +502,7 @@ export const InboxScreen = () => {
                 if (!groupedConstruction[key]) {
                     groupedConstruction[key] = {
                         ...offer,
+                        id: `group_const_${key}`, // ENTERPRISE SOLUTION: Deterministic Unique Group ID
                         type: 'construction',
                         offers: [],
                         request: {
@@ -517,6 +521,7 @@ export const InboxScreen = () => {
                 if (!groupedMarket[rid]) {
                     groupedMarket[rid] = {
                         ...offer,
+                        id: `group_market_${rid}`, // ENTERPRISE SOLUTION: Deterministic Unique Group ID
                         type: 'market',
                         bids: [],
                         request: offer.request
@@ -585,9 +590,14 @@ export const InboxScreen = () => {
         } catch (error) {
             console.error(error);
         } finally {
-            setLoading(false);
+            if (!isRefreshing) setLoading(false);
         }
     };
+
+    const onRefreshHandler = useCallback(() => {
+        setIsRefreshing(true);
+        loadInbox().finally(() => setIsRefreshing(false));
+    }, []);
 
     const renderItem = ({ item }) => {
         if (item.type === 'chat') {
@@ -740,11 +750,17 @@ export const InboxScreen = () => {
             <FlatList
                 data={activeTab === 'Mesajlar' ? chats : notifications}
                 renderItem={renderItem}
-                keyExtractor={i => i.id}
+                keyExtractor={(i, index) => (i?.id ? i.id.toString() : `inbox_${index}`)}
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={<EmptyState />}
-                onRefresh={loadInbox}
-                refreshing={loading}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={isRefreshing}
+                        onRefresh={onRefreshHandler}
+                        tintColor={theme.accent}
+                        colors={[theme.accent]}
+                    />
+                }
             />
         </ScreenLayout>
     );

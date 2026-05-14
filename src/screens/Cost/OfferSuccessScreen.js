@@ -6,11 +6,14 @@ import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PremiumBackground from '../../components/PremiumBackground';
+import { useTheme } from '../../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 export default function OfferSuccessScreen() {
     const navigation = useNavigation();
+    const { isDarkMode } = useTheme();
+    const styles = getStyles(isDarkMode);
 
     const handleContinue = () => {
         // Navigate back to the contractor dashboard (as seen in screenshot)
@@ -28,10 +31,12 @@ export default function OfferSuccessScreen() {
                         style={styles.iconContainer}
                     >
                         <LinearGradient
-                            colors={['rgba(212, 175, 55, 0.2)', 'rgba(212, 175, 55, 0)']}
+                            colors={isDarkMode ? ['rgba(212, 175, 55, 0.2)', 'rgba(212, 175, 55, 0)'] : ['rgba(184, 134, 11, 0.15)', 'rgba(184, 134, 11, 0.02)']}
                             style={styles.glow}
                         />
-                        <MaterialCommunityIcons name="check-decagram" size={140} color="#D4AF37" />
+                        <View style={styles.iconBadge}>
+                            <MaterialCommunityIcons name="check-decagram" size={140} color={isDarkMode ? "#D4AF37" : "#B8860B"} />
+                        </View>
                     </Animated.View>
 
                     {/* Main Title */}
@@ -52,7 +57,7 @@ export default function OfferSuccessScreen() {
                         </Text>
                         
                         <View style={styles.infoRow}>
-                            <MaterialCommunityIcons name="shield-check" size={20} color="#D4AF37" />
+                            <MaterialCommunityIcons name="shield-check" size={20} color={isDarkMode ? "#D4AF37" : "#8C6200"} />
                             <Text allowFontScaling={false} style={styles.infoText}>
                                 Güvenli ve profesyonel teklif süreci
                             </Text>
@@ -70,15 +75,15 @@ export default function OfferSuccessScreen() {
                             onPress={handleContinue}
                         >
                             <LinearGradient
-                                colors={['#D4AF37', '#B8860B']}
+                                colors={isDarkMode ? ['#D4AF37', '#B8860B'] : ['#B8860B', '#8C6200']}
                                 start={{ x: 0, y: 0 }}
                                 end={{ x: 1, y: 0 }}
                                 style={styles.gradientButton}
                             >
-                                <Text allowFontScaling={false} style={styles.buttonText}>
+                                <Text allowFontScaling={false} style={[styles.buttonText, { color: isDarkMode ? '#000' : '#FFF' }]}>
                                     DİĞER TALEPLERİ İNCELE
                                 </Text>
-                                <MaterialCommunityIcons name="arrow-right" size={20} color="#000" />
+                                <MaterialCommunityIcons name="arrow-right" size={20} color={isDarkMode ? '#000' : '#FFF'} />
                             </LinearGradient>
                         </TouchableOpacity>
                     </Animated.View>
@@ -89,7 +94,7 @@ export default function OfferSuccessScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (isDarkMode) => StyleSheet.create({
     container: {
         flex: 1,
     },
@@ -106,46 +111,59 @@ const styles = StyleSheet.create({
     },
     glow: {
         position: 'absolute',
-        width: 200,
-        height: 200,
-        borderRadius: 100,
+        width: 220,
+        height: 220,
+        borderRadius: 110,
+    },
+    iconBadge: {
+        shadowColor: "#D4AF37",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
+        elevation: 5,
     },
     title: {
         fontSize: 28,
         fontWeight: '900',
-        color: '#D4AF37',
+        color: isDarkMode ? '#D4AF37' : '#B8860B',
         textAlign: 'center',
         letterSpacing: 1.5,
         lineHeight: 38,
         marginBottom: 24,
     },
     messageBox: {
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(212, 175, 55, 0.04)',
         padding: 24,
         borderRadius: 24,
         borderWidth: 1,
-        borderColor: 'rgba(212, 175, 55, 0.2)',
+        borderColor: isDarkMode ? 'rgba(212, 175, 55, 0.2)' : 'rgba(212, 175, 55, 0.4)',
         width: '100%',
         marginBottom: 40,
+        shadowColor: isDarkMode ? "#000" : "#D4AF37",
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: isDarkMode ? 0.5 : 0.05,
+        shadowRadius: 20,
+        elevation: 5,
     },
     messageText: {
-        color: '#DDD',
+        color: isDarkMode ? '#DDD' : '#444',
         fontSize: 16,
         textAlign: 'center',
         lineHeight: 24,
         marginBottom: 20,
+        fontWeight: isDarkMode ? 'normal' : '500',
     },
     infoRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        opacity: 0.8,
+        opacity: 0.9,
     },
     infoText: {
-        color: '#888',
+        color: isDarkMode ? '#888' : '#666',
         fontSize: 13,
-        fontWeight: '500',
+        fontWeight: '600',
     },
     footer: {
         width: '100%',

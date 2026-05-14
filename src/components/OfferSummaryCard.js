@@ -129,8 +129,8 @@ export default function OfferSummaryCard({
                     <>
                         <Text allowFontScaling={false} style={{ fontWeight: 'bold', color: isDarkMode ? '#FFF' : theme.text }}>
                             {isLandowner
-                                ? 'Söz konusu inşaat yapım işi için müteahhit firmanın talebi;'
-                                : 'Söz konusu inşaat yapım işi için müteahhit firma olarak talebim;'}
+                                ? 'Söz konusu inşaat yapım işi için müteahhit firmanın teklifi;'
+                                : 'Söz konusu inşaat yapım işi için müteahhit firma olarak teklifim;'}
                         </Text>
                         {'\n\n'}
 

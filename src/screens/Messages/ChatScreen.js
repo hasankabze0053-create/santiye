@@ -14,12 +14,15 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
+    Linking
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function ChatScreen() {
+    const { isDarkMode } = useTheme();
     const navigation = useNavigation();
     const route = useRoute();
     const { receiver_id, receiver_name, receiver_avatar, request_id, request_title, request_owner_id } = route.params || {};
@@ -29,6 +32,8 @@ export default function ChatScreen() {
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
+    const [currentUserType, setCurrentUserType] = useState(null);
+    const [receiverUserType, setReceiverUserType] = useState(null);
     const [offerData, setOfferData] = useState(null);
     const flatListRef = useRef(null);
 
@@ -53,12 +58,30 @@ export default function ChatScreen() {
                 },
                 (payload) => {
                     const newMessage = payload.new;
-                    // Only add if relevant to this chat (redundant check but safe)
-                    if (
+                    const isRelevantUser = (
                         (newMessage.sender_id === currentUser?.id && newMessage.receiver_id === receiver_id) ||
                         (newMessage.sender_id === receiver_id && newMessage.receiver_id === currentUser?.id)
-                    ) {
-                        setMessages(prev => [newMessage, ...prev]);
+                    );
+
+                    const matchesRequest = request_id
+                        ? newMessage.request_id === request_id
+                        : !newMessage.request_id; // null or undefined
+
+                    // Only add if relevant to THIS specific chat room (users + specific project)
+                    if (isRelevantUser && matchesRequest) {
+                        setMessages(prev => {
+                            // 1. DEDUPLICATION: If this ID already exists, ignore it (prevents React duplicate key warning)
+                            if (prev.some(m => m.id === newMessage.id)) return prev;
+
+                            // 2. OPTIMISTIC UI CLEANUP: If the real message arrives before the insert resolves, 
+                            // remove the temporary optimistic message that has the same content.
+                            const cleanedPrev = prev.filter(m => 
+                                !(String(m.id).startsWith('temp-') && m.content === newMessage.content && m.sender_id === newMessage.sender_id)
+                            );
+
+                            // 3. Add the new real message to the top
+                            return [newMessage, ...cleanedPrev];
+                        });
                     }
                 }
             )
@@ -74,6 +97,20 @@ export default function ChatScreen() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
             setCurrentUser(user);
+
+            // Get both profile types
+            const { data: profiles } = await supabase
+                .from('profiles')
+                .select('id, user_type')
+                .in('id', [user.id, receiver_id]);
+            
+            if (profiles) {
+                const myProfile = profiles.find(p => p.id === user.id);
+                const recProfile = profiles.find(p => p.id === receiver_id);
+                if (myProfile) setCurrentUserType(myProfile.user_type);
+                if (recProfile) setReceiverUserType(recProfile.user_type);
+            }
+
             await fetchMessages(user.id);
             if (request_id) {
                 await fetchOfferData(user.id);
@@ -88,17 +125,32 @@ export default function ChatScreen() {
     const fetchMessages = async (userId) => {
         if (!receiver_id) return;
 
-        // Fetch messages between me and receiver
-        const { data, error } = await supabase
+        // Base query for me and receiver
+        let query = supabase
             .from('messages')
             .select('*')
-            .or(`and(sender_id.eq.${userId},receiver_id.eq.${receiver_id}),and(sender_id.eq.${receiver_id},receiver_id.eq.${userId})`)
-            .order('created_at', { ascending: false });
+            .or(`and(sender_id.eq.${userId},receiver_id.eq.${receiver_id}),and(sender_id.eq.${receiver_id},receiver_id.eq.${userId})`);
+
+        // ISOLATION: Strict filter by request_id so different projects don't mix
+        if (request_id) {
+            query = query.eq('request_id', request_id);
+        } else {
+            query = query.is('request_id', null);
+        }
+
+        const { data, error } = await query.order('created_at', { ascending: false });
 
         if (error) {
             console.error('Fetch Messages Error:', error);
         } else {
-            setMessages(data || []);
+            // DEDUPLICATION: Ensure initial fetch has absolute unique IDs
+            if (data && data.length > 0) {
+                const uniqueMap = new Map();
+                data.forEach(item => uniqueMap.set(item.id, item));
+                setMessages(Array.from(uniqueMap.values()));
+            } else {
+                setMessages([]);
+            }
         }
     };
 
@@ -159,9 +211,11 @@ export default function ChatScreen() {
             };
             console.log('Sending message payload:', payload);
 
-            const { error } = await supabase
+            const { error, data: insertedData } = await supabase
                 .from('messages')
-                .insert(payload);
+                .insert(payload)
+                .select()
+                .single();
 
             if (error) {
                 console.error('Supabase Insert Error:', JSON.stringify(error, null, 2));
@@ -170,10 +224,15 @@ export default function ChatScreen() {
                 throw error;
             }
 
-            // Successfully sent
-            // The subscription will eventually bring the real message with its actual ID.
-            // The `setMessages` logic in the subscription handler will replace the optimistic message
-            // or handle potential duplicates.
+            // Successfully sent -> Swap the optimistic message with the REAL message from database
+            setMessages(prev => {
+                // If the realtime subscription already added the real message, just remove the temp one
+                if (prev.some(m => m.id === insertedData.id)) {
+                    return prev.filter(m => m.id !== optimisticMsg.id);
+                }
+                // Otherwise, replace the temp one with the real one
+                return prev.map(m => m.id === optimisticMsg.id ? insertedData : m);
+            });
 
         } catch (error) {
             console.error('Send Message Error:', error);
@@ -185,30 +244,90 @@ export default function ChatScreen() {
     };
 
     const renderMessage = ({ item }) => {
+        const isSystemContactShare = item.content?.startsWith('SYSTEM_CONTACT_SHARE|');
         const isMe = item.sender_id === currentUser?.id;
+
+        if (isSystemContactShare) {
+            const phone = item.content.split('|')[1];
+            return (
+                <View style={[styles.systemMessageContainer, { 
+                    backgroundColor: isDarkMode ? 'rgba(212, 175, 55, 0.1)' : 'rgba(140, 98, 0, 0.08)',
+                    borderColor: isDarkMode ? 'rgba(212, 175, 55, 0.3)' : 'rgba(140, 98, 0, 0.2)'
+                }]}>
+                    <MaterialCommunityIcons name="shield-check" size={20} color={isDarkMode ? '#D4AF37' : '#8C6200'} style={{ marginBottom: 4 }} />
+                    <Text allowFontScaling={false} style={[styles.systemMessageText, { color: isDarkMode ? '#E0E0E0' : '#444' }]}>
+                        {isMe 
+                            ? `İletişim bilgileriniz firma ile paylaşılmıştır.\n(${phone})`
+                            : `Verdiğiniz Teklife İstinaden, ${phone} numaralı kişi sizden görüşme talep ederek numarasını paylaştı.`}
+                    </Text>
+                    <Text allowFontScaling={false} style={{ color: isDarkMode ? 'rgba(212, 175, 55, 0.6)' : 'rgba(140, 98, 0, 0.6)', fontSize: 10, marginTop: 6, fontWeight: 'bold' }}>SİSTEM MESAJI</Text>
+                    
+                    {!isMe && (
+                        <TouchableOpacity 
+                            style={{
+                                marginTop: 12,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                backgroundColor: '#4CAF50',
+                                paddingHorizontal: 16,
+                                paddingVertical: 8,
+                                borderRadius: 12,
+                                gap: 6
+                            }}
+                            onPress={() => Linking.openURL(`tel:${phone}`)}
+                        >
+                            <MaterialCommunityIcons name="phone" size={16} color="#FFF" />
+                            <Text allowFontScaling={false} style={{ color: '#FFF', fontWeight: 'bold', fontSize: 13 }}>HEMEN ARA</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+            );
+        }
+
         return (
             <View style={[
                 styles.messageBubble,
-                isMe ? styles.myMessage : styles.theirMessage
+                isMe ? styles.myMessage : (isDarkMode ? styles.theirMessageDark : styles.theirMessageLight)
             ]}>
-                <Text allowFontScaling={false} style={[styles.messageText, { color: isMe ? '#000' : '#FFF' }]}>{item.content}</Text>
-                <Text allowFontScaling={false} style={[styles.timeText, { color: isMe ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)' }]}>
+                <Text allowFontScaling={false} style={[
+                    styles.messageText, 
+                    { color: isMe ? '#000' : (isDarkMode ? '#FFF' : '#333') }
+                ]}>{item.content}</Text>
+                <Text allowFontScaling={false} style={[
+                    styles.timeText, 
+                    { color: isMe ? 'rgba(0,0,0,0.5)' : (isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)') }
+                ]}>
                     {new Date(item.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                 </Text>
             </View>
         );
     };
 
+    const getDisplayName = () => {
+        if (!receiver_name) return 'Sohbet';
+        if (currentUserType === 'corporate' && (!receiverUserType || receiverUserType === 'individual')) {
+            const words = receiver_name.trim().split(' ');
+            if (words.length >= 2) {
+                return words.map(w => w.charAt(0).toUpperCase()).join('');
+            }
+            return receiver_name.charAt(0).toUpperCase();
+        }
+        return receiver_name;
+    };
+
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" />
-            <LinearGradient colors={['#000000', '#121212']} style={StyleSheet.absoluteFillObject} />
+        <View style={[styles.container, { backgroundColor: isDarkMode ? '#0A0A0A' : '#F8F9FA' }]}>
+            <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
+            {isDarkMode && <LinearGradient colors={['#000000', '#121212']} style={StyleSheet.absoluteFillObject} />}
             <SafeAreaView style={{ flex: 1 }}>
 
                 {/* Header */}
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                        <Ionicons name="arrow-back" size={20} color="#FFF" />
+                <View style={[styles.header, { 
+                    backgroundColor: isDarkMode ? '#121212' : '#FFFFFF',
+                    borderBottomColor: isDarkMode ? 'rgba(212, 175, 55, 0.1)' : 'rgba(0,0,0,0.05)'
+                }]}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
+                        <Ionicons name="arrow-back" size={20} color={isDarkMode ? "#FFF" : "#333"} />
                     </TouchableOpacity>
 
                     <View style={styles.headerContent}>
@@ -218,20 +337,23 @@ export default function ChatScreen() {
                             ) : (
                                 <View style={[styles.avatar, { backgroundColor: '#222', alignItems: 'center', justifyContent: 'center' }]}>
                                     <Text allowFontScaling={false} style={{ color: '#D4AF37', fontWeight: 'bold' }}>
-                                        {receiver_name ? receiver_name.charAt(0).toUpperCase() : '?'}
+                                        {getDisplayName().charAt(0).toUpperCase()}
                                     </Text>
                                 </View>
                             )}
                             <View style={{ marginLeft: 12, flex: 1 }}>
-                                <Text allowFontScaling={false} style={styles.headerTitle} numberOfLines={1}>{receiver_name || 'Sohbet'}</Text>
-                                <Text allowFontScaling={false} style={styles.headerSubtitle} numberOfLines={1}>
+                                <Text allowFontScaling={false} style={[styles.headerTitle, { color: isDarkMode ? '#FFF' : '#111' }]} numberOfLines={1}>{getDisplayName()}</Text>
+                                <Text allowFontScaling={false} style={[styles.headerSubtitle, { color: isDarkMode ? '#D4AF37' : '#B8860B' }]} numberOfLines={1}>
                                     {request_title || 'GENEL PROJE'}
                                 </Text>
                             </View>
 
                             {offerData && (
                                 <TouchableOpacity
-                                    style={styles.quoteBtn}
+                                    style={[styles.quoteBtn, {
+                                        borderColor: isDarkMode ? '#D4AF37' : '#8C6200',
+                                        backgroundColor: isDarkMode ? 'rgba(212, 175, 55, 0.05)' : 'rgba(140, 98, 0, 0.05)'
+                                    }]}
                                     onPress={() => {
                                         navigation.navigate('OfferDetail', {
                                             request: offerData.request,
@@ -241,7 +363,7 @@ export default function ChatScreen() {
                                         });
                                     }}
                                 >
-                                    <Text allowFontScaling={false} style={styles.quoteBtnText}>TEKLİFİ GÖR</Text>
+                                    <Text allowFontScaling={false} style={[styles.quoteBtnText, { color: isDarkMode ? '#D4AF37' : '#8C6200' }]}>TEKLİFİ GÖR</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -261,7 +383,7 @@ export default function ChatScreen() {
                             ref={flatListRef}
                             data={messages}
                             renderItem={renderMessage}
-                            keyExtractor={item => item.id.toString()}
+                            keyExtractor={(item) => item.id.toString()}
                             inverted
                             contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
                             ListEmptyComponent={
@@ -274,15 +396,22 @@ export default function ChatScreen() {
                     )}
 
                     {/* Input Area */}
-                    <View style={styles.inputContainer}>
-                        <TouchableOpacity style={styles.actionBtn}>
-                            <Ionicons name="add" size={24} color="#D4AF37" />
+                    <View style={[styles.inputContainer, { 
+                        backgroundColor: isDarkMode ? '#121212' : '#FFFFFF',
+                        borderTopColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
+                    }]}>
+                        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }]}>
+                            <Ionicons name="add" size={24} color={isDarkMode ? "#D4AF37" : "#B8860B"} />
                         </TouchableOpacity>
 
                         <TextInput allowFontScaling={false}
-                            style={styles.input}
+                            style={[styles.input, { 
+                                backgroundColor: isDarkMode ? '#1C1C1E' : '#F3F4F6',
+                                color: isDarkMode ? '#FFF' : '#333',
+                                borderColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
+                            }]}
                             placeholder="Mesajınızı yazın..."
-                            placeholderTextColor="#666"
+                            placeholderTextColor={isDarkMode ? "#666" : "#999"}
                             value={inputText}
                             onChangeText={setInputText}
                             multiline
@@ -300,7 +429,7 @@ export default function ChatScreen() {
                             {sending ? (
                                 <ActivityIndicator color="#000" size="small" />
                             ) : (
-                                <Ionicons name="send" size={18} color={inputText.trim() ? '#000' : '#444'} />
+                                <Ionicons name="send" size={18} color={inputText.trim() ? '#000' : (isDarkMode ? '#444' : '#999')} />
                             )}
                         </TouchableOpacity>
                     </View>
@@ -360,12 +489,19 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(212, 175, 55, 0.9)',
         borderBottomRightRadius: 4,
     },
-    theirMessage: {
+    theirMessageDark: {
         alignSelf: 'flex-start',
         backgroundColor: 'rgba(40, 40, 40, 0.65)',
         borderBottomLeftRadius: 4,
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.05)',
+    },
+    theirMessageLight: {
+        alignSelf: 'flex-start',
+        backgroundColor: '#FFFFFF',
+        borderBottomLeftRadius: 4,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.05)',
     },
     messageText: {
         fontSize: 15,
@@ -385,6 +521,22 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: 'rgba(255,255,255,0.05)',
         backgroundColor: '#121212'
+    },
+    systemMessageContainer: {
+        alignSelf: 'center',
+        width: '85%',
+        padding: 16,
+        borderRadius: 16,
+        borderWidth: 1,
+        marginVertical: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    systemMessageText: {
+        fontSize: 13,
+        fontWeight: '600',
+        textAlign: 'center',
+        lineHeight: 20
     },
     actionBtn: {
         width: 40,

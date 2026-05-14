@@ -24,6 +24,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BuildingSchema from '../../components/BuildingSchema';
 import GlassCard from '../../components/GlassCard';
 import PremiumBackground from '../../components/PremiumBackground';
+import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 
 const { width, height } = Dimensions.get('window');
@@ -33,36 +34,44 @@ import OfferSummaryCard from '../../components/OfferSummaryCard';
 
 // Premium Stepper Component (Keeping this as it's small, or move it too if preferred, but user only asked for FloorEditor)
 // USER ASKED FOR FLOOREDITOR EXTRACTION. StepperInput is small helper.
-const StepperInput = ({ value, onChange, min = 0, max = 100, label }) => (
-    <View style={styles.premiumStepperContainer}>
-        {label && <Text allowFontScaling={false} style={styles.stepperLabel}>{label}</Text>}
-        <View style={styles.stepperControls}>
-            <TouchableOpacity
-                style={styles.stepperBtn}
-                onPress={() => {
-                    const newValue = (parseInt(value) || 0) - 1;
-                    if (newValue >= min) onChange(newValue.toString());
-                }}
-            >
-                <MaterialCommunityIcons name="minus" size={20} color="#D4AF37" />
-            </TouchableOpacity>
-            <View style={styles.stepperValueContainer}>
-                <Text allowFontScaling={false} style={styles.stepperValue}>{value}</Text>
+const StepperInput = ({ value, onChange, min = 0, max = 100, label }) => {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const styles = getStyles(isDarkMode, theme);
+    return (
+        <View style={styles.premiumStepperContainer}>
+            {label && <Text allowFontScaling={false} style={styles.stepperLabel}>{label}</Text>}
+            <View style={styles.stepperControls}>
+                <TouchableOpacity
+                    style={styles.stepperBtn}
+                    onPress={() => {
+                        const newValue = (parseInt(value) || 0) - 1;
+                        if (newValue >= min) onChange(newValue.toString());
+                    }}
+                >
+                    <MaterialCommunityIcons name="minus" size={20} color={isDarkMode ? "#D4AF37" : "#8C6200"} />
+                </TouchableOpacity>
+                <View style={styles.stepperValueContainer}>
+                    <Text allowFontScaling={false} style={styles.stepperValue}>{value}</Text>
+                </View>
+                <TouchableOpacity
+                    style={styles.stepperBtn}
+                    onPress={() => {
+                        const newValue = (parseInt(value) || 0) + 1;
+                        if (newValue <= max) onChange(newValue.toString());
+                    }}
+                >
+                    <MaterialCommunityIcons name="plus" size={20} color={isDarkMode ? "#D4AF37" : "#8C6200"} />
+                </TouchableOpacity>
             </View>
-            <TouchableOpacity
-                style={styles.stepperBtn}
-                onPress={() => {
-                    const newValue = (parseInt(value) || 0) + 1;
-                    if (newValue <= max) onChange(newValue.toString());
-                }}
-            >
-                <MaterialCommunityIcons name="plus" size={20} color="#D4AF37" />
-            </TouchableOpacity>
         </View>
-    </View>
-);
+    );
+};
 
 export default function ConstructionOfferSubmitScreen(props) {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const styles = getStyles(isDarkMode, theme);
     const navigationHook = useNavigation();
     const antigravityNav = navigationHook || props.navigation;
     const route = useRoute();
@@ -716,7 +725,7 @@ export default function ConstructionOfferSubmitScreen(props) {
 
                 {/* Amount in Words */}
                 {price ? (
-                    <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 12, marginTop: 4, marginBottom: 16, fontStyle: 'italic', paddingHorizontal: 4 }}>
+                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#D4AF37' : '#8C6200', fontSize: 12, marginTop: 4, marginBottom: 16, fontStyle: 'italic', paddingHorizontal: 4 }}>
                         {numberToTurkishWords(parseCurrency(price))}
                     </Text>
                 ) : null}
@@ -725,9 +734,9 @@ export default function ConstructionOfferSubmitScreen(props) {
                     <Text allowFontScaling={false} style={styles.inputLabel}>BİRİM FİYAT (TL/m²)</Text>
                     <View style={styles.inputRow}>
                         <TextInput allowFontScaling={false}
-                            style={[styles.input, { flex: 1, color: '#FFD700', fontWeight: 'bold' }]}
+                            style={[styles.input, { flex: 1, color: isDarkMode ? '#FFD700' : '#8C6200', fontWeight: 'bold' }]}
                             placeholder="0.00"
-                            placeholderTextColor="#555"
+                            placeholderTextColor={isDarkMode ? "#555" : "#999"}
                             keyboardType="numeric"
                             value={unitPrice}
                             onChangeText={handleUnitPriceChange}
@@ -739,16 +748,16 @@ export default function ConstructionOfferSubmitScreen(props) {
                     <View style={{ marginTop: 20 }}>
                         {/* Grant Info Detail Box (Always visible if active) */}
                         {price && (
-                            <View style={{ marginTop: 16, backgroundColor: 'rgba(50, 205, 50, 0.1)', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(50, 205, 50, 0.3)' }}>
-                                <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold', marginBottom: 8, fontSize: 13 }}>DEVLET DESTEĞİ DETAYI</Text>
+                            <View style={{ marginTop: 16, backgroundColor: isDarkMode ? 'rgba(50, 205, 50, 0.1)' : 'rgba(46, 125, 50, 0.06)', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: isDarkMode ? 'rgba(50, 205, 50, 0.3)' : 'rgba(46, 125, 50, 0.2)' }}>
+                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#4CAF50' : '#2E7D32', fontWeight: 'bold', marginBottom: 8, fontSize: 13 }}>DEVLET DESTEĞİ DETAYI</Text>
 
                                 {/* Housing Grant */}
                                 {(request.campaign_unit_count || 0) > 0 && (
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-                                        <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 12 }}>
+                                        <Text allowFontScaling={false} style={{ color: isDarkMode ? '#CCC' : '#333', fontSize: isDarkMode ? 12 : 13, fontWeight: isDarkMode ? 'normal' : '500' }}>
                                             {request.campaign_unit_count} Konut (x 1.750.000 TL)
                                         </Text>
-                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: 'bold' }}>
+                                        <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : '#111', fontSize: isDarkMode ? 12 : 13, fontWeight: 'bold' }}>
                                             {formatCurrency(((request.campaign_unit_count || 0) * 1750000).toString())} TL
                                         </Text>
                                     </View>
@@ -757,28 +766,40 @@ export default function ConstructionOfferSubmitScreen(props) {
                                 {/* Commercial Grant */}
                                 {(request.campaign_commercial_count || 0) > 0 && (
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-                                        <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 12 }}>
+                                        <Text allowFontScaling={false} style={{ color: isDarkMode ? '#CCC' : '#333', fontSize: isDarkMode ? 12 : 13, fontWeight: isDarkMode ? 'normal' : '500' }}>
                                             {request.campaign_commercial_count} Dükkan (x 875.000 TL)
                                         </Text>
-                                        <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: 'bold' }}>
+                                        <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : '#111', fontSize: isDarkMode ? 12 : 13, fontWeight: 'bold' }}>
                                             {formatCurrency(((request.campaign_commercial_count || 0) * 875000).toString())} TL
                                         </Text>
                                     </View>
                                 )}
 
-                                <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.1)', marginVertical: 8 }} />
+                                <View style={{ height: 1, backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)', marginVertical: 8 }} />
 
                                 {/* Net Payable */}
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 12, fontWeight: 'bold', flex: 1 }}>
+                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#D4AF37' : '#8C6200', fontSize: 12, fontWeight: 'bold', flex: 1 }}>
                                         DEVLET DESTEĞİ HARİÇ ÖDENECEK TUTAR
                                     </Text>
-                                    <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 16, fontWeight: 'bold' }}>
+                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#D4AF37' : '#8C6200', fontSize: 16, fontWeight: 'bold' }}>
                                         {formatCurrency((
                                             parseCurrency(price) -
                                             ((request.campaign_unit_count || 0) * 1750000) -
                                             ((request.campaign_commercial_count || 0) * 875000)
                                         ).toString())} TL
+                                    </Text>
+                                </View>
+
+                                <View style={{ height: 1, backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)', marginVertical: 8 }} />
+
+                                {/* Total Payable */}
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : '#000', fontSize: 12, fontWeight: 'bold', flex: 1 }}>
+                                        TOPLAM TUTAR
+                                    </Text>
+                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : '#000', fontSize: 14, fontWeight: 'bold' }}>
+                                        {formatCurrency(parseCurrency(price).toString())} TL
                                     </Text>
                                 </View>
                             </View>
@@ -804,25 +825,25 @@ export default function ConstructionOfferSubmitScreen(props) {
                 {request?.is_campaign_active && (
                     <View style={{ marginBottom: 20 }}>
                         <Text allowFontScaling={false} style={styles.inputLabel}>DEVLET HİBE VE KREDİ DESTEĞİ</Text>
-                        <GlassCard style={{ backgroundColor: 'rgba(50, 205, 50, 0.1)', borderColor: 'rgba(50, 205, 50, 0.3)', padding: 12 }}>
+                        <GlassCard style={{ backgroundColor: isDarkMode ? 'rgba(50, 205, 50, 0.1)' : 'rgba(46, 125, 50, 0.06)', borderColor: isDarkMode ? 'rgba(50, 205, 50, 0.3)' : 'rgba(46, 125, 50, 0.2)', padding: 12 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                                <MaterialCommunityIcons name="bank-transfer" size={24} color="#4CAF50" style={{ marginRight: 8 }} />
-                                <Text allowFontScaling={false} style={{ color: '#4CAF50', fontWeight: 'bold', fontSize: 13 }}>HAKEDİŞ: MÜTEAHHİT HESABINA</Text>
+                                <MaterialCommunityIcons name="bank-transfer" size={24} color={isDarkMode ? "#4CAF50" : "#2E7D32"} style={{ marginRight: 8 }} />
+                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#4CAF50' : '#2E7D32', fontWeight: 'bold', fontSize: 13 }}>HAKEDİŞ: MÜTEAHHİT HESABINA</Text>
                             </View>
 
-                            <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 12, marginBottom: 8 }}>
-                                Kentsel dönüşüm kapsamında devlet tarafından sağlanan aşağıdaki toplam tutar, inşaat ilerlemesine hak ediş olarak <Text allowFontScaling={false} style={{ fontWeight: 'bold', color: '#FFF' }}>sizin hesabınıza</Text> yatırılacaktır.
+                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#CCC' : '#555', fontSize: 12, marginBottom: 8 }}>
+                                Kentsel dönüşüm kapsamında devlet tarafından sağlanan aşağıdaki toplam tutar, inşaat ilerlemesine hak ediş olarak <Text allowFontScaling={false} style={{ fontWeight: 'bold', color: isDarkMode ? '#FFF' : '#111' }}>sizin hesabınıza</Text> yatırılacaktır.
                             </Text>
 
-                            <View style={{ height: 1, backgroundColor: 'rgba(50, 205, 50, 0.3)', marginVertical: 8 }} />
+                            <View style={{ height: 1, backgroundColor: isDarkMode ? 'rgba(50, 205, 50, 0.3)' : 'rgba(46, 125, 50, 0.2)', marginVertical: 8 }} />
 
                             {/* Housing Grant Calculation */}
                             {(request.campaign_unit_count || 0) > 0 && (
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-                                    <Text allowFontScaling={false} style={{ color: '#DDD', fontSize: 12 }}>
+                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#DDD' : '#333', fontSize: isDarkMode ? 12 : 13, fontWeight: isDarkMode ? 'normal' : '500' }}>
                                         {request.campaign_unit_count} Konut (x 1.750.000 TL)
                                     </Text>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: 'bold' }}>
+                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : '#111', fontSize: isDarkMode ? 12 : 13, fontWeight: 'bold' }}>
                                         {formatCurrency(((request.campaign_unit_count || 0) * 1750000).toString())} TL
                                     </Text>
                                 </View>
@@ -831,10 +852,10 @@ export default function ConstructionOfferSubmitScreen(props) {
                             {/* Commercial Grant Calculation */}
                             {(request.campaign_commercial_count || 0) > 0 && (
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-                                    <Text allowFontScaling={false} style={{ color: '#DDD', fontSize: 12 }}>
+                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#DDD' : '#333', fontSize: isDarkMode ? 12 : 13, fontWeight: isDarkMode ? 'normal' : '500' }}>
                                         {request.campaign_commercial_count} Dükkan (x 875.000 TL)
                                     </Text>
-                                    <Text allowFontScaling={false} style={{ color: '#FFF', fontSize: 12, fontWeight: 'bold' }}>
+                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#FFF' : '#111', fontSize: isDarkMode ? 12 : 13, fontWeight: 'bold' }}>
                                         {formatCurrency(((request.campaign_commercial_count || 0) * 875000).toString())} TL
                                     </Text>
                                 </View>
@@ -1145,7 +1166,7 @@ export default function ConstructionOfferSubmitScreen(props) {
                 <StatusBar barStyle="light-content" translucent={true} backgroundColor="transparent" />
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => antigravityNav.goBack()} style={styles.backButton}>
-                        <Ionicons name="chevron-back" size={24} color="#D4AF37" />
+                        <Ionicons name="chevron-back" size={24} color={isDarkMode ? '#D4AF37' : '#8C6200'} />
                     </TouchableOpacity>
                     <Text allowFontScaling={false} style={styles.headerTitle}>TEKLİF OLUŞTUR</Text>
                     <View style={{ width: 44 }} />
@@ -1203,29 +1224,29 @@ export default function ConstructionOfferSubmitScreen(props) {
                                         <Text allowFontScaling={false} style={styles.summaryLabel}>AÇIK ADRES</Text>
                                         <Text allowFontScaling={false} style={[
                                             styles.summaryValue,
-                                            { fontSize: 12 },
+                                            { fontSize: 13 },
                                             !kdAdres && { color: '#666', fontStyle: 'italic' }
                                         ]} numberOfLines={2}>
                                             {kdAdres || 'Henüz girilmedi.'}
                                         </Text>
                                         <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
-                                            <Text allowFontScaling={false} style={{ color: kdAda ? '#D4AF37' : '#555', fontSize: 11, fontWeight: 'bold' }}>ADA: {kdAda || '-'}</Text>
-                                            <Text allowFontScaling={false} style={{ color: kdParsel ? '#D4AF37' : '#555', fontSize: 11, fontWeight: 'bold' }}>PARSEL: {kdParsel || '-'}</Text>
-                                            <Text allowFontScaling={false} style={{ color: kdPafta ? '#D4AF37' : '#555', fontSize: 11, fontWeight: 'bold' }}>PAFTA: {kdPafta || '-'}</Text>
+                                            <Text allowFontScaling={false} style={{ color: kdAda ? (isDarkMode ? '#D4AF37' : '#8C6200') : (isDarkMode ? '#555' : '#888'), fontSize: 12, fontWeight: 'bold' }}>ADA: {kdAda || '-'}</Text>
+                                            <Text allowFontScaling={false} style={{ color: kdParsel ? (isDarkMode ? '#D4AF37' : '#8C6200') : (isDarkMode ? '#555' : '#888'), fontSize: 12, fontWeight: 'bold' }}>PARSEL: {kdParsel || '-'}</Text>
+                                            <Text allowFontScaling={false} style={{ color: kdPafta ? (isDarkMode ? '#D4AF37' : '#8C6200') : (isDarkMode ? '#555' : '#888'), fontSize: 12, fontWeight: 'bold' }}>PAFTA: {kdPafta || '-'}</Text>
                                         </View>
                                     </View>
                                 )}
 
                                 {/* Campaign Units (Hibe/Kredi) */}
                                 {request?.is_campaign_active && (
-                                    <View style={{ marginTop: 12, backgroundColor: 'rgba(212, 175, 55, 0.1)', padding: 8, borderRadius: 8 }}>
-                                        <Text allowFontScaling={false} style={[styles.summaryLabel, { color: '#D4AF37', marginBottom: 4 }]}>HİBE / KREDİ KAPSAMI ({request?.campaign_unit_count + request?.campaign_commercial_count} Bağımsız Bölüm)</Text>
+                                    <View style={{ marginTop: 12, backgroundColor: isDarkMode ? 'rgba(212, 175, 55, 0.1)' : 'rgba(140, 98, 0, 0.05)', padding: 10, borderRadius: 10, borderWidth: 1, borderColor: isDarkMode ? 'rgba(212, 175, 55, 0.2)' : 'rgba(140, 98, 0, 0.15)' }}>
+                                        <Text allowFontScaling={false} style={[styles.summaryLabel, { color: isDarkMode ? '#D4AF37' : '#8C6200', marginBottom: 4 }]}>HİBE / KREDİ KAPSAMI ({request?.campaign_unit_count + request?.campaign_commercial_count} Bağımsız Bölüm)</Text>
                                         <View style={{ flexDirection: 'row', gap: 12 }}>
                                             {request?.campaign_unit_count > 0 && (
-                                                <Text allowFontScaling={false} style={[styles.summaryValue, { fontSize: 13 }]}>• {request.campaign_unit_count} Konut</Text>
+                                                <Text allowFontScaling={false} style={[styles.summaryValue, { fontSize: 14 }]}>• {request.campaign_unit_count} Konut</Text>
                                             )}
                                             {request?.campaign_commercial_count > 0 && (
-                                                <Text allowFontScaling={false} style={[styles.summaryValue, { fontSize: 13 }]}>• {request.campaign_commercial_count} Dükkan/Ticari</Text>
+                                                <Text allowFontScaling={false} style={[styles.summaryValue, { fontSize: 14 }]}>• {request.campaign_commercial_count} Dükkan/Ticari</Text>
                                             )}
                                         </View>
                                     </View>
@@ -1256,12 +1277,12 @@ export default function ConstructionOfferSubmitScreen(props) {
                                     const not = getField('NOT') || null;
 
                                     const rows = [
-                                        { icon: 'home-edit-outline', label: 'Proje Tipi', value: projeTipi, color: '#FFD700' },
-                                        mekan && { icon: 'floor-plan', label: 'Mekan / Alan', value: mekan, color: '#D4AF37' },
-                                        tasarim && { icon: 'palette-swatch', label: 'İstenen Tasarım', value: tasarim, color: '#A78BFA' },
-                                        butce && { icon: 'currency-try', label: 'Bütçe Aralığı', value: butce, color: '#4ADE80' },
-                                        lokasyon && { icon: 'map-marker-outline', label: 'Lokasyon', value: lokasyon, color: '#38BDF8' },
-                                        kapsam && { icon: 'format-list-checks', label: 'Kapsam', value: kapsam, color: '#FB923C' },
+                                        { icon: 'home-edit-outline', label: 'Proje Tipi', value: projeTipi, color: isDarkMode ? '#FFD700' : '#8C6200' },
+                                        mekan && { icon: 'floor-plan', label: 'Mekan / Alan', value: mekan, color: isDarkMode ? '#D4AF37' : '#B8860B' },
+                                        tasarim && { icon: 'palette-swatch', label: 'İstenen Tasarım', value: tasarim, color: isDarkMode ? '#A78BFA' : '#7C3AED' },
+                                        butce && { icon: 'currency-try', label: 'Bütçe Aralığı', value: butce, color: isDarkMode ? '#4ADE80' : '#16A34A' },
+                                        lokasyon && { icon: 'map-marker-outline', label: 'Lokasyon', value: lokasyon, color: isDarkMode ? '#38BDF8' : '#0284C7' },
+                                        kapsam && { icon: 'format-list-checks', label: 'Kapsam', value: kapsam, color: isDarkMode ? '#FB923C' : '#EA580C' },
                                     ].filter(Boolean);
 
                                     return (
@@ -1273,21 +1294,21 @@ export default function ConstructionOfferSubmitScreen(props) {
                                                             <MaterialCommunityIcons name={row.icon} size={18} color={row.color} />
                                                         </View>
                                                         <View style={{ flex: 1 }}>
-                                                            <Text allowFontScaling={false} style={{ color: '#666', fontSize: 10, fontWeight: '800', letterSpacing: 1, marginBottom: 3 }}>{row.label.toUpperCase()}</Text>
-                                                            <Text allowFontScaling={false} style={{ color: '#EEE', fontSize: 14, fontWeight: '600', lineHeight: 20 }}>{row.value}</Text>
+                                                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#666' : '#888', fontSize: 10, fontWeight: '800', letterSpacing: 1, marginBottom: 3 }}>{row.label.toUpperCase()}</Text>
+                                                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#EEE' : theme.text, fontSize: 14, fontWeight: '600', lineHeight: 20 }}>{row.value}</Text>
                                                         </View>
                                                     </View>
                                                     {idx < rows.length - 1 && <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.05)' }} />}
                                                 </View>
                                             ))}
                                             {not && (
-                                                <View style={{ marginTop: 12, backgroundColor: 'rgba(212,175,55,0.06)', borderRadius: 12, padding: 14, borderLeftWidth: 3, borderLeftColor: '#D4AF37' }}>
-                                                    <Text allowFontScaling={false} style={{ color: '#888', fontSize: 10, fontWeight: '800', letterSpacing: 1, marginBottom: 6 }}>MÜŞTERİ NOTU</Text>
-                                                    <Text allowFontScaling={false} style={{ color: '#CCC', fontSize: 13, lineHeight: 20, fontStyle: 'italic' }}>"{not}"</Text>
+                                                <View style={{ marginTop: 12, backgroundColor: isDarkMode ? 'rgba(212,175,55,0.06)' : 'rgba(140, 98, 0, 0.05)', borderRadius: 12, padding: 14, borderLeftWidth: 3, borderLeftColor: isDarkMode ? '#D4AF37' : '#8C6200' }}>
+                                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#888' : '#666', fontSize: 10, fontWeight: '800', letterSpacing: 1, marginBottom: 6 }}>MÜŞTERİ NOTU</Text>
+                                                    <Text allowFontScaling={false} style={{ color: isDarkMode ? '#CCC' : theme.textSecondary, fontSize: 13, lineHeight: 20, fontStyle: 'italic' }}>"{not}"</Text>
                                                 </View>
                                             )}
                                             {rows.length === 0 && (
-                                                <Text allowFontScaling={false} style={{ color: '#555', fontStyle: 'italic', fontSize: 13 }}>Müşteri herhangi bir proje notu veya detay belirtmemiş.</Text>
+                                                <Text allowFontScaling={false} style={{ color: isDarkMode ? '#555' : '#888', fontStyle: 'italic', fontSize: 13 }}>Müşteri herhangi bir proje notu veya detay belirtmemiş.</Text>
                                             )}
                                         </View>
                                     );
@@ -1352,17 +1373,17 @@ export default function ConstructionOfferSubmitScreen(props) {
                                                 }}
                                             >
                                                 <LinearGradient
-                                                    colors={['#D4AF37', '#B8860B']}
+                                                    colors={isDarkMode ? ['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30'] : ['#A87B1E', '#8C6200']}
                                                     start={{ x: 0, y: 0 }}
                                                     end={{ x: 1, y: 0 }}
                                                     style={styles.configButtonGradient}
                                                 >
-                                                    <MaterialCommunityIcons name="floor-plan" size={24} color="#000" />
+                                                    <MaterialCommunityIcons name="floor-plan" size={24} color={isDarkMode ? '#000' : '#FFF'} />
                                                     <View style={{ flex: 1 }}>
-                                                        <Text allowFontScaling={false} style={styles.configButtonTitle}>DETAYLI KAT PLANI DÜZENLE</Text>
-                                                        <Text allowFontScaling={false} style={styles.configButtonSubtitle}>Dükkan, Daire m² ve İsim Ekleme</Text>
+                                                        <Text allowFontScaling={false} style={[styles.configButtonTitle, { color: isDarkMode ? '#000' : '#FFF' }]}>DETAYLI KAT PLANI DÜZENLE</Text>
+                                                        <Text allowFontScaling={false} style={[styles.configButtonSubtitle, { color: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.8)' }]}>Dükkan, Daire m² ve İsim Ekleme</Text>
                                                     </View>
-                                                    <MaterialCommunityIcons name="chevron-right" size={24} color="#000" />
+                                                    <MaterialCommunityIcons name="chevron-right" size={24} color={isDarkMode ? '#000' : '#FFF'} />
                                                 </LinearGradient>
                                             </TouchableOpacity>
                                         </View>
@@ -1533,7 +1554,7 @@ export default function ConstructionOfferSubmitScreen(props) {
                                             style={[styles.submitBtnContainer, { marginVertical: 0 }]}
                                         >
                                             <LinearGradient
-                                                colors={['#D4AF37', '#FFD700', '#FDB931', '#D4AF37']}
+                                                colors={isDarkMode ? ['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30'] : ['#A87B1E', '#8C6200']}
                                                 start={{ x: 0, y: 0 }}
                                                 end={{ x: 1, y: 0 }}
                                                 style={styles.submitBtn}
@@ -1541,7 +1562,7 @@ export default function ConstructionOfferSubmitScreen(props) {
                                                 {loading ? (
                                                     <ActivityIndicator color="#000" />
                                                 ) : (
-                                                    <Text allowFontScaling={false} style={styles.submitBtnText}>
+                                                    <Text allowFontScaling={false} style={[styles.submitBtnText, { color: isDarkMode ? '#000' : '#FFF' }]}>
                                                         {savedStrategies.length > 0
                                                             ? `${savedStrategies.length} FARKLI SEÇENEK İLE GÖNDER`
                                                             : 'TEKLİFİ GÖNDER VE ÇIK'}
@@ -1728,7 +1749,7 @@ export default function ConstructionOfferSubmitScreen(props) {
     );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (isDarkMode, theme) => StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -1739,11 +1760,11 @@ const styles = StyleSheet.create({
     backButton: {
         width: 40, height: 40,
         alignItems: 'center', justifyContent: 'center',
-        backgroundColor: 'rgba(255,255,255,0.1)',
+        backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
         borderRadius: 12,
     },
     headerTitle: {
-        color: '#D4AF37',
+        color: isDarkMode ? '#D4AF37' : '#8C6200',
         fontSize: 16,
         fontWeight: 'bold',
         letterSpacing: 2
@@ -1757,7 +1778,7 @@ const styles = StyleSheet.create({
         marginBottom: 24,
         borderRadius: 16,
         borderWidth: 1,
-        borderColor: 'rgba(212, 175, 55, 0.2)'
+        borderColor: isDarkMode ? 'rgba(212, 175, 55, 0.2)' : 'rgba(140, 98, 0, 0.2)'
     },
     summaryHeader: {
         flexDirection: 'row',
@@ -1767,13 +1788,13 @@ const styles = StyleSheet.create({
     summaryIcon: {
         width: 36, height: 36,
         borderRadius: 18,
-        backgroundColor: 'rgba(212, 175, 55, 0.1)',
+        backgroundColor: isDarkMode ? 'rgba(212, 175, 55, 0.1)' : 'rgba(140, 98, 0, 0.1)',
         alignItems: 'center', justifyContent: 'center',
         marginRight: 12
     },
     summaryDivider: {
         height: 1,
-        backgroundColor: 'rgba(255,255,255,0.1)',
+        backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
         marginBottom: 12
     },
     summaryGrid: {
@@ -1784,18 +1805,18 @@ const styles = StyleSheet.create({
         flex: 1
     },
     summaryLabel: {
-        color: '#888',
-        fontSize: 10,
+        color: isDarkMode ? '#888' : '#8C6200',
+        fontSize: 11,
         fontWeight: 'bold',
         marginBottom: 2
     },
     summaryValue: {
-        color: '#FFF',
-        fontSize: 13,
+        color: isDarkMode ? '#FFF' : theme.text,
+        fontSize: 14,
         fontWeight: '600'
     },
     sectionHeader: {
-        color: '#D4AF37',
+        color: isDarkMode ? '#D4AF37' : '#8C6200',
         fontSize: 12,
         fontWeight: 'bold',
         letterSpacing: 1,
@@ -1816,20 +1837,20 @@ const styles = StyleSheet.create({
         flex: 1
     },
     inputLabel: {
-        color: '#AAA',
+        color: isDarkMode ? '#AAA' : '#8C6200',
         fontSize: 11,
         fontWeight: '600',
         marginBottom: 6,
         marginLeft: 4
     },
     input: {
-        backgroundColor: 'rgba(0,0,0,0.3)',
-        color: '#FFF',
+        backgroundColor: isDarkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.03)',
+        color: isDarkMode ? '#FFF' : theme.text,
         fontSize: 16,
         padding: 12,
         borderRadius: 10,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
         fontWeight: '500'
     },
     infoRow: {
@@ -1839,10 +1860,10 @@ const styles = StyleSheet.create({
         marginTop: 12,
         paddingTop: 12,
         borderTopWidth: 1,
-        borderTopColor: 'rgba(255,255,255,0.1)'
+        borderTopColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
     },
-    infoLabel: { color: '#888', fontSize: 12 },
-    infoValue: { color: '#D4AF37', fontSize: 14, fontWeight: 'bold' },
+    infoLabel: { color: isDarkMode ? '#888' : '#666', fontSize: 12 },
+    infoValue: { color: isDarkMode ? '#D4AF37' : '#8C6200', fontSize: 14, fontWeight: 'bold' },
     segmentContainer: {
         flexDirection: 'row',
         marginTop: 8,
@@ -1853,19 +1874,19 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         alignItems: 'center',
         borderRadius: 10,
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)'
+        borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
     },
     segmentButtonActive: {
-        backgroundColor: '#D4AF37',
-        borderColor: '#D4AF37'
+        backgroundColor: isDarkMode ? '#D4AF37' : '#B8860B',
+        borderColor: isDarkMode ? '#D4AF37' : '#B8860B'
     },
-    segmentText: { color: '#888', fontSize: 12, fontWeight: '600' },
-    segmentTextActive: { color: '#000' },
+    segmentText: { color: isDarkMode ? '#888' : '#666', fontSize: 12, fontWeight: '600' },
+    segmentTextActive: { color: isDarkMode ? '#000' : '#FFF' },
     divider: {
         height: 1,
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
         marginVertical: 16
     },
     configButton: {
@@ -1890,14 +1911,14 @@ const styles = StyleSheet.create({
         fontSize: 11
     },
     premiumStepperContainer: {
-        backgroundColor: 'rgba(0,0,0,0.3)',
+        backgroundColor: isDarkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.03)',
         borderRadius: 12,
         padding: 12,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)'
+        borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
     },
     stepperLabel: {
-        color: '#AAA',
+        color: isDarkMode ? '#AAA' : '#8C6200',
         fontSize: 11,
         fontWeight: '600',
         marginBottom: 8
@@ -1910,7 +1931,7 @@ const styles = StyleSheet.create({
     stepperBtn: {
         width: 32, height: 32,
         borderRadius: 16,
-        backgroundColor: 'rgba(255,255,255,0.1)',
+        backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
         alignItems: 'center', justifyContent: 'center'
     },
     stepperValueContainer: {
@@ -1918,7 +1939,7 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     stepperValue: {
-        color: '#FFF',
+        color: isDarkMode ? '#FFF' : theme.text,
         fontSize: 18,
         fontWeight: 'bold'
     },
@@ -1926,12 +1947,12 @@ const styles = StyleSheet.create({
         marginVertical: 12,
         borderRadius: 16,
         overflow: 'hidden',
-        backgroundColor: 'rgba(0,0,0,0.2)',
+        backgroundColor: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.5)',
         padding: 10
     },
     textArea: {
-        backgroundColor: 'rgba(0,0,0,0.3)',
-        color: '#FFF',
+        backgroundColor: isDarkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.03)',
+        color: isDarkMode ? '#FFF' : theme.text,
         fontSize: 14,
         padding: 12,
         borderRadius: 10,

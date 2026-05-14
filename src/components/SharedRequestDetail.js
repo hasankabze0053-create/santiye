@@ -11,7 +11,8 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
+    Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -531,7 +532,7 @@ const SharedRequestDetail = ({
                                         ].map((item, i) => (
                                             <View key={i} style={{ flex: 1, alignItems: 'center', backgroundColor: isDarkMode ? '#161616' : theme.surface, borderRadius: 12, padding: 12, marginHorizontal: i === 1 ? 8 : 0, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight }}>
                                                 <Text allowFontScaling={false} style={{ color: theme.textSecondary, fontSize: 10, fontWeight: '900', letterSpacing: 1, marginBottom: 6 }}>{item.label}</Text>
-                                                <Text allowFontScaling={false} style={{ color: item.val ? '#FFD700' : '#444', fontSize: 20, fontWeight: '900' }}>{item.val || '-'}</Text>
+                                                <Text allowFontScaling={false} style={{ color: item.val ? (isDarkMode ? '#D4AF37' : '#8C6200') : '#444', fontSize: 20, fontWeight: '900' }}>{item.val || '-'}</Text>
                                             </View>
                                         ))}
                                     </View>
@@ -635,9 +636,9 @@ const SharedRequestDetail = ({
                             {(!isOwner || isAdmin) && showActions && (
                                 <View style={{ marginHorizontal: 16, marginBottom: 40 }}>
                                     <TouchableOpacity activeOpacity={0.85} style={{ overflow: 'hidden', borderRadius: 18 }} onPress={() => navigation?.navigate('ConstructionOfferSubmit', { request })}>
-                                        <LinearGradient colors={['#D4AF37', '#B8860B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ paddingVertical: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-                                            <MaterialCommunityIcons name="file-document-edit-outline" size={22} color="#000" />
-                                            <Text allowFontScaling={false} style={{ color: '#000', fontWeight: '900', fontSize: 16, letterSpacing: 1 }}>TEKLİF VER</Text>
+                                        <LinearGradient colors={isDarkMode ? ['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30'] : ['#A87B1E', '#8C6200']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingVertical: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                                            <MaterialCommunityIcons name="file-document-edit-outline" size={22} color={isDarkMode ? '#000' : '#FFF'} />
+                                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#000' : '#FFF', fontWeight: '900', fontSize: 16, letterSpacing: 1 }}>TEKLİF VER</Text>
                                         </LinearGradient>
                                     </TouchableOpacity>
                                     {isOwner && isAdmin && (
@@ -1231,7 +1232,7 @@ const SharedRequestDetail = ({
 const getStyles = (theme, isDarkMode) => StyleSheet.create({
     container: { flex: 1, backgroundColor: isDarkMode ? '#000' : theme.background },
     content: { padding: 20, paddingBottom: 50 },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 10, marginBottom: 10 },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 10, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 15 : 20, marginBottom: 10 },
     headerTitle: { color: isDarkMode ? '#FFD700' : '#B8860B', fontSize: 16, fontWeight: '900', letterSpacing: 1.5, textTransform: 'uppercase' },
     backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: isDarkMode ? '#1A1A1A' : theme.surface, borderWidth: 1, borderColor: isDarkMode ? '#333' : theme.border },
     card: { backgroundColor: isDarkMode ? '#111' : theme.background, marginHorizontal: 20, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: isDarkMode ? '#222' : theme.borderLight, marginBottom: 25 },

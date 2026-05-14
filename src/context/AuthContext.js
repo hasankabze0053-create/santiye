@@ -22,7 +22,11 @@ export const AuthProvider = ({ children }) => {
 
                 if (session?.user) {
                     console.log("AuthContext: Fetching profile for", session.user.id);
-                    await fetchProfile(session.user.id);
+                    // Add a 5 second timeout so the splash screen doesn't hang forever
+                    await Promise.race([
+                        fetchProfile(session.user.id),
+                        new Promise(resolve => setTimeout(resolve, 5000))
+                    ]);
                 }
             } catch (error) {
                 console.error("Auth init error:", error);
@@ -41,7 +45,11 @@ export const AuthProvider = ({ children }) => {
 
             if (session?.user) {
                 console.log("AuthContext: User ID:", session.user.id);
-                await fetchProfile(session.user.id);
+                // Add a 5 second timeout so the splash screen doesn't hang forever
+                await Promise.race([
+                    fetchProfile(session.user.id),
+                    new Promise(resolve => setTimeout(resolve, 5000))
+                ]);
             } else {
                 setProfile(null);
             }

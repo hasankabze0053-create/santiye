@@ -172,7 +172,7 @@ export default function HomeScreen({ navigation }) {
 
                     {/* Category Chips Section */}
                     <CategoryChip 
-                        categories={categoryChips.filter(c => c.is_visible || isAdmin).map(c => ({ ...c, key: c.id, title: c.title }))}
+                        categories={categoryChips.filter(c => c.is_visible || isAdmin).map((c, index) => ({ ...c, key: `chip-${c.id}-${index}`, title: c.title }))}
                         activeCategory={activeCategory}
                         isAdmin={isAdmin}
                         isDarkMode={isDarkMode}
@@ -216,9 +216,9 @@ export default function HomeScreen({ navigation }) {
                             decelerationRate="fast"
                             contentContainerStyle={styles.carouselContent}
                         >
-                            {configs.map((configItem) => (
+                            {configs.map((configItem, index) => (
                                 <HighlightCard 
-                                    key={configItem.id}
+                                    key={`config-${configItem.id}-${index}`}
                                     config={configItem.metadata}
                                     type={configItem.metadata?.type || 'urban'}
                                     onPress={() => {
@@ -256,9 +256,9 @@ export default function HomeScreen({ navigation }) {
                         {loadingConfig ? (
                             <ActivityIndicator color={COLORS.gold} style={{ marginTop: 20 }} />
                         ) : (
-                            visibleCategories.map((cat) => (
+                            visibleCategories.map((cat, index) => (
                                 <ServiceListItem 
-                                    key={cat.id}
+                                    key={`cat-${cat.id}-${index}`}
                                     title={cat.title}
                                     subtitle={cat.id === 'market' && marketCount > 0 ? `${marketCount} Aktif Talep` : cat.subtitle}
                                     icon={getIconForCategory(cat.title)}

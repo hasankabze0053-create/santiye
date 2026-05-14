@@ -616,16 +616,25 @@ const AdminDashboardScreen = () => {
         if (!assignTargetRequest) return;
         try {
             // Mevcut listeden seçilenler çıkarılıp, yeni eklenen ID'ler merge ediliyor (üzerine YAZILMIYOR)
-            const currentAssigned = assignTargetRequest.assigned_provider_ids || [];
+            let currentAssigned = assignTargetRequest.assigned_provider_ids || [];
+            if (typeof currentAssigned === 'string') {
+                try { currentAssigned = JSON.parse(currentAssigned); } catch(e) { currentAssigned = []; }
+            }
+            if (!Array.isArray(currentAssigned)) currentAssigned = [];
+
             const merged = [...new Set([...currentAssigned, ...selectedProviderIds])];
             const newlyAdded = selectedProviderIds.filter(id => !currentAssigned.includes(id));
 
-            const { error } = await supabase
-                .from('construction_requests')
+            const targetTable = assignTargetRequest._tableName || selectedModule?.table || 'construction_requests';
+
+            const { data, error } = await supabase
+                .from(targetTable)
                 .update({ assigned_provider_ids: merged })
-                .eq('id', assignTargetRequest.id);
+                .eq('id', assignTargetRequest.id)
+                .select();
 
             if (error) throw error;
+            if (!data || data.length === 0) throw new Error("Kayıt güncellenemedi. RLS (Güvenlik) engeli olabilir veya talep bulunamadı.");
 
             Alert.alert(
                 "Yönlendirme Başarılı ✅",
@@ -2184,7 +2193,7 @@ const AdminDashboardScreen = () => {
                             <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(212, 175, 55, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
                                 <MaterialCommunityIcons name="briefcase-account" size={12} color="#D4AF37" />
                                 <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 11, fontWeight: 'bold', marginLeft: 4 }}>
-                                    {item.assigned_provider_ids?.length || 0} Firmaya İletildi
+                                    {Array.isArray(item.assigned_provider_ids) ? item.assigned_provider_ids.length : (typeof item.assigned_provider_ids === 'string' ? (item.assigned_provider_ids === '[]' ? 0 : item.assigned_provider_ids.split(',').length) : 0)} Firmaya İletildi
                                 </Text>
                             </View>
                             <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(52, 211, 153, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
@@ -2387,6 +2396,12 @@ const AdminDashboardScreen = () => {
                                         <Text allowFontScaling={false} style={[styles.subTabText, activeTab === 'requests' && styles.subTabTextActive]}>Talepler</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity
+                                        style={[styles.subTab, activeTab === 'forwarded' && styles.subTabActive]}
+                                        onPress={() => setActiveTab('forwarded')}
+                                    >
+                                        <Text allowFontScaling={false} style={[styles.subTabText, activeTab === 'forwarded' && styles.subTabTextActive]}>Yönlendirilenler</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
                                         style={[styles.subTab, activeTab === 'offers' && styles.subTabActive]}
                                         onPress={() => setActiveTab('offers')}
                                     >
@@ -2397,10 +2412,17 @@ const AdminDashboardScreen = () => {
                                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                                     <ActivityIndicator size="large" color="#D4AF37" />
                                 </View>
-                            ) : activeTab === 'requests' ? (
+                            ) : (activeTab === 'requests' || activeTab === 'forwarded') ? (
                                 <FlatList
-                                    key="request-list"
-                                    data={requests}
+                                    key={`request-list-${activeTab}`}
+                                    data={requests.filter(req => {
+                                        let ids = req.assigned_provider_ids || [];
+                                        if (typeof ids === 'string') {
+                                            try { ids = JSON.parse(ids); } catch(e) { ids = []; }
+                                        }
+                                        const isForwarded = Array.isArray(ids) && ids.length > 0;
+                                        return activeTab === 'requests' ? !isForwarded : isForwarded;
+                                    })}
                                     renderItem={renderRequestItem}
                                     keyExtractor={item => item.id.toString()}
                                     contentContainerStyle={{ padding: 20 }}
@@ -2786,7 +2808,7 @@ const AdminDashboardScreen = () => {
                                             onPress={() => toggleProviderSelection(item.id)}
                                         >
                                             <MaterialCommunityIcons
-                                                name={isSelected ? "checkbox-marked-circle" : "checkbox-blank-circle-outline"}
+                                                name={isSelected || alreadyAssigned ? "checkbox-marked-circle" : "checkbox-blank-circle-outline"}
                                                 size={24} color={isSelected ? "#4ADE80" : (alreadyAssigned ? '#34D399' : '#64748b')}
                                                 style={{ marginRight: 15 }}
                                             />

@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { Dimensions, Image, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useAuth } from '../../context/AuthContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -21,8 +22,8 @@ const ASSETS_TO_LOAD = [
 ];
 
 export default function CustomSplashScreen({ navigation }) {
-    // const navigation = useNavigation(); // Refactored to use props
-    const [isReady, setIsReady] = useState(false);
+    const { loading } = useAuth(); // Import loading state from AuthContext
+    const [assetsLoaded, setAssetsLoaded] = useState(false);
 
     useEffect(() => {
         const loadAssets = async () => {
@@ -42,13 +43,20 @@ export default function CustomSplashScreen({ navigation }) {
             } catch (e) {
                 console.warn("Asset preload error:", e);
             } finally {
-                // Navigate after everything is ready
-                navigation.replace('MainTabs');
+                // Mark assets as fully loaded
+                setAssetsLoaded(true);
             }
         };
 
         loadAssets();
     }, []);
+
+    // 3. EFFECT: Navigate only when BOTH assets are loaded AND AuthContext has finished fetching profile data
+    useEffect(() => {
+        if (assetsLoaded && !loading) {
+            navigation.replace('MainTabs');
+        }
+    }, [assetsLoaded, loading, navigation]);
 
     return (
         <View style={styles.container}>

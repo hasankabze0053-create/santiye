@@ -13,6 +13,7 @@ export default function AccountSettingsScreen({ route }) {
     // Profil sayfasından gelen mevcut veriyi alıyoruz
     const { profileData } = route.params || {};
     const [fullName, setFullName] = useState(profileData?.full_name || '');
+    const [phoneNumber, setPhoneNumber] = useState(profileData?.phone || '');
     const [companyData, setCompanyData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [fetchingCompany, setFetchingCompany] = useState(false);
@@ -77,7 +78,7 @@ export default function AccountSettingsScreen({ route }) {
                 .from('profiles')
                 .update({
                     full_name: fullName,
-                    // Buraya istersen telefon, adres vs. ekleyebilirsin
+                    phone: phoneNumber,
                 })
                 .eq('id', user.id);
 
@@ -111,6 +112,23 @@ export default function AccountSettingsScreen({ route }) {
                     onChangeText={setFullName}
                     placeholder="Adınız Soyadınız"
                     placeholderTextColor={theme.subText}
+                />
+
+                <Text allowFontScaling={false} style={[styles.label, { color: theme.icon }]}>Telefon Numarası</Text>
+                <TextInput allowFontScaling={false}
+                    style={[styles.input, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
+                    value={phoneNumber}
+                    onChangeText={(val) => {
+                        if (val.length > 0 && !val.startsWith('0')) {
+                            setPhoneNumber('0' + val.replace(/^0+/, ''));
+                        } else {
+                            setPhoneNumber(val);
+                        }
+                    }}
+                    placeholder="05XX XXX XX XX"
+                    placeholderTextColor={theme.subText}
+                    keyboardType="phone-pad"
+                    maxLength={11}
                 />
 
                 <Text allowFontScaling={false} style={[styles.label, { color: theme.icon }]}>E-Posta (Değiştirilemez)</Text>
