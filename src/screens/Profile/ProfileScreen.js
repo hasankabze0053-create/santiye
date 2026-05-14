@@ -162,6 +162,15 @@ export default function ProfileScreen() {
         }
     }, [refreshProfile]);
 
+    const getInitials = (name) => {
+        if (!name) return 'ME';
+        const parts = name.trim().split(' ');
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+        return name.substring(0, 2).toUpperCase();
+    };
+
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
@@ -177,7 +186,11 @@ export default function ProfileScreen() {
                 {/* 1. Header (Individual) */}
                 <View style={styles.header}>
                     <View style={styles.profileRow}>
-                        <Image source={{ uri: profile?.avatar_url || PROFILE_IMAGE }} style={styles.avatar} />
+                        <View style={[styles.avatarCircleLg, { backgroundColor: theme.iconBg, borderColor: theme.avatarBorder }]}>
+                            <Text allowFontScaling={false} style={[styles.avatarLabelLg, { color: theme.icon }]}>
+                                {getInitials(profile?.full_name)}
+                            </Text>
+                        </View>
                         <View style={styles.profileInfo}>
                             {loading ? (
                                 <ActivityIndicator size="small" color={theme.text} />
@@ -434,7 +447,8 @@ const styles = StyleSheet.create({
     // Header
     header: { padding: 20, paddingTop: 10 },
     profileRow: { flexDirection: 'row', alignItems: 'center' },
-    avatar: { width: 60, height: 60, borderRadius: 30, borderWidth: 2, borderColor: 'transparent' },
+    avatarCircleLg: { width: 64, height: 64, borderRadius: 32, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+    avatarLabelLg: { fontSize: 24, fontWeight: '800', letterSpacing: 1 },
     profileInfo: { flex: 1, marginLeft: 15 },
     userName: { fontSize: 20, fontWeight: '700' },
     userType: { fontSize: 13, marginTop: 2 },

@@ -10,6 +10,15 @@ const HeaderComponent = ({ navigation }) => {
   const { profile } = useAuth();
   const { isDarkMode } = useTheme();
 
+  const getInitials = (name) => {
+    if (!name) return 'ME';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
   return (
     <View style={styles.headerContainer}>
       <View style={styles.brandGroup}>
@@ -59,7 +68,7 @@ const HeaderComponent = ({ navigation }) => {
         >
           <View style={styles.avatarCircle}>
             <Text allowFontScaling={false} style={styles.avatarLabel}>
-              {profile?.full_name ? profile.full_name.substring(0, 2).toUpperCase() : 'KZ'}
+              {getInitials(profile?.full_name)}
             </Text>
           </View>
           <View style={styles.onlineIndicator} />
