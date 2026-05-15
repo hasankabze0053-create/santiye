@@ -347,6 +347,7 @@ const getIconForCategory = (title) => {
     if (normalized.includes('TEKNİK OFİS')) return 'office-building-cog';
     if (normalized.includes('İŞ MAKİNESİ')) return 'crane';
     if (normalized.includes('HUKUK')) return 'scale-balance';
+    if (normalized.includes('MALİYET') || normalized.includes('MALIYET')) return 'calculator-variant';
     return 'dots-horizontal';
 };
 

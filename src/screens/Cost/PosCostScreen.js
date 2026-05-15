@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { FlatList, InputAccessoryView, Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, InputAccessoryView, Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/theme';
 

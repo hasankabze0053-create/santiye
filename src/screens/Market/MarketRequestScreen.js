@@ -2,10 +2,11 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Alert, Image, InputAccessoryView, Keyboard, Modal, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MarketService } from '../../services/MarketService';
+import { useTheme } from '../../context/ThemeContext';
 import { searchMaterials } from '../../utils/MarketCatalog';
 
 const UNITS = ['Adet', 'Kg', 'Ton', 'M3', 'Paket', 'Metre', 'm²', 'Torba', 'Rulo', 'Teneke'];
@@ -21,7 +22,7 @@ const areEqual = (prevProps, nextProps) => {
            prevProps.itemsLength === nextProps.itemsLength;
 };
 
-const MemoizedItemCard = React.memo(({ item, index, itemsLength, handleRemoveItem, updateItem, clearSuggestions, selectCatalogItem, openUnitPicker, styles }) => {
+const MemoizedItemCard = React.memo(({ item, index, itemsLength, handleRemoveItem, updateItem, clearSuggestions, selectCatalogItem, openUnitPicker, styles, T, isDarkMode }) => {
     return (
         <View style={[styles.itemCard, { zIndex: 1000 - index }]}>
             {itemsLength > 1 && (
@@ -43,13 +44,13 @@ const MemoizedItemCard = React.memo(({ item, index, itemsLength, handleRemoveIte
                             <TextInput allowFontScaling={false}
                                 style={styles.premiumInput}
                                 placeholder="Malzeme (Örn: C30, Tuğla)"
-                                placeholderTextColor="#888"
+                                placeholderTextColor={T.textSecondary}
                                 value={item.name}
                                 onChangeText={(t) => updateItem(item.id, 'name', t)}
                             />
                             {item.name.length > 0 && (
                                 <TouchableOpacity onPress={() => updateItem(item.id, 'name', '')} style={styles.deleteBtn}>
-                                    <Ionicons name="close-circle" size={20} color="#666" />
+                                    <Ionicons name="close-circle" size={20} color={T.textSecondary} />
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -59,28 +60,28 @@ const MemoizedItemCard = React.memo(({ item, index, itemsLength, handleRemoveIte
                             <View style={[styles.suggestionsCard, { zIndex: 100 }]}>
                                 {/* Pinned Custom Option at the Top */}
                                 <TouchableOpacity 
-                                    style={[styles.suggestionItem, { borderBottomWidth: 1, borderBottomColor: '#333', backgroundColor: 'rgba(212,175,55,0.05)' }]}
+                                    style={[styles.suggestionItem, { borderBottomWidth: 1, borderBottomColor: T.border, backgroundColor: isDarkMode ? 'rgba(212,175,55,0.05)' : 'rgba(184,130,15,0.05)' }]}
                                     onPress={() => clearSuggestions(item.id)}
                                 >
-                                    <Ionicons name="pencil-outline" size={14} color="#D4AF37" style={{ marginRight: 8 }} />
+                                    <Ionicons name="pencil-outline" size={14} color={T.goldPrimary} style={{ marginRight: 8 }} />
                                     <View style={{ flex: 1 }}>
-                                        <Text allowFontScaling={false} style={[styles.suggestionName, { color: '#D4AF37' }]}>"{item.name}" Olarak Kullan</Text>
+                                        <Text allowFontScaling={false} style={[styles.suggestionName, { color: T.goldPrimary }]}>"{item.name}" Olarak Kullan</Text>
                                         <Text allowFontScaling={false} style={styles.suggestionCat}>Özel Malzeme Girişi</Text>
                                     </View>
                                     <View style={[styles.suggestionUnitBadge, { backgroundColor: 'transparent', paddingHorizontal: 0 }]}>
-                                        <Ionicons name="chevron-forward" size={16} color="#D4AF37" />
+                                        <Ionicons name="chevron-forward" size={16} color={T.goldPrimary} />
                                     </View>
                                 </TouchableOpacity>
 
                                 {/* Scrollable Catalog Options */}
-                                <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled={true} style={{ maxHeight: 200 }}>
+                                <ScrollView keyboardShouldPersistTaps="always" nestedScrollEnabled={true} style={{ maxHeight: 200 }}>
                                     {item.suggestions.map((sug, i) => (
                                         <TouchableOpacity 
                                             key={i} 
                                             style={styles.suggestionItem}
                                             onPress={() => selectCatalogItem(item.id, sug)}
                                         >
-                                            <Ionicons name="search" size={14} color="#D4AF37" style={{ marginRight: 8 }} />
+                                            <Ionicons name="search" size={14} color={T.goldPrimary} style={{ marginRight: 8 }} />
                                             <View style={{ flex: 1 }}>
                                                 <Text allowFontScaling={false} style={styles.suggestionName}>{sug.name}</Text>
                                                 <Text allowFontScaling={false} style={styles.suggestionCat}>{sug.category}</Text>
@@ -101,7 +102,7 @@ const MemoizedItemCard = React.memo(({ item, index, itemsLength, handleRemoveIte
                             <TextInput allowFontScaling={false}
                                 style={[styles.premiumInput, { width: '100%' }]}
                                 placeholder="Miktar"
-                                placeholderTextColor="#888"
+                                placeholderTextColor={T.textSecondary}
                                 keyboardType="numeric"
                                 value={item.qty}
                                 onChangeText={(t) => updateItem(item.id, 'qty', t)}
@@ -114,7 +115,7 @@ const MemoizedItemCard = React.memo(({ item, index, itemsLength, handleRemoveIte
                             onPress={() => openUnitPicker(item.id)}
                         >
                             <Text allowFontScaling={false} style={styles.unitText}>{item.unit}</Text>
-                            <Ionicons name="chevron-down" size={14} color="#888" />
+                            <Ionicons name="chevron-down" size={14} color={T.textSecondary} />
                         </TouchableOpacity>
                     </View>
 
@@ -124,7 +125,7 @@ const MemoizedItemCard = React.memo(({ item, index, itemsLength, handleRemoveIte
                             <TextInput allowFontScaling={false}
                                 style={styles.premiumInput}
                                 placeholder="Marka (Opsiyonel)"
-                                placeholderTextColor="#666"
+                                placeholderTextColor={T.textSecondary}
                                 value={item.brand}
                                 onChangeText={(t) => updateItem(item.id, 'brand', t)}
                             />
@@ -133,7 +134,7 @@ const MemoizedItemCard = React.memo(({ item, index, itemsLength, handleRemoveIte
                             <TextInput allowFontScaling={false}
                                 style={styles.premiumInput}
                                 placeholder="Poz No / Özellik"
-                                placeholderTextColor="#666"
+                                placeholderTextColor={T.textSecondary}
                                 value={item.techSpec}
                                 onChangeText={(t) => updateItem(item.id, 'techSpec', t)}
                             />
@@ -146,6 +147,20 @@ const MemoizedItemCard = React.memo(({ item, index, itemsLength, handleRemoveIte
 }, areEqual);
 
 export default function MarketRequestScreen() {
+    const { isDarkMode } = useTheme();
+    const T = {
+        bg: isDarkMode ? '#000000' : '#FDFBF7',
+        card: isDarkMode ? '#111111' : '#FFFFFF',
+        textPrimary: isDarkMode ? '#FFFFFF' : '#111111',
+        textSecondary: isDarkMode ? '#AAAAAA' : '#777777',
+        border: isDarkMode ? '#333333' : '#E8E0D0',
+        inputBg: isDarkMode ? 'rgba(255,255,255,0.03)' : '#FFFFFF',
+        searchBg: isDarkMode ? '#1A1A1A' : '#FFFFFF',
+        goldPrimary: isDarkMode ? '#D4AF37' : '#B8820F',
+        goldShadow: isDarkMode ? '#AA8230' : '#8C6200',
+    };
+    const styles = getStyles(T, isDarkMode);
+
     const navigation = useNavigation();
     const [step, setStep] = useState(1);
     const [mode, setMode] = useState('manual'); // 'fast' | 'manual'
@@ -168,6 +183,18 @@ export default function MarketRequestScreen() {
     const [maturityUnit, setMaturityUnit] = useState('Gün'); // 'Gün' | 'Ay'
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+            setItems(prev => {
+                if (prev.some(it => it.suggestions && it.suggestions.length > 0)) {
+                    return prev.map(it => ({...it, suggestions: []}));
+                }
+                return prev;
+            });
+        });
+        return () => keyboardDidHideListener.remove();
+    }, []);
 
     // Unit Modal State
     const [unitModalVisible, setUnitModalVisible] = useState(false);
@@ -223,13 +250,17 @@ export default function MarketRequestScreen() {
     };
 
     const updateItem = useCallback((id, field, value) => {
+        let newSuggestions = null;
+        if (field === 'name') {
+            newSuggestions = value.length >= 2 ? searchMaterials(value) : [];
+        }
+
         setItems(prev => prev.map(it => {
             if (it.id !== id) return it;
             const updated = { ...it, [field]: value };
             
-            // Eğer isim güncelleniyorsa katalogda ara
-            if (field === 'name') {
-                updated.suggestions = value.length >= 2 ? searchMaterials(value) : [];
+            if (field === 'name' && newSuggestions !== null) {
+                updated.suggestions = newSuggestions;
             }
             return updated;
         }));
@@ -326,46 +357,50 @@ export default function MarketRequestScreen() {
         <ScrollView 
             showsVerticalScrollIndicator={false} 
             keyboardShouldPersistTaps="handled" 
+            keyboardDismissMode="interactive"
             nestedScrollEnabled={true} 
-            contentContainerStyle={{ paddingBottom: 100 }}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
             onScrollBeginDrag={() => {
                 Keyboard.dismiss();
                 setItems(prev => prev.map(it => ({...it, suggestions: []})));
             }}
         >
-            <Text allowFontScaling={false} style={styles.sectionTitle}>MALZEME LİSTESİ</Text>
+            
+                    <Text allowFontScaling={false} style={styles.sectionTitle}>MALZEME LİSTESİ</Text>
 
-            {items.map((item, index) => (
-                <MemoizedItemCard 
-                    key={item.id} 
-                    item={item} 
-                    index={index} 
-                    itemsLength={items.length}
-                    handleRemoveItem={handleRemoveItem}
-                    updateItem={updateItem}
-                    clearSuggestions={clearSuggestions}
-                    selectCatalogItem={selectCatalogItem}
-                    openUnitPicker={openUnitPicker}
-                    styles={styles}
-                />
-            ))}
+                    {items.map((item, index) => (
+                        <MemoizedItemCard 
+                            key={item.id} 
+                            item={item} 
+                            index={index} 
+                            itemsLength={items.length}
+                            handleRemoveItem={handleRemoveItem}
+                            updateItem={updateItem}
+                            clearSuggestions={clearSuggestions}
+                            selectCatalogItem={selectCatalogItem}
+                            openUnitPicker={openUnitPicker}
+                            styles={styles}
+                            T={T}
+                            isDarkMode={isDarkMode}
+                        />
+                    ))}
 
-            <TouchableOpacity style={styles.addBtn} onPress={handleAddItem}>
-                <Text allowFontScaling={false} style={styles.addBtnText}>+ SATIR EKLE</Text>
-            </TouchableOpacity>
+                    <TouchableOpacity style={styles.addBtn} onPress={handleAddItem}>
+                        <Text allowFontScaling={false} style={styles.addBtnText}>+ SATIR EKLE</Text>
+                    </TouchableOpacity>
         </ScrollView>
     );
 
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
-            <LinearGradient colors={['#000', '#0a0a0a']} style={StyleSheet.absoluteFillObject} />
+            <LinearGradient colors={isDarkMode ? ['#000000', '#0a0a0a'] : ['#FDFBF7', '#F7F1E4']} style={StyleSheet.absoluteFillObject} />
             <SafeAreaView style={{ flex: 1 }}>
 
                 {/* Header */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => step > 1 ? setStep(step - 1) : navigation.goBack()} style={styles.backBtn}>
-                        <Ionicons name="arrow-back" size={24} color="#FFF" />
+                        <Ionicons name="arrow-back" size={24} color={T.textPrimary} />
                     </TouchableOpacity>
                     <Text allowFontScaling={false} style={styles.headerTitle}>TEKLİF TOPLA</Text>
                     <View style={{ width: 40 }} />
@@ -378,26 +413,26 @@ export default function MarketRequestScreen() {
                     <View style={styles.modeContainer}>
                         <TouchableOpacity style={{ flex: 1 }} onPress={() => setMode('fast')}>
                             <LinearGradient 
-                                colors={mode === 'fast' ? ['#D4AF37', '#AA7C11'] : ['#1A1A1A', '#0D0D0D']} 
+                                colors={mode === 'fast' ? [T.goldPrimary, T.goldShadow] : (isDarkMode ? ['#1A1A1A', '#0D0D0D'] : ['#FFFFFF', '#F0F0F0'])} 
                                 style={[styles.modeCard, mode === 'fast' ? styles.modeCardActive : {}]}
                             >
-                                <MaterialCommunityIcons name="camera-outline" size={28} color={mode === 'fast' ? '#000' : '#888'} />
+                                <MaterialCommunityIcons name="camera-outline" size={28} color={mode === 'fast' ? '#FFF' : '#888'} />
                                 <View style={{ marginLeft: 10 }}>
-                                    <Text allowFontScaling={false} style={[styles.modeTitle, mode === 'fast' && { color: '#000' }]}>HIZLI YÜKLE</Text>
-                                    <Text allowFontScaling={false} style={[styles.modeSub, mode === 'fast' && { color: '#333' }]}>Fotoğraf ile hızlıca</Text>
+                                    <Text allowFontScaling={false} style={[styles.modeTitle, mode === 'fast' && { color: '#FFF' }]}>HIZLI YÜKLE</Text>
+                                    <Text allowFontScaling={false} style={[styles.modeSub, mode === 'fast' && { color: 'rgba(255,255,255,0.8)' }]}>Fotoğraf ile hızlıca</Text>
                                 </View>
                             </LinearGradient>
                         </TouchableOpacity>
 
                         <TouchableOpacity style={{ flex: 1 }} onPress={() => setMode('manual')}>
                             <LinearGradient 
-                                colors={mode === 'manual' ? ['#D4AF37', '#AA7C11'] : ['#1A1A1A', '#0D0D0D']} 
+                                colors={mode === 'manual' ? [T.goldPrimary, T.goldShadow] : (isDarkMode ? ['#1A1A1A', '#0D0D0D'] : ['#FFFFFF', '#F0F0F0'])} 
                                 style={[styles.modeCard, mode === 'manual' ? styles.modeCardActive : {}]}
                             >
-                                <MaterialCommunityIcons name="playlist-edit" size={28} color={mode === 'manual' ? '#000' : '#888'} />
+                                <MaterialCommunityIcons name="playlist-edit" size={28} color={mode === 'manual' ? '#FFF' : '#888'} />
                                 <View style={{ marginLeft: 10 }}>
-                                    <Text allowFontScaling={false} style={[styles.modeTitle, mode === 'manual' && { color: '#000' }]}>DİJİTAL TALEP</Text>
-                                    <Text allowFontScaling={false} style={[styles.modeSub, mode === 'manual' && { color: '#333' }]}>Gelişmiş Giriş</Text>
+                                    <Text allowFontScaling={false} style={[styles.modeTitle, mode === 'manual' && { color: '#FFF' }]}>DİJİTAL TALEP</Text>
+                                    <Text allowFontScaling={false} style={[styles.modeSub, mode === 'manual' && { color: 'rgba(255,255,255,0.8)' }]}>Gelişmiş Giriş</Text>
                                 </View>
                             </LinearGradient>
                         </TouchableOpacity>
@@ -416,10 +451,10 @@ export default function MarketRequestScreen() {
                                 <View style={{ alignItems: 'center', width: '100%' }}>
                                     <Image source={{ uri: capturedImage }} style={{ width: '100%', height: 300, borderRadius: 16, marginBottom: 20 }} resizeMode="cover" />
                                     <View style={{ flexDirection: 'row', gap: 12 }}>
-                                        <TouchableOpacity onPress={() => setCapturedImage(null)} style={{ padding: 12, backgroundColor: '#333', borderRadius: 12 }}>
+                                        <TouchableOpacity onPress={() => setCapturedImage(null)} style={{ padding: 12, backgroundColor: T.border, borderRadius: 12 }}>
                                             <MaterialCommunityIcons name="trash-can-outline" size={24} color="#EF4444" />
                                         </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => setCapturedImage(null)} style={{ padding: 12, backgroundColor: '#D4AF37', borderRadius: 12, paddingHorizontal: 32 }}>
+                                        <TouchableOpacity onPress={() => setCapturedImage(null)} style={{ padding: 12, backgroundColor: T.goldPrimary, borderRadius: 12, paddingHorizontal: 32 }}>
                                             <Text allowFontScaling={false} style={{ fontWeight: 'bold' }}>YENİDEN ÇEK</Text>
                                         </TouchableOpacity>
                                     </View>
@@ -428,15 +463,15 @@ export default function MarketRequestScreen() {
                                 <>
                                     <TouchableOpacity
                                         onPress={handleTakePhoto}
-                                        style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: '#222', alignItems: 'center', justifyContent: 'center', marginBottom: 16, borderWidth: 1, borderColor: '#D4AF37' }}
+                                        style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: T.card, alignItems: 'center', justifyContent: 'center', marginBottom: 16, borderWidth: 1, borderColor: T.goldPrimary }}
                                     >
-                                        <MaterialCommunityIcons name="camera" size={40} color="#D4AF37" />
+                                        <MaterialCommunityIcons name="camera" size={40} color={T.goldPrimary} />
                                     </TouchableOpacity>
-                                    <Text allowFontScaling={false} style={{ color: '#DDD', fontSize: 16, fontWeight: 'bold', marginBottom: 4 }}>Fotoğraf Çek</Text>
-                                    <Text allowFontScaling={false} style={{ color: '#666', textAlign: 'center', maxWidth: 250 }}>İhtiyacınız olan malzemenin veya yapılacak işin fotoğrafını çekin, gerisini bize bırakın.</Text>
+                                    <Text allowFontScaling={false} style={{ color: T.textPrimary, fontSize: 16, fontWeight: 'bold', marginBottom: 4 }}>Fotoğraf Çek</Text>
+                                    <Text allowFontScaling={false} style={{ color: T.textSecondary, textAlign: 'center', maxWidth: 250 }}>İhtiyacınız olan malzemenin veya yapılacak işin fotoğrafını çekin, gerisini bize bırakın.</Text>
 
                                     <TouchableOpacity onPress={pickImage} style={{ marginTop: 30 }}>
-                                        <Text allowFontScaling={false} style={{ color: '#666', textDecorationLine: 'underline' }}>Galeriden Seç</Text>
+                                        <Text allowFontScaling={false} style={{ color: T.textSecondary, textDecorationLine: 'underline' }}>Galeriden Seç</Text>
                                     </TouchableOpacity>
                                 </>
                             )}
@@ -452,14 +487,14 @@ export default function MarketRequestScreen() {
                             {/* Location */}
                             <Text allowFontScaling={false} style={styles.labelSmall}>ŞANTİYE KONUMU</Text>
                             <View style={styles.locationInput}>
-                                <Ionicons name="location" size={20} color="#D4AF37" />
+                                <Ionicons name="location" size={20} color={T.goldPrimary} />
                                 <TextInput allowFontScaling={false}
-                                    style={{ flex: 1, color: '#fff', marginLeft: 10 }}
+                                    style={{ flex: 1, color: T.textPrimary, marginLeft: 10 }}
                                     value={location}
                                     onChangeText={setLocation}
-                                    placeholderTextColor="#666"
+                                    placeholderTextColor={T.textSecondary}
                                 />
-                                <Ionicons name="locate-outline" size={20} color="#666" />
+                                <Ionicons name="locate-outline" size={20} color={T.textSecondary} />
                             </View>
 
                             {/* Notes */}
@@ -483,15 +518,15 @@ export default function MarketRequestScreen() {
                                         style={[styles.paymentCard, paymentMethod === pm.id && styles.paymentCardActive]}
                                         onPress={() => setPaymentMethod(pm.id)}
                                     >
-                                        <View style={[styles.paymentIconBox, paymentMethod === pm.id && { backgroundColor: '#D4AF37' }]}>
+                                        <View style={[styles.paymentIconBox, paymentMethod === pm.id && { backgroundColor: T.goldPrimary }]}>
                                             <Ionicons name={pm.icon} size={24} color={paymentMethod === pm.id ? '#000' : '#666'} />
                                         </View>
                                         <View style={{ flex: 1 }}>
-                                            <Text allowFontScaling={false} style={[styles.paymentTitle, paymentMethod === pm.id && { color: '#D4AF37' }]}>{pm.title}</Text>
+                                            <Text allowFontScaling={false} style={[styles.paymentTitle, paymentMethod === pm.id && { color: T.goldPrimary }]}>{pm.title}</Text>
                                             <Text allowFontScaling={false} style={styles.paymentDesc}>{pm.desc}</Text>
                                         </View>
                                         {paymentMethod === pm.id && (
-                                            <Ionicons name="checkmark-circle" size={24} color="#D4AF37" />
+                                            <Ionicons name="checkmark-circle" size={24} color={T.goldPrimary} />
                                         )}
                                     </TouchableOpacity>
                                 ))}
@@ -501,26 +536,26 @@ export default function MarketRequestScreen() {
                                         <Text allowFontScaling={false} style={styles.labelSmall}>VADE SÜRESİ</Text>
                                         <View style={{ flexDirection: 'row', gap: 10, marginTop: 4, height: 50 }}>
                                             <TextInput allowFontScaling={false}
-                                                style={[styles.premiumInput, { backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 16, textAlign: 'center', fontSize: 18, fontWeight: 'bold' }]}
+                                                style={[styles.premiumInput, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.3)' : '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: T.border, paddingHorizontal: 16, textAlign: 'center', fontSize: 18, fontWeight: 'bold' }]}
                                                 placeholder="Örn: 30"
-                                                placeholderTextColor="#666"
+                                                placeholderTextColor={T.textSecondary}
                                                 keyboardType="numeric"
                                                 value={maturityDays}
                                                 onChangeText={setMaturityDays}
                                                 inputAccessoryViewID="DoneKeyboard"
                                             />
-                                            <View style={{ flexDirection: 'row', backgroundColor: '#1E1E1E', borderRadius: 12, borderWidth: 1, borderColor: '#333', overflow: 'hidden' }}>
+                                            <View style={{ flexDirection: 'row', backgroundColor: T.card, borderRadius: 12, borderWidth: 1, borderColor: T.border, overflow: 'hidden' }}>
                                                 <TouchableOpacity 
-                                                    style={[{ paddingHorizontal: 16, justifyContent: 'center' }, maturityUnit === 'Gün' && { backgroundColor: '#D4AF37' }]}
+                                                    style={[{ paddingHorizontal: 16, justifyContent: 'center' }, maturityUnit === 'Gün' && { backgroundColor: T.goldPrimary }]}
                                                     onPress={() => setMaturityUnit('Gün')}
                                                 >
-                                                    <Text allowFontScaling={false} style={[{ color: '#888', fontWeight: 'bold' }, maturityUnit === 'Gün' && { color: '#000' }]}>GÜN</Text>
+                                                    <Text allowFontScaling={false} style={[{ color: T.textSecondary, fontWeight: 'bold' }, maturityUnit === 'Gün' && { color: '#000' }]}>GÜN</Text>
                                                 </TouchableOpacity>
                                                 <TouchableOpacity 
-                                                    style={[{ paddingHorizontal: 16, justifyContent: 'center' }, maturityUnit === 'Ay' && { backgroundColor: '#D4AF37' }]}
+                                                    style={[{ paddingHorizontal: 16, justifyContent: 'center' }, maturityUnit === 'Ay' && { backgroundColor: T.goldPrimary }]}
                                                     onPress={() => setMaturityUnit('Ay')}
                                                 >
-                                                    <Text allowFontScaling={false} style={[{ color: '#888', fontWeight: 'bold' }, maturityUnit === 'Ay' && { color: '#000' }]}>AY</Text>
+                                                    <Text allowFontScaling={false} style={[{ color: T.textSecondary, fontWeight: 'bold' }, maturityUnit === 'Ay' && { color: '#000' }]}>AY</Text>
                                                 </TouchableOpacity>
                                             </View>
                                         </View>
@@ -541,7 +576,7 @@ export default function MarketRequestScreen() {
                         <Text allowFontScaling={false} style={styles.nextBtnText}>
                             {isSubmitting ? 'GÖNDERİLİYOR...' : (step === 1 ? 'DEVAM ET' : 'TALEBİ GÖNDER')}
                         </Text>
-                        {!isSubmitting && <Ionicons name="arrow-forward" size={20} color="#000" />}
+                        {!isSubmitting && <Ionicons name="arrow-forward" size={20} color={isDarkMode ? '#000' : '#FFF'} />}
                     </TouchableOpacity>
                 </View>
                 </View>
@@ -568,7 +603,7 @@ export default function MarketRequestScreen() {
                                     >
                                         <Text allowFontScaling={false} style={styles.modalOptionText}>{u}</Text>
                                         {activeItemId && items.find(it => it.id === activeItemId)?.unit === u && (
-                                            <Ionicons name="checkmark" size={20} color="#D4AF37" />
+                                            <Ionicons name="checkmark" size={20} color={T.goldPrimary} />
                                         )}
                                     </TouchableOpacity>
                                 ))}
@@ -582,64 +617,65 @@ export default function MarketRequestScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#000' },
+export function getStyles(T, isDarkMode) { return StyleSheet.create({
+    container: { flex: 1, backgroundColor: T.bg },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 10 },
-    backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#333' },
-    headerTitle: { color: '#D4AF37', fontSize: 15, fontWeight: '900', letterSpacing: 1.5 },
+    backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: T.searchBg, borderWidth: 1, borderColor: T.border },
+    headerTitle: { color: T.goldPrimary, fontSize: 15, fontWeight: '900', letterSpacing: 1.5 },
     stepContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginVertical: 24 },
-    stepDot: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#111', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333' },
-    stepDotActive: { backgroundColor: '#D4AF37', borderColor: '#D4AF37' },
-    stepText: { color: '#444', fontWeight: 'bold' },
+    stepDot: { width: 36, height: 36, borderRadius: 18, backgroundColor: T.card, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: T.border },
+    stepDotActive: { backgroundColor: T.goldPrimary, borderColor: T.goldPrimary },
+    stepText: { color: T.textSecondary, fontWeight: 'bold' },
     stepTextActive: { color: '#000' },
-    stepLine: { width: 40, height: 2, backgroundColor: '#222', marginHorizontal: 8 },
-    stepLineActive: { backgroundColor: '#D4AF37' },
+    stepLine: { width: 40, height: 2, backgroundColor: T.card, marginHorizontal: 8 },
+    stepLineActive: { backgroundColor: T.goldPrimary },
     modeContainer: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, marginBottom: 24 },
-    modeCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 18, paddingHorizontal: 10, borderRadius: 16, borderWidth: 1, borderColor: '#333' },
-    modeCardActive: { borderColor: '#FFF', shadowColor: '#D4AF37', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 },
-    modeTitle: { color: '#888', fontWeight: '900', fontSize: 12, letterSpacing: 0.5 },
-    modeSub: { color: '#555', fontSize: 10, marginTop: 2 },
+    modeCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 18, paddingHorizontal: 10, borderRadius: 16, borderWidth: 1, borderColor: T.border },
+    modeCardActive: { borderColor: T.goldPrimary, shadowColor: T.goldPrimary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 },
+    modeTitle: { color: T.textSecondary, fontWeight: '900', fontSize: 12, letterSpacing: 0.5 },
+    modeSub: { color: T.textSecondary, fontSize: 10, marginTop: 2 },
     content: { flex: 1, paddingHorizontal: 20 },
-    sectionTitle: { color: '#D4AF37', fontSize: 13, fontWeight: 'bold', marginBottom: 12, letterSpacing: 1, textTransform: 'uppercase' },
-    itemCard: { backgroundColor: 'transparent', borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
-    indexCircle: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#D4AF37', alignItems: 'center', justifyContent: 'center', marginTop: 12 },
+    sectionTitle: { color: T.goldPrimary, fontSize: 13, fontWeight: 'bold', marginBottom: 12, letterSpacing: 1, textTransform: 'uppercase' },
+    itemCard: { backgroundColor: 'transparent', borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: T.border },
+    indexCircle: { width: 24, height: 24, borderRadius: 12, backgroundColor: T.goldPrimary, alignItems: 'center', justifyContent: 'center', marginTop: 12 },
     indexText: { color: '#000', fontSize: 13, fontWeight: 'bold' },
-    premiumInputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 12, height: 50 },
-    premiumInput: { flex: 1, color: '#FFF', fontSize: 13 },
+    premiumInputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: T.inputBg, borderRadius: 12, borderWidth: 1, borderColor: T.border, paddingHorizontal: 12, height: 50 },
+    premiumInput: { flex: 1, color: T.textPrimary, fontSize: 13 },
     deleteBtn: { marginLeft: 8 },
-    unitButton: { width: 80, height: 50, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-    unitText: { color: '#FFF', fontSize: 13, fontWeight: 'bold' },
-    addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 18, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', borderStyle: 'dashed', backgroundColor: 'transparent', gap: 8, marginTop: 4 },
-    addBtnText: { color: '#D4AF37', fontWeight: 'bold', fontSize: 13, letterSpacing: 0.5 },
-    suggestionsCard: { position: 'absolute', top: 55, left: 0, right: 0, backgroundColor: '#1E1E1E', borderRadius: 12, borderWidth: 1, borderColor: '#D4AF37', marginTop: 4, padding: 4, maxHeight: 220, zIndex: 9999, shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.8, shadowRadius: 10, elevation: 15 },
-    suggestionItem: { flexDirection: 'row', alignItems: 'center', padding: 12, borderBottomWidth: 1, borderBottomColor: '#333' },
-    suggestionName: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
-    suggestionCat: { color: '#888', fontSize: 11, marginTop: 2 },
-    suggestionUnitBadge: { backgroundColor: 'rgba(212,175,55,0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-    suggestionUnitText: { color: '#D4AF37', fontSize: 12, fontWeight: '900' },
+    unitButton: { width: 80, height: 50, backgroundColor: T.inputBg, borderRadius: 12, borderWidth: 1, borderColor: T.border, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+    unitText: { color: T.textPrimary, fontSize: 13, fontWeight: 'bold' },
+    addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 18, borderRadius: 12, borderWidth: 1, borderColor: T.border, borderStyle: 'dashed', backgroundColor: 'transparent', gap: 8, marginTop: 4 },
+    addBtnText: { color: T.goldPrimary, fontWeight: 'bold', fontSize: 13, letterSpacing: 0.5 },
+    suggestionsCard: { position: 'absolute', top: 55, left: 0, right: 0, backgroundColor: T.card, borderRadius: 12, borderWidth: 1, borderColor: T.goldPrimary, marginTop: 4, padding: 4, maxHeight: 220, zIndex: 9999, shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.8, shadowRadius: 10, elevation: 15 },
+    suggestionItem: { flexDirection: 'row', alignItems: 'center', padding: 12, borderBottomWidth: 1, borderBottomColor: T.border },
+    suggestionName: { color: T.textPrimary, fontSize: 14, fontWeight: 'bold' },
+    suggestionCat: { color: T.textSecondary, fontSize: 11, marginTop: 2 },
+    suggestionUnitBadge: { backgroundColor: isDarkMode ? 'rgba(212,175,55,0.1)' : 'rgba(184,130,15,0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+    suggestionUnitText: { color: T.goldPrimary, fontSize: 12, fontWeight: '900' },
     footer: { padding: 20, paddingTop: 10 },
-    nextBtn: { height: 56, borderRadius: 28, backgroundColor: '#D4AF37', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, shadowColor: "#D4AF37", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 8 },
-    nextBtnText: { color: '#000', fontSize: 16, fontWeight: '900', letterSpacing: 0.5 },
-    stepTitle: { color: '#D4AF37', fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
-    stepSubtitle: { color: '#666', fontSize: 14, marginBottom: 24 },
-    labelSmall: { color: '#666', fontSize: 11, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 },
-    locationInput: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#161616', borderRadius: 12, borderWidth: 1, borderColor: '#333', paddingHorizontal: 16, height: 56 },
+    nextBtn: { height: 56, borderRadius: 28, backgroundColor: T.goldPrimary, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, shadowColor: "#D4AF37", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 8 },
+    nextBtnText: { color: '#FFF', fontSize: 16, fontWeight: '900', letterSpacing: 0.5 },
+    stepTitle: { color: T.goldPrimary, fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
+    stepSubtitle: { color: T.textSecondary, fontSize: 14, marginBottom: 24 },
+    labelSmall: { color: T.textSecondary, fontSize: 11, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 },
+    locationInput: { flexDirection: 'row', alignItems: 'center', backgroundColor: T.card, borderRadius: 12, borderWidth: 1, borderColor: T.border, paddingHorizontal: 16, height: 56 },
     toggleContainer: { flexDirection: 'row', gap: 12 },
-    toggleBtn: { flex: 1, height: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#161616', borderRadius: 12, borderWidth: 1, borderColor: '#333', gap: 8 },
-    toggleBtnActive: { backgroundColor: '#D4AF37', borderColor: '#D4AF37' },
-    toggleText: { color: '#666', fontWeight: 'bold', fontSize: 13 },
+    toggleBtn: { flex: 1, height: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: T.card, borderRadius: 12, borderWidth: 1, borderColor: T.border, gap: 8 },
+    toggleBtnActive: { backgroundColor: T.goldPrimary, borderColor: T.goldPrimary },
+    toggleText: { color: T.textSecondary, fontWeight: 'bold', fontSize: 13 },
     toggleTextActive: { color: '#000', fontWeight: 'bold', fontSize: 13 },
-    notesInput: { backgroundColor: '#161616', borderRadius: 12, borderWidth: 1, borderColor: '#333', padding: 16, height: 120, textAlignVertical: 'top', color: '#fff', fontSize: 14 },
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
-    modalContainer: { backgroundColor: '#161616', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '50%' },
-    modalHandle: { width: 40, height: 4, backgroundColor: '#333', borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
-    modalHeaderTitle: { color: '#D4AF37', fontSize: 18, fontWeight: 'bold', marginBottom: 16, textAlign: 'center' },
-    modalOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#222' },
-    modalOptionText: { color: '#fff', fontSize: 16 },
-    paymentCard: { flexDirection: 'row', alignItems: 'center', gap: 16, backgroundColor: '#161616', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#333' },
-    paymentCardActive: { borderColor: '#D4AF37', backgroundColor: '#1A1A1A' },
-    paymentIconBox: { width: 50, height: 50, borderRadius: 12, backgroundColor: '#222', alignItems: 'center', justifyContent: 'center' },
-    paymentTitle: { color: '#fff', fontSize: 15, fontWeight: 'bold', marginBottom: 4 },
-    paymentDesc: { color: '#666', fontSize: 12 },
+    notesInput: { backgroundColor: T.card, borderRadius: 12, borderWidth: 1, borderColor: T.border, padding: 16, height: 120, textAlignVertical: 'top', color: T.textPrimary, fontSize: 14 },
+    modalOverlay: { flex: 1, backgroundColor: isDarkMode ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)', justifyContent: 'flex-end' },
+    modalContainer: { backgroundColor: T.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '50%' },
+    modalHandle: { width: 40, height: 4, backgroundColor: T.border, borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
+    modalHeaderTitle: { color: T.goldPrimary, fontSize: 18, fontWeight: 'bold', marginBottom: 16, textAlign: 'center' },
+    modalOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: T.border },
+    modalOptionText: { color: T.textPrimary, fontSize: 16 },
+    paymentCard: { flexDirection: 'row', alignItems: 'center', gap: 16, backgroundColor: T.card, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: T.border },
+    paymentCardActive: { borderColor: T.goldPrimary, backgroundColor: T.searchBg },
+    paymentIconBox: { width: 50, height: 50, borderRadius: 12, backgroundColor: T.card, alignItems: 'center', justifyContent: 'center' },
+    paymentTitle: { color: T.textPrimary, fontSize: 15, fontWeight: 'bold', marginBottom: 4 },
+    paymentDesc: { color: T.textSecondary, fontSize: 12 },
     maturityContainer: { marginTop: 20 },
 });
+}

@@ -40,7 +40,8 @@ export default function MarketScreen() {
         textSecondary: isDarkMode ? '#AAAAAA' : '#777777',
         border: isDarkMode ? '#333333' : '#E8E0D0',
         searchBg: isDarkMode ? '#1A1A1A' : '#FFFFFF',
-        goldPrimary: '#D4AF37',
+        goldPrimary: isDarkMode ? '#D4AF37' : '#B8820F',
+        goldShadow: isDarkMode ? '#AA8230' : '#8C6200',
     };
     const styles = getStyles(T, isDarkMode);
 
@@ -384,7 +385,7 @@ export default function MarketScreen() {
         return (
             <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
                 <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
-                <ActivityIndicator size="large" color="#D4AF37" />
+                <ActivityIndicator size="large" color={T.goldPrimary} />
             </View>
         );
     }
@@ -427,7 +428,7 @@ export default function MarketScreen() {
 
                 {/* SEARCH BAR (In-Flow) */}
                 <View style={styles.searchContainer}>
-                    <Ionicons name="search" size={20} color="#D4AF37" style={{ marginRight: 8 }} />
+                    <Ionicons name="search" size={20} color={T.goldPrimary} style={{ marginRight: 8 }} />
                     <TextInput allowFontScaling={false}
                         placeholder="Malzeme, Firma veya Konum Ara..."
                         placeholderTextColor="#666"
@@ -459,7 +460,7 @@ export default function MarketScreen() {
                                         <View key={item.id} style={styles.heroCard}>
                                             <View style={styles.heroImage}>
                                                 <Image
-                                                    source={item.is_local ? getMarketImage(item.image_ref) : { uri: item.image_url }}
+                                                    source={item.is_local ? getMarketImage(item.image_ref, isDarkMode) : { uri: item.image_url }}
                                                     style={[
                                                         StyleSheet.absoluteFill,
                                                         { transform: [{ scale: item.image_scale || 1 }] }
@@ -483,7 +484,7 @@ export default function MarketScreen() {
                                                         { 
                                                             position: 'relative', top: 0, left: 0, 
                                                             alignSelf: 'flex-start', marginBottom: 8,
-                                                            backgroundColor: item.tag_color || '#D4AF37'
+                                                            backgroundColor: item.tag_color || T.goldPrimary
                                                         }
                                                     ]}>
                                                         <Text allowFontScaling={false} style={styles.heroTagText}>{item.tag}</Text>
@@ -506,7 +507,7 @@ export default function MarketScreen() {
                                                         activeOpacity={0.8}
                                                     >
                                                         <LinearGradient
-                                                            colors={['#D4AF37', '#B8860B']}
+                                                            colors={[T.goldPrimary, T.goldShadow]}
                                                             style={StyleSheet.absoluteFillObject}
                                                             start={{ x: 0, y: 0 }}
                                                             end={{ x: 1, y: 0 }}
@@ -551,7 +552,7 @@ export default function MarketScreen() {
                                         onPress={() => setIsShowcaseManagerVisible(true)}
                                     >
                                         <LinearGradient colors={['#1A1A1A', '#111']} style={StyleSheet.absoluteFillObject} />
-                                        <MaterialCommunityIcons name="view-carousel-outline" size={20} color="#D4AF37" />
+                                        <MaterialCommunityIcons name="view-carousel-outline" size={20} color={T.goldPrimary} />
                                         <Text allowFontScaling={false} style={styles.adminSliderBtnText}>SLIDER AYARLARI</Text>
                                         <MaterialCommunityIcons name="cog-outline" size={16} color={T.textSecondary} />
                                     </TouchableOpacity>
@@ -602,7 +603,7 @@ export default function MarketScreen() {
                                             "10 katlı bina için beton lazım" diyin, yapay zeka sizin için en iyi tedarikçileri bulsun.
                                         </Text>
                                     </View>
-                                    <MaterialCommunityIcons name="chevron-right" size={24} color="#D4AF37" />
+                                    <MaterialCommunityIcons name="chevron-right" size={24} color={T.goldPrimary} />
                                 </View>
                             </TouchableOpacity>
 
@@ -670,7 +671,7 @@ export default function MarketScreen() {
                                         )}
                                         <View style={styles.gridImage}>
                                             <Image
-                                                source={getMarketImage(cat.image_ref)}
+                                                source={getMarketImage(cat.image_ref, isDarkMode)}
                                                 style={StyleSheet.absoluteFill}
                                                 contentFit="cover"
                                                 transition={500}
@@ -679,11 +680,11 @@ export default function MarketScreen() {
 
                                             {/* Bottom Left Patch (Integrated with main gradient) */}
                                             <LinearGradient
-                                                colors={['transparent', '#000000']}
-                                                style={StyleSheet.absoluteFill}
+                                                colors={['transparent', isDarkMode ? '#000000' : '#FFFFFF']}
+                                                style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '60%' }}
                                             />
 
-                                            <MaterialCommunityIcons name={cat.icon} size={24} color="#D4AF37" style={styles.gridIconAbsolute} />
+                                            <MaterialCommunityIcons name={cat.icon} size={24} color={T.goldPrimary} style={styles.gridIconAbsolute} />
                                             {/* Removed old gradient to avoid double darkening */}
                                             <View style={styles.gridContent}>
                                                 <Text allowFontScaling={false} style={styles.gridTitle}>{cat.title}</Text>
@@ -753,7 +754,7 @@ export default function MarketScreen() {
                                                 </TouchableOpacity>
                                                 <View style={{ flexDirection: 'row', gap: 4 }}>
                                                     <TouchableOpacity onPress={() => moveSubCat(sub, idx, 'up')} style={styles.listAdminBtn}>
-                                                        <MaterialCommunityIcons name="chevron-up" size={18} color="#D4AF37" />
+                                                        <MaterialCommunityIcons name="chevron-up" size={18} color={T.goldPrimary} />
                                                     </TouchableOpacity>
                                                     <TouchableOpacity onPress={() => toggleSubCatVisibility(sub)} style={styles.listAdminBtn}>
                                                         <MaterialCommunityIcons 
@@ -763,7 +764,7 @@ export default function MarketScreen() {
                                                         />
                                                     </TouchableOpacity>
                                                     <TouchableOpacity onPress={() => moveSubCat(sub, idx, 'down')} style={styles.listAdminBtn}>
-                                                        <MaterialCommunityIcons name="chevron-down" size={18} color="#D4AF37" />
+                                                        <MaterialCommunityIcons name="chevron-down" size={18} color={T.goldPrimary} />
                                                     </TouchableOpacity>
                                                 </View>
                                             </View>
@@ -810,7 +811,7 @@ export default function MarketScreen() {
                             {filteredItems.map((item, idx) => {
                                 const isExpanded = expandedItemIndex === idx;
                                 return (
-                                    <View key={idx} style={[styles.productCard, isExpanded && { borderColor: '#D4AF37' }]}>
+                                    <View key={idx} style={[styles.productCard, isExpanded && { borderColor: T.goldPrimary }]}>
                                         <TouchableOpacity
                                             style={styles.productMainRow}
                                             onPress={() => toggleExpand(idx, filteredItems)}
@@ -818,7 +819,7 @@ export default function MarketScreen() {
                                         >
                                             {/* Left Icon (Gold) */}
                                             <View style={styles.productIconBox}>
-                                                <MaterialCommunityIcons name={selectedCategory.subcategories.find(s => s.name === item.subcategory)?.icon || 'cube-outline'} size={24} color="#D4AF37" />
+                                                <MaterialCommunityIcons name={selectedCategory.subcategories.find(s => s.name === item.subcategory)?.icon || 'cube-outline'} size={24} color={T.goldPrimary} />
                                             </View>
 
                                             {/* Center Content */}
@@ -829,14 +830,14 @@ export default function MarketScreen() {
                                                     {item.options && <Text allowFontScaling={false} style={{ color: T.textSecondary, fontSize: 11, marginLeft: 6 }}>({Object.keys(item.options).length} Seçenek)</Text>}
                                                 </View>
                                                 {isExpanded && item.options && (
-                                                    <Text allowFontScaling={false} style={{ fontSize: 11, color: '#D4AF37', marginTop: 4 }}>
+                                                    <Text allowFontScaling={false} style={{ fontSize: 11, color: T.goldPrimary, marginTop: 4 }}>
                                                         Seçilen: {Object.values(selectedOptions).join(', ')}
                                                     </Text>
                                                 )}
                                             </View>
 
                                             {/* Right Action (Price/Expand) */}
-                                            <View style={[styles.priceExpandBtn, isExpanded && { backgroundColor: '#D4AF37' }]}>
+                                            <View style={[styles.priceExpandBtn, isExpanded && { backgroundColor: T.goldPrimary }]}>
                                                 <Text allowFontScaling={false} style={[styles.priceExpandText, isExpanded && { color: '#000' }]}>
                                                     {isExpanded ? 'KAPAT' : 'FİYAT'}
                                                 </Text>
@@ -856,7 +857,7 @@ export default function MarketScreen() {
                                                 {renderVariationSelectors(item)}
 
                                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                                                    <MaterialCommunityIcons name="storefront-outline" size={16} color="#D4AF37" style={{ marginRight: 6 }} />
+                                                    <MaterialCommunityIcons name="storefront-outline" size={16} color={T.goldPrimary} style={{ marginRight: 6 }} />
                                                     <Text allowFontScaling={false} style={[styles.supplierListHeader, { marginBottom: 0 }]}>TEDARİKÇİLER & FİYATLAR</Text>
                                                 </View>
 
@@ -875,7 +876,7 @@ export default function MarketScreen() {
                                                                     <Text allowFontScaling={false} style={[styles.supplierNameText, { textDecorationLine: 'underline' }]}>{supplier.name}</Text>
                                                                 </TouchableOpacity>
                                                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                                    <Ionicons name="star" size={12} color="#D4AF37" />
+                                                                    <Ionicons name="star" size={12} color={T.goldPrimary} />
                                                                     <Text allowFontScaling={false} style={styles.supplierRating}>{supplier.rating}</Text>
                                                                 </View>
                                                             </View>
@@ -914,7 +915,7 @@ export default function MarketScreen() {
                         onPress={() => navigation.navigate('MarketCart')}
                         activeOpacity={0.9}
                     >
-                        <LinearGradient colors={['#D4AF37', '#B8860B']} style={StyleSheet.absoluteFillObject} />
+                        <LinearGradient colors={[T.goldPrimary, T.goldShadow]} style={StyleSheet.absoluteFillObject} />
                         <View style={styles.cartContentWrap}>
                             <MaterialCommunityIcons name="cart-outline" size={26} color={isDarkMode ? '#000' : '#FFF'} />
                             <View style={styles.cartBadge}>
@@ -951,7 +952,7 @@ export default function MarketScreen() {
                                         </View>
                                         <View style={{ flexDirection: 'row', gap: 8 }}>
                                             <TouchableOpacity onPress={() => setEditingShowcaseItem(item)} style={styles.managerActionBtn}>
-                                                <MaterialCommunityIcons name="pencil" size={18} color="#D4AF37" />
+                                                <MaterialCommunityIcons name="pencil" size={18} color={T.goldPrimary} />
                                             </TouchableOpacity>
                                             <TouchableOpacity onPress={() => handleDeleteShowcase(item.id)} style={styles.managerActionBtn}>
                                                 <MaterialCommunityIcons name="trash-can-outline" size={18} color="#FF4D4D" />
@@ -992,7 +993,7 @@ export default function MarketScreen() {
                                 {/* Image Preview & Picker */}
                                 <TouchableOpacity style={styles.imagePickerArea} onPress={handlePickShowcaseImage}>
                                     {isUploading ? (
-                                        <ActivityIndicator color="#D4AF37" />
+                                        <ActivityIndicator color={T.goldPrimary} />
                                     ) : (
                                         <>
                                             <Image 
@@ -1135,7 +1136,7 @@ const getStyles = (T, isDarkMode) => StyleSheet.create({
     // Header
     // Header (Standardized)
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, marginBottom: 10 },
-    headerTitle: { color: '#D4AF37', fontSize: 12, fontWeight: '900', letterSpacing: 2 },
+    headerTitle: { color: T.goldPrimary, fontSize: 12, fontWeight: '900', letterSpacing: 2 },
     headerSubtitle: { color: T.textPrimary, fontSize: 16, fontWeight: '300', marginTop: 4 },
     headerBtn: { padding: 5 },
     headerIconBtn: {
@@ -1146,7 +1147,7 @@ const getStyles = (T, isDarkMode) => StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: '#D4AF37',
+        borderColor: T.goldPrimary,
         shadowColor: "#D4AF37",
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.3,
@@ -1167,7 +1168,7 @@ const getStyles = (T, isDarkMode) => StyleSheet.create({
     heroSlider: { marginTop: 10 },
     heroCard: { width: width, height: 240, overflow: 'hidden' },
     heroImage: { width: '100%', height: '100%', justifyContent: 'flex-end', padding: 20 },
-    heroTag: { position: 'absolute', top: 50, left: 20, backgroundColor: '#D4AF37', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, zIndex: 10 },
+    heroTag: { position: 'absolute', top: 50, left: 20, backgroundColor: T.goldPrimary, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, zIndex: 10 },
     heroTagText: { fontSize: 10, fontWeight: 'bold', color: '#000' },
     heroContent: { marginBottom: 20 },
     heroTitle: { color: T.textPrimary, fontSize: 24, fontWeight: '900', marginBottom: 4, textShadowColor: '#000', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 10 },
@@ -1177,32 +1178,32 @@ const getStyles = (T, isDarkMode) => StyleSheet.create({
 
     // Pagination
     pagination: { flexDirection: 'row', position: 'absolute', bottom: 10, alignSelf: 'center' },
-    dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#D4AF37', marginHorizontal: 4 },
+    dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: T.goldPrimary, marginHorizontal: 4 },
 
     // Bulk Action
-    bulkActionBar: { marginHorizontal: 16, marginBottom: 24, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#D4AF37', backgroundColor: T.card },
+    bulkActionBar: { marginHorizontal: 16, marginBottom: 24, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: T.goldPrimary, backgroundColor: T.card },
     bulkContainer: { flexDirection: 'row', alignItems: 'center', padding: 20 },
-    bulkIconCircle: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#D4AF37', alignItems: 'center', justifyContent: 'center', marginRight: 16, borderWidth: 4, borderColor: 'rgba(255, 215, 0, 0.3)' },
-    bulkTitle: { fontSize: 16, fontWeight: '900', color: '#D4AF37', letterSpacing: 0.5 },
+    bulkIconCircle: { width: 50, height: 50, borderRadius: 25, backgroundColor: T.goldPrimary, alignItems: 'center', justifyContent: 'center', marginRight: 16, borderWidth: 4, borderColor: 'rgba(212, 175, 55, 0.3)' },
+    bulkTitle: { fontSize: 16, fontWeight: '900', color: T.goldPrimary, letterSpacing: 0.5 },
     bulkSubtitle: { fontSize: 13, color: T.textSecondary, marginTop: 4, fontWeight: '400' },
     // bulkIconBox removed
 
     // Grid
     sectionHeader: { paddingHorizontal: 16, marginBottom: 12 },
-    sectionTitle: { color: '#D4AF37', fontSize: 13, fontWeight: 'bold', letterSpacing: 1 },
+    sectionTitle: { color: T.goldPrimary, fontSize: 13, fontWeight: 'bold', letterSpacing: 1 },
     gridContainer: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12 },
     gridCard: { width: '50%', padding: 6, height: 160, marginBottom: 4 },
     gridImage: { width: '100%', height: '100%', justifyContent: 'flex-end', padding: 12, borderWidth: 1, borderColor: T.border, borderRadius: 16, overflow: 'hidden' },
     gridContent: { alignItems: 'flex-start', width: '100%' }, // Ensure text takes width if needed
     gridIconAbsolute: { position: 'absolute', top: 12, right: 12, zIndex: 10 },
-    gridTitle: { color: T.textPrimary, fontSize: 13, fontWeight: 'bold', marginBottom: 0, textShadowColor: 'rgba(0,0,0,0.9)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3, lineHeight: 18 },
-    gridBadge: { backgroundColor: 'rgba(255,215,0,0.25)', alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#D4AF37' },
-    gridBadgeText: { color: '#D4AF37', fontSize: 10, fontWeight: 'bold' },
+    gridTitle: { color: isDarkMode ? '#FFFFFF' : '#1C1208', fontSize: 13, fontWeight: '900', marginBottom: 0, textShadowColor: isDarkMode ? 'rgba(0,0,0,0.9)' : 'rgba(255,255,255,1)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4, lineHeight: 18, letterSpacing: 0.5 },
+    gridBadge: { backgroundColor: 'rgba(212, 175, 55, 0.25)', alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: T.goldPrimary },
+    gridBadgeText: { color: T.goldPrimary, fontSize: 10, fontWeight: 'bold' },
 
     // Product Card (Redesigned List View)
     detailContainer: { padding: 16 },
     categoryHeader: { marginBottom: 20 },
-    categoryTitle: { color: '#D4AF37', fontSize: 22, fontWeight: '900', marginBottom: 4 },
+    categoryTitle: { color: T.goldPrimary, fontSize: 22, fontWeight: '900', marginBottom: 4 },
     categorySubtitle: { color: T.textSecondary, fontSize: 14 },
     // Product Card (Expandable List View)
     productCard: { borderRadius: 12, marginBottom: 12, backgroundColor: T.searchBg, borderWidth: 1, borderColor: T.border, overflow: 'hidden' },
@@ -1214,19 +1215,19 @@ const getStyles = (T, isDarkMode) => StyleSheet.create({
 
     // Price & Expand Button
     priceExpandBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: T.bg, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 },
-    priceExpandText: { fontSize: 12, fontWeight: 'bold', color: '#D4AF37' },
+    priceExpandText: { fontSize: 12, fontWeight: 'bold', color: T.goldPrimary },
 
     // Expanded Supplier List (NEW: Dark Theme)
     supplierListContainer: { backgroundColor: T.card, padding: 16, borderTopWidth: 1, borderTopColor: T.border },
-    supplierListHeader: { color: '#D4AF37', fontSize: 12, fontWeight: '900', letterSpacing: 1 },
+    supplierListHeader: { color: T.goldPrimary, fontSize: 12, fontWeight: '900', letterSpacing: 1 },
     supplierRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottomWidth: 1, borderBottomColor: T.border, paddingBottom: 10 },
     supplierInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
     supplierAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#333', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-    supplierInitials: { color: '#D4AF37', fontWeight: 'bold', fontSize: 14 },
+    supplierInitials: { color: T.goldPrimary, fontWeight: 'bold', fontSize: 14 },
     supplierNameText: { color: T.textPrimary, fontSize: 14, fontWeight: 'bold', marginBottom: 2 },
     supplierRating: { color: T.textSecondary, fontSize: 12, marginLeft: 4 },
-    supplierPrice: { color: '#D4AF37', fontSize: 18, fontWeight: '900' },
-    addToCartBtnSmall: { backgroundColor: '#D4AF37', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, marginTop: 4 },
+    supplierPrice: { color: T.goldPrimary, fontSize: 18, fontWeight: '900' },
+    addToCartBtnSmall: { backgroundColor: T.goldPrimary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, marginTop: 4 },
     addToCartText: { color: '#000', fontSize: 11, fontWeight: 'bold' },
 
     // Options (New)
@@ -1234,23 +1235,23 @@ const getStyles = (T, isDarkMode) => StyleSheet.create({
     optionRow: { marginBottom: 12 },
     optionLabel: { color: T.textPrimary, fontSize: 13, fontWeight: 'bold', marginBottom: 6 },
     optionChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, backgroundColor: '#333', marginRight: 8, borderWidth: 1, borderColor: '#444' },
-    optionChipActive: { backgroundColor: '#D4AF37', borderColor: '#D4AF37' },
+    optionChipActive: { backgroundColor: T.goldPrimary, borderColor: T.goldPrimary },
     optionChipText: { color: T.textSecondary, fontSize: 12, fontWeight: '500' },
     optionChipTextActive: { color: '#000', fontWeight: 'bold' },
 
     // Floating Map Button
-    mapFab: { position: 'absolute', bottom: 30, right: 20, width: 56, height: 56, borderRadius: 28, backgroundColor: '#D4AF37', alignItems: 'center', justifyContent: 'center', shadowColor: '#D4AF37', shadowOffset: { height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
+    mapFab: { position: 'absolute', bottom: 30, right: 20, width: 56, height: 56, borderRadius: 28, backgroundColor: T.goldPrimary, alignItems: 'center', justifyContent: 'center', shadowColor: T.goldPrimary, shadowOffset: { height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
 
     // Floating Cart Button
-    cartFab: { position: 'absolute', bottom: 100, right: 20, borderRadius: 28, height: 56, paddingHorizontal: 20, overflow: 'hidden', shadowColor: '#D4AF37', shadowOffset: { height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 },
+    cartFab: { position: 'absolute', bottom: 100, right: 20, borderRadius: 28, height: 56, paddingHorizontal: 20, overflow: 'hidden', shadowColor: T.goldPrimary, shadowOffset: { height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 },
     cartContentWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
-    cartBadge: { position: 'absolute', top: 4, left: 16, backgroundColor: T.bg, width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#D4AF37' },
-    cartBadgeText: { color: '#D4AF37', fontSize: 10, fontWeight: 'bold' },
+    cartBadge: { position: 'absolute', top: 4, left: 16, backgroundColor: T.bg, width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: T.goldPrimary },
+    cartBadgeText: { color: T.goldPrimary, fontSize: 10, fontWeight: 'bold' },
     cartFabText: { color: '#000', fontSize: 15, fontWeight: '800', marginLeft: 10 },
 
     // Filter Chips
     filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#333', marginRight: 10, borderWidth: 1, borderColor: '#444' },
-    filterChipActive: { backgroundColor: '#D4AF37', borderColor: '#D4AF37' },
+    filterChipActive: { backgroundColor: T.goldPrimary, borderColor: T.goldPrimary },
     filterChipText: { color: T.textSecondary, fontSize: 13, fontWeight: '500' },
     filterChipTextActive: { color: '#000', fontWeight: 'bold' },
 
@@ -1277,7 +1278,7 @@ const getStyles = (T, isDarkMode) => StyleSheet.create({
         borderRadius: 16,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: '#D4AF37',
+        borderColor: T.goldPrimary,
         shadowColor: "#D4AF37",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
@@ -1303,12 +1304,12 @@ const getStyles = (T, isDarkMode) => StyleSheet.create({
     aiTitle: {
         fontSize: 14,
         fontWeight: '900',
-        color: '#D4AF37',
+        color: T.goldPrimary,
         letterSpacing: 1,
         marginRight: 8
     },
     newBadge: {
-        backgroundColor: '#D4AF37',
+        backgroundColor: T.goldPrimary,
         paddingHorizontal: 6,
         paddingVertical: 2,
         borderRadius: 4
@@ -1334,11 +1335,11 @@ const getStyles = (T, isDarkMode) => StyleSheet.create({
         paddingVertical: 6,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#D4AF37',
+        borderColor: T.goldPrimary,
         marginTop: 4
     },
     editModeBtnActive: {
-        backgroundColor: '#D4AF37',
+        backgroundColor: T.goldPrimary,
     },
     editModeText: {
         fontSize: 11,
@@ -1368,7 +1369,7 @@ const getStyles = (T, isDarkMode) => StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: '#D4AF37'
+        borderColor: T.goldPrimary
     },
     listAdminControls: {
         flexDirection: 'row',
@@ -1394,13 +1395,13 @@ const getStyles = (T, isDarkMode) => StyleSheet.create({
         padding: 14,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#D4AF37',
+        borderColor: T.goldPrimary,
         justifyContent: 'center',
         gap: 12,
         overflow: 'hidden'
     },
     adminSliderBtnText: {
-        color: '#D4AF37',
+        color: T.goldPrimary,
         fontSize: 13,
         fontWeight: '900',
         letterSpacing: 1.5
@@ -1435,7 +1436,7 @@ const getStyles = (T, isDarkMode) => StyleSheet.create({
         borderBottomColor: T.border
     },
     modalTitle: {
-        color: '#D4AF37',
+        color: T.goldPrimary,
         fontSize: 18,
         fontWeight: '900'
     },
@@ -1473,7 +1474,7 @@ const getStyles = (T, isDarkMode) => StyleSheet.create({
     addSliderBtn: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#D4AF37',
+        backgroundColor: T.goldPrimary,
         padding: 16,
         borderRadius: 12,
         justifyContent: 'center',
@@ -1500,7 +1501,7 @@ const getStyles = (T, isDarkMode) => StyleSheet.create({
         marginBottom: 20
     },
     inputLabel: {
-        color: '#D4AF37',
+        color: T.goldPrimary,
         fontSize: 10,
         fontWeight: '900',
         letterSpacing: 1,
@@ -1536,7 +1537,7 @@ const getStyles = (T, isDarkMode) => StyleSheet.create({
         fontWeight: 'bold'
     },
     modalSaveBtn: {
-        backgroundColor: '#D4AF37',
+        backgroundColor: T.goldPrimary,
         padding: 18,
         borderRadius: 16,
         alignItems: 'center',
@@ -1560,7 +1561,7 @@ const getStyles = (T, isDarkMode) => StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#D4AF37',
+        backgroundColor: T.goldPrimary,
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 100,

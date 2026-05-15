@@ -21,6 +21,7 @@ import PremiumBackground from '../../components/PremiumBackground';
 import { getSortedCities } from '../../constants/TurkeyLocations';
 import { supabase } from '../../lib/supabase';
 import { ScreenConfigService } from '../../services/ScreenConfigService';
+import { useTheme } from '../../context/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -30,7 +31,7 @@ const CITIES = getSortedCities();
 // --- COMPONENTS ---
 
 // Custom Modal for Elegant Selection
-const SelectionModal = ({ visible, onClose, title, items, onSelect }) => {
+const SelectionModal = ({ visible, onClose, title, items, onSelect, T, styles, isDarkMode }) => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const [searchText, setSearchText] = useState('');
 
@@ -53,23 +54,23 @@ const SelectionModal = ({ visible, onClose, title, items, onSelect }) => {
                 <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFillObject} />
                 <TouchableOpacity activeOpacity={1} style={{ width: '100%', justifyContent: 'flex-end' }}>
                     <Animated.View style={[styles.modalContent, { opacity: fadeAnim, transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [200, 0] }) }] }]}>
-                        <LinearGradient colors={['#1a1a1a', '#0a0a0a']} style={styles.modalGradient}>
+                        <LinearGradient colors={T.modalBg} style={styles.modalGradient}>
                             <View style={styles.modalHeader}>
                                 <View>
                                     <Text allowFontScaling={false} style={styles.modalTitle}>{title}</Text>
                                     <View style={styles.titleUnderline} />
                                 </View>
                                 <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                                    <MaterialCommunityIcons name="close-circle-outline" size={28} color="#D4AF37" />
+                                    <MaterialCommunityIcons name="close-circle-outline" size={28} color={T.iconColor} />
                                 </TouchableOpacity>
                             </View>
 
                             <View style={styles.searchContainer}>
-                                <MaterialCommunityIcons name="magnify" size={20} color="#D4AF37" style={{ marginRight: 10 }} />
+                                <MaterialCommunityIcons name="magnify" size={20} color={T.iconColor} style={{ marginRight: 10 }} />
                                 <TextInput allowFontScaling={false}
                                     style={styles.searchInput}
                                     placeholder="Ara..."
-                                    placeholderTextColor="#555"
+                                    placeholderTextColor={T.textSecondary}
                                     value={searchText}
                                     onChangeText={setSearchText}
                                     autoCorrect={false}
@@ -86,9 +87,9 @@ const SelectionModal = ({ visible, onClose, title, items, onSelect }) => {
                                     return (
                                         <TouchableOpacity style={styles.modalItem} onPress={() => { onSelect(item); onClose(); }}>
                                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                                                <Text allowFontScaling={false} style={[styles.modalItemText, isPriority && { color: '#D4AF37', fontWeight: 'bold' }]}>{item}</Text>
+                                                <Text allowFontScaling={false} style={[styles.modalItemText, isPriority && { color: T.iconColor, fontWeight: 'bold' }]}>{item}</Text>
                                             </View>
-                                            <MaterialCommunityIcons name="chevron-right" size={16} color="rgba(212, 175, 55, 0.3)" />
+                                            <MaterialCommunityIcons name="chevron-right" size={16} color={isDarkMode ? 'rgba(212, 175, 55, 0.3)' : 'rgba(184, 130, 15, 0.3)'} />
                                         </TouchableOpacity>
                                     );
                                 }}
@@ -140,7 +141,7 @@ const SECTION_METADATA = {
     }
 };
 
-const LocationSelector = ({ city, onOpenCity }) => (
+const LocationSelector = ({ city, onOpenCity, T, styles }) => (
     <TouchableOpacity style={styles.locationContainer} onPress={onOpenCity}>
         <LuxuryCard style={styles.locationCard}>
             <View style={styles.locationContent}>
@@ -148,7 +149,7 @@ const LocationSelector = ({ city, onOpenCity }) => (
                     <Text allowFontScaling={false} style={styles.locationLabel}>HESAPLAMA YAPILACAK İL</Text>
                     <Text allowFontScaling={false} style={styles.locationValue}>{city || 'Seçiniz...'}</Text>
                 </View>
-                <MaterialCommunityIcons name="map-marker-radius" size={24} color="#D4AF37" />
+                <MaterialCommunityIcons name="map-marker-radius" size={24} color={T.iconColor} />
             </View>
         </LuxuryCard>
     </TouchableOpacity>
@@ -158,6 +159,22 @@ const LocationSelector = ({ city, onOpenCity }) => (
 
 export default function MaliyetScreen({ navigation }) {
     const fadeAnim = useRef(new Animated.Value(0)).current;
+    const { isDarkMode } = useTheme();
+
+    const T = {
+        bg: isDarkMode ? '#000000' : '#FDFBF7',
+        textPrimary: isDarkMode ? '#FFFFFF' : '#111111',
+        textSecondary: isDarkMode ? '#888888' : '#777777',
+        card: isDarkMode ? '#1A1A1A' : '#FFFFFF',
+        border: isDarkMode ? '#333333' : '#E8E0D0',
+        goldPrimary: isDarkMode ? '#D4AF37' : '#B8820F',
+        iconColor: isDarkMode ? '#D4AF37' : '#B8820F',
+        modalBg: isDarkMode ? ['#1a1a1a', '#0a0a0a'] : ['#FFFFFF', '#FDFBF7'],
+        searchBg: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+        searchBorder: isDarkMode ? 'rgba(212, 175, 55, 0.2)' : 'rgba(184, 130, 15, 0.2)',
+        modalItemBorder: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)',
+    };
+    const styles = getStyles(T, isDarkMode);
 
     // State
     const [city, setCity] = useState('İstanbul');
@@ -295,32 +312,27 @@ export default function MaliyetScreen({ navigation }) {
                     <View style={[styles.header, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                             <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
-                                <Ionicons name="arrow-back" size={24} color="#FFF" />
+                                <Ionicons name="arrow-back" size={24} color={T.textPrimary} />
                             </TouchableOpacity>
                             <View>
                                 <Text allowFontScaling={false} style={styles.headerTitle}>MALİYET MERKEZİ</Text>
                                 <Text allowFontScaling={false} style={styles.headerSubtitle}>Proje bütçe ve analiz araçları</Text>
                             </View>
                         </View>
-                        <MaterialCommunityIcons name="calculator-variant" size={32} color="#D4AF37" style={{ opacity: 0.2 }} />
+                        <MaterialCommunityIcons name="calculator-variant" size={32} color={T.iconColor} style={{ opacity: 0.2 }} />
                     </View>
 
-                    <LocationSelector
-                        city={city}
-                        onOpenCity={openCityModal}
-                    />
+                    <LocationSelector city={city} onOpenCity={openCityModal} T={T} styles={styles} />
 
                     {loading ? (
                         <View style={{ padding: 20 }}>
-                            <ActivityIndicator size="large" color="#D4AF37" />
+                            <ActivityIndicator size="large" color={T.iconColor} />
                         </View>
                     ) : (
                         <View style={styles.menuGrid}>
                             {sections
                                 .filter(s => {
-                                    if (s.id === 'cost_requests_contractor') {
-                                        return (s.is_visible && isContractor) || isAdmin;
-                                    }
+                                    if (s.id === 'cost_requests_contractor' || s.id === 'cost_requests_user') { return false; }
                                     return s.is_visible || isAdmin;
                                 })
                                 .map((section) => {
@@ -366,9 +378,9 @@ export default function MaliyetScreen({ navigation }) {
                                                     <View style={styles.menuCardContent}>
                                                         <View style={styles.iconWrapper}>
                                                             {meta.iconLibrary === 'MaterialCommunityIcons' ? (
-                                                                <MaterialCommunityIcons name={meta.icon} size={42} color="#D4AF37" />
+                                                                <MaterialCommunityIcons name={meta.icon} size={42} color={T.iconColor} />
                                                             ) : (
-                                                                <Ionicons name={meta.icon} size={42} color="#D4AF37" />
+                                                                <Ionicons name={meta.icon} size={42} color={T.iconColor} />
                                                             )}
                                                         </View>
 
@@ -377,7 +389,7 @@ export default function MaliyetScreen({ navigation }) {
                                                             <Text allowFontScaling={false} style={styles.menuSubtitle}>{meta.defaultSubtitle}</Text>
                                                         </View>
 
-                                                        <MaterialCommunityIcons name="chevron-right" size={28} color="#D4AF37" style={{ opacity: 0.5 }} />
+                                                        <MaterialCommunityIcons name="chevron-right" size={28} color={T.iconColor} style={{ opacity: 0.5 }} />
                                                     </View>
                                                 </LuxuryCard>
                                             </View>
@@ -389,19 +401,14 @@ export default function MaliyetScreen({ navigation }) {
                 </Animated.ScrollView>
 
                 {/* Selection Modal */}
-                <SelectionModal
-                    visible={modalVisible}
-                    onClose={() => setModalVisible(false)}
-                    title={getModalTitle()}
-                    items={getModalItems()}
-                    onSelect={handleSelect}
-                />
+                <SelectionModal visible={modalVisible} onClose={() => setModalVisible(false)} title={getModalTitle()} items={getModalItems()} onSelect={handleSelect} T={T} styles={styles} isDarkMode={isDarkMode} />
             </SafeAreaView>
         </PremiumBackground>
     );
 }
 
-const styles = StyleSheet.create({
+export function getStyles(T, isDarkMode) {
+    return StyleSheet.create({
     content: {
         padding: 24,
         paddingTop: Platform.OS === 'android' ? 40 : 12,
@@ -411,20 +418,19 @@ const styles = StyleSheet.create({
         marginLeft: 4,
     },
     headerTitle: {
-        fontSize: 32,
-        fontWeight: Platform.OS === 'android' ? '100' : '200',
-        color: '#fff',
+        fontSize: 24,
+        fontWeight: '900',
+        color: T.goldPrimary,
         letterSpacing: 2,
-        marginBottom: 8,
-        fontFamily: Platform.OS === 'android' ? 'sans-serif-thin' : 'System',
+        marginBottom: 4,
+        textTransform: 'uppercase',
     },
     headerSubtitle: {
-        fontSize: 14,
-        color: '#888',
-        fontWeight: '300',
-        letterSpacing: 1,
+        fontSize: 12,
+        color: T.textPrimary,
+        fontWeight: '600',
+        letterSpacing: 1.5,
         textTransform: 'uppercase',
-        fontFamily: Platform.OS === 'android' ? 'sans-serif-light' : 'System',
     },
     locationContainer: {
         flexDirection: 'row',
@@ -441,7 +447,7 @@ const styles = StyleSheet.create({
     },
     locationLabel: {
         fontSize: 10,
-        color: '#D4AF37',
+        color: T.iconColor,
         fontWeight: '900',
         marginBottom: 8,
         letterSpacing: 1.2,
@@ -449,12 +455,12 @@ const styles = StyleSheet.create({
     },
     locationValue: {
         fontSize: 16,
-        color: '#ffffff',
+        color: T.textPrimary,
         fontWeight: '800',
         letterSpacing: 0.3,
     },
     placeholder: {
-        color: '#444',
+        color: T.textSecondary,
     },
     menuGrid: {
         gap: 20,
@@ -476,7 +482,7 @@ const styles = StyleSheet.create({
     menuTitle: {
         fontSize: 18,
         fontWeight: Platform.OS === 'android' ? '300' : '400',
-        color: '#fff',
+        color: T.textPrimary,
         marginBottom: 4,
         letterSpacing: 1.5,
         textTransform: 'uppercase',
@@ -484,7 +490,7 @@ const styles = StyleSheet.create({
     },
     menuSubtitle: {
         fontSize: 12,
-        color: '#666',
+        color: T.textSecondary,
         fontWeight: '300',
         letterSpacing: 0.5,
         fontFamily: Platform.OS === 'android' ? 'sans-serif-light' : 'System',
@@ -502,7 +508,7 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 32,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: 'rgba(212, 175, 55, 0.3)',
+        borderColor: isDarkMode ? 'rgba(212, 175, 55, 0.3)' : 'rgba(184, 130, 15, 0.3)',
     },
     modalGradient: {
         flex: 1,
@@ -516,7 +522,7 @@ const styles = StyleSheet.create({
     },
     modalTitle: {
         fontSize: 20,
-        color: '#D4AF37',
+        color: T.iconColor,
         fontWeight: '900',
         letterSpacing: 1.5,
         textTransform: 'uppercase',
@@ -537,28 +543,29 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 18,
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255,255,255,0.03)',
+        borderBottomColor: T.modalItemBorder,
     },
     modalItemText: {
-        color: '#eee',
+        color: T.textPrimary,
         fontSize: 16,
         fontWeight: '400',
     },
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.08)',
+        backgroundColor: T.searchBg,
         borderRadius: 16,
         paddingHorizontal: 16,
         marginBottom: 20,
         borderWidth: 1,
-        borderColor: 'rgba(212, 175, 55, 0.2)',
+        borderColor: T.searchBorder,
         height: 54,
     },
     searchInput: {
         flex: 1,
-        color: '#fff',
+        color: T.textPrimary,
         fontSize: 16,
         paddingVertical: 8,
     },
 });
+}

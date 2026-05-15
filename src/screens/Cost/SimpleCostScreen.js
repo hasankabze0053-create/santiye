@@ -17,6 +17,7 @@ import {
     UIManager, View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../../context/ThemeContext';
 import { BlurView } from 'expo-blur';
 import GlassCard from '../../components/GlassCard';
 import PremiumBackground from '../../components/PremiumBackground';
@@ -34,14 +35,14 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CITIES = getSortedCities();
 
 const PRESETS = [
-    { label: 'Ekonomik', value: 29000, color: '#8C7B75' }, // Dull Bronze Text
-    { label: 'Standart', value: 35000, color: '#FFD700' },   // Modern -> Standart
-    { label: 'Lüks', value: 47000, color: '#FFD700' }
+    { label: 'Ekonomik', value: 29000 }, // Dull Bronze Text
+    { label: 'Standart', value: 35000 },   // Modern -> Standart
+    { label: 'Lüks', value: 47000 }
 ];
 
 // --- COMPONENTS ---
 
-const SelectionModal = ({ visible, onClose, title, items, onSelect, lockedPredicate }) => {
+const SelectionModal = ({ visible, onClose, title, items, onSelect, lockedPredicate, T, styles, isDarkMode }) => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const [searchText, setSearchText] = useState('');
 
@@ -64,23 +65,23 @@ const SelectionModal = ({ visible, onClose, title, items, onSelect, lockedPredic
                 <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFillObject} />
                 <TouchableOpacity activeOpacity={1} style={{ width: '100%', justifyContent: 'flex-end' }}>
                     <Animated.View style={[styles.modalContent, { opacity: fadeAnim, transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [200, 0] }) }] }]}>
-                        <LinearGradient colors={['#1a1a1a', '#0a0a0a']} style={styles.modalGradient}>
+                        <LinearGradient colors={isDarkMode ? ['#1a1a1a', '#0a0a0a'] : ['#FFFFFF', '#FDFBF7']} style={styles.modalGradient}>
                             <View style={styles.modalHeader}>
                                 <View>
                                     <Text allowFontScaling={false} style={styles.modalTitle}>{title}</Text>
                                     <View style={styles.titleUnderline} />
                                 </View>
                                 <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                                    <MaterialCommunityIcons name="close-circle-outline" size={28} color="#D4AF37" />
+                                    <MaterialCommunityIcons name="close-circle-outline" size={28} color={T?.goldPrimary || '#D4AF37'} />
                                 </TouchableOpacity>
                             </View>
 
                             <View style={styles.searchContainer}>
-                                <MaterialCommunityIcons name="magnify" size={20} color="#D4AF37" style={{ marginRight: 10 }} />
+                                <MaterialCommunityIcons name="magnify" size={20} color={T?.goldPrimary || '#D4AF37'} style={{ marginRight: 10 }} />
                                 <TextInput allowFontScaling={false}
                                     style={styles.searchInput}
                                     placeholder="Ara..."
-                                    placeholderTextColor="#555"
+                                    placeholderTextColor={T?.textSecondary || '#555'}
                                     value={searchText}
                                     onChangeText={setSearchText}
                                     autoCorrect={false}
@@ -113,12 +114,12 @@ const SelectionModal = ({ visible, onClose, title, items, onSelect, lockedPredic
                                             }}
                                         >
                                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                                                <Text allowFontScaling={false} style={[styles.modalItemText, isLocked && { color: '#888' }]}>{item}</Text>
+                                                <Text allowFontScaling={false} style={[styles.modalItemText, isLocked && { color: T?.textSecondary || '#888' }]}>{item}</Text>
                                             </View>
                                             {isLocked ? (
-                                                <MaterialCommunityIcons name="lock" size={16} color="#D4AF37" style={{ opacity: 0.5 }} />
+                                                <MaterialCommunityIcons name="lock" size={16} color={T?.goldPrimary || '#D4AF37'} style={{ opacity: 0.5 }} />
                                             ) : (
-                                                <MaterialCommunityIcons name="chevron-right" size={16} color="rgba(212, 175, 55, 0.3)" />
+                                                <MaterialCommunityIcons name="chevron-right" size={16} color={isDarkMode ? 'rgba(212, 175, 55, 0.3)' : 'rgba(184, 130, 15, 0.3)'} />
                                             )}
                                         </TouchableOpacity>
                                     );
@@ -133,7 +134,7 @@ const SelectionModal = ({ visible, onClose, title, items, onSelect, lockedPredic
 };
 
 // Ruler Background Component
-const RulerTrack = () => (
+const RulerTrack = ({ styles }) => (
     <View style={styles.rulerContainer}>
         {[...Array(20)].map((_, i) => (
             <View
@@ -148,9 +149,9 @@ const RulerTrack = () => (
 );
 
 // Gradient Border Component to match LuxuryCard stroke
-const GoldBorderContainer = ({ children, style, focused }) => (
+const GoldBorderContainer = ({ children, style, focused, T, styles }) => (
     <LinearGradient
-        colors={['#FFD700', '#FDB931', '#FFFFE0', '#D4AF37', '#C5A028']}
+        colors={[T.goldPrimary, '#FDB931', '#FFFFE0', '#D4AF37', '#C5A028']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.gradientBorder, { opacity: focused ? 1 : 0.6 }, style]}
@@ -162,6 +163,26 @@ const GoldBorderContainer = ({ children, style, focused }) => (
 );
 
 export default function SimpleCostScreen({ navigation, route }) {
+    const { isDarkMode } = useTheme();
+    const T = {
+        bg: isDarkMode ? '#000000' : '#FDFBF7',
+        textPrimary: isDarkMode ? '#FFFFFF' : '#111111',
+        textSecondary: isDarkMode ? '#666666' : '#888888',
+        card: isDarkMode ? '#1A1A1A' : '#FFFFFF',
+        border: isDarkMode ? '#333333' : '#E8E0D0',
+        goldPrimary: '#D4AF37',
+        iconColor: '#D4AF37',
+        pillBg: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+        pillBorder: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+        inputBg: isDarkMode ? '#1E1E1E' : '#F9F6F0',
+        presetBgNormal: isDarkMode ? ['#2E2E2E', '#1C1C1C', '#0F0F0F'] : ['#F4EFE5', '#EAE3D3', '#E0D6C1'],
+        presetBgActive: isDarkMode ? [T.goldPrimary, '#FDB931', '#D4AF37', '#B8860B'] : ['#D4AF37', '#C5A028', '#B8820F'],
+        presetTextNormal: isDarkMode ? '#6B5B55' : '#8C7B75',
+        presetTextActive: isDarkMode ? '#000000' : '#FFFFFF',
+        premiumActionBg: isDarkMode ? '#0F0F0F' : '#FFFFFF',
+    };
+    const styles = getStyles(T, isDarkMode);
+
     const { location: initialLocation } = route.params || {};
 
     // State
@@ -291,7 +312,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                                 <Text allowFontScaling={false} style={styles.locationButtonLabel}>İL</Text>
                                 <TouchableOpacity onPress={openCityModal} style={styles.locationPill}>
                                     <Text allowFontScaling={false} style={styles.locationPillTextCity}>{city}</Text>
-                                    <Ionicons name="chevron-down" size={12} color="#fff" />
+                                    <Ionicons name="chevron-down" size={12} color={T.textPrimary} />
                                 </TouchableOpacity>
                             </View>
 
@@ -299,7 +320,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                                 <Text allowFontScaling={false} style={styles.locationButtonLabel}>İLÇE</Text>
                                 <TouchableOpacity onPress={openDistrictModal} style={styles.locationPill}>
                                     <Text allowFontScaling={false} style={styles.locationPillTextDistrict}>{district || 'İlçe Seç'}</Text>
-                                    <Ionicons name="chevron-down" size={12} color="rgba(255,255,255,0.5)" />
+                                    <Ionicons name="chevron-down" size={12} color={T.textSecondary} />
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -307,7 +328,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                         {/* Header */}
                         <View style={styles.headerRow}>
                             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                                <Ionicons name="arrow-back" size={24} color="#fff" />
+                                <Ionicons name="arrow-back" size={24} color={T.textPrimary} />
                             </TouchableOpacity>
                             <View style={styles.headerTitleContainer}>
                                 <Text allowFontScaling={false} style={styles.headerTitle}>KONUT İNŞAATI</Text>
@@ -316,7 +337,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                                 <Text allowFontScaling={false} style={[styles.currencyLabel, !isUSD && styles.activeCurrency]}>₺</Text>
                                 <Switch
                                     trackColor={{ false: "#333", true: "#1C1C1E" }}
-                                    thumbColor={isUSD ? "#FFD700" : "#f4f3f4"}
+                                    thumbColor={isUSD ? T.goldPrimary : "#f4f3f4"}
                                     ios_backgroundColor="#3e3e3e"
                                     onValueChange={() => setIsUSD(!isUSD)}
                                     value={isUSD}
@@ -329,7 +350,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                         {/* Area Section */}
                         <GlassCard style={styles.card}>
                             <View style={styles.cardHeader}>
-                                <Ionicons name="resize" size={20} color="#FFD700" />
+                                <Ionicons name="resize" size={20} color={T.iconColor} />
                                 <Text allowFontScaling={false} style={styles.cardTitle}>TOPLAM İNŞAAT ALANI</Text>
                             </View>
 
@@ -338,11 +359,9 @@ export default function SimpleCostScreen({ navigation, route }) {
                                 activeOpacity={1}
                                 onPress={() => inputRef.current?.focus()}
                             >
-                                <GoldBorderContainer
-                                    focused={isInputFocused || isSliding}
-                                    style={{
+                                <GoldBorderContainer T={T} styles={styles} focused={isInputFocused || isSliding} style={{
                                         marginBottom: 16,
-                                        shadowColor: isSliding ? "#FFD700" : "transparent",
+                                        shadowColor: isSliding ? T.goldPrimary : "transparent",
                                         shadowOffset: { width: 0, height: 0 },
                                         shadowOpacity: isSliding ? 0.5 : 0,
                                         shadowRadius: 10,
@@ -386,7 +405,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                                         </View>
 
                                         <View>
-                                            <MaterialCommunityIcons name="pencil-circle" size={24} color="#FFD700" style={{ opacity: 0.8 }} />
+                                            <MaterialCommunityIcons name="pencil-circle" size={24} color={T.iconColor} style={{ opacity: 0.8 }} />
                                         </View>
                                     </View>
                                 </GoldBorderContainer>
@@ -396,7 +415,7 @@ export default function SimpleCostScreen({ navigation, route }) {
 
                             {/* Ruler Slider */}
                             <View style={styles.sliderContainer}>
-                                <RulerTrack />
+                                <RulerTrack styles={styles} />
                                 {/* Custom Thin & Shiny Track */}
                                 <View style={{
                                     ...StyleSheet.absoluteFillObject,
@@ -414,9 +433,9 @@ export default function SimpleCostScreen({ navigation, route }) {
                                         <View style={{
                                             width: `${((parseFloat(area) - 10) / (5000 - 10)) * 100}%`,
                                             height: '100%',
-                                            backgroundColor: '#FFD700',
+                                            backgroundColor: T.goldPrimary,
                                             borderRadius: 1,
-                                            shadowColor: "#FFD700",
+                                            shadowColor: T.goldPrimary,
                                             shadowOffset: { width: 0, height: 0 },
                                             shadowOpacity: 1,
                                             shadowRadius: 8,
@@ -442,7 +461,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                                         borderRadius: 14,
                                         justifyContent: 'center',
                                         alignItems: 'center',
-                                        shadowColor: "#FFD700",
+                                        shadowColor: T.goldPrimary,
                                         shadowOffset: { width: 0, height: 2 },
                                         shadowOpacity: 0.5,
                                         shadowRadius: 10,
@@ -487,16 +506,12 @@ export default function SimpleCostScreen({ navigation, route }) {
                         {/* Unit Price Section */}
                         <GlassCard style={styles.card}>
                             <View style={styles.cardHeader}>
-                                <Ionicons name="pricetag" size={20} color="#FFD700" />
+                                <Ionicons name="pricetag" size={20} color={T.iconColor} />
                                 <Text allowFontScaling={false} style={styles.cardTitle}>YAPI SINIFI VE FİYAT</Text>
                             </View>
 
-                            <LinearGradient
-                                colors={['#0F0F0F', '#141414', '#0A0A0A']}
-                                style={styles.presetsContainer}
-                            >
+                            <View style={styles.presetsContainer}>
                                 {PRESETS.map((preset) => {
-                                    // Robust Comparison: Remove dots and compare numeric values
                                     const currentPrice = parseFloat(unitPrice.replace(/\./g, '')) || 0;
                                     const presetPrice = preset.value;
                                     const isActive = currentPrice === presetPrice;
@@ -506,46 +521,33 @@ export default function SimpleCostScreen({ navigation, route }) {
                                             key={preset.label}
                                             style={[
                                                 styles.presetButtonWrapper,
-                                                isActive && styles.activeWrapper // For Halo
+                                                isActive && styles.activeWrapper
                                             ]}
                                             onPress={() => handlePreset(preset.value)}
                                             activeOpacity={0.9}
                                         >
-                                            {isActive ? (
-                                                <LinearGradient
-                                                    colors={['#FFD700', '#FDB931', '#D4AF37', '#B8860B']}
-                                                    style={styles.presetGradient}
-                                                    start={{ x: 0, y: 0 }}
-                                                    end={{ x: 0, y: 1 }} // Vertical brushed look
-                                                >
-                                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                                        <Text allowFontScaling={false} style={[styles.presetLabel, { color: '#000', textShadowColor: 'rgba(255,255,255,0.5)', textShadowRadius: 2 }]}>
-                                                            {preset.label}
-                                                        </Text>
-                                                        {preset.label === 'Lüks' && (
-                                                            <MaterialCommunityIcons name="diamond" size={14} color="#000" style={{ opacity: 0.8 }} />
-                                                        )}
-                                                    </View>
-                                                </LinearGradient>
-                                            ) : (
-                                                <LinearGradient
-                                                    colors={['#2E2E2E', '#1C1C1C', '#0F0F0F']}
-                                                    style={styles.presetNormal}
-                                                    start={{ x: 0, y: 0 }}
-                                                    end={{ x: 0, y: 1 }} // Vertical lighting
-                                                >
-                                                    <Text allowFontScaling={false} style={[styles.presetLabel, { color: '#6B5B55', textShadowColor: 'rgba(0,0,0,1)', textShadowRadius: 1 }]}>
+                                            <LinearGradient
+                                                colors={isActive ? T.presetBgActive : T.presetBgNormal}
+                                                style={isActive ? styles.presetGradient : styles.presetNormal}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 0, y: 1 }}
+                                            >
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                                    <Text allowFontScaling={false} style={[styles.presetLabel, { color: isActive ? T.presetTextActive : T.presetTextNormal }]}>
                                                         {preset.label}
                                                     </Text>
-                                                </LinearGradient>
-                                            )}
+                                                    {preset.label === 'Lüks' && (
+                                                        <MaterialCommunityIcons name="diamond" size={14} color={isActive ? T.presetTextActive : T.presetTextNormal} style={{ opacity: 0.8 }} />
+                                                    )}
+                                                </View>
+                                            </LinearGradient>
                                         </TouchableOpacity>
                                     );
                                 })}
-                            </LinearGradient>
+                            </View>
 
                             {/* Secondary Input with Thin Gold Border */}
-                            <GoldBorderContainer style={{ borderRadius: 12, padding: 1 }} focused={true}>
+                            <GoldBorderContainer T={T} styles={styles} style={{ borderRadius: 12, padding: 1 }} focused={true}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 16 }}>
                                     <TextInput allowFontScaling={false}
                                         style={[styles.secondaryInput, { borderWidth: 0, marginTop: 0, flex: 1 }]} // Remove default border
@@ -570,7 +572,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                                         inputAccessoryViewID="toolbar_price" // Unique toolbar for Price
                                     />
                                     {unitPrice.length > 0 && (
-                                        <Text allowFontScaling={false} style={{ color: '#FFD700', fontWeight: '600', marginLeft: 8 }}>
+                                        <Text allowFontScaling={false} style={{ color: T.goldPrimary, fontWeight: '600', marginLeft: 8 }}>
                                             {isUSD ? '$/m²' : 'TL/m²'}
                                         </Text>
                                     )}
@@ -582,7 +584,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                         <View style={styles.resultContainer}>
                             <Text allowFontScaling={false} style={styles.resultLabelSmall}>TAHMİNİ</Text>
                             <Text allowFontScaling={false} style={styles.resultLabel}>ANAHTAR TESLİM KONUT MALİYETİ</Text>
-                            <Animated.Text style={[styles.resultValue, { opacity: fadeResult, color: '#FFD700' }]}>
+                            <Animated.Text style={[styles.resultValue, { opacity: fadeResult }]}>
                                 {formatCurrency(result)}
                             </Animated.Text>
                         </View>
@@ -605,7 +607,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                                 })}
                             >
                                 <LinearGradient
-                                    colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']}
+                                    colors={['#B8820F', '#D4AF37', '#8C6A30']}
                                     style={styles.premiumActionButton}
                                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                                 >
@@ -618,14 +620,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                 </KeyboardAvoidingView>
 
                 {/* Selection Modal */}
-                <SelectionModal
-                    visible={modalVisible}
-                    onClose={() => setModalVisible(false)}
-                    title={modalType === 'city' ? 'İL SEÇİN' : 'İLÇE SEÇİN'}
-                    items={getModalItems()}
-                    onSelect={handleSelectLocation}
-                    lockedPredicate={(item) => modalType === 'district' && item !== 'Tümü'}
-                />
+                <SelectionModal visible={modalVisible} onClose={() => setModalVisible(false)} title={modalType === 'city' ? 'İL SEÇİN' : 'İLÇE SEÇİN'} items={getModalItems()} onSelect={handleSelectLocation} lockedPredicate={(item) => modalType === 'district' && item !== 'Tümü'} T={T} styles={styles} isDarkMode={isDarkMode} />
 
                 {/* InputAccessoryView for iOS Numeric Keyboard - Moved to bottom */}
                 {/* InputAccessoryView for Area Input */}
@@ -654,7 +649,8 @@ export default function SimpleCostScreen({ navigation, route }) {
     );
 }
 
-const styles = StyleSheet.create({
+export function getStyles(T, isDarkMode) {
+    return StyleSheet.create({
     content: { padding: 20, paddingTop: 10 },
     locationSelectionRow: {
         flexDirection: 'row',
@@ -668,13 +664,13 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     locationButtonLabel: {
-        color: '#D4AF37',
+        color: T.goldPrimary,
         fontSize: 10,
         fontWeight: '900',
         letterSpacing: 1.2,
     },
     locationPill: {
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        backgroundColor: T.pillBg,
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 12,
@@ -682,15 +678,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 8,
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: T.pillBorder,
     },
     locationPillTextCity: {
-        color: '#fff',
+        color: T.textPrimary,
         fontWeight: 'bold',
         fontSize: 14,
     },
     locationPillTextDistrict: {
-        color: '#fff',
+        color: T.textPrimary,
         fontWeight: '600',
         fontSize: 14,
     },
@@ -702,7 +698,7 @@ const styles = StyleSheet.create({
     },
     backButton: {
         padding: 8,
-        backgroundColor: 'rgba(255,255,255,0.1)',
+        backgroundColor: T.pillBg,
         borderRadius: 12,
     },
     headerTitleContainer: {
@@ -711,29 +707,29 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: 22,
-        fontWeight: '200',
-        color: '#fff',
-        letterSpacing: 2,
-        fontFamily: Platform.OS === 'android' ? 'sans-serif-thin' : 'System',
+        fontWeight: '800',
+        color: T.textPrimary,
+        letterSpacing: 1.5, textTransform: 'uppercase',
+        
     },
     currencyToggle: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: T.pillBg,
         borderRadius: 20,
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)'
+        borderColor: T.pillBorder
     },
     currencyLabel: {
         fontSize: 14,
-        color: '#666',
+        color: T.textSecondary,
         fontWeight: '600',
         marginHorizontal: 4,
     },
     activeCurrency: {
-        color: '#FFD700',
+        color: T.goldPrimary,
     },
     card: {
         marginBottom: 20,
@@ -746,7 +742,7 @@ const styles = StyleSheet.create({
     },
     cardTitle: {
         fontSize: 12,
-        color: '#8E8E93',
+        color: T.textSecondary,
         fontWeight: '700',
         letterSpacing: 1,
         textTransform: 'uppercase'
@@ -756,7 +752,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
     },
     innerSurface: {
-        backgroundColor: '#1E1E1E',
+        backgroundColor: T.inputBg,
         borderRadius: 15,
         flex: 1,
     },
@@ -775,19 +771,19 @@ const styles = StyleSheet.create({
     mainInput: {
         fontSize: 32,
         fontWeight: '900',
-        color: '#fff',
+        color: T.textPrimary,
         minWidth: 50,
     },
     unitText: {
         fontSize: 16,
-        color: '#666',
+        color: T.textSecondary,
         marginLeft: 8,
         fontWeight: '500',
         marginTop: 8,
     },
     helperText: {
         fontSize: 10,
-        color: '#666',
+        color: T.textSecondary,
         marginLeft: 4,
         marginBottom: 16,
         fontStyle: 'italic',
@@ -812,11 +808,11 @@ const styles = StyleSheet.create({
     rulerTick: {
         width: 1,
         height: 10,
-        backgroundColor: '#444',
+        backgroundColor: isDarkMode ? '#444' : '#E8E0D0',
     },
     rulerTickMajor: {
         height: 20,
-        backgroundColor: '#FFD700',
+        backgroundColor: T.goldPrimary,
         width: 2,
     },
     sliderLabels: {
@@ -827,13 +823,13 @@ const styles = StyleSheet.create({
     },
     sliderLabel: {
         fontSize: 10,
-        color: '#666',
+        color: T.textSecondary,
     },
     presetsContainer: {
         flexDirection: 'row',
         gap: 12,
         marginBottom: 16,
-        backgroundColor: '#050505',
+        backgroundColor: isDarkMode ? '#050505' : 'rgba(0,0,0,0.02)',
         padding: 6,
         borderRadius: 20,
         borderWidth: 1,
@@ -845,7 +841,7 @@ const styles = StyleSheet.create({
         overflow: 'visible',
     },
     activeWrapper: {
-        shadowColor: "#FFD700",
+        shadowColor: T.goldPrimary,
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.6,
         shadowRadius: 15,
@@ -874,10 +870,10 @@ const styles = StyleSheet.create({
         letterSpacing: 0.5,
     },
     secondaryInput: {
-        backgroundColor: 'rgba(0,0,0,0.2)',
+        backgroundColor: 'transparent',
         borderRadius: 12,
         padding: 16,
-        color: '#fff',
+        color: T.textPrimary,
         fontSize: 16,
         fontWeight: '600',
         borderWidth: 1,
@@ -889,7 +885,7 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     resultLabel: {
-        color: '#8E8E93',
+        color: T.textSecondary,
         fontSize: 13,
         letterSpacing: 1,
         marginBottom: 4,
@@ -897,44 +893,44 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
     },
     resultLabelSmall: {
-        color: '#666',
+        color: T.textSecondary,
         fontSize: 10,
         fontWeight: '600',
         marginBottom: 2,
         letterSpacing: 1,
     },
     resultValue: {
-        color: '#fff',
+        color: T.goldPrimary,
         fontSize: 42,
         fontWeight: '900',
         letterSpacing: 1,
-        textShadowColor: 'rgba(255, 215, 0, 0.4)',
+        textShadowColor: 'rgba(212, 175, 55, 0.4)',
         textShadowOffset: { width: 0, height: 0 },
-        textShadowRadius: 20,
+        textShadowRadius: 10,
     },
     // Premium Action Card Styles
-    premiumActionCard: { backgroundColor: '#0F0F0F', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#222', marginTop: 10, marginBottom: 40 },
+    premiumActionCard: { backgroundColor: T.premiumActionBg, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: T.border, marginTop: 10, marginBottom: 40 },
     premiumActionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-    premiumActionIconBox: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#D4AF37', justifyContent: 'center', alignItems: 'center', marginRight: 16 },
-    premiumActionTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+    premiumActionIconBox: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#B8820F', justifyContent: 'center', alignItems: 'center', marginRight: 16 },
+    premiumActionTitle: { color: T.textPrimary, fontSize: 16, fontWeight: 'bold' },
     premiumActionButton: { paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
-    premiumActionButtonText: { color: '#000', fontSize: 14, fontWeight: 'bold' },
+    premiumActionButtonText: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
     accessoryContainer: {
         flexDirection: 'row',
         justifyContent: 'flex-end',
-        backgroundColor: '#000',
+        backgroundColor: isDarkMode ? '#000' : '#FDFBF7',
         padding: 8,
         borderTopWidth: 1,
-        borderTopColor: '#333'
+        borderTopColor: '#333',
     },
     accessoryButton: {
-        backgroundColor: '#1C1C1E',
+        backgroundColor: T.card,
         paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 8,
     },
     accessoryText: {
-        color: '#D4AF37',
+        color: T.goldPrimary,
         fontWeight: 'bold',
     },
 
@@ -964,7 +960,7 @@ const styles = StyleSheet.create({
     },
     modalTitle: {
         fontSize: 20,
-        color: '#D4AF37',
+        color: T.goldPrimary,
         fontWeight: '900',
         letterSpacing: 1.5,
         textTransform: 'uppercase',
@@ -985,31 +981,32 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 18,
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255,255,255,0.03)',
+        borderBottomColor: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)',
     },
     modalItemText: {
-        color: '#eee',
+        color: T.textPrimary,
         fontSize: 16,
         fontWeight: '400',
     },
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.08)',
+        backgroundColor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
         borderRadius: 16,
         paddingHorizontal: 16,
         marginBottom: 20,
         borderWidth: 1,
-        borderColor: 'rgba(212, 175, 55, 0.2)',
+        borderColor: isDarkMode ? 'rgba(212, 175, 55, 0.2)' : 'rgba(184, 130, 15, 0.2)',
         height: 54,
     },
     searchInput: {
         flex: 1,
-        color: '#fff',
+        color: T.textPrimary,
         fontSize: 16,
         paddingVertical: 8,
     },
 });
+}
 
 
 

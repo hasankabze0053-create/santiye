@@ -1,7 +1,11 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 export default function LuxuryCard({ children, style, onPress, variant = 'standard' }) {
+    const { isDarkMode } = useTheme();
+    const bg = isDarkMode ? '#161618' : '#FFFFFF';
+    const darkBg = isDarkMode ? '#0F0F0F' : '#FDFBF7';
     const Container = onPress ? TouchableOpacity : View;
 
     return (
@@ -18,7 +22,7 @@ export default function LuxuryCard({ children, style, onPress, variant = 'standa
                 style={styles.borderGradient}
             >
                 {/* 2. Inner Content Surface */}
-                <View style={[styles.innerSurface, variant === 'dark' && styles.darkSurface]}>
+                <View style={[styles.innerSurface, { backgroundColor: variant === 'dark' ? darkBg : bg }]}>
 
                     {/* 3. Subtle Inner Gradient for Embossed Depth */}
                     <LinearGradient

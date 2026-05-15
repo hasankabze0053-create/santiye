@@ -26,6 +26,40 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 
 const { width } = Dimensions.get('window');
 
+// DUMMY DATA with Pexels Placeholders matching the descriptions
+const STYLES = [
+    {
+        id: 'modern',
+        title: 'MODERN & MİNİMALİST',
+        image: require('../../assets/renovation/style_modern_v2.png')
+    },
+    {
+        id: 'classic',
+        title: 'KLASİK & AVANGART',
+        image: require('../../assets/renovation/style_classic_v2.png')
+    },
+    {
+        id: 'loft',
+        title: 'ENDÜSTRİYEL (LOFT)',
+        image: require('../../assets/renovation/style_loft_v2.png')
+    },
+    {
+        id: 'scandinavian',
+        title: 'İSKANDİNAV',
+        image: require('../../assets/renovation/style_scandinavian_v2.png')
+    },
+    {
+        id: 'boho',
+        title: 'BOHEM',
+        image: require('../../assets/renovation/style_boho_v2.png')
+    },
+    {
+        id: 'other',
+        title: 'DİĞER / ÖZEL',
+        image: require('../../assets/renovation/style_other_v2.png')
+    }
+];
+
 // --- THEME CONSTANTS ---
 const THEME = {
     background: '#050505',
@@ -47,7 +81,8 @@ export default function CustomRequestScreen({ navigation, route }) {
     const [city, setCity] = useState('');
     const [district, setDistrict] = useState('');
     const [isLocationPickerVisible, setIsLocationPickerVisible] = useState(false);
-    const { area, propertyType, selectedStyle, category } = route.params || {};
+    const { area, propertyType, category } = route.params || {};
+    const [selectedStyleId, setSelectedStyleId] = useState(null);
     const { isDarkMode } = useTheme();
 
     const T = {
@@ -179,7 +214,10 @@ export default function CustomRequestScreen({ navigation, route }) {
             const projectTypeDisplay = category === 'Garaj & Kapı Sistemleri' ? 'Otomatik Garaj & Kapı Sistemleri' : 'Anahtar Teslim Tadilat';
             let fullDescription = `PROJE TİPİ: ${projectTypeDisplay}\n`;
             fullDescription += `[MEKAN] ${propertyType || 'Belirtilmedi'} (${area || 0} m²)\n`;
-            fullDescription += `[TASARIM] ${selectedStyle || 'Belirtilmedi'}\n`;
+            
+            const selectedStyleObj = STYLES.find(s => s.id === selectedStyleId);
+            const styleTitle = selectedStyleObj ? selectedStyleObj.title : 'Belirtilmedi';
+            fullDescription += `[TASARIM] ${styleTitle}\n`;
             fullDescription += `[LOKASYON] ${city} / ${district}\n\n`;
             
             if (note) fullDescription += `[NOTLARI]\n${note}\n`;
@@ -303,7 +341,7 @@ export default function CustomRequestScreen({ navigation, route }) {
                         </View>
 
                         {/* SECTION 4: INSPIRATION UPLOAD */}
-                        <View style={[styles.section, { marginBottom: 100 }]}>
+                        <View style={styles.section}>
                             <Text allowFontScaling={false} style={[styles.sectionLabel, { color: T.text }]}>Referans Görsel</Text>
                             <Text allowFontScaling={false} style={[styles.sectionSubLabel, { color: T.textSub }]}>Beğendiğiniz tasarımları ekleyin.</Text>
                             <View style={styles.horizontalScrollWrapper}>
@@ -312,6 +350,54 @@ export default function CustomRequestScreen({ navigation, route }) {
                                     {renderUploadSlot('Örnek Ekle', true, 'inspiration')}
                                     <View style={{ width: 20 }} />
                                 </ScrollView>
+                            </View>
+                        </View>
+
+                        {/* SECTION 5: STYLE SELECTION */}
+                        <View style={[styles.section, { marginBottom: 100 }]}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
+                                <Text allowFontScaling={false} style={[styles.sectionLabel, { color: T.text, marginBottom: 0 }]}>Hayalinizdeki Atmosfer</Text>
+                                <Text allowFontScaling={false} style={[styles.sectionSubLabel, { color: T.textSub, marginLeft: 8, marginBottom: 0, marginTop: 2 }]}>
+                                    (Opsiyonel olarak ekleyebilirsiniz)
+                                </Text>
+                            </View>
+                            
+                            <View style={styles.styleGridContainer}>
+                                {STYLES.map((item) => {
+                                    const isSelected = selectedStyleId === item.id;
+                                    return (
+                                        <TouchableOpacity
+                                            key={item.id}
+                                            activeOpacity={0.9}
+                                            onPress={() => setSelectedStyleId(item.id)}
+                                            style={styles.styleCardTouchWrapper}
+                                        >
+                                            <View style={[
+                                                styles.styleCardContainer,
+                                                { backgroundColor: T.inputBg, borderColor: T.slotBorder },
+                                                isSelected && { borderColor: T.gold, shadowColor: T.gold, elevation: 5, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 10 }
+                                            ]}>
+                                                <Image
+                                                    source={item.image}
+                                                    style={styles.styleCardImage}
+                                                    resizeMode="cover"
+                                                />
+                                                <LinearGradient
+                                                    colors={['transparent', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.95)']}
+                                                    locations={[0, 0.6, 1]}
+                                                    style={styles.styleCardGradient}
+                                                >
+                                                    <Text allowFontScaling={false} style={[
+                                                        styles.styleCardTitle,
+                                                        isSelected && { color: T.gold }
+                                                    ]}>
+                                                        {item.title}
+                                                    </Text>
+                                                </LinearGradient>
+                                            </View>
+                                        </TouchableOpacity>
+                                    );
+                                })}
                             </View>
                         </View>
 
@@ -441,5 +527,43 @@ const styles = StyleSheet.create({
 
     thumbnailWrap: { width: 100, height: 100, borderRadius: 12, marginRight: 15, position: 'relative' },
     thumbnail: { width: '100%', height: '100%', borderRadius: 12 },
-    removeCircle: { position: 'absolute', top: -5, right: -5, width: 22, height: 22, borderRadius: 11, backgroundColor: '#FF3B30', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#000' }
+    removeCircle: { position: 'absolute', top: -5, right: -5, width: 22, height: 22, borderRadius: 11, backgroundColor: '#FF3B30', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#000' },
+
+    styleGridContainer: {
+        flexDirection: 'row', flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        marginTop: 5
+    },
+    styleCardTouchWrapper: {
+        width: (width - 40 - 15) / 2,
+        marginBottom: 15,
+    },
+    styleCardContainer: {
+        width: '100%',
+        aspectRatio: 3 / 4,
+        borderRadius: 16,
+        overflow: 'hidden',
+        borderWidth: 1,
+    },
+    styleCardImage: {
+        width: '100%', height: '100%',
+        position: 'absolute', top: 0, left: 0
+    },
+    styleCardGradient: {
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        height: '60%',
+        justifyContent: 'flex-end',
+        padding: 10,
+        zIndex: 5
+    },
+    styleCardTitle: {
+        color: '#EEE',
+        fontSize: 12,
+        fontWeight: '700',
+        letterSpacing: 0.5,
+        textShadowColor: 'rgba(0,0,0,0.8)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 3,
+        textAlign: 'center'
+    }
 });

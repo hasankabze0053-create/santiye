@@ -338,7 +338,7 @@ export default function RenovationProjectSelectionScreen({ navigation }) {
                             const safeIndex = Math.max(0, Math.min(itemIndex, DATA.length - 1));
                             const selectedProperty = DATA[safeIndex]?.title || 'DAİRE';
 
-                            navigation.navigate('StyleSelection', {
+                            navigation.navigate('CustomRequest', {
                                 area: area,
                                 propertyType: selectedProperty
                             });
