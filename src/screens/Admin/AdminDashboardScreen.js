@@ -133,6 +133,7 @@ const AdminDashboardScreen = () => {
     const [users, setUsers] = useState([]);
     const [userTypeFilter, setUserTypeFilter] = useState('corporate');
     const [selectedUserDetail, setSelectedUserDetail] = useState(null); // Moved here // 'individual' | 'corporate'
+    const [convertToIndivConfirm, setConvertToIndivConfirm] = useState(false);
 
     // Rejection / Info Request Modal State
     const [rejectModalVisible, setRejectModalVisible] = useState(false);
@@ -846,76 +847,81 @@ const AdminDashboardScreen = () => {
     };
 
     const handleConvertToIndividual = (user) => {
-        Alert.alert(
-            'Kurumsal Üyelikten Çıkar?',
-            'Bu işlem kullanıcının tüm firma yetkilerini (Müteahhit, Satıcı vb.) iptal edecek ve hesabı "Bireysel"e çevirecektir.',
-            [
-                { text: 'Vazgeç', style: 'cancel' },
-                {
-                    text: 'Onayla ve Çevir',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            // 1. Update Profile (Legacy Flags)
-                            const { error: profileError } = await supabase
-                                .from('profiles')
-                                .update({
-                                    user_type: 'individual',
-                                    approval_status: 'approved', // Individuals default to approved
-                                    is_contractor: false,
-                                    is_seller: false,
-                                    is_transporter: false,
-                                    is_architect: false,
-                                    is_engineer: false,
-                                    is_real_estate_agent: false,
-                                    rejection_reason: null
-                                })
-                                .eq('id', user.id);
+        setConvertToIndivConfirm(true);
+    };
 
-                            if (profileError) throw profileError;
+    const executeConvertToIndividual = async () => {
+        const user = selectedUserDetail;
+        if (!user) return;
+        
+        try {
+            // 1. Update Profile (Legacy Flags)
+            const { data: profileData, error: profileError } = await supabase
+                .from('profiles')
+                .update({
+                    user_type: 'individual',
+                    approval_status: 'approved', // Individuals default to approved
+                    is_contractor: false,
+                    is_seller: false,
+                    is_transporter: false,
+                    is_architect: false,
+                    is_engineer: false,
+                    is_real_estate_agent: false,
+                    rejection_reason: null
+                })
+                .eq('id', user.id)
+                .select();
 
-                            // 2. Clear Company Services (New System)
-                            if (user.company_id) {
-                                await supabase
-                                    .from('company_services')
-                                    .delete()
-                                    .eq('company_id', user.company_id);
-                            }
+            if (profileError) throw profileError;
+            if (!profileData || profileData.length === 0) {
+                throw new Error("Profil güncellenemedi. Güvenlik yetkisi (RLS) kısıtlaması olabilir.");
+            }
 
-                            // Optimistic Update
-                            const updatedUser = {
-                                ...user,
-                                user_type: 'individual',
-                                approval_status: 'approved',
-                                is_contractor: false,
-                                is_seller: false,
-                                is_transporter: false,
-                                is_architect: false,
-                                is_engineer: false,
-                                is_real_estate_agent: false,
-                                active_services: [],
-                                rejection_reason: null
-                            };
+            // 2. Clear Company Services (New System)
+            if (user.company_id) {
+                const { error: deleteError } = await supabase
+                    .from('company_services')
+                    .delete()
+                    .eq('company_id', user.company_id);
+                if (deleteError) console.error("Company Services Silme Hatası:", deleteError);
+            }
 
-                            if (userTypeFilter === 'corporate') {
-                                // Remove from list if viewing corporate only
-                                setUsers(prev => prev.filter(u => u.id !== user.id));
-                                setSelectedUserDetail(null); // Close modal
-                            } else {
-                                // Just update details
-                                setUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
-                                setSelectedUserDetail(updatedUser);
-                            }
+            // Optimistic Update
+            const updatedUser = {
+                ...user,
+                user_type: 'individual',
+                approval_status: 'approved',
+                is_contractor: false,
+                is_seller: false,
+                is_transporter: false,
+                is_architect: false,
+                is_engineer: false,
+                is_real_estate_agent: false,
+                active_services: [],
+                rejection_reason: null
+            };
 
-                            Alert.alert('Başarılı', 'Kullanıcı bireysel hesaba geçirildi.');
+            if (userTypeFilter === 'corporate') {
+                setUsers(prev => prev.filter(u => u.id !== user.id));
+                setConvertToIndivConfirm(false);
+                setSelectedUserDetail(null);
+            } else {
+                setUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
+                setSelectedUserDetail(updatedUser);
+                setConvertToIndivConfirm(false);
+            }
 
-                        } catch (err) {
-                            Alert.alert('Hata', 'İşlem başarısız: ' + err.message);
-                        }
-                    }
-                }
-            ]
-        );
+            setTimeout(() => {
+                Alert.alert('Başarılı', 'Kullanıcı bireysel hesaba geçirildi.');
+            }, 500);
+
+        } catch (err) {
+            console.error("executeConvertToIndividual Hatası:", err);
+            setConvertToIndivConfirm(false);
+            setTimeout(() => {
+                Alert.alert('Hata', 'İşlem başarısız: ' + err.message);
+            }, 500);
+        }
     };
 
     const handleApproveUser = async (user) => {
@@ -1852,6 +1858,42 @@ const AdminDashboardScreen = () => {
                                                         }}
                                                     >
                                                         <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold' }}>TARİHİ KAYDET</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            </View>
+                                        </View>
+                                    )}
+                                    {/* CONVERT TO INDIVIDUAL CONFIRMATION PANEL */}
+                                    {convertToIndivConfirm && (
+                                        <View style={{ 
+                                            position: 'absolute', 
+                                            top: 0, left: 0, right: 0, bottom: 0, 
+                                            backgroundColor: 'rgba(0,0,0,0.92)', 
+                                            zIndex: 9999, 
+                                            justifyContent: 'center', 
+                                            padding: 20
+                                        }}>
+                                            <View style={{ backgroundColor: '#1e293b', borderRadius: 16, padding: 25, borderWidth: 1, borderColor: '#F59E0B', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 10, alignItems: 'center' }}>
+                                                <MaterialCommunityIcons name="alert-circle-outline" size={60} color="#F59E0B" style={{ marginBottom: 15 }} />
+                                                <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' }}>Kurumsal Üyelikten Çıkar?</Text>
+                                                
+                                                <Text allowFontScaling={false} style={{ color: '#cbd5e1', fontSize: 14, textAlign: 'center', marginBottom: 30, lineHeight: 22 }}>
+                                                    Bu işlem kullanıcının tüm firma yetkilerini (Müteahhit, Satıcı vb.) iptal edecek ve hesabı <Text style={{ color: '#F59E0B', fontWeight: 'bold' }}>"Bireysel"</Text>e çevirecektir. Onaylıyor musunuz?
+                                                </Text>
+                                                
+                                                <View style={{ flexDirection: 'row', gap: 15 }}>
+                                                    <TouchableOpacity 
+                                                        style={{ flex: 1, backgroundColor: '#334155', padding: 15, borderRadius: 12, alignItems: 'center' }}
+                                                        onPress={() => setConvertToIndivConfirm(false)}
+                                                    >
+                                                        <Text allowFontScaling={false} style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Vazgeç</Text>
+                                                    </TouchableOpacity>
+                                                    
+                                                    <TouchableOpacity 
+                                                        style={{ flex: 1, backgroundColor: '#F59E0B', padding: 15, borderRadius: 12, alignItems: 'center' }}
+                                                        onPress={executeConvertToIndividual}
+                                                    >
+                                                        <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>Onayla ve Çevir</Text>
                                                     </TouchableOpacity>
                                                 </View>
                                             </View>

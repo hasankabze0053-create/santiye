@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config({ path: '.env.local' });
+require('dotenv').config({ path: '.env' });
 
 const supabase = createClient(
     process.env.EXPO_PUBLIC_SUPABASE_URL,
@@ -8,12 +8,14 @@ const supabase = createClient(
 );
 
 async function run() {
-    const sql = fs.readFileSync('fix_security.sql', 'utf8');
-    const { data, error } = await supabase.rpc('execute_sql', { query: sql });
-    if (error) {
-        console.error("RPC Error:", error);
-    } else {
-        console.log("Success");
+    try {
+        const { data, error } = await supabase
+            .rpc('exec_sql', { sql_query: "SELECT column_name FROM information_schema.columns WHERE table_name = 'companies'" });
+        
+        console.log("Companies columns:");
+        console.log(data);
+    } catch (e) {
+        console.error(e);
     }
 }
 run();
