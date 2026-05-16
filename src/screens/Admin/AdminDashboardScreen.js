@@ -693,6 +693,9 @@ const AdminDashboardScreen = () => {
                             // Optimistic Update
                             setUsers(prev => prev.map(u => u.id === user.id ? { ...u, approval_status: newStatus } : u));
                             Alert.alert('Başarılı', `Kullanıcı durumu güncellendi.`);
+
+                            // Log the action
+                            await logAdminAction(user.id, newStatus === 'suspended' ? 'SUSPEND_USER' : 'UNSUSPEND_USER', { previous_status: isSuspended ? 'suspended' : 'approved' });
                         } catch (err) {
                             Alert.alert('Hata', 'İşlem başarısız: ' + err.message);
                         }
@@ -718,6 +721,9 @@ const AdminDashboardScreen = () => {
 
                             setUsers(prev => prev.filter(u => u.id !== user.id));
                             Alert.alert('Silindi', 'Kullanıcı başarıyla silindi.');
+
+                            // Log the action
+                            await logAdminAction(user.id, 'DELETE_USER', { email: user.email });
                         } catch (err) {
                             Alert.alert('Hata', 'Silme başarısız: ' + err.message);
                         }
@@ -773,6 +779,9 @@ const AdminDashboardScreen = () => {
             setRejectModalVisible(false);
             setTargetUser(null);
             setRejectionReason('');
+
+            // Log the action
+            await logAdminAction(targetUser.id, actionType === 'reject' ? 'REJECT_USER' : 'MARK_INCOMPLETE_USER', { reason: rejectionReason.trim() });
         } catch (err) {
             Alert.alert('Hata', 'İşlem başarısız: ' + err.message);
         }
@@ -846,6 +855,26 @@ const AdminDashboardScreen = () => {
         }
     };
 
+    const logAdminAction = async (targetUserId, actionType, details = {}) => {
+        try {
+            const adminId = await supabase.auth.getUser().then(res => res.data.user?.id);
+            if (!adminId) return;
+
+            const { error } = await supabase
+                .from('admin_audit_logs')
+                .insert({
+                    admin_id: adminId,
+                    target_user_id: targetUserId,
+                    action_type: actionType,
+                    details: details
+                });
+            
+            if (error) console.error("Admin Log Error:", error);
+        } catch (e) {
+            console.error("Admin Log Exception:", e);
+        }
+    };
+
     const handleConvertToIndividual = (user) => {
         setConvertToIndivConfirm(true);
     };
@@ -911,6 +940,9 @@ const AdminDashboardScreen = () => {
                 setConvertToIndivConfirm(false);
             }
 
+            // Log the action
+            await logAdminAction(user.id, 'DOWNGRADE_TO_INDIVIDUAL', { previous_type: 'corporate' });
+
             setTimeout(() => {
                 Alert.alert('Başarılı', 'Kullanıcı bireysel hesaba geçirildi.');
             }, 500);
@@ -939,6 +971,9 @@ const AdminDashboardScreen = () => {
             Alert.alert('Başarılı', `${user.full_name || user.email} onaylandı. ✅`);
             // Optimistic Update
             setUsers(prev => prev.map(u => u.id === user.id ? { ...u, approval_status: 'approved', rejection_reason: null } : u));
+            
+            // Log the action
+            await logAdminAction(user.id, 'APPROVE_USER', { previous_status: user.approval_status });
         } catch (err) {
             Alert.alert('Hata', 'Onaylama başarısız: ' + err.message);
         }
@@ -1023,6 +1058,13 @@ const AdminDashboardScreen = () => {
             
             // Refresh User List
             fetchUsers();
+
+            // Log the action
+            await logAdminAction(upgradeTargetUser.id, 'UPGRADE_TO_CORPORATE', { 
+                company_name, 
+                service_types,
+                subscription_months
+            });
 
         } catch (err) {
             console.error(err);
