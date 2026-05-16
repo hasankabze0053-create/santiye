@@ -163,20 +163,23 @@ const GoldBorderContainer = ({ children, style, focused, T, styles }) => (
 );
 
 export default function SimpleCostScreen({ navigation, route }) {
-    const { isDarkMode } = useTheme();
+    const { isDarkMode, theme } = useTheme();
+    const goldPrimary = theme?.accentBright || '#D4AF37';
+    
     const T = {
         bg: isDarkMode ? '#000000' : '#FDFBF7',
         textPrimary: isDarkMode ? '#FFFFFF' : '#111111',
         textSecondary: isDarkMode ? '#666666' : '#888888',
         card: isDarkMode ? '#1A1A1A' : '#FFFFFF',
         border: isDarkMode ? '#333333' : '#E8E0D0',
-        goldPrimary: '#D4AF37',
-        iconColor: '#D4AF37',
+        goldPrimary: goldPrimary,
+        iconColor: goldPrimary,
         pillBg: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
         pillBorder: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+
         inputBg: isDarkMode ? '#1E1E1E' : '#F9F6F0',
         presetBgNormal: isDarkMode ? ['#2E2E2E', '#1C1C1C', '#0F0F0F'] : ['#F4EFE5', '#EAE3D3', '#E0D6C1'],
-        presetBgActive: isDarkMode ? [T.goldPrimary, '#FDB931', '#D4AF37', '#B8860B'] : ['#D4AF37', '#C5A028', '#B8820F'],
+        presetBgActive: isDarkMode ? [goldPrimary, '#FDB931', goldPrimary, '#B8860B'] : [goldPrimary, '#C5A028', '#B8820F'],
         presetTextNormal: isDarkMode ? '#6B5B55' : '#8C7B75',
         presetTextActive: isDarkMode ? '#000000' : '#FFFFFF',
         premiumActionBg: isDarkMode ? '#0F0F0F' : '#FFFFFF',
@@ -584,7 +587,7 @@ export default function SimpleCostScreen({ navigation, route }) {
                         <View style={styles.resultContainer}>
                             <Text allowFontScaling={false} style={styles.resultLabelSmall}>TAHMİNİ</Text>
                             <Text allowFontScaling={false} style={styles.resultLabel}>ANAHTAR TESLİM KONUT MALİYETİ</Text>
-                            <Animated.Text style={[styles.resultValue, { opacity: fadeResult }]}>
+                            <Animated.Text adjustsFontSizeToFit={true} numberOfLines={1} style={[styles.resultValue, { opacity: fadeResult, width: '100%', textAlign: 'center' }]}>
                                 {formatCurrency(result)}
                             </Animated.Text>
                         </View>
@@ -664,16 +667,16 @@ export function getStyles(T, isDarkMode) {
         gap: 8,
     },
     locationButtonLabel: {
-        color: T.goldPrimary,
-        fontSize: 10,
-        fontWeight: '900',
-        letterSpacing: 1.2,
+        color: T.textSecondary,
+        fontSize: 13,
+        fontWeight: '800',
+        letterSpacing: 1.5,
     },
     locationPill: {
         backgroundColor: T.pillBg,
-        paddingVertical: 8,
+        paddingVertical: 10,
         paddingHorizontal: 16,
-        borderRadius: 12,
+        borderRadius: 14,
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
@@ -682,13 +685,15 @@ export function getStyles(T, isDarkMode) {
     },
     locationPillTextCity: {
         color: T.textPrimary,
-        fontWeight: 'bold',
-        fontSize: 14,
+        fontWeight: '900',
+        fontSize: 17,
+        letterSpacing: 0.5,
     },
     locationPillTextDistrict: {
         color: T.textPrimary,
-        fontWeight: '600',
-        fontSize: 14,
+        fontWeight: '700',
+        fontSize: 17,
+        letterSpacing: 0.5,
     },
     headerRow: {
         flexDirection: 'row',
@@ -803,17 +808,19 @@ export function getStyles(T, isDarkMode) {
         justifyContent: 'space-between',
         alignItems: 'center',
         zIndex: 0,
-        opacity: 0.5,
+        opacity: 0.8,
     },
     rulerTick: {
-        width: 1,
-        height: 10,
-        backgroundColor: isDarkMode ? '#444' : '#E8E0D0',
+        width: 2,
+        height: 12,
+        backgroundColor: isDarkMode ? 'rgba(212, 175, 55, 0.4)' : 'rgba(184, 130, 15, 0.3)',
+        borderRadius: 1,
     },
     rulerTickMajor: {
         height: 20,
         backgroundColor: T.goldPrimary,
         width: 2,
+        borderRadius: 1,
     },
     sliderLabels: {
         flexDirection: 'row',
