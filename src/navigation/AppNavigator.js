@@ -91,6 +91,7 @@ import CustomSplashScreen from '../screens/Splash/CustomSplashScreen';
 import TeknikOfisScreen from '../screens/TeknikOfis/TeknikOfisScreen';
 import TransformationExpertChatScreen from '../screens/Transformation/TransformationExpertChatScreen';
 import UrbanTransformationScreen from '../screens/Transformation/UrbanTransformationScreen';
+import ServiceRequestScreen from '../screens/ServiceRequestScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -413,6 +414,7 @@ export default function AppNavigator() {
             <Stack.Screen name="Hukuk" component={LawScreen} options={{ title: 'Hukuki Destek' }} />
             <Stack.Screen name="LawSuccess" component={LawSuccessScreen} />
             <Stack.Screen name="LawAnalysisResult" component={LawAnalysisResultScreen} options={{ headerShown: false, animation: 'slide_from_bottom', presentation: 'modal' }} />
+            <Stack.Screen name="ServiceRequest" component={ServiceRequestScreen} options={{ headerShown: false }} />
 
             {/* Logistics */}
             <Stack.Screen name="Nakliye" component={LogisticsScreen} options={{ title: 'Nakliye & Lojistik' }} />

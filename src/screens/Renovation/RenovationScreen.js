@@ -44,7 +44,7 @@ const HERO_SLIDES = [
 
 const ICON_POOL = [
     // Genel & Tadilat
-    'hammer-wrench', 'brush', 'paint-roll', 'format-paint', 'tools', 'screwdriver', 'wrench',
+    'hammer-wrench', 'brush', 'palette', 'format-paint', 'tools', 'screwdriver', 'wrench',
     // Alanlar
     'balcony', 'sofa', 'bed', 'shower', 'countertop', 'bathtub-outline', 'table-chair',
     // Dış Cephe & Bahçe
@@ -52,7 +52,7 @@ const ICON_POOL = [
     // Teknik & Altyapı
     'lightning-bolt', 'water-pump', 'pipe-wrench', 'flash', 'radiator', 'air-conditioner', 'solar-power',
     // Güvenlik & Otomasyon
-    'cctv', 'shield-lock', 'door-closed', 'window-closed-variant', 'shield-camera', 'smart-home',
+    'cctv', 'shield-lock', 'door-closed', 'window-closed-variant', 'shield-check', 'home-variant',
     // Mimari & Yapı
     'floor-plan', 'pillar', 'wall', 'stairs', 'elevator', 'crane', 'office-building', 'home-modern'
 ];
@@ -589,7 +589,10 @@ export default function RenovationScreen({ navigation }) {
                         >
                             {(() => {
                                 const filteredServices = isEditMode ? services : services.filter(s => s.is_active);
-                                const pagesCount = Math.ceil(filteredServices.length / 4);
+                                let pagesCount = Math.ceil(filteredServices.length / 4);
+                                if (isEditMode && (filteredServices.length === 0 || filteredServices.length % 4 === 0)) {
+                                    pagesCount += 1;
+                                }
 
                                 return Array.from({ length: pagesCount }).map((_, pageIdx) => (
                                     <View key={pageIdx} style={[styles.gridPage, pageIdx === pagesCount - 1 && { paddingRight: 0 }]}>
@@ -638,7 +641,7 @@ export default function RenovationScreen({ navigation }) {
                                         })}
 
                                         {/* ADD NEW SERVICE BUTTON (ONLY IN EDIT MODE AND ON LAST PAGE) */}
-                                        {isEditMode && pageIdx === pagesCount - 1 && filteredServices.length % 4 !== 0 && (
+                                        {isEditMode && pageIdx === pagesCount - 1 && (
                                             <TouchableOpacity 
                                                 style={[styles.addNewServiceBtn, { borderColor: T.goldAccent, backgroundColor: T.iconBg }]}
                                                 onPress={() => {
@@ -659,7 +662,10 @@ export default function RenovationScreen({ navigation }) {
                         <View style={styles.servicePagination}>
                             {(() => {
                                 const filteredServices = isEditMode ? services : services.filter(s => s.is_active);
-                                const pagesCount = Math.ceil(filteredServices.length / 4);
+                                let pagesCount = Math.ceil(filteredServices.length / 4);
+                                if (isEditMode && (filteredServices.length === 0 || filteredServices.length % 4 === 0)) {
+                                    pagesCount += 1;
+                                }
                                 return Array.from({ length: pagesCount }).map((_, i) => (
                                     <View key={i} style={[styles.serviceDot, { backgroundColor: isDarkMode ? '#333' : '#D4C4A8' }, servicePage === i && [styles.serviceDotActive, { backgroundColor: T.goldAccent }]]} />
                                 ));

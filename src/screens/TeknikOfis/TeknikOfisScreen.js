@@ -8,8 +8,10 @@ import { useNavigation } from '@react-navigation/native';
 import * as DocumentPicker from 'expo-document-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
+import { supabase } from '../../lib/supabase';
+import { PermissionService } from '../../services/PermissionService';
 import {
-    Alert, Animated, Dimensions, Easing, Keyboard, ScrollView,
+    ActivityIndicator, Alert, Animated, Dimensions, Modal, Easing, Keyboard, ScrollView,
     StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,12 +27,18 @@ const PRICES = [
     { label: 'Hazır Beton',    value: '₺3.650', unit: '/m³', trend: 'up' },
 ];
 
-// ─── SERVICES ───────────────────────────────────────────────────────────────
-const SERVICES = [
-    { id: 's1', icon: 'file-document-edit-outline', label: 'Hakediş\nHazırlama',  desc: 'Mevcut verilerle hakediş dosyası' },
-    { id: 's2', icon: 'draw',                       label: 'Mimari Proje\nÇizimi', desc: 'Teknik çizim ve revizyon' },
-    { id: 's3', icon: 'map-search-outline',         label: 'Saha\nKeşfi',          desc: 'Uzman saha inceleme raporu' },
-    { id: 's4', icon: 'calculator-variant-outline', label: 'Metraj\nÇıkarma',      desc: 'Proje bazlı ölçüm analizi' },
+// ─── TEKNIK_ICON_POOL ───────────────────────────────────────────────────
+const TEKNIK_ICON_POOL = [
+    'hammer-wrench', 'ruler-square', 'ruler-square-compass', 'compass-outline', 'calculator-variant-outline',
+    'math-compass', 'cog-outline', 'cogs', 'engine-outline', 'factory',
+    'draw', 'draw-pen', 'pencil-ruler', 'floor-plan', 'office-building',
+    'city', 'home-city-outline', 'home-modern', 'wall', 'stairs',
+    'file-document-edit-outline', 'file-table-outline', 'clipboard-list-outline', 'clipboard-check-outline',
+    'chart-gantt', 'chart-timeline', 'calendar-clock-outline', 'account-hard-hat', 'worker',
+    'map-search-outline', 'map-marker-radius', 'crosshairs-gps', 'tape-measure', 'ruler',
+    'crane', 'excavator', 'truck-flatbed', 'drone', 'camera-metering-center',
+    'water-pump', 'pipe-wrench', 'lightning-bolt-outline', 'flash-outline', 'solar-power',
+    'car-battery', 'wifi-strength-4', 'router-wireless', 'server-network'
 ];
 
 // ─── EXPERTS (8 specialties) ────────────────────────────────────────────────
@@ -156,6 +164,8 @@ function PriceTicker() {
                     ))}
                 </Animated.View>
             </View>
+
+            
         </View>
     );
 }
@@ -453,7 +463,112 @@ export default function TeknikOfisScreen() {
     const scrollRef   = useRef(null);
     const inputWrapRef = useRef(null);
 
-    const [inputText, setInputText]     = useState('');
+    const [services, setServices] = useState([]);
+    const [loadingServices, setLoadingServices] = useState(true);
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [adminModalVisible, setAdminModalVisible] = useState(false);
+    const [editService, setEditService] = useState(null);
+    const [formData, setFormData] = useState({ icon: 'hammer-wrench', label: '', desc_text: '', sample: '', order_index: 0, is_active: true });
+    const [currentServicePage, setCurrentServicePage] = useState(0);
+
+    const chunkArray = (arr, size) => Array.from({ length: Math.ceil(arr.length / size) }, (v, i) => arr.slice(i * size, i * size + size));
+    const filteredServices = isEditMode ? services : services.filter(s => s.is_active !== false);
+    let serviceChunks = chunkArray(filteredServices, 4);
+    if (isEditMode && (filteredServices.length === 0 || filteredServices.length % 4 === 0)) {
+        serviceChunks.push([]);
+    }
+
+    useEffect(() => {
+        loadServices();
+        checkAdmin();
+    }, []);
+
+    const checkAdmin = async () => {
+        try {
+            const roles = await PermissionService.getUserRoles();
+            setIsAdmin(roles.isAdmin);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const loadServices = async () => {
+        try {
+            setLoadingServices(true);
+            const { data, error } = await supabase.from('technical_services').select('*').order('order_index', { ascending: true });
+            if (!error && data) setServices(data);
+        } catch (e) {
+            console.error('loadServices error:', e);
+        } finally {
+            setLoadingServices(false);
+        }
+    };
+
+    const handleSaveService = async () => {
+        try {
+            if (editService) {
+                await supabase.from('technical_services').update(formData).eq('id', editService.id);
+            } else {
+                await supabase.from('technical_services').insert([formData]);
+            }
+            setAdminModalVisible(false);
+            loadServices();
+        } catch (e) {
+            Alert.alert('Hata', 'Hizmet kaydedilemedi.');
+        }
+    };
+
+    const handleDeleteService = async (id) => {
+        Alert.alert('Emin misiniz?', 'Hizmet kalıcı olarak silinecek.', [
+            { text: 'İptal', style: 'cancel' },
+            { text: 'Sil', style: 'destructive', onPress: async () => {
+                await supabase.from('technical_services').delete().eq('id', id);
+                loadServices();
+            }}
+        ]);
+    };
+
+    const moveService = async (index, direction) => {
+        const newServices = [...services];
+        if (direction === 'up' && index > 0) {
+            const temp = newServices[index].order_index;
+            newServices[index].order_index = newServices[index - 1].order_index;
+            newServices[index - 1].order_index = temp;
+            const tempItem = newServices[index];
+            newServices[index] = newServices[index - 1];
+            newServices[index - 1] = tempItem;
+            setServices(newServices);
+            await supabase.from('technical_services').update({ order_index: newServices[index].order_index }).eq('id', newServices[index].id);
+            await supabase.from('technical_services').update({ order_index: newServices[index - 1].order_index }).eq('id', newServices[index - 1].id);
+            loadServices();
+        } else if (direction === 'down' && index < newServices.length - 1) {
+            const temp = newServices[index].order_index;
+            newServices[index].order_index = newServices[index + 1].order_index;
+            newServices[index + 1].order_index = temp;
+            const tempItem = newServices[index];
+            newServices[index] = newServices[index + 1];
+            newServices[index + 1] = tempItem;
+            setServices(newServices);
+            await supabase.from('technical_services').update({ order_index: newServices[index].order_index }).eq('id', newServices[index].id);
+            await supabase.from('technical_services').update({ order_index: newServices[index + 1].order_index }).eq('id', newServices[index + 1].id);
+            loadServices();
+        }
+    };
+
+    const toggleServiceVisibility = async (srv) => {
+        const newStatus = srv.is_active === false ? true : false;
+        setServices(services.map(s => s.id === srv.id ? { ...s, is_active: newStatus } : s));
+        await supabase.from('technical_services').update({ is_active: newStatus }).eq('id', srv.id);
+        loadServices();
+    };
+
+    const handleServiceScroll = (e) => {
+        const page = Math.round(e.nativeEvent.contentOffset.x / width);
+        setCurrentServicePage(page);
+    };
+
+    const [inputText, setInputText] = useState('');
     const [attachedFile, setAttachedFile] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [showResult, setShowResult]   = useState(false);
@@ -489,8 +604,16 @@ export default function TeknikOfisScreen() {
         }, 3500);
     };
 
-    const handleServicePress = (service) => {
-        Alert.alert(service.label.replace('\n', ' '), service.desc + '\n\nBu özellik yakında aktif olacak.', [{ text: 'Tamam' }]);
+    const handleServicePress = (srv) => {
+        if (srv.id === 'NEW') {
+            setFormData({ icon: TEKNIK_ICON_POOL[0], label: '', desc_text: '', order_index: services.length });
+            setEditService(null);
+            setAdminModalVisible(true);
+            return;
+        }
+        if (!isEditMode) {
+            navigation.navigate('ServiceRequest', { serviceTitle: srv.label, tableName: 'technical_requests' });
+        }
     };
 
     const handleGoHome = () => {
@@ -515,9 +638,16 @@ export default function TeknikOfisScreen() {
                         <Text allowFontScaling={false} style={s.headerEye}>TEKNİK OFİS</Text>
                         <Text allowFontScaling={false} style={s.headerSub}>Projelerinizi Hızlandırın</Text>
                     </View>
-                    <TouchableOpacity onPress={() => navigation.navigate('TechnicalProvider')} style={s.headerBtn}>
-                        <MaterialCommunityIcons name="office-building-cog-outline" size={18} color={T.goldPrimary} />
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        {isAdmin && (
+                            <TouchableOpacity onPress={() => setIsEditMode(!isEditMode)} style={[s.headerBtn, isEditMode && { backgroundColor: T.goldPrimary + '33' }]}>
+                                <MaterialCommunityIcons name={isEditMode ? "check" : "cog"} size={18} color={T.goldPrimary} />
+                            </TouchableOpacity>
+                        )}
+                        <TouchableOpacity onPress={() => navigation.navigate('TechnicalProvider')} style={[s.headerBtn, { marginLeft: 8 }]}>
+                            <MaterialCommunityIcons name="office-building-cog-outline" size={18} color={T.goldPrimary} />
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 <ScrollView
@@ -607,21 +737,79 @@ export default function TeknikOfisScreen() {
                             />
                             <View style={{ flex: 1 }}>
                                 <Text allowFontScaling={false} style={s.servTitle}>DOĞRUDAN HİZMETLER</Text>
-                                <Text allowFontScaling={false} style={s.servSubtitle}>Hızlı erişim · 4 uzmanlık alanı</Text>
+                                {isEditMode ? (
+                                    <Text allowFontScaling={false} style={[s.servSubtitle, { color: T.goldPrimary, fontWeight: 'bold' }]}>DÜZENLEME MODU AKTİF</Text>
+                                ) : (
+                                    <Text allowFontScaling={false} style={s.servSubtitle}>Hızlı erişim · {services.length} uzmanlık alanı</Text>
+                                )}
                             </View>
                         </View>
-                        <View style={s.servGrid}>
-                            {SERVICES.map(srv => (
-                                <TouchableOpacity key={srv.id} onPress={() => handleServicePress(srv)} activeOpacity={0.82} style={s.servCard}>
-                                    <LinearGradient colors={T.servCardBg} style={StyleSheet.absoluteFillObject} borderRadius={16} />
-                                    <View style={s.servIconBox}>
-                                        <MaterialCommunityIcons name={srv.icon} size={26} color={T.goldPrimary} />
+
+                            <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} onScroll={handleServiceScroll} scrollEventThrottle={16} style={{ marginHorizontal: -16 }}>
+                                {loadingServices ? (
+                                    <View style={{ width, alignItems: 'center', paddingVertical: 20 }}>
+                                        <ActivityIndicator color={T.goldPrimary} />
                                     </View>
-                                    <Text allowFontScaling={false} style={s.servLabel}>{srv.label}</Text>
-                                    <Text allowFontScaling={false} style={s.servDesc}>{srv.desc}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
+                                ) : (
+                                    serviceChunks.map((chunk, chunkIndex) => (
+                                        <View key={chunkIndex} style={s.servGridPage}>
+                                            {chunk.map((srv, idxInPage) => {
+                                                const globalIdx = chunkIndex * 4 + idxInPage;
+                                                return (
+                                                <TouchableOpacity 
+                                                    key={srv.id} 
+                                                    onPress={() => isEditMode ? (setEditService(srv), setFormData(srv), setAdminModalVisible(true)) : handleServicePress(srv)} 
+                                                    activeOpacity={0.82} 
+                                                    style={[s.servCard, isEditMode && srv.is_active === false && { opacity: 0.5 }]}
+                                                >
+                                                    <LinearGradient colors={T.servCardBg} style={StyleSheet.absoluteFillObject} borderRadius={16} />
+                                                    {isEditMode && (
+                                                        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 16, zIndex: 10, justifyContent: 'center', alignItems: 'center' }}>
+                                                            <View style={{ flexDirection: 'row', gap: 15, marginBottom: 15 }}>
+                                                                <TouchableOpacity onPress={() => moveService(globalIdx, 'up')} disabled={globalIdx === 0}>
+                                                                    <MaterialCommunityIcons name="chevron-up" size={26} color={globalIdx === 0 ? '#666' : T.goldPrimary} />
+                                                                </TouchableOpacity>
+                                                                <TouchableOpacity onPress={() => moveService(globalIdx, 'down')} disabled={globalIdx === filteredServices.length - 1}>
+                                                                    <MaterialCommunityIcons name="chevron-down" size={26} color={globalIdx === filteredServices.length - 1 ? '#666' : T.goldPrimary} />
+                                                                </TouchableOpacity>
+                                                            </View>
+                                                            <View style={{ flexDirection: 'row', gap: 15 }}>
+                                                                <TouchableOpacity onPress={() => toggleServiceVisibility(srv)} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }}>
+                                                                    <MaterialCommunityIcons name={srv.is_active === false ? "eye-off" : "eye"} size={20} color={srv.is_active === false ? "#ef4444" : T.goldPrimary} />
+                                                                </TouchableOpacity>
+                                                                <TouchableOpacity onPress={() => handleDeleteService(srv.id)} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }}>
+                                                                    <MaterialCommunityIcons name="trash-can-outline" size={20} color="#ef4444" />
+                                                                </TouchableOpacity>
+                                                            </View>
+                                                        </View>
+                                                    )}
+                                                    <View style={s.servIconBox}>
+                                                        <MaterialCommunityIcons name={srv.icon} size={26} color={T.goldPrimary} />
+                                                    </View>
+                                                    <Text allowFontScaling={false} style={s.servLabel}>{srv.label}</Text>
+                                                    <Text allowFontScaling={false} style={s.servDesc}>{srv.desc_text || srv.desc}</Text>
+                                                </TouchableOpacity>
+                                            )})}
+                                            {isEditMode && chunkIndex === serviceChunks.length - 1 && chunk.length < 4 && (
+                                                <TouchableOpacity 
+                                                    style={[s.servCard, { borderWidth: 2, borderColor: T.goldPrimary, borderStyle: 'dashed', backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' }]}
+                                                    onPress={() => { setEditService(null); setFormData({ icon: 'hammer-wrench', label: '', desc_text: '', sample: '', order_index: services.length + 1, is_active: true }); setAdminModalVisible(true); }}
+                                                >
+                                                    <MaterialCommunityIcons name="plus" size={32} color={T.goldPrimary} />
+                                                    <Text allowFontScaling={false} style={{ color: T.goldPrimary, fontSize: 12, fontWeight: 'bold', marginTop: 8 }}>YENİ EKLE</Text>
+                                                </TouchableOpacity>
+                                            )}
+                                        </View>
+                                    ))
+                                )}
+                            </ScrollView>
+                            {serviceChunks.length > 1 && (
+                                <View style={s.paginationContainer}>
+                                    {serviceChunks.map((_, idx) => (
+                                        <View key={idx} style={[s.dot, idx === currentServicePage && { backgroundColor: T.goldPrimary, width: 20 }]} />
+                                    ))}
+                                </View>
+                            )}
                     </View>
 
                     <View style={{ height: 40 }} />
@@ -786,11 +974,28 @@ function getSStyles(T, isDarkMode) {
         servSubtitle: { color: T.goldPrimary + 'AA', fontSize: 10, marginTop: 2, fontWeight: '500' },
         servHeaderBadge: { display: 'none' },
         servHeaderBadgeText: { display: 'none' },
-        servGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+        servGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingHorizontal: 16 },
+
+    servGridPage: { width: width, flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 10 },
+    paginationContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 15, marginBottom: 5, gap: 6 },
+    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.textMuted },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 20 },
+    modalContent: { backgroundColor: T.card, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: T.cardBorder },
+    modalTitle: { color: T.textPrimary, fontSize: 18, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
+    modalLabel: { color: T.textSecondary, fontSize: 12, marginBottom: 5, fontWeight: '600' },
+    modalInput: { backgroundColor: T.inputBg, color: T.textPrimary, borderWidth: 1, borderColor: T.cardBorder, borderRadius: 10, padding: 12, marginBottom: 15, fontSize: 14 },
+    iconSelectBtn: { width: 44, height: 44, borderRadius: 12, borderWidth: 1, borderColor: T.cardBorder, justifyContent: 'center', alignItems: 'center', marginRight: 10 },
+    modalActions: { flexDirection: 'row', gap: 10, marginTop: 10 },
+    modalCancelBtn: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: T.inputBg, alignItems: 'center' },
+    modalCancelText: { color: T.textPrimary, fontWeight: 'bold' },
+    modalSaveBtn: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: T.goldPrimary, alignItems: 'center' },
+    modalSaveText: { color: '#000', fontWeight: 'bold' },
+
         servCard: { 
             width: (width - 42) / 2, 
             borderRadius: 16, 
             padding: 14, 
+            marginBottom: 10,
             backgroundColor: isDarkMode ? '#141414' : '#FDFDFD', // Fallback
             borderWidth: 1, 
             borderColor: T.servCardBorder, 
