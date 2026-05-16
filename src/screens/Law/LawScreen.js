@@ -1,14 +1,10 @@
-/**
- * LawScreen.js — Ultra-Premium AI Legal Shield
- * "The Zero-Friction Interface" — Kategori seçtirmiyoruz, sorunu anlıyoruz.
- */
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     Alert,
     Animated,
@@ -29,40 +25,115 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { analyzeLegalCase } from '../../services/legalAiService';
 import { LegalHistoryService } from '../../services/legalHistoryService';
-import AiOraclePulse from './components/AiOraclePulse';
 import InsightPanel from './components/InsightPanel';
-import SOSBanner from './components/SOSBanner';
 import { PermissionService } from '../../services/PermissionService';
 import { useTheme } from '../../context/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 
-const GOLD      = '#D4AF37';
-const GOLD_DARK = '#FF9100';
-const DANGER    = '#EF4444';
-const ORANGE    = '#F97316';
-const GREEN     = '#10B981';
+const SERVICES = [
+    { id: 'contract', icon: 'file-sign', label: 'Sözleşme Kontrolü', desc: 'Taşeron ve tedarikçi sözleşmeleri', sample: 'Taşeronla aramızdaki alt yüklenici sözleşmesinin cezai şart maddelerini incele.' },
+    { id: 'progress', icon: 'scale-balance', label: 'Hakediş İhtilafı', desc: 'Kesinti ve ödeme gecikmeleri', sample: 'Ana firma 3 aydır hakediş ödemiyor, %10 teminat kesintisini bahane ediyor.' },
+    { id: 'accident', icon: 'alert-octagon', label: 'İş Kazası (İSG)', desc: 'Acil durum ve yasal süreç', sample: 'Şantiyede iskeleden düşme kazası oldu, tutanak tutuldu, ne yapmalıyım?' },
+    { id: 'hr', icon: 'account-hard-hat', label: 'Personel & Özlük', desc: 'İhbar, kıdem ve mesai', sample: 'Şantiye şefi istifa etti, ihbar süresine uymak istemiyor.' }
+];
+
+function getTheme(theme) {
+    const isDark = theme.isDarkMode;
+    return {
+        bg: theme.background,
+        textPrimary: theme.text,
+        textSecondary: theme.textSecondary,
+        textMuted: theme.textTertiary || (isDark ? '#555555' : '#999999'),
+        goldPrimary: theme.accentBright || '#D4AF37',
+        orange: theme.accent || '#E8890C',
+        danger: theme.danger || '#EF4444',
+        green: theme.success || '#10B981',
+        card: theme.surface,
+        cardBorder: isDark ? 'rgba(212,175,55,0.22)' : theme.border,
+        inputBg: theme.surface,
+        btnBg: isDark ? '#1a1a1a' : '#FFFFFF',
+        btnBorder: isDark ? '#2a2a2a' : theme.border,
+        servCardBg: isDark ? ['#181818', '#111111'] : ['#FFFFFF', '#F4EBE0'],
+        servCardBorder: isDark ? '#222222' : 'rgba(255, 255, 255, 0.9)',
+        sheetBg: isDark ? ['#0e0e0e', '#090909'] : [theme.surfaceElevated || '#FFFFFF', theme.background],
+        sheetTopBorder: isDark ? ['#D4AF3700', '#D4AF3788', '#D4AF3700'] : ['#D4AF3700', '#D4AF3788', '#D4AF3700'],
+        scoreRowBg: theme.surface,
+        scoreRowBorder: isDark ? '#222222' : theme.border,
+        iconBoxBg: isDark ? 'rgba(212,175,55,0.15)' : '#FFF6E5',
+        overlayBg: isDark ? 'rgba(0,0,0,0.88)' : 'rgba(253,251,247,0.95)',
+        goldTint: isDark ? 'rgba(212,175,55,0.1)' : 'rgba(212,175,55,0.05)',
+        white: '#FFFFFF',
+        black: '#000000',
+    };
+}
+
+// ─── WIREFRAME ANIMATION ─────────────────────────────────────────────────────
+function WireframeOrb() {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const T = getTheme(theme);
+    const w = getWStyles(T, isDarkMode);
+    
+    const rotate  = useRef(new Animated.Value(0)).current;
+    const pulse   = useRef(new Animated.Value(1)).current;
+    const pulse2  = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+        Animated.loop(Animated.timing(rotate, { toValue: 1, duration: 25000, useNativeDriver: true })).start();
+        Animated.loop(Animated.sequence([
+            Animated.timing(pulse, { toValue: 1.15, duration: 2000, useNativeDriver: true }),
+            Animated.timing(pulse, { toValue: 1, duration: 2000, useNativeDriver: true }),
+        ])).start();
+        Animated.loop(Animated.sequence([
+            Animated.delay(1000),
+            Animated.timing(pulse2, { toValue: 1.1, duration: 2500, useNativeDriver: true }),
+            Animated.timing(pulse2, { toValue: 1, duration: 2500, useNativeDriver: true }),
+        ])).start();
+    }, []);
+
+    const spin = rotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+    const spinRev = rotate.interpolate({ inputRange: [0, 1], outputRange: ['360deg', '0deg'] });
+
+    return (
+        <Animated.View style={[w.orbContainer, { transform: [{ scale: pulse }] }]}>
+            <Animated.View style={[w.halo, w.halo1, { transform: [{ scale: pulse2 }] }]} />
+            <Animated.View style={[w.halo, w.halo2]} />
+            <Animated.View style={[w.ring, w.ringOuter, { transform: [{ rotate: spin }] }]} />
+            <Animated.View style={[w.ring, w.ringMid, { transform: [{ rotate: spinRev }] }]} />
+            <Animated.View style={[w.ring, w.ringInner, { transform: [{ rotate: spin }] }]} />
+            
+            <View style={w.core}>
+                <LinearGradient colors={[T.goldPrimary + '33', T.goldPrimary + '00']} style={w.coreGrad} />
+                <MaterialCommunityIcons name="scale-balance" size={18} color={T.goldPrimary} />
+            </View>
+            {[0, 90, 180, 270].map((angle, i) => {
+                const rad = (angle * Math.PI) / 180;
+                const center = 62.5; 
+                const r = 57.5; 
+                return (
+                    <View key={i} style={[w.orbitDot, { left: center + r * Math.cos(rad) - 3.5, top: center + r * Math.sin(rad) - 3.5 }]} />
+                );
+            })}
+        </Animated.View>
+    );
+}
 
 // ─── ANALYZING OVERLAY ───────────────────────────────────────────────────────
 function AnalyzingOverlay({ visible }) {
     const theme = useTheme();
     const isDarkMode = theme.isDarkMode;
-    const s = getStyles(theme, isDarkMode);
+    const T = getTheme(theme);
+    const s = getSStyles(T, isDarkMode);
     const opacity = useRef(new Animated.Value(0)).current;
-    const ring1   = useRef(new Animated.Value(0.7)).current;
-    const ring2   = useRef(new Animated.Value(0.7)).current;
+    const scanY   = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         if (visible) {
-            Animated.timing(opacity, { toValue: 1, duration: 280, useNativeDriver: true }).start();
+            Animated.timing(opacity, { toValue: 1, duration: 250, useNativeDriver: true }).start();
             Animated.loop(Animated.sequence([
-                Animated.timing(ring1, { toValue: 1.5, duration: 1000, useNativeDriver: true }),
-                Animated.timing(ring1, { toValue: 0.7, duration: 1000, useNativeDriver: true }),
-            ])).start();
-            Animated.loop(Animated.sequence([
-                Animated.delay(500),
-                Animated.timing(ring2, { toValue: 1.5, duration: 1000, useNativeDriver: true }),
-                Animated.timing(ring2, { toValue: 0.7, duration: 1000, useNativeDriver: true }),
+                Animated.timing(scanY, { toValue: 100, duration: 1500, useNativeDriver: true }),
+                Animated.timing(scanY, { toValue: 0, duration: 1500, useNativeDriver: true }),
             ])).start();
         } else {
             Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: true }).start();
@@ -73,61 +144,44 @@ function AnalyzingOverlay({ visible }) {
 
     return (
         <Animated.View style={[s.overlayBg, { opacity }]}>
-            <BlurView intensity={70} tint="dark" style={StyleSheet.absoluteFill} />
-            <View style={s.overlayInner}>
-                <Animated.View style={[s.ring, s.ring1, { transform: [{ scale: ring1 }] }]} />
-                <Animated.View style={[s.ring, s.ring2, { transform: [{ scale: ring2 }] }]} />
-                <MaterialCommunityIcons name="scale-balance" size={42} color={GOLD} />
-                <Text allowFontScaling={false} style={s.overlayTitle}>Analiz Ediliyor…</Text>
-                <Text allowFontScaling={false} style={s.overlaySub}>Şantiye dili → Hukuki vaka</Text>
+            <BlurView intensity={isDarkMode ? 80 : 40} tint={isDarkMode ? "dark" : "light"} style={StyleSheet.absoluteFill} />
+            <View style={{ alignItems: 'center' }}>
+                <MaterialCommunityIcons name="scale-balance" size={48} color={T.goldPrimary} />
+                <Animated.View style={[s.scanLine, { transform: [{ translateY: scanY }, { translateY: -50 }] }]} />
+                <Text allowFontScaling={false} style={s.overlayTitle}>Hukuki Zeka Analiz Ediyor...</Text>
+                <Text allowFontScaling={false} style={s.overlaySub}>İçtihatlar ve yasal süreçler taranıyor</Text>
             </View>
         </Animated.View>
     );
-}
-
-// ─── WAVE BARS (voice) ───────────────────────────────────────────────────────
-function WaveBar({ delay }) {
-    const theme = useTheme();
-    const isDarkMode = theme.isDarkMode;
-    const s = getStyles(theme, isDarkMode);
-    const h = useRef(new Animated.Value(4)).current;
-    useEffect(() => {
-        Animated.loop(Animated.sequence([
-            Animated.timing(h, { toValue: 4 + Math.random() * 20, duration: 300 + delay, useNativeDriver: false }),
-            Animated.timing(h, { toValue: 4, duration: 300 + delay, useNativeDriver: false }),
-        ])).start();
-    }, []);
-    return <Animated.View style={[s.waveBar, { height: h }]} />;
 }
 
 // ─── RECENT CASE CARD ────────────────────────────────────────────────────────
 function RecentCard({ cat, score, time, onPress, onDelete }) {
     const theme = useTheme();
     const isDarkMode = theme.isDarkMode;
-    const s = getStyles(theme, isDarkMode);
-    const c = score >= 8 ? DANGER : score >= 5 ? ORANGE : GREEN;
+    const T = getTheme(theme);
+    const s = getSStyles(T, isDarkMode);
+    const c = score >= 8 ? T.danger : score >= 5 ? T.orange : T.green;
     return (
         <TouchableOpacity style={s.recentCard} onPress={onPress} activeOpacity={0.85}>
             <LinearGradient 
-                colors={isDarkMode ? ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)'] : ['rgba(0,0,0,0.02)', 'rgba(0,0,0,0.01)']} 
+                colors={isDarkMode ? ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)'] : ['rgba(0,0,0,0.03)', 'rgba(0,0,0,0.01)']} 
                 style={StyleSheet.absoluteFillObject} 
                 borderRadius={18} 
             />
             <View style={s.recentIconBox}>
-                <MaterialCommunityIcons name="file-document-outline" size={20} color={GOLD} />
+                <MaterialCommunityIcons name="file-document-outline" size={20} color={T.goldPrimary} />
             </View>
             <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text allowFontScaling={false} style={s.recentCat} numberOfLines={1}>{cat}</Text>
                 <Text allowFontScaling={false} style={s.recentTime}>{time}</Text>
             </View>
-            {/* Score box */}
             <View style={[s.scoreTag, { borderColor: c + '44' }]}>
                 <Text allowFontScaling={false} style={[s.scoreTagNum, { color: c }]}>{score}</Text>
                 <Text allowFontScaling={false} style={[s.scoreTagDen, { color: c + '88' }]}>/10</Text>
             </View>
-            {/* Delete btn */}
             <TouchableOpacity style={s.deleteBtn} onPress={onDelete} activeOpacity={0.7}>
-                <MaterialCommunityIcons name="trash-can-outline" size={19} color="#EF4444" />
+                <MaterialCommunityIcons name="trash-can-outline" size={19} color={T.danger} />
             </TouchableOpacity>
         </TouchableOpacity>
     );
@@ -137,22 +191,24 @@ function RecentCard({ cat, score, time, onPress, onDelete }) {
 export default function LawScreen() {
     const theme = useTheme();
     const isDarkMode = theme.isDarkMode;
+    const T = getTheme(theme);
+    const s = getSStyles(T, isDarkMode);
+
     const navigation = useNavigation();
     const scrollRef    = useRef(null);
     const inputWrapRef = useRef(null);
-    const s = getStyles(theme, isDarkMode);
 
     const [inputText, setInputText]           = useState('');
-    const [isRecording, setIsRecording]       = useState(false);
     const [isInputFocused, setIsInputFocused] = useState(false);
     const [attachedFile, setAttachedFile]     = useState(null);
     const [isAnalyzing, setIsAnalyzing]       = useState(false);
     const [caseData, setCaseData]             = useState(null);
     const [panelVisible, setPanelVisible]     = useState(false);
     const [isAdmin, setIsAdmin]               = useState(false);
-    const [isLawyer, setIsLawyer]             = useState(false);
     const [recentAnalyses, setRecentAnalyses] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(true);
+    const [showHistory, setShowHistory]       = useState(false);
+    const [hasLawAccess, setHasLawAccess]     = useState(false);
 
     // Input glow aura
     const auraOpacity = useRef(new Animated.Value(0)).current;
@@ -171,15 +227,12 @@ export default function LawScreen() {
         ]).start();
     }, [isInputFocused, inputText]);
 
-    const [hasLawAccess, setHasLawAccess] = useState(false);
-
     const checkUserStatus = async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 const roles = await PermissionService.getUserRoles();
                 setIsAdmin(roles.isAdmin);
-
                 const hasAccess = await PermissionService.checkAccess('lawyer');
                 setHasLawAccess(hasAccess);
             }
@@ -216,21 +269,6 @@ export default function LawScreen() {
         } catch { Alert.alert('Hata', 'Dosya seçilemedi.'); }
     };
 
-    const handleVoice = () => {
-        if (isRecording) { setIsRecording(false); return; }
-        setIsRecording(true);
-        setTimeout(() => {
-            setInputText(t => (t ? t + ' ' : '') + 'Hakediş 3 aydır yatmıyor, üstelik kesinti de yapıyorlar.');
-            setIsRecording(false);
-        }, 3000);
-    };
-
-    const handleSOS = () => {
-        const sosText = 'ACİL: Şantiyede iş kazası gerçekleşti, işçi yaralı ve SGK baskını var, mühürlendi.';
-        setInputText(sosText);
-        setTimeout(() => triggerAnalysis(sosText), 300);
-    };
-
     const triggerAnalysis = async (text) => {
         if (!text?.trim() && !attachedFile) {
             Alert.alert('Eksik Bilgi', 'Lütfen sorununuzu anlatın veya belge yükleyin.');
@@ -241,7 +279,6 @@ export default function LawScreen() {
         try {
             let fileData = null;
             if (attachedFile) {
-                // Dosyayı base64 olarak oku
                 const base64Data = await FileSystem.readAsStringAsync(attachedFile.uri, {
                     encoding: FileSystem.EncodingType.Base64,
                 });
@@ -254,17 +291,15 @@ export default function LawScreen() {
             const result = await analyzeLegalCase({ 
                 text: text || inputText, 
                 userId: 'user_demo',
-                fileData // Yeni multimodal veri
+                fileData 
             });
 
             if (result.success) {
-                // Veritabanına kaydet
                 await LegalHistoryService.saveAnalysis(result.data, text || inputText);
-                loadHistory(); // Listeyi tazele
+                loadHistory(); 
 
                 setCaseData(result.data);
                 setIsAnalyzing(false);
-                // Sonuç ekranına yönlendir
                 navigation.navigate('LawAnalysisResult', {
                     analysisData: result.data,
                     caseText: text || inputText,
@@ -284,226 +319,181 @@ export default function LawScreen() {
         navigation.navigate('LawSuccess', { lawyer, caseData });
     };
 
+    const handleServicePress = (srv) => {
+        setInputText(srv.sample);
+        setTimeout(() => triggerAnalysis(srv.sample), 300);
+    };
 
     return (
-        <View style={s.container}>
-            <StatusBar barStyle="light-content" backgroundColor={isDarkMode ? '#070707' : theme.background} />
-
-            {/* Deep background */}
-            <View style={s.bgBase} />
-            {/* Subtle gold ambient top */}
-            <LinearGradient
-                colors={['rgba(212,175,55,0.06)', 'transparent']}
-                style={s.bgAmbient}
-                start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
-                pointerEvents="none"
-            />
-
-            <SafeAreaView style={{ flex: 1 }}>
-                    <ScrollView
-                        ref={scrollRef}
-                        contentContainerStyle={s.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                        keyboardShouldPersistTaps="handled"
-                        automaticallyAdjustKeyboardInsets={true}
-                    >
-                        {/* ── HEADER ── */}
-                        <View style={s.header}>
-                            <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerBtn}>
-                                <Ionicons name="arrow-back" size={18} color={isDarkMode ? '#fff' : theme.text} />
-                            </TouchableOpacity>
-                            <View style={s.headerCenter}>
-                                <Text allowFontScaling={false} style={s.headerEye}>⚖️  CEFTE ŞEF</Text>
-                                <Text allowFontScaling={false} style={s.headerSub}>Hukuki Çözüm Merkezi</Text>
-                            </View>
-                            <TouchableOpacity
-                                style={[s.headerBtn, (hasLawAccess || isAdmin) && s.headerBtnActive]}
-                                onPress={() => {
-                                    if (isAdmin || hasLawAccess) navigation.navigate('LawProvider');
-                                    else Alert.alert('Yetkisiz Erişim', 'Yalnızca onaylı avukat hesapları bu panele erişebilir.');
-                                }}
-                            >
-                                <MaterialCommunityIcons name="scale-balance" size={18} color={isAdmin || hasLawAccess ? GOLD : '#555'} />
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* ── SOS BANNER ── */}
-                        <SOSBanner onPress={handleSOS} />
-
-                        {/* ── HERO ── */}
-                        <View style={s.heroBlock}>
-                            <Text allowFontScaling={false} style={s.heroEye}>YAPAY ZEKA DESTEKLİ</Text>
-                            <Text allowFontScaling={false} style={s.heroTitle} numberOfLines={1} adjustsFontSizeToFit>Hukuki Kalkanınız</Text>
-                        </View>
-
-                        {/* ── AI ORACLE PULSE ── */}
-                        <View style={s.oracleWrap}>
-                            <AiOraclePulse />
-                            <Text allowFontScaling={false} style={s.oracleLabel}>AI Analiz Motoru — Aktif</Text>
-                        </View>
-
-                        {/* ── GLASSMORPHISM INPUT ── */}
-                        <View ref={inputWrapRef} style={s.inputWrap}>
-                            {/* Glow aura behind card */}
-                            <Animated.View
-                                style={[s.inputGlow, { opacity: auraOpacity, transform: [{ scale: auraScale }] }]}
-                                pointerEvents="none"
-                            />
-
-                            <View style={s.glassCard}>
-                                {/* Gold hairline top border */}
-                                <LinearGradient
-                                    colors={[GOLD + '00', GOLD + 'AA', GOLD + '00']}
-                                    style={s.glassBorderTop}
-                                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                                />
-
-                                <TextInput allowFontScaling={false}
-                                    style={s.input}
-                                    placeholder={'Probleminizi buraya yazın, ses veya belge yükleyin…'}
-                                    placeholderTextColor={isDarkMode ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.4)'}
-                                    multiline
-                                    value={inputText}
-                                    onChangeText={setInputText}
-                                    onFocus={() => {
-                                        setIsInputFocused(true);
-                                        // Scroll to bring input into view above the keyboard
-                                        setTimeout(() => {
-                                            scrollRef.current?.scrollTo({ y: 320, animated: true });
-                                        }, 100);
-                                    }}
-                                    onBlur={() => setIsInputFocused(false)}
-                                    inputAccessoryViewID="LawDone"
-                                    textAlignVertical="top"
-                                    selectionColor={GOLD}
-                                    cursorColor={GOLD}
-                                />
-
-                                {/* Bottom action row */}
-                                <View style={s.inputFooter}>
-                                    {/* Wave / char */}
-                                    {isRecording ? (
-                                        <View style={s.waveRow}>
-                                            <WaveBar delay={0} />
-                                            <WaveBar delay={100} />
-                                            <WaveBar delay={200} />
-                                            <WaveBar delay={150} />
-                                            <WaveBar delay={80} />
-                                            <Text allowFontScaling={false} style={s.recLabel}>Kaydediliyor…</Text>
-                                        </View>
-                                    ) : (
-                                        <Text allowFontScaling={false} style={s.charCount}>{inputText.length > 0 ? `${inputText.length} karakter` : 'Metin, ses veya belge'}</Text>
-                                    )}
-                                    <View style={s.footerBtns}>
-                                        {/* Attach */}
-                                        <TouchableOpacity style={[s.iconBtn, attachedFile && s.iconBtnActive]} onPress={handlePickFile}>
-                                            <FontAwesome5 name="paperclip" size={15} color={attachedFile ? GOLD : 'rgba(255,255,255,0.4)'} />
-                                        </TouchableOpacity>
-                                        {/* Mic */}
-                                        <TouchableOpacity
-                                            style={[s.iconBtn, s.micBtn, isRecording && s.micActive]}
-                                            onPress={handleVoice}
-                                        >
-                                            <Ionicons
-                                                name={isRecording ? 'stop' : 'mic'}
-                                                size={16}
-                                                color={isRecording ? '#000' : GOLD}
-                                            />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-                            </View>
-
-                            {/* Attached file chip */}
-                            {attachedFile && (
-                                <View style={s.fileChip}>
-                                    <FontAwesome5 name="file-pdf" size={11} color={GOLD} />
-                                    <Text allowFontScaling={false} style={s.fileChipText} numberOfLines={1}>{attachedFile.name}</Text>
-                                    <TouchableOpacity onPress={() => setAttachedFile(null)}>
-                                        <Ionicons name="close-circle" size={15} color={isDarkMode ? '#555' : theme.textSecondary} />
-                                    </TouchableOpacity>
-                                </View>
-                            )}
-                        </View>
-
-                        {/* ── CTA BUTTON ── */}
-                        <View style={s.ctaWrap}>
-                            <TouchableOpacity style={s.ctaBtn} activeOpacity={0.87} onPress={() => triggerAnalysis(inputText)}>
-                                <LinearGradient
-                                    colors={[GOLD, GOLD_DARK]}
-                                    style={s.ctaGrad}
-                                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                                >
-                                    <MaterialCommunityIcons name="magnify-scan" size={20} color="#000" style={{ opacity: 0.85 }} />
-                                    <Text allowFontScaling={false} style={s.ctaText}>ANALİZ ET VE AVUKATA BAĞLAN</Text>
-                                </LinearGradient>
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* ── RECENT CASES ── */}
-                        <View style={s.recentSection}>
-                            <View style={s.premiumHeader}>
-                                <View style={{ flex: 1 }}>
-                                    <Text allowFontScaling={false} style={s.premiumTitle}>SON ANALİZLERİM</Text>
-                                    <Text allowFontScaling={false} style={s.premiumSub}>Hukuki vaka geçmişiniz ve raporlarınız</Text>
-                                </View>
-                                <MaterialCommunityIcons name="history" size={24} color={GOLD + '66'} />
-                            </View>
-
-                            {loadingHistory ? (
-                                <View style={{ padding: 40, alignItems: 'center' }}>
-                                    <ActivityIndicator color={GOLD} />
-                                </View>
-                            ) : recentAnalyses.length === 0 ? (
-                                <View style={s.emptyHistory}>
-                                    <MaterialCommunityIcons name="text-box-search-outline" size={32} color={isDarkMode ? '#222' : theme.textSecondary} />
-                                    <Text allowFontScaling={false} style={s.emptyHistoryText}>Henüz bir analiziniz bulunmuyor.</Text>
-                                </View>
-                            ) : (
-                                <>
-                                    {recentAnalyses.map((item) => (
-                                        <RecentCard 
-                                            key={item.id}
-                                            cat={item.case_title || item.kategori} 
-                                            score={item.aciliyet_skoru} 
-                                            time={new Date(item.created_at).toLocaleDateString('tr-TR')} 
-                                            onPress={() => {
-                                                navigation.navigate('LawAnalysisResult', {
-                                                    analysisData: item.full_data,
-                                                    caseText: item.search_text,
-                                                    isHistorical: true
-                                                });
-                                            }}
-                                            onDelete={() => handleDeleteAnalysis(item.id)}
-                                        />
-                                    ))}
-                                    
-                                    <TouchableOpacity style={s.viewAllBtn} onPress={() => Alert.alert('Çok Yakında', 'Tüm analizlerinizin listelendiği gelişmiş geçmiş sayfası yakında aktif edilecek.')}>
-                                        <Text allowFontScaling={false} style={s.viewAllText}>TÜMÜNÜ GÖR</Text>
-                                        <LinearGradient 
-                                            colors={['transparent', GOLD + '22', 'transparent']} 
-                                            style={StyleSheet.absoluteFillObject} 
-                                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} 
-                                        />
-                                    </TouchableOpacity>
-                                </>
-                            )}
-                        </View>
-                    </ScrollView>
-                </SafeAreaView>
-
-
-            {Platform.OS === 'ios' && (
-                <InputAccessoryView nativeID="LawDone">
-                    <View style={s.accessory}>
-                        <TouchableOpacity onPress={Keyboard.dismiss}>
-                            <Text allowFontScaling={false} style={s.accessoryText}>Bitti</Text>
-                        </TouchableOpacity>
-                    </View>
-                </InputAccessoryView>
-            )}
+        <View style={s.root}>
+            <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={T.bg} />
+            <LinearGradient colors={[T.goldTint, 'transparent']} style={StyleSheet.absoluteFillObject} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.3 }} pointerEvents="none" />
 
             <AnalyzingOverlay visible={isAnalyzing} />
+
+            <SafeAreaView style={{ flex: 1 }}>
+                <View style={s.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerBtn}>
+                        <Ionicons name="arrow-back" size={18} color={T.textPrimary} />
+                    </TouchableOpacity>
+                    <View style={s.headerCenter}>
+                        <Text allowFontScaling={false} style={s.headerEye}>HUKUK OFİSİ</Text>
+                        <Text allowFontScaling={false} style={s.headerSub}>Hukuki Çözüm Merkezi</Text>
+                    </View>
+                    <TouchableOpacity
+                        style={[s.headerBtn, (hasLawAccess || isAdmin) && s.headerBtnActive]}
+                        onPress={() => {
+                            if (isAdmin || hasLawAccess) navigation.navigate('LawProvider');
+                            else Alert.alert('Yetkisiz Erişim', 'Yalnızca onaylı avukat hesapları bu panele erişebilir.');
+                        }}
+                    >
+                        <MaterialCommunityIcons name="scale-balance" size={18} color={isAdmin || hasLawAccess ? T.goldPrimary : T.textSecondary} />
+                    </TouchableOpacity>
+                </View>
+
+                <ScrollView
+                    ref={scrollRef}
+                    contentContainerStyle={s.scroll}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <View style={s.orbSection}>
+                        <WireframeOrb />
+                        <Text allowFontScaling={false} style={s.heroEye}>YAPAY ZEKA DESTEKLİ</Text>
+                        <Text allowFontScaling={false} style={s.heroTitle}>Hukuki Kalkanınız</Text>
+                    </View>
+
+                    <View ref={inputWrapRef} style={s.inputWrap}>
+                        <Animated.View style={[s.inputGlow, { opacity: auraOpacity, transform: [{ scale: auraScale }] }]} pointerEvents="none" />
+                        <View style={s.glassCard}>
+                            <LinearGradient colors={[T.goldPrimary + '00', T.goldPrimary + 'AA', T.goldPrimary + '00']} style={s.glassBorderTop} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
+                            <TextInput
+                                allowFontScaling={false}
+                                style={s.input}
+                                placeholder="Probleminizi buraya yazın, ses veya belge yükleyin..."
+                                placeholderTextColor={T.textMuted}
+                                multiline
+                                value={inputText}
+                                onChangeText={setInputText}
+                                onFocus={() => {
+                                    setIsInputFocused(true);
+                                    setTimeout(() => {
+                                        inputWrapRef.current?.measureLayout(
+                                            scrollRef.current,
+                                            (x, y) => scrollRef.current?.scrollTo({ y: y - 20, animated: true }),
+                                            () => {}
+                                        );
+                                    }, 250);
+                                }}
+                                onBlur={() => setIsInputFocused(false)}
+                                textAlignVertical="top"
+                                selectionColor={T.goldPrimary}
+                                cursorColor={T.goldPrimary}
+                            />
+                            {attachedFile && (
+                                <View style={s.fileChip}>
+                                    <MaterialCommunityIcons name="file-check-outline" size={14} color={T.goldPrimary} />
+                                    <Text allowFontScaling={false} style={s.fileChipText} numberOfLines={1}>{attachedFile.name}</Text>
+                                    <TouchableOpacity onPress={() => setAttachedFile(null)}>
+                                        <Ionicons name="close-circle" size={14} color={T.textMuted} />
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+                            <View style={s.inputFooter}>
+                                <Text allowFontScaling={false} style={s.charCount}>{inputText.length > 0 ? `${inputText.length} karakter` : 'Metin, ses veya belge'}</Text>
+                                <View style={s.footerBtns}>
+                                    <TouchableOpacity style={s.iconBtn} onPress={handlePickFile}>
+                                        <FontAwesome5 name="paperclip" size={14} color={attachedFile ? T.goldPrimary : T.textSecondary} />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={s.iconBtn} onPress={() => Alert.alert('Ses', 'Ses kaydı yakında aktif olacak.')}>
+                                        <Ionicons name="mic-outline" size={16} color={T.textMuted} />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={s.iconBtn} onPress={() => Alert.alert('Kamera', 'Canlı belge tarama yakında aktif olacak.')}>
+                                        <MaterialCommunityIcons name="camera-outline" size={16} color={T.textMuted} />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    </View>
+
+                    <TouchableOpacity onPress={() => triggerAnalysis(inputText)} activeOpacity={0.88} style={s.ctaWrap}>
+                        <View style={[s.ctaBtn, { backgroundColor: '#C89B1E' }]}>
+                            <MaterialCommunityIcons name="magnify-scan" size={20} color="#fff" />
+                            <Text allowFontScaling={false} style={s.ctaText}>ANALİZ ET VE AVUKATA BAĞLAN</Text>
+                        </View>
+                        <View style={s.ctaGlow} pointerEvents="none" />
+                    </TouchableOpacity>
+
+                    <View style={s.servSection}>
+                        <View style={s.servHeaderWrap}>
+                            <LinearGradient
+                                colors={T.sheetBg}
+                                style={StyleSheet.absoluteFillObject}
+                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                            />
+                            <LinearGradient
+                                colors={[T.goldPrimary, T.orange]}
+                                style={s.servHeaderBar}
+                                start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+                            />
+                            <View style={{ flex: 1 }}>
+                                <Text allowFontScaling={false} style={s.servTitle}>DOĞRUDAN HİZMETLER</Text>
+                                <Text allowFontScaling={false} style={s.servSubtitle}>Hızlı erişim · 4 uzmanlık alanı</Text>
+                            </View>
+                        </View>
+                        <View style={s.servGrid}>
+                            {SERVICES.map(srv => (
+                                <TouchableOpacity key={srv.id} onPress={() => handleServicePress(srv)} activeOpacity={0.82} style={s.servCard}>
+                                    <LinearGradient colors={T.servCardBg} style={StyleSheet.absoluteFillObject} borderRadius={16} />
+                                    <View style={s.servIconBox}>
+                                        <MaterialCommunityIcons name={srv.icon} size={26} color={T.goldPrimary} />
+                                    </View>
+                                    <Text allowFontScaling={false} style={s.servLabel}>{srv.label}</Text>
+                                    <Text allowFontScaling={false} style={s.servDesc}>{srv.desc}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+
+                    {/* HISTORY TOGGLE BUTTON */}
+                    <TouchableOpacity onPress={() => setShowHistory(!showHistory)} style={s.historyToggleBtn}>
+                        <MaterialCommunityIcons name="history" size={20} color={T.goldPrimary} />
+                        <Text allowFontScaling={false} style={s.historyToggleText}>GEÇMİŞ ANALİZLERİM</Text>
+                        <MaterialCommunityIcons name={showHistory ? "chevron-up" : "chevron-down"} size={20} color={T.goldPrimary} />
+                    </TouchableOpacity>
+
+                    {/* HISTORY LIST */}
+                    {showHistory && (
+                        <View style={s.historyContainer}>
+                            {loadingHistory ? (
+                                <ActivityIndicator color={T.goldPrimary} style={{ marginVertical: 20 }} />
+                            ) : recentAnalyses.length === 0 ? (
+                                <Text allowFontScaling={false} style={s.emptyHistoryText}>Henüz bir analiziniz bulunmuyor.</Text>
+                            ) : (
+                                recentAnalyses.map((item) => (
+                                    <RecentCard 
+                                        key={item.id}
+                                        cat={item.case_title || item.kategori} 
+                                        score={item.aciliyet_skoru} 
+                                        time={new Date(item.created_at).toLocaleDateString('tr-TR')} 
+                                        onPress={() => {
+                                            navigation.navigate('LawAnalysisResult', {
+                                                analysisData: item.full_data,
+                                                caseText: item.search_text,
+                                                isHistorical: true
+                                            });
+                                        }}
+                                        onDelete={() => handleDeleteAnalysis(item.id)}
+                                    />
+                                ))
+                            )}
+                        </View>
+                    )}
+
+                    <View style={{ height: 40 }} />
+                </ScrollView>
+            </SafeAreaView>
+
             <InsightPanel
                 visible={panelVisible}
                 data={caseData}
@@ -520,192 +510,93 @@ export default function LawScreen() {
 }
 
 // ─── STYLES ──────────────────────────────────────────────────────────────────
-const getStyles = (theme, isDarkMode) => StyleSheet.create({
-    container: { flex: 1, backgroundColor: isDarkMode ? '#070707' : theme.background },
-    bgBase: { ...StyleSheet.absoluteFillObject, backgroundColor: isDarkMode ? '#070707' : theme.background },
-    bgAmbient: { position: 'absolute', top: 0, left: 0, right: 0, height: height * 0.4 },
-    scrollContent: { paddingBottom: 48 },
+function getWStyles(T, isDarkMode) {
+    return StyleSheet.create({
+        orbContainer: { width: 125, height: 125, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', marginBottom: 6, position: 'relative' },
+        halo: { position: 'absolute', borderRadius: 999 },
+        halo1: { width: 125, height: 125, backgroundColor: T.goldPrimary + '10' },
+        halo2: { width: 102, height: 102, backgroundColor: T.goldPrimary + '18' },
+        ring: { position: 'absolute', borderRadius: 999, borderWidth: 1 },
+        ringOuter: { width: 115, height: 115, borderColor: T.goldPrimary + '44' },
+        ringMid:   { width: 88, height: 88, borderColor: T.goldPrimary + '66', borderStyle: 'dashed' },
+        ringInner: { width: 62, height: 62, borderColor: T.goldPrimary + '88' },
+        core: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: 1, borderColor: T.goldPrimary + '88' },
+        coreGrad: { ...StyleSheet.absoluteFillObject },
+        orbitDot: { position: 'absolute', width: 7, height: 7, borderRadius: 3.5, backgroundColor: T.goldPrimary },
+    });
+}
 
-    // Header
-    header: {
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        paddingHorizontal: 20, paddingTop: 16, paddingBottom: 18,
-    },
-    headerBtn: {
-        width: 40, height: 40, borderRadius: 13,
-        backgroundColor: isDarkMode ? 'rgba(255,255,255,0.04)' : theme.surfaceSecondary,
-        borderWidth: 1, borderColor: isDarkMode ? 'rgba(255,255,255,0.08)' : theme.borderLight,
-        alignItems: 'center', justifyContent: 'center',
-    },
-    headerBtnActive: { borderColor: GOLD + '55' },
-    headerCenter: { alignItems: 'center' },
-    headerEye: { color: GOLD, fontSize: 9, fontWeight: '700', letterSpacing: 2.5 },
-    headerSub: { color: isDarkMode ? 'rgba(255,255,255,0.5)' : theme.textSecondary, fontSize: 11, marginTop: 2, letterSpacing: 0.3 },
+function getSStyles(T, isDarkMode) {
+    return StyleSheet.create({
+        root: { flex: 1, backgroundColor: T.bg },
+        header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 6, paddingBottom: 6 },
+        headerBtn: { width: 42, height: 42, borderRadius: 14, backgroundColor: T.card, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDarkMode ? 0.3 : 0.08, shadowRadius: 8, elevation: 3 },
+        headerBtnActive: { borderColor: T.goldPrimary + '55', borderWidth: 1 },
+        headerCenter: { flex: 1, alignItems: 'center' },
+        headerEye: { color: T.goldPrimary, fontSize: 10, fontWeight: '800', letterSpacing: 2 },
+        headerSub: { color: T.textPrimary, fontSize: 13, marginTop: 2, fontWeight: '600' },
+        scroll: { paddingHorizontal: 16, paddingBottom: 20 },
+        orbSection: { alignItems: 'center', paddingTop: 6, paddingBottom: 4 },
+        heroEye: { color: T.goldPrimary, fontSize: 9, fontWeight: '700', letterSpacing: 3, marginBottom: 4 },
+        heroTitle: { color: T.textPrimary, fontSize: 24, fontWeight: '900', textAlign: 'center', lineHeight: 28, marginBottom: 12 },
+        inputWrap: { marginBottom: 12, position: 'relative' },
+        inputGlow: { position: 'absolute', inset: -12, borderRadius: 32, backgroundColor: T.goldPrimary + '18', zIndex: 0 },
+        glassCard: { borderRadius: 22, borderWidth: 1, borderColor: 'rgba(212,175,55,0.22)', overflow: 'hidden', backgroundColor: T.scoreRowBg },
+        glassBorderTop: { position: 'absolute', top: 0, left: 0, right: 0, height: 1, opacity: 0.6 },
+        input: { color: T.textPrimary, fontSize: 14, lineHeight: 22, padding: 16, paddingTop: 16, paddingBottom: 8, minHeight: 65, textAlignVertical: 'top' },
+        fileChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: T.goldPrimary + '18', margin: 12, marginTop: 0, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10 },
+        fileChipText: { color: T.goldPrimary, fontSize: 12, flex: 1 },
+        inputFooter: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 12, paddingTop: 4 },
+        charCount: { color: T.textSecondary, fontSize: 11, flex: 1 },
+        footerBtns: { flexDirection: 'row', gap: 8 },
+        iconBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: (isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'), borderWidth: 1, borderColor: (isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'), alignItems: 'center', justifyContent: 'center' },
+        ctaWrap: { marginBottom: 20, position: 'relative' },
+        ctaBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 18, gap: 10 },
+        ctaText: { color: '#fff', fontSize: 14, fontWeight: '800', letterSpacing: 0.8 },
+        ctaGlow: { position: 'absolute', bottom: -8, left: 20, right: 20, height: 20, backgroundColor: T.goldPrimary + '30', borderRadius: 10, zIndex: -1 },
+        servSection: { marginBottom: 8 },
+        servHeaderWrap: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 12, overflow: 'hidden', gap: 12, borderWidth: 1, borderColor: T.goldPrimary + '44' },
+        servHeaderBar: { width: 3, height: 30, borderRadius: 2, marginRight: 2 },
+        servTitle: { color: T.textPrimary, fontSize: 13, fontWeight: '900', letterSpacing: 1.2 },
+        servSubtitle: { color: T.goldPrimary + 'AA', fontSize: 10, marginTop: 2, fontWeight: '500' },
+        servGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+        servCard: { 
+            width: (width - 42) / 2, 
+            borderRadius: 16, 
+            padding: 14, 
+            backgroundColor: isDarkMode ? '#141414' : '#FDFDFD', 
+            borderWidth: 1, 
+            borderColor: T.servCardBorder, 
+            overflow: 'hidden', 
+            minHeight: 110, 
+            alignItems: 'center',
+            shadowColor: isDarkMode ? '#000000' : '#8C7050',
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: isDarkMode ? 0.3 : 0.12,
+            shadowRadius: 10,
+            elevation: 4
+        },
+        servIconBox: { width: 44, height: 44, borderRadius: 22, backgroundColor: T.iconBoxBg, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
+        servLabel: { color: T.textPrimary, fontSize: 13, fontWeight: '800', marginBottom: 4, textAlign: 'center' },
+        servDesc: { color: T.textSecondary, fontSize: 11, lineHeight: 14, textAlign: 'center' },
 
-    // Hero
-    heroBlock: { paddingHorizontal: 24, marginBottom: 0 },
-    heroEye: { color: GOLD, fontSize: 10, fontWeight: '700', letterSpacing: 3, marginBottom: 8 },
-    heroTitle: {
-        color: isDarkMode ? '#ffffff' : theme.text,
-        fontSize: 40,
-        fontWeight: '900',
-        letterSpacing: -0.5,
-        lineHeight: 44,
-    },
+        historyToggleBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, marginTop: 10, backgroundColor: T.card, borderRadius: 14, borderWidth: 1, borderColor: T.goldPrimary + '33' },
+        historyToggleText: { color: T.goldPrimary, fontSize: 13, fontWeight: '800', letterSpacing: 1, marginHorizontal: 8 },
+        historyContainer: { marginTop: 10, padding: 10, backgroundColor: T.card, borderRadius: 16, borderWidth: 1, borderColor: T.scoreRowBorder },
+        emptyHistoryText: { color: T.textSecondary, fontSize: 13, textAlign: 'center', marginVertical: 16 },
 
-    // Oracle
-    oracleWrap: { alignItems: 'center', marginVertical: 10, paddingBottom: 8 },
-    oracleLabel: { color: 'rgba(212,175,55,0.5)', fontSize: 10, fontWeight: '600', letterSpacing: 2, marginTop: 8 },
+        recentCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: isDarkMode ? 'rgba(255,255,255,0.06)' : T.scoreRowBorder, overflow: 'hidden' },
+        recentIconBox: { width: 36, height: 36, borderRadius: 10, backgroundColor: T.goldPrimary + '15', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: T.goldPrimary + '33' },
+        recentCat: { color: T.textPrimary, fontSize: 13, fontWeight: '700', marginBottom: 2 },
+        recentTime: { color: T.textSecondary, fontSize: 11 },
+        scoreTag: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, marginRight: 8 },
+        scoreTagNum: { fontSize: 13, fontWeight: '900' },
+        scoreTagDen: { fontSize: 8, fontWeight: '600', marginLeft: 1 },
+        deleteBtn: { width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(239, 68, 68, 0.08)', borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.15)', alignItems: 'center', justifyContent: 'center', marginLeft: 4 },
 
-    // Input
-    inputWrap: { paddingHorizontal: 20, marginBottom: 16 },
-    inputGlow: {
-        position: 'absolute',
-        top: -10, left: 10, right: 10, bottom: -10,
-        borderRadius: 24,
-        backgroundColor: 'transparent',
-        shadowColor: GOLD,
-        shadowOpacity: 0.35,
-        shadowRadius: 24,
-        elevation: 15,
-    },
-    glassCard: {
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: 'rgba(212,175,55,0.20)',
-        overflow: 'hidden',
-        backgroundColor: isDarkMode ? '#141414' : theme.surface,
-        minHeight: 170,
-    },
-    glassBorderTop: {
-        position: 'absolute',
-        top: 0, left: 0, right: 0,
-        height: 1,
-        opacity: 0.6,
-    },
-    input: {
-        color: isDarkMode ? '#FFFFFF' : theme.text,
-        fontSize: 15,
-        lineHeight: 24,
-        padding: 18,
-        paddingTop: 16,
-        paddingBottom: 8,
-        minHeight: 130,
-        textAlignVertical: 'top',
-        letterSpacing: 0.2,
-    },
-    inputFooter: {
-        flexDirection: 'row', alignItems: 'center',
-        paddingHorizontal: 14, paddingBottom: 12, paddingTop: 4, gap: 8,
-    },
-    charCount: { color: isDarkMode ? 'rgba(255,255,255,0.2)' : theme.textSecondary, fontSize: 11, flex: 1 },
-    waveRow: { flexDirection: 'row', alignItems: 'center', gap: 3, flex: 1 },
-    waveBar: { width: 3, borderRadius: 2, backgroundColor: GOLD },
-    recLabel: { color: DANGER, fontSize: 11, fontWeight: '700', marginLeft: 4 },
-    footerBtns: { flexDirection: 'row', gap: 8 },
-    iconBtn: {
-        width: 36, height: 36, borderRadius: 10,
-        backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : theme.surfaceSecondary,
-        borderWidth: 1, borderColor: isDarkMode ? 'rgba(255,255,255,0.10)' : theme.borderLight,
-        alignItems: 'center', justifyContent: 'center',
-    },
-    iconBtnActive: { borderColor: GOLD + '66' },
-    micBtn: { borderColor: 'rgba(212,175,55,0.3)' },
-    micActive: { backgroundColor: GOLD, borderColor: GOLD },
-
-    // File chip
-    fileChip: {
-        flexDirection: 'row', alignItems: 'center', gap: 7,
-        backgroundColor: 'rgba(212,175,55,0.08)',
-        borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7,
-        borderWidth: 1, borderColor: GOLD + '33', marginTop: 10,
-    },
-    fileChipText: { color: 'rgba(212,175,55,0.9)', fontSize: 12, flex: 1 },
-
-    // CTA
-    ctaWrap: { paddingHorizontal: 20, marginBottom: 32 },
-    ctaBtn: {
-        borderRadius: 18, overflow: 'hidden', height: 60,
-        shadowColor: GOLD, shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.4, shadowRadius: 16, elevation: 10,
-    },
-    ctaGrad: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
-    ctaText: { color: '#000', fontSize: 14, fontWeight: '900', letterSpacing: 0.8 },
-
-    // Recent section
-    recentSection: { paddingHorizontal: 20, marginTop: 10 },
-    premiumHeader: { 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        marginBottom: 20,
-        borderLeftWidth: 3,
-        borderLeftColor: GOLD,
-        paddingLeft: 12
-    },
-    premiumTitle: { 
-        color: isDarkMode ? '#fff' : theme.text, 
-        fontSize: 18, 
-        fontWeight: '900', 
-        letterSpacing: 1.5,
-        textShadowColor: GOLD + '44',
-        textShadowOffset: { width: 0, height: 0 },
-        textShadowRadius: 10
-    },
-    premiumSub: { color: isDarkMode ? 'rgba(255,255,255,0.4)' : theme.textSecondary, fontSize: 11, marginTop: 2, fontWeight: '500' },
-
-    recentCard: {
-        flexDirection: 'row', alignItems: 'center',
-        borderRadius: 18, padding: 16, marginBottom: 12,
-        borderWidth: 1, borderColor: isDarkMode ? 'rgba(255,255,255,0.06)' : theme.borderLight,
-        overflow: 'hidden'
-    },
-    recentIconBox: {
-        width: 42, height: 42, borderRadius: 12,
-        backgroundColor: GOLD + '15',
-        alignItems: 'center', justifyContent: 'center',
-        borderWidth: 1, borderColor: GOLD + '33'
-    },
-    recentCat: { color: isDarkMode ? '#fff' : theme.text, fontSize: 14, fontWeight: '700', marginBottom: 2 },
-    recentTime: { color: isDarkMode ? 'rgba(255,255,255,0.25)' : theme.textSecondary, fontSize: 11 },
-    
-    scoreTag: {
-        flexDirection: 'row', alignItems: 'center',
-        paddingHorizontal: 8, paddingVertical: 4,
-        borderRadius: 8, borderWidth: 1,
-        marginRight: 8
-    },
-    scoreTagNum: { fontSize: 13, fontWeight: '900' },
-    scoreTagDen: { fontSize: 8, fontWeight: '600', marginLeft: 1 },
-    
-    deleteBtn: {
-        width: 36, height: 36, borderRadius: 10,
-        backgroundColor: 'rgba(239, 68, 68, 0.08)',
-        borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.15)',
-        alignItems: 'center', justifyContent: 'center',
-        marginLeft: 8
-    },
-
-    viewAllBtn: {
-        height: 48, borderRadius: 14, borderWidth: 1, borderColor: isDarkMode ? 'rgba(255,255,255,0.08)' : theme.borderLight,
-        alignItems: 'center', justifyContent: 'center',
-        marginTop: 8, marginBottom: 40,
-        overflow: 'hidden'
-    },
-    viewAllText: { color: GOLD, fontSize: 11, fontWeight: '900', letterSpacing: 2 },
-
-    emptyHistory: { alignItems: 'center', paddingVertical: 40, gap: 12 },
-    emptyHistoryText: { color: '#333', fontSize: 13, fontWeight: '600' },
-
-    // Analyzing overlay
-    overlayBg: { ...StyleSheet.absoluteFillObject, zIndex: 999, alignItems: 'center', justifyContent: 'center' },
-    overlayInner: { alignItems: 'center' },
-    ring: { position: 'absolute', width: 100, height: 100, borderRadius: 50, borderWidth: 1 },
-    ring1: { borderColor: GOLD + '55' },
-    ring2: { borderColor: GOLD + '30', width: 140, height: 140, borderRadius: 70 },
-    overlayTitle: { color: isDarkMode ? '#fff' : theme.text, fontSize: 18, fontWeight: '800', marginTop: 70, letterSpacing: 0.5 },
-    overlaySub: { color: isDarkMode ? 'rgba(255,255,255,0.4)' : theme.textSecondary, fontSize: 12, marginTop: 6 },
-
-    // Accessory
-    accessory: { backgroundColor: isDarkMode ? '#111' : theme.background, padding: 10, alignItems: 'flex-end', borderTopWidth: 1, borderTopColor: isDarkMode ? '#222' : theme.borderLight },
-    accessoryText: { color: GOLD, fontWeight: '700', fontSize: 14 },
-});
+        overlayBg: { ...StyleSheet.absoluteFillObject, zIndex: 999, alignItems: 'center', justifyContent: 'center' },
+        scanLine: { width: width * 0.8, height: 3, backgroundColor: T.goldPrimary, borderRadius: 2, shadowColor: T.goldPrimary, shadowOpacity: 0.8, shadowRadius: 10, elevation: 5, marginVertical: 20 },
+        overlayTitle: { color: T.textPrimary, fontSize: 18, fontWeight: '800', marginTop: 20, letterSpacing: 0.5 },
+        overlaySub: { color: T.textSecondary, fontSize: 12, marginTop: 6 },
+    });
+}

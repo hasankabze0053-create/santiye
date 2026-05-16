@@ -9,28 +9,13 @@ import * as DocumentPicker from 'expo-document-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import {
-    Alert,
-    Animated,
-    Dimensions,
-    Easing,
-    Keyboard,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+    Alert, Animated, Dimensions, Easing, Keyboard, ScrollView,
+    StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../../context/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
-
-const GOLD   = '#D4AF37';
-const ORANGE = '#E8890C';
-const BG     = '#080808';
-const DANGER = '#EF4444';
-const GREEN  = '#10B981';
 
 // ─── MOCK PRICES (replace with real API) ────────────────────────────────────
 const PRICES = [
@@ -89,9 +74,53 @@ function generateAISummary(text) {
     return { title: 'Teknik Proje Analizi', bullets: ['Problem alanı tespit edildi', 'Uzman mühendis incelemesi gerekli', 'Detaylı rapor hazırlanacak'], urgency: 'normal' };
 }
 
+function getTheme(theme) {
+    const isDark = theme.isDarkMode;
+    return {
+        bg: theme.background,
+        textPrimary: theme.text,
+        textSecondary: theme.textSecondary,
+        textMuted: theme.textTertiary || (isDark ? '#555555' : '#999999'),
+        goldPrimary: theme.accentBright || '#D4AF37',
+        orange: theme.accent || '#E8890C',
+        danger: theme.danger || '#EF4444',
+        green: theme.success || '#10B981',
+        card: theme.surface,
+        cardBorder: isDark ? 'rgba(212,175,55,0.22)' : theme.border,
+        inputBg: theme.surface,
+        btnBg: isDark ? '#1a1a1a' : '#FFFFFF',
+        btnBorder: isDark ? '#2a2a2a' : theme.border,
+        servCardBg: isDark ? ['#181818', '#111111'] : ['#FFFFFF', '#F4EBE0'],
+        servCardBorder: isDark ? '#222222' : 'rgba(255, 255, 255, 0.9)',
+        sheetBg: isDark ? ['#0e0e0e', '#090909'] : [theme.surfaceElevated || '#FFFFFF', theme.background],
+        sheetTopBorder: isDark ? ['#D4AF3700', '#D4AF3788', '#D4AF3700'] : ['#D4AF3700', '#D4AF3788', '#D4AF3700'],
+        scoreRowBg: theme.surface,
+        scoreRowBorder: isDark ? '#222222' : theme.border,
+        engCardBg: isDark ? '#111111' : theme.surfaceSecondary || '#F9F6F0',
+        engCardBorder: isDark ? '#222222' : theme.border,
+        infoFieldBg: isDark ? '#111111' : theme.surfaceSecondary || '#F9F6F0',
+        infoFieldBorder: isDark ? '#222222' : theme.border,
+        summaryCardBg: isDark ? '#111111' : theme.surfaceSecondary || '#F9F6F0',
+        summaryCardBorder: isDark ? '#222222' : theme.border,
+        projNoCardBg: isDark ? '#111111' : theme.surfaceElevated || '#FFFFFF',
+        projNoCardBorder: isDark ? '#222222' : theme.border,
+        tickerWrap: isDark ? '#0e0e0e' : theme.background,
+        tickerBorder: isDark ? '#1a1a1a' : theme.border,
+        handleBg: isDark ? '#333333' : '#DDDDDD',
+        iconBoxBg: isDark ? '#181818' : theme.iconBg || '#F9F6F0',
+        overlayBg: isDark ? 'rgba(0,0,0,0.88)' : 'rgba(253,251,247,0.95)',
+        goldTint: isDark ? 'rgba(212,175,55,0.1)' : 'rgba(212,175,55,0.05)',
+        white: '#FFFFFF',
+        black: '#000000',
+    };
+}
 
 // ─── PRICE TICKER ────────────────────────────────────────────────────────────
 function PriceTicker() {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const T = getTheme(theme);
+    const t = getTStyles(T, isDarkMode);
     const scrollX = useRef(new Animated.Value(0)).current;
     const totalWidth = PRICES.length * 160;
 
@@ -106,7 +135,7 @@ function PriceTicker() {
         ).start();
     }, []);
 
-    const items = [...PRICES, ...PRICES]; // duplicate for seamless loop
+    const items = [...PRICES, ...PRICES];
 
     return (
         <View style={t.tickerWrap}>
@@ -117,12 +146,12 @@ function PriceTicker() {
                     {items.map((p, i) => (
                         <View key={i} style={t.tickerItem}>
                             <Text allowFontScaling={false} style={t.tickerLabel}>{p.label}</Text>
-                            <Text allowFontScaling={false} style={[t.tickerValue, { color: p.trend === 'up' ? '#F97316' : GREEN }]}>
+                            <Text allowFontScaling={false} style={[t.tickerValue, { color: p.trend === 'up' ? '#F97316' : T.green }]}>
                                 {p.value}<Text style={t.tickerUnit}>{p.unit}</Text>
                             </Text>
                             {p.trend === 'up'
                                 ? <MaterialCommunityIcons name="trending-up" size={12} color="#F97316" />
-                                : <MaterialCommunityIcons name="trending-down" size={12} color={GREEN} />}
+                                : <MaterialCommunityIcons name="trending-down" size={12} color={T.green} />}
                         </View>
                     ))}
                 </Animated.View>
@@ -133,6 +162,11 @@ function PriceTicker() {
 
 // ─── WIREFRAME ANIMATION ─────────────────────────────────────────────────────
 function WireframeOrb() {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const T = getTheme(theme);
+    const w = getWStyles(T, isDarkMode);
+    
     const rotate  = useRef(new Animated.Value(0)).current;
     const rotate2 = useRef(new Animated.Value(0)).current;
     const pulse   = useRef(new Animated.Value(0.95)).current;
@@ -156,29 +190,21 @@ function WireframeOrb() {
 
     return (
         <Animated.View style={[w.orbContainer, { transform: [{ scale: pulse }] }]}>
-            {/* Glow halos */}
             <Animated.View style={[w.halo, w.halo1, { opacity: glow }]} />
             <Animated.View style={[w.halo, w.halo2, { opacity: Animated.multiply(glow, 0.6) }]} />
-
-            {/* Outer ring */}
             <Animated.View style={[w.ring, w.ringOuter, { transform: [{ rotate: spin1 }] }]} />
-            {/* Mid ring */}
             <Animated.View style={[w.ring, w.ringMid, { transform: [{ rotate: spin2 }] }]} />
-            {/* Inner ring */}
             <Animated.View style={[w.ring, w.ringInner, { transform: [{ rotate: spin1 }] }]} />
-
-            {/* Core sphere */}
             <View style={w.core}>
-                <LinearGradient colors={[GOLD + 'CC', ORANGE + 'AA', '#80400022']} style={w.coreGrad} />
-                <MaterialCommunityIcons name="office-building-cog" size={28} color={GOLD} />
+                <LinearGradient colors={[T.goldPrimary + 'CC', T.orange + 'AA', '#80400022']} style={w.coreGrad} />
+                <MaterialCommunityIcons name="office-building-cog" size={28} color={T.goldPrimary} />
             </View>
-
-            {/* Orbit dots */}
             {[0, 90, 180, 270].map((angle, i) => {
                 const rad = (angle * Math.PI) / 180;
-                const r = 72;
+                const center = 62.5; // Half of orbContainer (125/2)
+                const r = 57.5; // ringOuter radius / 2 (115/2)
                 return (
-                    <View key={i} style={[w.orbitDot, { left: 90 + r * Math.cos(rad) - 4, top: 90 + r * Math.sin(rad) - 4 }]} />
+                    <View key={i} style={[w.orbitDot, { left: center + r * Math.cos(rad) - 3.5, top: center + r * Math.sin(rad) - 3.5 }]} />
                 );
             })}
         </Animated.View>
@@ -187,6 +213,9 @@ function WireframeOrb() {
 
 // ─── ANALYSIS LOADING OVERLAY ────────────────────────────────────────────────
 function AnalyzingOverlay({ visible }) {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const T = getTheme(theme);
     const opacity = useRef(new Animated.Value(0)).current;
     const scanY   = useRef(new Animated.Value(0)).current;
 
@@ -206,19 +235,23 @@ function AnalyzingOverlay({ visible }) {
 
     if (!visible) return null;
     return (
-        <Animated.View style={[StyleSheet.absoluteFillObject, { opacity, backgroundColor: 'rgba(0,0,0,0.88)', zIndex: 99, justifyContent: 'center', alignItems: 'center' }]}>
+        <Animated.View style={[StyleSheet.absoluteFillObject, { opacity, backgroundColor: T.overlayBg, zIndex: 99, justifyContent: 'center', alignItems: 'center' }]}>
             <Animated.View style={{ position: 'absolute', left: 0, right: 0, transform: [{ translateY }] }}>
-                <LinearGradient colors={['transparent', GOLD + 'CC', GOLD, GOLD + 'CC', 'transparent']} style={{ height: 2 }} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
+                <LinearGradient colors={['transparent', T.goldPrimary + 'CC', T.goldPrimary, T.goldPrimary + 'CC', 'transparent']} style={{ height: 2 }} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
             </Animated.View>
-            <MaterialCommunityIcons name="cog-sync-outline" size={52} color={GOLD} />
-            <Text allowFontScaling={false} style={{ color: GOLD, fontSize: 14, fontWeight: '800', marginTop: 20, letterSpacing: 2 }}>TEKNİK ANALİZ YAPILIYOR</Text>
-            <Text allowFontScaling={false} style={{ color: '#666', fontSize: 12, marginTop: 8 }}>AI Mühendislik Motoru · Lütfen Bekleyin...</Text>
+            <MaterialCommunityIcons name="cog-sync-outline" size={52} color={T.goldPrimary} />
+            <Text allowFontScaling={false} style={{ color: T.goldPrimary, fontSize: 14, fontWeight: '800', marginTop: 20, letterSpacing: 2 }}>TEKNİK ANALİZ YAPILIYOR</Text>
+            <Text allowFontScaling={false} style={{ color: T.textSecondary, fontSize: 12, marginTop: 8 }}>AI Mühendislik Motoru · Lütfen Bekleyin...</Text>
         </Animated.View>
     );
 }
 
 // ─── RESULT BOTTOM SHEET (3-Phase: summary → matched → done) ─────────────────
 function ResultSheet({ visible, onClose, onGoHome, inputText }) {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const T = getTheme(theme);
+    const r = getRStyles(T, isDarkMode);
     const slideY = useRef(new Animated.Value(height)).current;
     const aiSummary      = generateAISummary(inputText);
     const matchedExperts = detectExpertType(inputText);
@@ -244,16 +277,14 @@ function ResultSheet({ visible, onClose, onGoHome, inputText }) {
 
     return (
         <Animated.View style={[r.sheet, { transform: [{ translateY: slideY }] }]}>
-            <LinearGradient colors={['#0e0e0e', '#090909']} style={StyleSheet.absoluteFillObject} borderTopLeftRadius={28} borderTopRightRadius={28} />
+            <LinearGradient colors={T.sheetBg} style={StyleSheet.absoluteFillObject} borderTopLeftRadius={28} borderTopRightRadius={28} />
             <View style={r.handle} />
-            <LinearGradient colors={[GOLD + '00', GOLD + '88', GOLD + '00']} style={r.topBorder} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
+            <LinearGradient colors={T.sheetTopBorder} style={r.topBorder} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
-
                 {/* ── PHASE 1: AI SUMMARY CONFIRMATION ── */}
                 {phase === 'summary' && (
                     <>
-                        {/* 98% badge row */}
                         <View style={r.scoreRow}>
                             <View style={r.scoreBadge}>
                                 <Text allowFontScaling={false} style={r.scoreNum}>98%</Text>
@@ -270,7 +301,6 @@ function ResultSheet({ visible, onClose, onGoHome, inputText }) {
                             </View>
                         </View>
 
-                        {/* AI Summary */}
                         <Text allowFontScaling={false} style={r.sectionLabel}>🤖 ANALİZ ÖZETİ</Text>
                         <View style={r.summaryCard}>
                             <Text allowFontScaling={false} style={r.summaryTitle}>{aiSummary.title}</Text>
@@ -286,7 +316,7 @@ function ResultSheet({ visible, onClose, onGoHome, inputText }) {
                         <Text allowFontScaling={false} style={r.confirmHint}>Evet diyorsanız sizin için en uygun uzmanı eşleştireceğiz.</Text>
 
                         <TouchableOpacity onPress={() => setPhase('matched')} activeOpacity={0.88} style={r.phaseBtn}>
-                            <LinearGradient colors={[GOLD, ORANGE]} style={r.phaseBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                            <LinearGradient colors={[T.goldPrimary, T.orange]} style={r.phaseBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
                                 <MaterialCommunityIcons name="check-circle-outline" size={18} color="#000" />
                                 <Text allowFontScaling={false} style={r.phaseBtnText}>EVET, UZMAN EŞLEŞTİR</Text>
                             </LinearGradient>
@@ -301,7 +331,7 @@ function ResultSheet({ visible, onClose, onGoHome, inputText }) {
                 {phase === 'matched' && (
                     <>
                         <View style={r.phaseHeader}>
-                            <MaterialCommunityIcons name="account-search-outline" size={26} color={GOLD} />
+                            <MaterialCommunityIcons name="account-search-outline" size={26} color={T.goldPrimary} />
                             <View style={{ flex: 1, marginLeft: 14 }}>
                                 <Text allowFontScaling={false} style={r.phaseTitle}>En Uygun Uzmanlar</Text>
                                 <Text allowFontScaling={false} style={r.phaseSubtitle}>Analizinize göre eşleştirilen profesyoneller</Text>
@@ -309,7 +339,7 @@ function ResultSheet({ visible, onClose, onGoHome, inputText }) {
                         </View>
 
                         <View style={r.summaryChip}>
-                            <MaterialCommunityIcons name="robot-outline" size={13} color={GOLD} />
+                            <MaterialCommunityIcons name="robot-outline" size={13} color={T.goldPrimary} />
                             <Text allowFontScaling={false} style={r.summaryChipText} numberOfLines={1}>{aiSummary.title}</Text>
                         </View>
 
@@ -317,17 +347,17 @@ function ResultSheet({ visible, onClose, onGoHome, inputText }) {
                         {matchedExperts.map(eng => (
                             <TouchableOpacity key={eng.id} onPress={() => handleConnect(eng)} activeOpacity={0.85}>
                                 <View style={r.engCard}>
-                                    <LinearGradient colors={[eng.color, '#0a0a0a']} style={r.engAvatar}>
+                                    <LinearGradient colors={[eng.color, T.engCardBg]} style={r.engAvatar}>
                                         <Text allowFontScaling={false} style={r.engInitials}>{eng.initials}</Text>
                                     </LinearGradient>
                                     <View style={{ flex: 1, marginLeft: 14 }}>
                                         <Text allowFontScaling={false} style={r.engName}>{eng.name}</Text>
                                         <View style={r.engSpecRow}>
-                                            <MaterialCommunityIcons name={eng.icon} size={12} color={GOLD} />
+                                            <MaterialCommunityIcons name={eng.icon} size={12} color={T.goldPrimary} />
                                             <Text allowFontScaling={false} style={r.engSpec}>{eng.title}</Text>
                                         </View>
                                     </View>
-                                    <LinearGradient colors={[GOLD, ORANGE]} style={r.engBtn}>
+                                    <LinearGradient colors={[T.goldPrimary, T.orange]} style={r.engBtn}>
                                         <Text allowFontScaling={false} style={r.engBtnText}>Bağlan</Text>
                                     </LinearGradient>
                                 </View>
@@ -339,32 +369,29 @@ function ResultSheet({ visible, onClose, onGoHome, inputText }) {
                 {/* ── PHASE 3: DONE SCREEN ── */}
                 {phase === 'done' && selectedExpert && (
                     <>
-                        {/* Success icon */}
                         <View style={r.doneIconWrap}>
-                            <LinearGradient colors={[GOLD + '33', GOLD + '11']} style={r.doneIconCircle} />
-                            <MaterialCommunityIcons name="check-circle" size={64} color={GOLD} />
+                            <LinearGradient colors={[T.goldPrimary + '33', T.goldPrimary + '11']} style={r.doneIconCircle} />
+                            <MaterialCommunityIcons name="check-circle" size={64} color={T.goldPrimary} />
                         </View>
                         <Text allowFontScaling={false} style={r.doneTitle}>Talep Oluşturuldu</Text>
                         <Text allowFontScaling={false} style={r.doneSubtitle}>Yapay Zeka analizi tamamlandı ve uzmanınıza iletildi.</Text>
 
-                        {/* Proje No */}
                         <View style={r.projNoCard}>
                             <Text allowFontScaling={false} style={r.projNoLabel}>PROJE NUMARASI</Text>
                             <Text allowFontScaling={false} style={r.projNo}>{projNo}</Text>
                             <Text allowFontScaling={false} style={r.projNoHint}>Bu numara ile durumunuzu takip edebilirsiniz</Text>
                         </View>
 
-                        {/* Matched expert */}
                         <View style={r.doneExpertCard}>
                             <Text allowFontScaling={false} style={r.doneExpertLabel}>+ EŞLEŞTİRİLEN UZMAN</Text>
                             <View style={r.doneExpertRow}>
-                                <LinearGradient colors={[selectedExpert.color, '#111']} style={r.doneAvatar}>
+                                <LinearGradient colors={[selectedExpert.color, T.engCardBg]} style={r.doneAvatar}>
                                     <Text allowFontScaling={false} style={r.doneAvatarText}>{selectedExpert.initials}</Text>
                                 </LinearGradient>
                                 <View style={{ flex: 1, marginLeft: 12 }}>
                                     <Text allowFontScaling={false} style={r.doneExpertName}>{selectedExpert.name}</Text>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                                        <MaterialCommunityIcons name={selectedExpert.icon} size={12} color={GOLD} />
+                                        <MaterialCommunityIcons name={selectedExpert.icon} size={12} color={T.goldPrimary} />
                                         <Text allowFontScaling={false} style={r.doneExpertSpec}>{selectedExpert.title}</Text>
                                     </View>
                                 </View>
@@ -372,21 +399,19 @@ function ResultSheet({ visible, onClose, onGoHome, inputText }) {
                             </View>
                         </View>
 
-                        {/* AI Summary chip */}
                         <View style={r.doneAiWrap}>
-                            <MaterialCommunityIcons name="robot-outline" size={16} color={GOLD} />
+                            <MaterialCommunityIcons name="robot-outline" size={16} color={T.goldPrimary} />
                             <View style={{ flex: 1, marginLeft: 10 }}>
                                 <Text allowFontScaling={false} style={r.doneAiLabel}>AI ÖZETİ</Text>
                                 <Text allowFontScaling={false} style={r.doneAiText}>{aiSummary.title}</Text>
                             </View>
                         </View>
 
-                        {/* Process steps */}
                         <View style={r.stepsWrap}>
                             {[
-                                { icon: 'check-circle', color: GREEN,  label: 'Yapay Zeka Analizi Tamamlandı' },
-                                { icon: 'clock-outline', color: GOLD,   label: 'Uzman en kısa sürede dönüş yapacak' },
-                                { icon: 'message-outline', color: '#888', label: 'Mesaj kanalı açılacak' },
+                                { icon: 'check-circle', color: T.green,  label: 'Yapay Zeka Analizi Tamamlandı' },
+                                { icon: 'clock-outline', color: T.goldPrimary,   label: 'Uzman en kısa sürede dönüş yapacak' },
+                                { icon: 'message-outline', color: T.textSecondary, label: 'Mesaj kanalı açılacak' },
                             ].map((step, i) => (
                                 <View key={i} style={r.stepRow}>
                                     <MaterialCommunityIcons name={step.icon} size={18} color={step.color} />
@@ -395,9 +420,8 @@ function ResultSheet({ visible, onClose, onGoHome, inputText }) {
                             ))}
                         </View>
 
-                        {/* CTA */}
                         <TouchableOpacity onPress={onGoHome} activeOpacity={0.88} style={r.phaseBtn}>
-                            <LinearGradient colors={[GOLD, ORANGE]} style={r.phaseBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                            <LinearGradient colors={[T.goldPrimary, T.orange]} style={r.phaseBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
                                 <MaterialCommunityIcons name="home-outline" size={18} color="#000" />
                                 <Text allowFontScaling={false} style={r.phaseBtnText}>ANA SAYFAYA DÖN</Text>
                             </LinearGradient>
@@ -407,7 +431,6 @@ function ResultSheet({ visible, onClose, onGoHome, inputText }) {
                         </TouchableOpacity>
                     </>
                 )}
-
             </ScrollView>
 
             {phase !== 'done' && (
@@ -421,6 +444,11 @@ function ResultSheet({ visible, onClose, onGoHome, inputText }) {
 
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 export default function TeknikOfisScreen() {
+    const theme = useTheme();
+    const isDarkMode = theme.isDarkMode;
+    const T = getTheme(theme);
+    const s = getSStyles(T, isDarkMode);
+
     const navigation  = useNavigation();
     const scrollRef   = useRef(null);
     const inputWrapRef = useRef(null);
@@ -455,7 +483,6 @@ export default function TeknikOfisScreen() {
         }
         Keyboard.dismiss();
         setIsAnalyzing(true);
-        // Simulate AI analysis
         setTimeout(() => {
             setIsAnalyzing(false);
             setShowResult(true);
@@ -474,23 +501,22 @@ export default function TeknikOfisScreen() {
 
     return (
         <View style={s.root}>
-            <StatusBar barStyle="light-content" backgroundColor={BG} />
-            <LinearGradient colors={['rgba(212,175,55,0.05)', 'transparent']} style={StyleSheet.absoluteFillObject} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.3 }} pointerEvents="none" />
+            <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={T.bg} />
+            <LinearGradient colors={[T.goldTint, 'transparent']} style={StyleSheet.absoluteFillObject} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.3 }} pointerEvents="none" />
 
             <AnalyzingOverlay visible={isAnalyzing} />
 
             <SafeAreaView style={{ flex: 1 }}>
-                {/* Header */}
                 <View style={s.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerBtn}>
-                        <Ionicons name="arrow-back" size={18} color="#fff" />
+                        <Ionicons name="arrow-back" size={18} color={T.textPrimary} />
                     </TouchableOpacity>
                     <View style={{ flex: 1, alignItems: 'center' }}>
-                        <Text allowFontScaling={false} style={s.headerEye}>⚙  CEPTEŞEF</Text>
-                        <Text allowFontScaling={false} style={s.headerSub}>Teknik Ofis Merkezi</Text>
+                        <Text allowFontScaling={false} style={s.headerEye}>TEKNİK OFİS</Text>
+                        <Text allowFontScaling={false} style={s.headerSub}>Projelerinizi Hızlandırın</Text>
                     </View>
                     <TouchableOpacity onPress={() => navigation.navigate('TechnicalProvider')} style={s.headerBtn}>
-                        <MaterialCommunityIcons name="office-building-cog-outline" size={18} color={GOLD} />
+                        <MaterialCommunityIcons name="office-building-cog-outline" size={18} color={T.goldPrimary} />
                     </TouchableOpacity>
                 </View>
 
@@ -500,23 +526,21 @@ export default function TeknikOfisScreen() {
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                 >
-                    {/* Wireframe Orb + Title */}
                     <View style={s.orbSection}>
                         <WireframeOrb />
                         <Text allowFontScaling={false} style={s.heroEye}>YAPAY ZEKA DESTEKLİ</Text>
-                        <Text allowFontScaling={false} style={s.heroTitle}>Teknik Ofis{'\n'}Asistanı</Text>
+                        <Text allowFontScaling={false} style={s.heroTitle}>Teknik Ofis Asistanı</Text>
                     </View>
 
-                    {/* Input Card */}
                     <View ref={inputWrapRef} style={s.inputWrap}>
                         <Animated.View style={[s.inputGlow, { opacity: auraOpacity, transform: [{ scale: auraScale }] }]} pointerEvents="none" />
                         <View style={s.glassCard}>
-                            <LinearGradient colors={[GOLD + '00', GOLD + 'AA', GOLD + '00']} style={s.glassBorderTop} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
+                            <LinearGradient colors={[T.goldPrimary + '00', T.goldPrimary + 'AA', T.goldPrimary + '00']} style={s.glassBorderTop} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
                             <TextInput
                                 allowFontScaling={false}
                                 style={s.input}
                                 placeholder="Projenizi, verinizi (Excel, CAD) yükleyin veya sesli anlatın, analizi biz yapalım..."
-                                placeholderTextColor="rgba(255,255,255,0.22)"
+                                placeholderTextColor={T.textMuted}
                                 multiline
                                 value={inputText}
                                 onChangeText={setInputText}
@@ -532,57 +556,52 @@ export default function TeknikOfisScreen() {
                                 }}
                                 onBlur={() => setInputFocused(false)}
                                 textAlignVertical="top"
-                                selectionColor={GOLD}
-                                cursorColor={GOLD}
+                                selectionColor={T.goldPrimary}
+                                cursorColor={T.goldPrimary}
                             />
-                            {/* Attached file chip */}
                             {attachedFile && (
                                 <View style={s.fileChip}>
-                                    <MaterialCommunityIcons name="file-check-outline" size={14} color={GOLD} />
+                                    <MaterialCommunityIcons name="file-check-outline" size={14} color={T.goldPrimary} />
                                     <Text allowFontScaling={false} style={s.fileChipText} numberOfLines={1}>{attachedFile.name}</Text>
                                     <TouchableOpacity onPress={() => setAttachedFile(null)}>
-                                        <Ionicons name="close-circle" size={14} color="#555" />
+                                        <Ionicons name="close-circle" size={14} color={T.textMuted} />
                                     </TouchableOpacity>
                                 </View>
                             )}
-                            {/* Footer row */}
                             <View style={s.inputFooter}>
                                 <Text allowFontScaling={false} style={s.charCount}>{inputText.length > 0 ? `${inputText.length} karakter` : 'Metin, ses veya belge'}</Text>
                                 <View style={s.footerBtns}>
                                     <TouchableOpacity style={s.iconBtn} onPress={handlePickFile}>
-                                        <FontAwesome5 name="paperclip" size={14} color={attachedFile ? GOLD : 'rgba(255,255,255,0.4)'} />
+                                        <FontAwesome5 name="paperclip" size={14} color={attachedFile ? T.goldPrimary : T.textSecondary} />
                                     </TouchableOpacity>
                                     <TouchableOpacity style={s.iconBtn} onPress={() => Alert.alert('Ses', 'Ses kaydı yakında aktif olacak.')}>
-                                        <Ionicons name="mic-outline" size={16} color="rgba(255,255,255,0.4)" />
+                                        <Ionicons name="mic-outline" size={16} color={T.textMuted} />
                                     </TouchableOpacity>
                                     <TouchableOpacity style={s.iconBtn} onPress={() => Alert.alert('Kamera', 'Canlı tarama yakında aktif olacak.')}>
-                                        <MaterialCommunityIcons name="camera-outline" size={16} color="rgba(255,255,255,0.4)" />
+                                        <MaterialCommunityIcons name="camera-outline" size={16} color={T.textMuted} />
                                     </TouchableOpacity>
                                 </View>
                             </View>
                         </View>
                     </View>
 
-                    {/* Analyze Button */}
                     <TouchableOpacity onPress={handleAnalyze} activeOpacity={0.88} style={s.ctaWrap}>
-                        <LinearGradient colors={[GOLD, ORANGE]} style={s.ctaBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                            <MaterialCommunityIcons name="cog-sync-outline" size={20} color="#000" />
+                        <View style={[s.ctaBtn, { backgroundColor: '#C89B1E' }]}>
+                            <MaterialCommunityIcons name="cog-sync-outline" size={20} color="#fff" />
                             <Text allowFontScaling={false} style={s.ctaText}>ANALİZ ET VE UZMANA BAĞLAN</Text>
-                        </LinearGradient>
-                        {/* Glow */}
+                        </View>
                         <View style={s.ctaGlow} pointerEvents="none" />
                     </TouchableOpacity>
 
-                    {/* Services Grid */}
                     <View style={s.servSection}>
                         <View style={s.servHeaderWrap}>
                             <LinearGradient
-                                colors={['#1a1400', '#0e0e0e']}
+                                colors={T.sheetBg}
                                 style={StyleSheet.absoluteFillObject}
                                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                             />
                             <LinearGradient
-                                colors={[GOLD, ORANGE]}
+                                colors={[T.goldPrimary, T.orange]}
                                 style={s.servHeaderBar}
                                 start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
                             />
@@ -594,9 +613,9 @@ export default function TeknikOfisScreen() {
                         <View style={s.servGrid}>
                             {SERVICES.map(srv => (
                                 <TouchableOpacity key={srv.id} onPress={() => handleServicePress(srv)} activeOpacity={0.82} style={s.servCard}>
-                                    <LinearGradient colors={['#181818', '#111']} style={StyleSheet.absoluteFillObject} borderRadius={18} />
+                                    <LinearGradient colors={T.servCardBg} style={StyleSheet.absoluteFillObject} borderRadius={16} />
                                     <View style={s.servIconBox}>
-                                        <MaterialCommunityIcons name={srv.icon} size={26} color={GOLD} />
+                                        <MaterialCommunityIcons name={srv.icon} size={26} color={T.goldPrimary} />
                                     </View>
                                     <Text allowFontScaling={false} style={s.servLabel}>{srv.label}</Text>
                                     <Text allowFontScaling={false} style={s.servDesc}>{srv.desc}</Text>
@@ -609,7 +628,6 @@ export default function TeknikOfisScreen() {
                 </ScrollView>
             </SafeAreaView>
 
-            {/* Result Bottom Sheet */}
             {showResult && (
                 <ResultSheet
                     visible={showResult}
@@ -622,163 +640,171 @@ export default function TeknikOfisScreen() {
     );
 }
 
-// ─── WIREFRAME STYLES ────────────────────────────────────────────────────────
-const w = StyleSheet.create({
-    orbContainer: { width: 200, height: 200, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', marginBottom: 16, position: 'relative' },
-    halo: { position: 'absolute', borderRadius: 999 },
-    halo1: { width: 200, height: 200, backgroundColor: GOLD + '10' },
-    halo2: { width: 160, height: 160, backgroundColor: GOLD + '18' },
-    ring: { position: 'absolute', borderRadius: 999, borderWidth: 1 },
-    ringOuter: { width: 180, height: 180, borderColor: GOLD + '44' },
-    ringMid:   { width: 140, height: 140, borderColor: GOLD + '66', borderStyle: 'dashed' },
-    ringInner: { width: 100, height: 100, borderColor: GOLD + '88' },
-    core: { width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: 1, borderColor: GOLD + '88' },
-    coreGrad: { ...StyleSheet.absoluteFillObject },
-    orbitDot: { position: 'absolute', width: 8, height: 8, borderRadius: 4, backgroundColor: GOLD },
-});
+// ─── STYLES ──────────────────────────────────────────────────────────────────
+function getWStyles(T, isDarkMode) {
+    return StyleSheet.create({
+        orbContainer: { width: 125, height: 125, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', marginBottom: 6, position: 'relative' },
+        halo: { position: 'absolute', borderRadius: 999 },
+        halo1: { width: 125, height: 125, backgroundColor: T.goldPrimary + '10' },
+        halo2: { width: 102, height: 102, backgroundColor: T.goldPrimary + '18' },
+        ring: { position: 'absolute', borderRadius: 999, borderWidth: 1 },
+        ringOuter: { width: 115, height: 115, borderColor: T.goldPrimary + '44' },
+        ringMid:   { width: 88, height: 88, borderColor: T.goldPrimary + '66', borderStyle: 'dashed' },
+        ringInner: { width: 62, height: 62, borderColor: T.goldPrimary + '88' },
+        core: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: 1, borderColor: T.goldPrimary + '88' },
+        coreGrad: { ...StyleSheet.absoluteFillObject },
+        orbitDot: { position: 'absolute', width: 7, height: 7, borderRadius: 3.5, backgroundColor: T.goldPrimary },
+    });
+}
 
-// ─── TICKER STYLES ───────────────────────────────────────────────────────────
-const t = StyleSheet.create({
-    tickerWrap: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 7, backgroundColor: '#0e0e0e', borderBottomWidth: 1, borderBottomColor: '#1a1a1a', gap: 8 },
-    tickerDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: DANGER },
-    tickerLive: { color: DANGER, fontSize: 9, fontWeight: '800', letterSpacing: 1.5 },
-    tickerItem: { flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: 20, width: 140 },
-    tickerLabel: { color: '#666', fontSize: 10 },
-    tickerValue: { fontSize: 11, fontWeight: '700' },
-    tickerUnit: { fontSize: 9, fontWeight: '400', color: '#555' },
-});
+function getTStyles(T, isDarkMode) {
+    return StyleSheet.create({
+        tickerWrap: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 7, backgroundColor: T.tickerWrap, borderBottomWidth: 1, borderBottomColor: T.tickerBorder, gap: 8 },
+        tickerDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.danger },
+        tickerLive: { color: T.danger, fontSize: 9, fontWeight: '800', letterSpacing: 1.5 },
+        tickerItem: { flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: 20, width: 140 },
+        tickerLabel: { color: T.textSecondary, fontSize: 10 },
+        tickerValue: { fontSize: 11, fontWeight: '700' },
+        tickerUnit: { fontSize: 9, fontWeight: '400', color: T.textSecondary },
+    });
+}
 
-// ─── RESULT SHEET STYLES ─────────────────────────────────────────────────────
-const r = StyleSheet.create({
-    sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, height: height * 0.93, borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden', paddingHorizontal: 20, paddingTop: 20, zIndex: 50 },
-    handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#333', alignSelf: 'center', marginBottom: 20 },
-    topBorder: { position: 'absolute', top: 0, left: 0, right: 0, height: 1 },
-    scoreRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#141414', borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: '#222' },
-    scoreBadge: { width: 64, height: 64, borderRadius: 32, backgroundColor: GOLD + '22', borderWidth: 2, borderColor: GOLD, alignItems: 'center', justifyContent: 'center' },
-    scoreNum: { color: GOLD, fontSize: 18, fontWeight: '900' },
-    scoreLabel: { color: GOLD, fontSize: 8, fontWeight: '700', letterSpacing: 1 },
-    scoreTitle: { color: '#fff', fontSize: 14, fontWeight: '800', marginBottom: 6 },
-    typeBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: GOLD, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, alignSelf: 'flex-start' },
-    typeBadgeText: { color: '#000', fontSize: 11, fontWeight: '800' },
-    sectionLabel: { color: '#555', fontSize: 10, fontWeight: '700', letterSpacing: 2, marginBottom: 10, marginTop: 8 },
-    riskRow: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#111', borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#1e1e1e' },
-    riskText: { color: '#bbb', fontSize: 13, flex: 1 },
-    actionRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 10 },
-    actionNum: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 },
-    actionNumText: { color: '#000', fontSize: 11, fontWeight: '900' },
-    actionText: { color: '#aaa', fontSize: 13, lineHeight: 19, flex: 1 },
-    engCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#111', borderRadius: 16, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: '#222' },
-    engAvatar: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-    engInitials: { color: '#fff', fontSize: 16, fontWeight: '900' },
-    engSpecRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
-    engSpec: { color: GOLD, fontSize: 11, fontWeight: '600' },
-    engName: { color: '#fff', fontSize: 14, fontWeight: '800' },
-    engBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12 },
-    engBtnText: { color: '#000', fontSize: 12, fontWeight: '800' },
-    closeBtn: { alignItems: 'center', paddingVertical: 14, borderTopWidth: 1, borderTopColor: '#1a1a1a' },
-    closeBtnText: { color: '#555', fontSize: 13 },
-    // Info Collection phase
-    phaseHeader: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#141414', borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: GOLD + '33' },
-    phaseTitle: { color: '#fff', fontSize: 15, fontWeight: '800', marginBottom: 4 },
-    phaseSubtitle: { color: '#888', fontSize: 12, lineHeight: 18 },
-    infoField: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#111', borderRadius: 14, borderWidth: 1, borderColor: '#222', padding: 12, marginBottom: 10 },
-    infoFieldIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: GOLD + '18', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-    infoFieldLabel: { color: '#666', fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 2 },
-    infoFieldInput: { color: '#fff', fontSize: 14, padding: 0 },
-    phaseBtn: { marginTop: 16, borderRadius: 16, overflow: 'hidden', height: 52 },
-    phaseBtnGrad: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-    phaseBtnText: { color: '#000', fontSize: 13, fontWeight: '900', letterSpacing: 0.6 },
-    // Confirm phase
-    confirmRow: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#111', borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#1e1e1e' },
-    confirmLabel: { color: '#555', fontSize: 10, fontWeight: '700', letterSpacing: 1 },
-    confirmValue: { color: '#ddd', fontSize: 13, lineHeight: 18, marginTop: 2 },
-    confirmBtnRow: { flexDirection: 'row', gap: 10, marginTop: 16 },
-    confirmBack: { width: 90, height: 52, borderRadius: 14, borderWidth: 1, borderColor: '#333', alignItems: 'center', justifyContent: 'center' },
-    confirmBackText: { color: '#888', fontSize: 13, fontWeight: '600' },
-    // Location chip
-    locationChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: GOLD + '18', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7, marginBottom: 16 },
-    locationChipText: { color: GOLD, fontSize: 12, fontWeight: '600', flex: 1 },
-    // Summary phase
-    urgencyBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: DANGER, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, alignSelf: 'flex-start' },
-    urgencyText: { color: '#000', fontSize: 9, fontWeight: '800', letterSpacing: 1 },
-    summaryCard: { backgroundColor: '#111', borderRadius: 16, padding: 16, marginBottom: 8, borderWidth: 1, borderColor: '#222' },
-    summaryTitle: { color: '#fff', fontSize: 14, fontWeight: '800', marginBottom: 12 },
-    bulletRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 8 },
-    bulletDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: GOLD, marginTop: 6, flexShrink: 0 },
-    bulletText: { color: '#aaa', fontSize: 13, lineHeight: 19, flex: 1 },
-    confirmHint: { color: '#666', fontSize: 12, lineHeight: 18, marginBottom: 6 },
-    retryBtn: { alignItems: 'center', paddingVertical: 14 },
-    retryText: { color: '#555', fontSize: 13 },
-    // Expert matched phase
-    summaryChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#1a1a1a', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7, marginBottom: 16, borderWidth: 1, borderColor: '#2a2a2a' },
-    summaryChipText: { color: GOLD, fontSize: 12, fontWeight: '600', flex: 1 },
-    // Done screen
-    doneIconWrap: { alignItems: 'center', justifyContent: 'center', marginTop: 10, marginBottom: 14, position: 'relative' },
-    doneIconCircle: { position: 'absolute', width: 110, height: 110, borderRadius: 55 },
-    doneTitle: { color: '#fff', fontSize: 22, fontWeight: '900', textAlign: 'center', marginBottom: 6 },
-    doneSubtitle: { color: '#888', fontSize: 13, textAlign: 'center', lineHeight: 19, marginBottom: 20 },
-    projNoCard: { backgroundColor: '#111', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#222', alignItems: 'center' },
-    projNoLabel: { color: '#555', fontSize: 9, fontWeight: '700', letterSpacing: 2, marginBottom: 6 },
-    projNo: { color: GOLD, fontSize: 24, fontWeight: '900', letterSpacing: 2, marginBottom: 4 },
-    projNoHint: { color: '#555', fontSize: 11 },
-    doneExpertCard: { backgroundColor: '#111', borderRadius: 16, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: '#222' },
-    doneExpertLabel: { color: GOLD, fontSize: 9, fontWeight: '800', letterSpacing: 1.5, marginBottom: 12 },
-    doneExpertRow: { flexDirection: 'row', alignItems: 'center' },
-    doneAvatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-    doneAvatarText: { color: '#fff', fontSize: 15, fontWeight: '900' },
-    doneExpertName: { color: '#fff', fontSize: 14, fontWeight: '800', marginBottom: 3 },
-    doneExpertSpec: { color: GOLD, fontSize: 11, fontWeight: '600' },
-    onlineDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: GREEN, borderWidth: 2, borderColor: '#111' },
-    doneAiWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#111', borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: '#222' },
-    doneAiLabel: { color: '#555', fontSize: 9, fontWeight: '700', letterSpacing: 1.5, marginBottom: 2 },
-    doneAiText: { color: '#ddd', fontSize: 13, fontWeight: '600' },
-    stepsWrap: { backgroundColor: '#111', borderRadius: 14, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: '#222' },
-    stepRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
-    stepText: { color: '#bbb', fontSize: 13, flex: 1 },
-});
+function getRStyles(T, isDarkMode) {
+    return StyleSheet.create({
+        sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, height: height * 0.93, borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden', paddingHorizontal: 20, paddingTop: 20, zIndex: 50 },
+        handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: T.handleBg, alignSelf: 'center', marginBottom: 20 },
+        topBorder: { position: 'absolute', top: 0, left: 0, right: 0, height: 1 },
+        scoreRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: T.scoreRowBg, borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: T.scoreRowBorder },
+        scoreBadge: { width: 64, height: 64, borderRadius: 32, backgroundColor: T.goldPrimary + '22', borderWidth: 2, borderColor: T.goldPrimary, alignItems: 'center', justifyContent: 'center' },
+        scoreNum: { color: T.goldPrimary, fontSize: 18, fontWeight: '900' },
+        scoreLabel: { color: T.goldPrimary, fontSize: 8, fontWeight: '700', letterSpacing: 1 },
+        scoreTitle: { color: T.textPrimary, fontSize: 14, fontWeight: '800', marginBottom: 6 },
+        typeBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: T.goldPrimary, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, alignSelf: 'flex-start' },
+        typeBadgeText: { color: '#000', fontSize: 11, fontWeight: '800' },
+        sectionLabel: { color: T.textSecondary, fontSize: 10, fontWeight: '700', letterSpacing: 2, marginBottom: 10, marginTop: 8 },
+        riskRow: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: T.engCardBg, borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: T.scoreRowBorder },
+        riskText: { color: T.textSecondary, fontSize: 13, flex: 1 },
+        actionRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 10 },
+        actionNum: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 },
+        actionNumText: { color: '#000', fontSize: 11, fontWeight: '900' },
+        actionText: { color: T.textSecondary, fontSize: 13, lineHeight: 19, flex: 1 },
+        engCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: T.engCardBg, borderRadius: 16, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: T.scoreRowBorder },
+        engAvatar: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+        engInitials: { color: T.textPrimary, fontSize: 16, fontWeight: '900' },
+        engSpecRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
+        engSpec: { color: T.goldPrimary, fontSize: 11, fontWeight: '600' },
+        engName: { color: T.textPrimary, fontSize: 14, fontWeight: '800' },
+        engBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12 },
+        engBtnText: { color: '#000', fontSize: 12, fontWeight: '800' },
+        closeBtn: { alignItems: 'center', paddingVertical: 14, borderTopWidth: 1, borderTopColor: T.tickerBorder },
+        closeBtnText: { color: T.textSecondary, fontSize: 13 },
+        phaseHeader: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: T.scoreRowBg, borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: T.goldPrimary + '33' },
+        phaseTitle: { color: T.textPrimary, fontSize: 15, fontWeight: '800', marginBottom: 4 },
+        phaseSubtitle: { color: T.textSecondary, fontSize: 12, lineHeight: 18 },
+        infoField: { flexDirection: 'row', alignItems: 'center', backgroundColor: T.engCardBg, borderRadius: 14, borderWidth: 1, borderColor: T.scoreRowBorder, padding: 12, marginBottom: 10 },
+        infoFieldIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: T.goldPrimary + '18', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+        infoFieldLabel: { color: T.textSecondary, fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 2 },
+        infoFieldInput: { color: T.textPrimary, fontSize: 14, padding: 0 },
+        phaseBtn: { marginTop: 16, borderRadius: 16, overflow: 'hidden', height: 52 },
+        phaseBtnGrad: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+        phaseBtnText: { color: '#000', fontSize: 13, fontWeight: '900', letterSpacing: 0.6 },
+        confirmRow: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: T.engCardBg, borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: T.scoreRowBorder },
+        confirmLabel: { color: T.textSecondary, fontSize: 10, fontWeight: '700', letterSpacing: 1 },
+        confirmValue: { color: T.textPrimary, fontSize: 13, lineHeight: 18, marginTop: 2 },
+        confirmBtnRow: { flexDirection: 'row', gap: 10, marginTop: 16 },
+        confirmBack: { width: 90, height: 52, borderRadius: 14, borderWidth: 1, borderColor: T.handleBg, alignItems: 'center', justifyContent: 'center' },
+        confirmBackText: { color: T.textSecondary, fontSize: 13, fontWeight: '600' },
+        locationChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: T.goldPrimary + '18', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7, marginBottom: 16 },
+        locationChipText: { color: T.goldPrimary, fontSize: 12, fontWeight: '600', flex: 1 },
+        urgencyBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: T.danger, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, alignSelf: 'flex-start' },
+        urgencyText: { color: '#000', fontSize: 9, fontWeight: '800', letterSpacing: 1 },
+        summaryCard: { backgroundColor: T.engCardBg, borderRadius: 16, padding: 16, marginBottom: 8, borderWidth: 1, borderColor: T.scoreRowBorder },
+        summaryTitle: { color: T.textPrimary, fontSize: 14, fontWeight: '800', marginBottom: 12 },
+        bulletRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 8 },
+        bulletDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.goldPrimary, marginTop: 6, flexShrink: 0 },
+        bulletText: { color: T.textSecondary, fontSize: 13, lineHeight: 19, flex: 1 },
+        confirmHint: { color: T.textSecondary, fontSize: 12, lineHeight: 18, marginBottom: 6 },
+        retryBtn: { alignItems: 'center', paddingVertical: 14 },
+        retryText: { color: T.textSecondary, fontSize: 13 },
+        summaryChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: T.tickerBorder, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7, marginBottom: 16, borderWidth: 1, borderColor: '#2a2a2a' },
+        summaryChipText: { color: T.goldPrimary, fontSize: 12, fontWeight: '600', flex: 1 },
+        doneIconWrap: { alignItems: 'center', justifyContent: 'center', marginTop: 10, marginBottom: 14, position: 'relative' },
+        doneIconCircle: { position: 'absolute', width: 110, height: 110, borderRadius: 55 },
+        doneTitle: { color: T.textPrimary, fontSize: 22, fontWeight: '900', textAlign: 'center', marginBottom: 6 },
+        doneSubtitle: { color: T.textSecondary, fontSize: 13, textAlign: 'center', lineHeight: 19, marginBottom: 20 },
+        projNoCard: { backgroundColor: T.engCardBg, borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: T.scoreRowBorder, alignItems: 'center' },
+        projNoLabel: { color: T.textSecondary, fontSize: 9, fontWeight: '700', letterSpacing: 2, marginBottom: 6 },
+        projNo: { color: T.goldPrimary, fontSize: 24, fontWeight: '900', letterSpacing: 2, marginBottom: 4 },
+        projNoHint: { color: T.textSecondary, fontSize: 11 },
+        doneExpertCard: { backgroundColor: T.engCardBg, borderRadius: 16, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: T.scoreRowBorder },
+        doneExpertLabel: { color: T.goldPrimary, fontSize: 9, fontWeight: '800', letterSpacing: 1.5, marginBottom: 12 },
+        doneExpertRow: { flexDirection: 'row', alignItems: 'center' },
+        doneAvatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+        doneAvatarText: { color: T.textPrimary, fontSize: 15, fontWeight: '900' },
+        doneExpertName: { color: T.textPrimary, fontSize: 14, fontWeight: '800', marginBottom: 3 },
+        doneExpertSpec: { color: T.goldPrimary, fontSize: 11, fontWeight: '600' },
+        onlineDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: T.green, borderWidth: 2, borderColor: T.engCardBg },
+        doneAiWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: T.engCardBg, borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: T.scoreRowBorder },
+        doneAiLabel: { color: T.textSecondary, fontSize: 9, fontWeight: '700', letterSpacing: 1.5, marginBottom: 2 },
+        doneAiText: { color: T.textPrimary, fontSize: 13, fontWeight: '600' },
+        stepsWrap: { backgroundColor: T.engCardBg, borderRadius: 14, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: T.scoreRowBorder },
+        stepRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
+        stepText: { color: T.textSecondary, fontSize: 13, flex: 1 },
+    });
+}
 
-// ─── MAIN STYLES ─────────────────────────────────────────────────────────────
-const s = StyleSheet.create({
-    root: { flex: 1, backgroundColor: BG },
-
-    header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8 },
-    headerBtn: { width: 38, height: 38, borderRadius: 12, backgroundColor: '#1a1a1a', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#2a2a2a' },
-    headerEye: { color: GOLD, fontSize: 9, fontWeight: '700', letterSpacing: 2.5 },
-    headerSub: { color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2 },
-
-    scroll: { paddingHorizontal: 16, paddingBottom: 20 },
-
-    orbSection: { alignItems: 'center', paddingTop: 16, paddingBottom: 4 },
-    heroEye: { color: GOLD, fontSize: 9, fontWeight: '700', letterSpacing: 3, marginBottom: 6 },
-    heroTitle: { color: '#fff', fontSize: 30, fontWeight: '900', textAlign: 'center', lineHeight: 34, marginBottom: 24 },
-
-    inputWrap: { marginBottom: 14, position: 'relative' },
-    inputGlow: { position: 'absolute', inset: -12, borderRadius: 32, backgroundColor: GOLD + '18', zIndex: 0 },
-    glassCard: { borderRadius: 22, borderWidth: 1, borderColor: 'rgba(212,175,55,0.22)', overflow: 'hidden', backgroundColor: '#141414' },
-    glassBorderTop: { position: 'absolute', top: 0, left: 0, right: 0, height: 1, opacity: 0.6 },
-    input: { color: '#FFFFFF', fontSize: 14, lineHeight: 22, padding: 18, paddingTop: 16, paddingBottom: 8, minHeight: 100, textAlignVertical: 'top' },
-    fileChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: GOLD + '18', margin: 12, marginTop: 0, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10 },
-    fileChipText: { color: GOLD, fontSize: 12, flex: 1 },
-    inputFooter: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 12, paddingTop: 4 },
-    charCount: { color: 'rgba(255,255,255,0.2)', fontSize: 11, flex: 1 },
-    footerBtns: { flexDirection: 'row', gap: 8 },
-    iconBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', alignItems: 'center', justifyContent: 'center' },
-
-    ctaWrap: { marginBottom: 28, position: 'relative' },
-    ctaBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 18, gap: 10 },
-    ctaText: { color: '#000', fontSize: 13, fontWeight: '900', letterSpacing: 0.8 },
-    ctaGlow: { position: 'absolute', bottom: -8, left: 20, right: 20, height: 20, backgroundColor: GOLD + '30', borderRadius: 10, zIndex: -1 },
-
-    servSection: { marginBottom: 8 },
-    servHeaderWrap: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 12, overflow: 'hidden', gap: 12, borderWidth: 1, borderColor: GOLD + '44' },
-    servHeaderBar: { width: 3, height: 30, borderRadius: 2, marginRight: 2 },
-    servTitle: { color: '#fff', fontSize: 13, fontWeight: '900', letterSpacing: 1.2 },
-    servSubtitle: { color: GOLD + 'AA', fontSize: 10, marginTop: 2, fontWeight: '500' },
-    servHeaderBadge: { display: 'none' },
-    servHeaderBadgeText: { display: 'none' },
-    servGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-    servCard: { width: (width - 42) / 2, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: '#222', overflow: 'hidden', minHeight: 130 },
-    servIconBox: { width: 44, height: 44, borderRadius: 14, backgroundColor: GOLD + '18', alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
-    servLabel: { color: '#fff', fontSize: 13, fontWeight: '800', marginBottom: 4 },
-    servDesc: { color: '#666', fontSize: 11, lineHeight: 15 },
-});
+function getSStyles(T, isDarkMode) {
+    return StyleSheet.create({
+        root: { flex: 1, backgroundColor: T.bg },
+        header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 6, paddingBottom: 6 },
+        headerBtn: { width: 42, height: 42, borderRadius: 14, backgroundColor: T.card, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDarkMode ? 0.3 : 0.08, shadowRadius: 8, elevation: 3 },
+        headerEye: { color: T.goldPrimary, fontSize: 10, fontWeight: '800', letterSpacing: 2 },
+        headerSub: { color: T.textPrimary, fontSize: 13, marginTop: 2, fontWeight: '600' },
+        scroll: { paddingHorizontal: 16, paddingBottom: 20 },
+        orbSection: { alignItems: 'center', paddingTop: 6, paddingBottom: 4 },
+        heroEye: { color: T.goldPrimary, fontSize: 9, fontWeight: '700', letterSpacing: 3, marginBottom: 4 },
+        heroTitle: { color: T.textPrimary, fontSize: 24, fontWeight: '900', textAlign: 'center', lineHeight: 28, marginBottom: 12 },
+        inputWrap: { marginBottom: 12, position: 'relative' },
+        inputGlow: { position: 'absolute', inset: -12, borderRadius: 32, backgroundColor: T.goldPrimary + '18', zIndex: 0 },
+        glassCard: { borderRadius: 22, borderWidth: 1, borderColor: 'rgba(212,175,55,0.22)', overflow: 'hidden', backgroundColor: T.scoreRowBg },
+        glassBorderTop: { position: 'absolute', top: 0, left: 0, right: 0, height: 1, opacity: 0.6 },
+        input: { color: T.textPrimary, fontSize: 14, lineHeight: 22, padding: 16, paddingTop: 16, paddingBottom: 8, minHeight: 65, textAlignVertical: 'top' },
+        fileChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: T.goldPrimary + '18', margin: 12, marginTop: 0, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10 },
+        fileChipText: { color: T.goldPrimary, fontSize: 12, flex: 1 },
+        inputFooter: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 12, paddingTop: 4 },
+        charCount: { color: T.textSecondary, fontSize: 11, flex: 1 },
+        footerBtns: { flexDirection: 'row', gap: 8 },
+        iconBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: (isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'), borderWidth: 1, borderColor: (isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'), alignItems: 'center', justifyContent: 'center' },
+        ctaWrap: { marginBottom: 20, position: 'relative' },
+        ctaBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 18, gap: 10 },
+        ctaText: { color: '#fff', fontSize: 14, fontWeight: '800', letterSpacing: 0.8 },
+        ctaGlow: { position: 'absolute', bottom: -8, left: 20, right: 20, height: 20, backgroundColor: T.goldPrimary + '30', borderRadius: 10, zIndex: -1 },
+        servSection: { marginBottom: 8 },
+        servHeaderWrap: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 12, overflow: 'hidden', gap: 12, borderWidth: 1, borderColor: T.goldPrimary + '44' },
+        servHeaderBar: { width: 3, height: 30, borderRadius: 2, marginRight: 2 },
+        servTitle: { color: T.textPrimary, fontSize: 13, fontWeight: '900', letterSpacing: 1.2 },
+        servSubtitle: { color: T.goldPrimary + 'AA', fontSize: 10, marginTop: 2, fontWeight: '500' },
+        servHeaderBadge: { display: 'none' },
+        servHeaderBadgeText: { display: 'none' },
+        servGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+        servCard: { 
+            width: (width - 42) / 2, 
+            borderRadius: 16, 
+            padding: 14, 
+            backgroundColor: isDarkMode ? '#141414' : '#FDFDFD', // Fallback
+            borderWidth: 1, 
+            borderColor: T.servCardBorder, 
+            overflow: 'hidden', 
+            minHeight: 110, 
+            alignItems: 'center',
+            shadowColor: isDarkMode ? '#000000' : '#8C7050',
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: isDarkMode ? 0.3 : 0.12,
+            shadowRadius: 10,
+            elevation: 4
+        },
+        servIconBox: { width: 44, height: 44, borderRadius: 22, backgroundColor: isDarkMode ? 'rgba(212,175,55,0.15)' : '#FFF6E5', alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
+        servLabel: { color: T.textPrimary, fontSize: 13, fontWeight: '800', marginBottom: 4, textAlign: 'center' },
+        servDesc: { color: T.textSecondary, fontSize: 11, lineHeight: 14, textAlign: 'center' },
+    });
+}
