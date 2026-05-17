@@ -73,6 +73,7 @@ export default function ProviderDashboardScreen() {
     const [refreshing, setRefreshing] = useState(false);
 
     // Real Data State
+    const [realProfile, setRealProfile] = useState(profile);
     const [companyData, setCompanyData] = useState(null);
     const [companyPhotos, setCompanyPhotos] = useState([]);
     const [conversations, setConversations] = useState([]);
@@ -82,8 +83,10 @@ export default function ProviderDashboardScreen() {
     const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
     const [categoryActionType, setCategoryActionType] = useState('requests'); // 'requests' or 'tenders'
 
+    const activeProfile = realProfile?.user_type === 'corporate' ? realProfile : profile;
+
     // Pending state for unapproved corporate users
-    if (profile?.user_type === 'corporate' && profile?.approval_status !== 'approved') {
+    if (activeProfile?.user_type === 'corporate' && activeProfile?.approval_status !== 'approved') {
         return (
             <View style={[s.container, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
                 <StatusBar barStyle="light-content" />
@@ -93,10 +96,14 @@ export default function ProviderDashboardScreen() {
                     <Ionicons name="time-outline" size={40} color={T.orange} />
                 </View>
                 <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 10 }}>Hesabınız Onay Aşamasında</Text>
-                <Text allowFontScaling={false} style={{ color: T.textMid, textAlign: 'center', marginBottom: 30, lineHeight: 22 }}>
-                    Firma paneline erişebilmek için hesap başvurunuzun admin tarafından onaylanması gerekmektedir.
+                <Text allowFontScaling={false} style={{ color: T.textMid, textAlign: 'center', marginBottom: 16, lineHeight: 24, paddingHorizontal: 10 }}>
+                    Kurumsal üyelik başvurunuz profesyonel ekibimiz tarafından incelemeye alınmıştır. Hesabınız onaylandığında en kısa sürede tarafınıza geri dönüş sağlanacaktır.
                 </Text>
-
+                
+                <Text allowFontScaling={false} style={{ color: '#D4AF37', textAlign: 'center', marginBottom: 30, lineHeight: 24, fontWeight: '600' }}>
+                    Şimdiden aramıza hoş geldiniz! 🎉{'\n'}
+                    <Text allowFontScaling={false} style={{ color: '#888', fontWeight: '400', fontSize: 13 }}>- CepteŞef Ekibi</Text>
+                </Text>
                 <TouchableOpacity
                     style={{ backgroundColor: T.card, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: T.cardBorder }}
                     onPress={() => navigation.goBack()}
@@ -133,6 +140,14 @@ export default function ProviderDashboardScreen() {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
+
+            // Fetch fresh profile to prevent bypass bugs
+            const { data: freshProfile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+            if (freshProfile) setRealProfile(freshProfile);
 
             const { data: company } = await supabase
                 .from('companies')
@@ -584,9 +599,9 @@ export default function ProviderDashboardScreen() {
                                 <View style={{ flex: 1 }}>
                                     <Text allowFontScaling={false} style={s.firmLabel}>Hesap Durumu</Text>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                                        <View style={[s.statusDot, { backgroundColor: profile?.approval_status === 'approved' ? T.green : T.orange }]} />
-                                        <Text allowFontScaling={false} style={[s.firmValue, { color: profile?.approval_status === 'approved' ? T.green : T.orange }]}>
-                                            {profile?.approval_status === 'approved' ? 'Onaylı' : 'Beklemede'}
+                                        <View style={[s.statusDot, { backgroundColor: activeProfile?.approval_status === 'approved' ? T.green : T.orange }]} />
+                                        <Text allowFontScaling={false} style={[s.firmValue, { color: activeProfile?.approval_status === 'approved' ? T.green : T.orange }]}>
+                                            {activeProfile?.approval_status === 'approved' ? 'Onaylı' : 'Beklemede'}
                                         </Text>
                                     </View>
                                 </View>

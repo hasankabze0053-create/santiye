@@ -2,10 +2,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { AuthService } from '../../services/AuthService';
+
+import { useAuth } from '../../context/AuthContext';
 
 const SERVICE_OPTIONS = [
     { key: 'market_seller', label: 'Yapı Market / Malzeme Satışı', icon: 'cart' },
@@ -19,7 +22,7 @@ const SERVICE_OPTIONS = [
 
 export default function CompanyRegistrationScreen() {
     const navigation = useNavigation();
-    const [step, setStep] = useState(1); // 1: Info, 2: Services
+    const { refreshProfile } = useAuth();
     const [loading, setLoading] = useState(false);
 
     // Form Data
@@ -28,19 +31,11 @@ export default function CompanyRegistrationScreen() {
     const [taxOffice, setTaxOffice] = useState('');
     const [phone, setPhone] = useState('');
     const [address, setAddress] = useState('');
-    const [selectedServices, setSelectedServices] = useState([]);
-
-    const toggleService = (key) => {
-        if (selectedServices.includes(key)) {
-            setSelectedServices(prev => prev.filter(k => k !== key));
-        } else {
-            setSelectedServices(prev => [...prev, key]);
-        }
-    };
+    const [customServices, setCustomServices] = useState('');
 
     const handleSubmit = async () => {
-        if (selectedServices.length === 0) {
-            Alert.alert('Hata', 'Lütfen en az bir hizmet alanı seçiniz.');
+        if (!companyName || !taxNumber || !phone || !customServices) {
+            Alert.alert('Eksik Bilgi', 'Lütfen tüm zorunlu alanları (Hizmet Alanları dahil) doldurunuz.');
             return;
         }
 
@@ -56,9 +51,11 @@ export default function CompanyRegistrationScreen() {
                 tax_office: taxOffice,
                 phone: phone,
                 address: address,
+                custom_services: customServices
             };
 
-            await AuthService.registerCompany(companyData, selectedServices);
+            await AuthService.registerCompany(companyData, []);
+            await refreshProfile();
 
             Alert.alert(
                 'Başvuru Alındı! 🎉',
@@ -106,37 +103,15 @@ export default function CompanyRegistrationScreen() {
                 <Text allowFontScaling={false} style={styles.label}>Adres</Text>
                 <TextInput allowFontScaling={false} style={[styles.input, { height: 80, paddingTop: 12 }]} placeholder="Açık adres..." placeholderTextColor="#666" multiline value={address} onChangeText={setAddress} />
             </View>
-        </View>
-    );
 
-    const renderStep2 = () => (
-        <View style={styles.formContainer}>
-            <Text allowFontScaling={false} style={styles.stepTitle}>Hizmet Alanları</Text>
-            <Text allowFontScaling={false} style={styles.stepDesc}>Firmanızın hangi sektörlerde faaliyet göstereceğini seçiniz. Birden fazla seçim yapabilirsiniz.</Text>
-
-            <View style={styles.servicesGrid}>
-                {SERVICE_OPTIONS.map((item) => {
-                    const isSelected = selectedServices.includes(item.key);
-                    return (
-                        <TouchableOpacity
-                            key={item.key}
-                            style={[styles.serviceCard, isSelected && styles.serviceCardSelected]}
-                            onPress={() => toggleService(item.key)}
-                            activeOpacity={0.8}
-                        >
-                            <View style={[styles.iconBox, isSelected && styles.iconBoxSelected]}>
-                                <Ionicons name={item.icon} size={24} color={isSelected ? '#FFD700' : '#888'} />
-                            </View>
-                            <Text allowFontScaling={false} style={[styles.serviceText, isSelected && styles.serviceTextSelected]}>{item.label}</Text>
-                            <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
-                                {isSelected && <Ionicons name="checkmark" size={14} color="#000" />}
-                            </View>
-                        </TouchableOpacity>
-                    );
-                })}
+            <View style={[styles.inputGroup, { marginTop: 10 }]}>
+                <Text allowFontScaling={false} style={[styles.label, { color: '#FFD700', fontSize: 14 }]}>Hizmet Alanlarınız (Örn: Asansör, Peyzaj...)</Text>
+                <TextInput allowFontScaling={false} style={[styles.input, { height: 80, paddingTop: 12, borderColor: '#FFD700' }]} placeholder="Verdiğiniz tüm hizmetleri buraya yazın..." placeholderTextColor="#666" multiline value={customServices} onChangeText={setCustomServices} />
             </View>
         </View>
     );
+
+
 
     return (
         <View style={styles.container}>
@@ -145,55 +120,31 @@ export default function CompanyRegistrationScreen() {
 
                 {/* Header */}
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => step === 2 ? setStep(1) : navigation.goBack()} style={styles.backBtn}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                         <Ionicons name="arrow-back" size={24} color="#FFF" />
                     </TouchableOpacity>
                     <Text allowFontScaling={false} style={styles.headerTitle}>Kurumsal Kayıt</Text>
                     <View style={{ width: 40 }} />
                 </View>
 
-                {/* Progress Bar */}
-                <View style={styles.progressContainer}>
-                    <View style={[styles.stepDot, step >= 1 && styles.stepActive]}>
-                        <Text allowFontScaling={false} style={styles.stepNum}>1</Text>
-                    </View>
-                    <View style={[styles.stepLine, step >= 2 && styles.lineActive]} />
-                    <View style={[styles.stepDot, step >= 2 && styles.stepActive]}>
-                        <Text allowFontScaling={false} style={styles.stepNum}>2</Text>
-                    </View>
-                </View>
-
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-                    <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-                        {step === 1 ? renderStep1() : renderStep2()}
-                    </ScrollView>
-                </KeyboardAvoidingView>
+                <KeyboardAwareScrollView 
+                    style={{ flex: 1 }} 
+                    contentContainerStyle={{ paddingBottom: 40 }}
+                    showsVerticalScrollIndicator={false}
+                    enableOnAndroid={true}
+                    extraScrollHeight={20}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    {renderStep1()}
+                </KeyboardAwareScrollView>
 
                 {/* Footer Action */}
                 <View style={styles.footer}>
-                    {step === 1 ? (
-                        <TouchableOpacity
-                            style={styles.btn}
-                            onPress={() => {
-                                if (!companyName || !taxNumber || !phone) {
-                                    Alert.alert('Eksik Bilgi', 'Lütfen zorunlu alanları doldurunuz.');
-                                    return;
-                                }
-                                setStep(2);
-                            }}
-                        >
-                            <LinearGradient colors={['#D4AF37', '#AA8C2C']} style={styles.btnGradient}>
-                                <Text allowFontScaling={false} style={styles.btnText}>Devam Et</Text>
-                                <Ionicons name="arrow-forward" size={20} color="#000" />
-                            </LinearGradient>
-                        </TouchableOpacity>
-                    ) : (
-                        <TouchableOpacity style={styles.btn} onPress={handleSubmit} disabled={loading}>
-                            <LinearGradient colors={['#D4AF37', '#AA8C2C']} style={styles.btnGradient}>
-                                {loading ? <Text allowFontScaling={false} style={styles.btnText}>Gönderiliyor...</Text> : <Text allowFontScaling={false} style={styles.btnText}>Başvuruyu Tamamla</Text>}
-                            </LinearGradient>
-                        </TouchableOpacity>
-                    )}
+                    <TouchableOpacity style={styles.btn} onPress={handleSubmit} disabled={loading}>
+                        <LinearGradient colors={['#D4AF37', '#AA8C2C']} style={styles.btnGradient}>
+                            {loading ? <Text allowFontScaling={false} style={styles.btnText}>Gönderiliyor...</Text> : <Text allowFontScaling={false} style={styles.btnText}>Başvur</Text>}
+                        </LinearGradient>
+                    </TouchableOpacity>
                 </View>
 
             </SafeAreaView>

@@ -137,24 +137,27 @@ export const AuthService = {
                 tax_office: companyData.tax_office,
                 phone: companyData.phone,
                 address: companyData.address,
+                custom_services: companyData.custom_services || null,
             })
             .select()
             .single();
 
         if (companyError) throw companyError;
 
-        // B. Add Services
-        const servicesToInsert = serviceTypes.map(type => ({
-            company_id: company.id,
-            service_type: type,
-            status: 'pending' // Default to pending
-        }));
+        // B. Add Services (if any)
+        if (serviceTypes && serviceTypes.length > 0) {
+            const servicesToInsert = serviceTypes.map(type => ({
+                company_id: company.id,
+                service_type: type,
+                status: 'pending' // Default to pending
+            }));
 
-        const { error: servicesError } = await supabase
-            .from('company_services')
-            .insert(servicesToInsert);
+            const { error: servicesError } = await supabase
+                .from('company_services')
+                .insert(servicesToInsert);
 
-        if (servicesError) throw servicesError;
+            if (servicesError) throw servicesError;
+        }
 
         // C. Update Profile to Corporate & Pending Approval
         await this.updateProfile(companyData.owner_id, {
@@ -177,5 +180,19 @@ export const AuthService = {
     async signOut() {
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
+    },
+
+    // 8. Delete Account (Soft Delete)
+    async deleteAccount() {
+        // Call the RPC function to handle the complex database operations securely
+        const { error } = await supabase.rpc('soft_delete_user');
+        
+        if (error) {
+            console.error("AuthService: Failed to delete account:", error);
+            throw new Error("Hesabınız silinirken bir hata oluştu: " + error.message);
+        }
+        
+        // Immediately sign out after soft delete
+        await this.signOut();
     }
 };

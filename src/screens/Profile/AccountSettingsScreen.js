@@ -6,6 +6,7 @@ import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, Touc
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
+import { AuthService } from '../../services/AuthService';
 
 export default function AccountSettingsScreen({ route }) {
     const navigation = useNavigation();
@@ -92,6 +93,32 @@ export default function AccountSettingsScreen({ route }) {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleDeleteAccount = () => {
+        Alert.alert(
+            "Hesabımı Kalıcı Olarak Sil",
+            "Dikkat! Bu işlem kesinlikle geri alınamaz.\n\nTüm verileriniz, mesajlarınız, talepleriniz ve teklifleriniz kalıcı olarak silinecektir.\n\nGerçekten onaylıyor musunuz?",
+            [
+                { text: "Vazgeç", style: "cancel" },
+                {
+                    text: "Hesabımı Sil",
+                    style: "destructive",
+                    onPress: async () => {
+                        setLoading(true);
+                        try {
+                            await AuthService.deleteAccount();
+                            // AuthService.deleteAccount() already calls signOut(), so the app will naturally route to the Auth/Login screen.
+                        } catch (error) {
+                            console.error("Hesap silme hatası:", error);
+                            Alert.alert("Hata", error.message || "Hesap silinirken beklenmeyen bir hata oluştu.");
+                        } finally {
+                            setLoading(false);
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     return (
@@ -235,6 +262,24 @@ export default function AccountSettingsScreen({ route }) {
                         </LinearGradient>
                     </TouchableOpacity>
                 )}
+
+                {/* Delete Account Button */}
+                <TouchableOpacity 
+                    activeOpacity={0.7}
+                    style={[styles.deleteButton, { backgroundColor: isDarkMode ? 'rgba(255, 59, 48, 0.1)' : 'rgba(255, 59, 48, 0.05)', borderColor: isDarkMode ? 'rgba(255, 59, 48, 0.3)' : 'rgba(255, 59, 48, 0.2)' }]} 
+                    onPress={handleDeleteAccount} 
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <ActivityIndicator color="#FF3B30" />
+                    ) : (
+                        <>
+                            <Ionicons name="trash-outline" size={20} color="#FF3B30" style={{ marginRight: 8 }} />
+                            <Text allowFontScaling={false} suppressHighlighting={true} style={styles.deleteButtonText}>Hesabımı Sil</Text>
+                        </>
+                    )}
+                </TouchableOpacity>
+
             </ScrollView>
         </View>
     );
@@ -297,5 +342,18 @@ const styles = StyleSheet.create({
     },
     detailRow: { marginBottom: 12 },
     detailLabel: { color: '#666', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 4 },
-    detailValue: { color: '#fff', fontSize: 14, fontWeight: '500' }
+    detailValue: { color: '#fff', fontSize: 14, fontWeight: '500' },
+
+    // Delete Button
+    deleteButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        marginTop: 40,
+        marginBottom: 20
+    },
+    deleteButtonText: { color: '#FF3B30', fontWeight: 'bold', fontSize: 16 }
 });

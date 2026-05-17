@@ -9,6 +9,17 @@ import { supabase } from '../../lib/supabase';
 import TurkeyLocationPicker from '../../components/TurkeyLocationPicker';
 import SharedRequestDetail from '../../components/SharedRequestDetail';
 
+// Centralized roles list for filtering and assignment
+export const COMPANY_ROLES = [
+    { key: 'urban_transformation', label: 'Kentsel Dönüşüm' },
+    { key: 'renovation_office', label: 'Tadilat Ofisi' },
+    { key: 'market_seller', label: 'Hizmet & Satış (Market)' },
+    { key: 'logistics_company', label: 'Lojistik / Nakliye' },
+    { key: 'machine_renter', label: 'İş Makinesi Kiralama' },
+    { key: 'lawyer', label: 'Avukatlık / Hukuk' },
+    { key: 'technical_office', label: 'Teknik Ofis' },
+];
+
 // Reuse categories from HomeScreen logic but adapted
 const ADMIN_MODULES = [
     {
@@ -132,6 +143,8 @@ const AdminDashboardScreen = () => {
     // User Management State
     const [users, setUsers] = useState([]);
     const [userTypeFilter, setUserTypeFilter] = useState('corporate');
+    const [corporateApprovalFilter, setCorporateApprovalFilter] = useState('all'); // 'all' | 'approved' | 'pending'
+    const [corporateServiceFilter, setCorporateServiceFilter] = useState('all'); // 'all' | 'urban_transformation' etc.
     const [selectedUserDetail, setSelectedUserDetail] = useState(null); // Moved here // 'individual' | 'corporate'
     const [convertToIndivConfirm, setConvertToIndivConfirm] = useState(false);
 
@@ -571,7 +584,9 @@ const AdminDashboardScreen = () => {
                     tax_number: company?.tax_number,
                     tax_office: company?.tax_office,
                     address: company?.address,
-                    phone: company?.phone || p.phone,
+                    phone: p.phone,
+                    company_phone: company?.phone,
+                    custom_services: company?.custom_services,
                     subscription_start_date: company?.subscription_start_date,
                     subscription_expires_at: company?.subscription_expires_at,
                     active_services: companyServices.map(s => s.service_type)
@@ -597,7 +612,24 @@ const AdminDashboardScreen = () => {
                 .eq('user_type', 'corporate');
             
             if (error) throw error;
-            setAssignableProviders(profiles || []);
+
+            // Fetch Companies
+            const { data: companies } = await supabase.from('companies').select('id, owner_id');
+
+            // Fetch Company Services to map active roles
+            const { data: services } = await supabase.from('company_services').select('company_id, service_type, status');
+
+            // Map services to profiles
+            const profilesWithServices = profiles.map(p => {
+                const company = companies?.find(c => c.owner_id === p.id);
+                const companyServices = services?.filter(s => s.company_id === company?.id && s.status === 'active') || [];
+                return {
+                    ...p,
+                    active_services: companyServices.map(s => s.service_type)
+                };
+            });
+
+            setAssignableProviders(profilesWithServices || []);
         } catch (err) {
             console.error('Error fetching assignable providers:', err);
             Alert.alert("Hata", "Tedarikçiler yüklenemedi.");
@@ -906,13 +938,34 @@ const AdminDashboardScreen = () => {
                 throw new Error("Profil güncellenemedi. Güvenlik yetkisi (RLS) kısıtlaması olabilir.");
             }
 
-            // 2. Clear Company Services (New System)
+            // 2. Archive Company Data and Clear Records (New System)
             if (user.company_id) {
-                const { error: deleteError } = await supabase
+                // Fetch company data to archive
+                const { data: companyDataToArchive } = await supabase
+                    .from('companies')
+                    .select('*')
+                    .eq('id', user.company_id)
+                    .single();
+
+                if (companyDataToArchive) {
+                    // Save to archived_company_data in profiles
+                    await supabase
+                        .from('profiles')
+                        .update({ archived_company_data: companyDataToArchive })
+                        .eq('id', user.id);
+                }
+
+                const { error: deleteServicesError } = await supabase
                     .from('company_services')
                     .delete()
                     .eq('company_id', user.company_id);
-                if (deleteError) console.error("Company Services Silme Hatası:", deleteError);
+                if (deleteServicesError) console.error("Company Services Silme Hatası:", deleteServicesError);
+
+                const { error: deleteCompanyError } = await supabase
+                    .from('companies')
+                    .delete()
+                    .eq('id', user.company_id);
+                if (deleteCompanyError) console.error("Company Silme Hatası:", deleteCompanyError);
             }
 
             // Optimistic Update
@@ -1430,8 +1483,12 @@ const AdminDashboardScreen = () => {
                     />
                 </View>
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                    <Text allowFontScaling={false} style={styles.userCardTitle}>{item.full_name || 'İsimsiz'}</Text>
-                    <Text allowFontScaling={false} style={styles.userCardSubtitle}>{item.email}</Text>
+                    <Text allowFontScaling={false} style={styles.userCardTitle}>
+                        {item.user_type === 'corporate' && item.approval_status === 'approved' && item.company_name ? item.company_name : (item.full_name || 'İsimsiz')}
+                    </Text>
+                    <Text allowFontScaling={false} style={styles.userCardSubtitle}>
+                        {item.user_type === 'corporate' && item.approval_status === 'approved' && item.tax_number ? `Vergi No: ${item.tax_number}` : item.email}
+                    </Text>
                     {item.phone && (
                         <Text allowFontScaling={false} style={styles.userCardPhone}>📞 {item.phone}</Text>
                     )}
@@ -1463,13 +1520,6 @@ const AdminDashboardScreen = () => {
                         </TouchableOpacity>
                     ) : (
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                            <TouchableOpacity
-                                style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: '#EF4444' }}
-                                onPress={() => handleConvertToIndividual(item)}
-                            >
-                                <Text allowFontScaling={false} style={{ color: '#EF4444', fontSize: 10, fontWeight: 'bold' }}>BİREYSELE DÜŞÜR</Text>
-                            </TouchableOpacity>
-
                             <View style={[
                                 styles.statusBadge,
                                 {
@@ -1531,9 +1581,14 @@ const AdminDashboardScreen = () => {
                                                 <Ionicons name={selectedUserDetail.user_type === 'corporate' ? "business" : "person"} size={40} color="#D4AF37" />
                                             </View>
                                             <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>{selectedUserDetail.full_name || 'İsimsiz'}</Text>
-                                            <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 14 }}>{selectedUserDetail.email}</Text>
-                                            <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 14, marginTop: 4 }}>{selectedUserDetail.phone || 'Telefon Yok'}</Text>
-                                            <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 12, marginTop: 6 }}>📅 Sisteme Kayıt: {new Date(selectedUserDetail.created_at).toLocaleDateString('tr-TR')}</Text>
+                                            
+                                            <View style={{ marginTop: 12, alignItems: 'center', backgroundColor: 'rgba(255, 255, 255, 0.05)', padding: 10, borderRadius: 8, width: '100%' }}>
+                                                <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 11, fontWeight: 'bold', marginBottom: 6 }}>BİREYSEL ÜYELİK BİLGİLERİ</Text>
+                                                <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 14 }}>E-Posta: {selectedUserDetail.email}</Text>
+                                                <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 14, marginTop: 4 }}>Şahsi Telefon: {selectedUserDetail.phone || 'Yok'}</Text>
+                                            </View>
+
+                                            <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 12, marginTop: 12 }}>📅 Sisteme Kayıt: {new Date(selectedUserDetail.created_at).toLocaleDateString('tr-TR')}</Text>
 
                                             <View style={{
                                                 marginTop: 12, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12,
@@ -1579,7 +1634,7 @@ const AdminDashboardScreen = () => {
                                                     <View style={{ flexDirection: 'row' }}>
                                                         <View style={{ flex: 1 }}>
                                                             <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase' }}>Firma Telefonu</Text>
-                                                            <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 14, fontWeight: '600', marginTop: 2 }}>{selectedUserDetail.phone || 'Belirtilmemiş'}</Text>
+                                                            <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 14, fontWeight: '600', marginTop: 2 }}>{selectedUserDetail.company_phone || 'Belirtilmemiş'}</Text>
                                                         </View>
                                                         <View style={{ flex: 1 }}>
                                                             <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase' }}>Hesap Tipi</Text>
@@ -1590,6 +1645,11 @@ const AdminDashboardScreen = () => {
                                                     <View>
                                                         <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase' }}>Firma Adresi</Text>
                                                         <Text allowFontScaling={false} style={{ color: '#fff', fontSize: 13, marginTop: 2 }}>{selectedUserDetail.address || 'Adres bilgisi girilmemiş.'}</Text>
+                                                    </View>
+
+                                                    <View>
+                                                        <Text allowFontScaling={false} style={{ color: '#64748b', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase' }}>Hizmet Alanları (Kullanıcı Beyanı)</Text>
+                                                        <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 13, marginTop: 2 }}>{selectedUserDetail.custom_services || 'Belirtilmemiş.'}</Text>
                                                     </View>
                                                 </View>
                                             </View>
@@ -1647,15 +1707,7 @@ const AdminDashboardScreen = () => {
                                             <View style={{ marginBottom: 20, padding: 15, backgroundColor: '#1a1a1a', borderRadius: 12, borderWidth: 1, borderColor: '#333' }}>
                                                 <Text allowFontScaling={false} style={{ color: '#FFD700', fontSize: 14, fontWeight: 'bold', marginBottom: 15 }}>FİRMA YETKİLERİ / ROLLERİ</Text>
 
-                                                {[
-                                                    { key: 'urban_transformation', label: 'Kentsel Dönüşüm' },
-                                                    { key: 'renovation_office', label: 'Tadilat Ofisi' },
-                                                    { key: 'market_seller', label: 'Hizmet & Satış (Market)' },
-                                                    { key: 'logistics_company', label: 'Lojistik / Nakliye' },
-                                                    { key: 'machine_renter', label: 'İş Makinesi Kiralama' },
-                                                    { key: 'lawyer', label: 'Avukatlık / Hukuk' },
-                                                    { key: 'technical_office', label: 'Teknik Ofis' },
-                                                ].map((role) => {
+                                                {COMPANY_ROLES.map((role) => {
                                                     const isActive = selectedUserDetail.active_services?.includes(role.key);
                                                     return (
                                                         <View key={role.key} style={[styles.roleRow, { borderBottomWidth: 0.5, borderBottomColor: '#222' }]}>
@@ -2321,6 +2373,48 @@ const AdminDashboardScreen = () => {
     );
     };
 
+    // --- FILTER LOGIC ---
+    const filteredUsers = users.filter(user => {
+        if (userTypeFilter !== 'corporate') return true;
+
+        let passApproval = true;
+        if (corporateApprovalFilter === 'approved') {
+            passApproval = user.approval_status === 'approved';
+        } else if (corporateApprovalFilter === 'pending') {
+            passApproval = user.approval_status !== 'approved' && user.approval_status !== 'suspended';
+        }
+
+        let passService = true;
+        if (corporateServiceFilter !== 'all') {
+            passService = user.active_services?.includes(corporateServiceFilter);
+        }
+
+        return passApproval && passService;
+    });
+
+    // Derive module-specific providers for assignment
+    const getFilteredProvidersForModule = () => {
+        if (!selectedModule) return assignableProviders;
+
+        const roleMap = {
+            'urban_transformation': 'urban_transformation',
+            'renovation': 'renovation_office',
+            'market': 'market_seller',
+            'logistics': 'logistics_company',
+            'engineering': 'technical_office',
+            'law': 'lawyer',
+            'cost': 'technical_office'
+        };
+
+        const targetRole = roleMap[selectedModule.id];
+        if (!targetRole) return assignableProviders;
+
+        return assignableProviders.filter(provider => 
+            provider.active_services && provider.active_services.includes(targetRole)
+        );
+    };
+    const moduleFilteredProviders = getFilteredProvidersForModule();
+
     // --- MAIN RENDER ---
     return (
         <View style={styles.container}>
@@ -2415,11 +2509,57 @@ const AdminDashboardScreen = () => {
                                 </TouchableOpacity>
                             </View>
 
+                            {/* Corporate Filters */}
+                            {userTypeFilter === 'corporate' && (
+                                <View style={{ marginBottom: 15 }}>
+                                    {/* Approval Filter */}
+                                    <View style={{ flexDirection: 'row', paddingHorizontal: 20, marginBottom: 10, gap: 10 }}>
+                                        <TouchableOpacity 
+                                            style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: corporateApprovalFilter === 'all' ? '#D4AF37' : '#334155' }}
+                                            onPress={() => setCorporateApprovalFilter('all')}
+                                        >
+                                            <Text allowFontScaling={false} style={{ color: corporateApprovalFilter === 'all' ? '#000' : '#FFF', fontSize: 12, fontWeight: 'bold' }}>Tümü</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity 
+                                            style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: corporateApprovalFilter === 'approved' ? '#D4AF37' : '#334155' }}
+                                            onPress={() => setCorporateApprovalFilter('approved')}
+                                        >
+                                            <Text allowFontScaling={false} style={{ color: corporateApprovalFilter === 'approved' ? '#000' : '#FFF', fontSize: 12, fontWeight: 'bold' }}>Onaylılar</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity 
+                                            style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: corporateApprovalFilter === 'pending' ? '#D4AF37' : '#334155' }}
+                                            onPress={() => setCorporateApprovalFilter('pending')}
+                                        >
+                                            <Text allowFontScaling={false} style={{ color: corporateApprovalFilter === 'pending' ? '#000' : '#FFF', fontSize: 12, fontWeight: 'bold' }}>Onay Bekleyenler</Text>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    {/* Service/Role Filter */}
+                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}>
+                                        <TouchableOpacity 
+                                            style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: corporateServiceFilter === 'all' ? '#4ADE80' : '#334155', backgroundColor: corporateServiceFilter === 'all' ? 'rgba(74, 222, 128, 0.1)' : 'transparent' }}
+                                            onPress={() => setCorporateServiceFilter('all')}
+                                        >
+                                            <Text allowFontScaling={false} style={{ color: corporateServiceFilter === 'all' ? '#4ADE80' : '#64748b', fontSize: 12 }}>Tüm Yetkiler</Text>
+                                        </TouchableOpacity>
+                                        {COMPANY_ROLES.map(role => (
+                                            <TouchableOpacity 
+                                                key={`filter-${role.key}`}
+                                                style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: corporateServiceFilter === role.key ? '#4ADE80' : '#334155', backgroundColor: corporateServiceFilter === role.key ? 'rgba(74, 222, 128, 0.1)' : 'transparent' }}
+                                                onPress={() => setCorporateServiceFilter(role.key)}
+                                            >
+                                                <Text allowFontScaling={false} style={{ color: corporateServiceFilter === role.key ? '#4ADE80' : '#64748b', fontSize: 12 }}>{role.label}</Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+                                </View>
+                            )}
+
                             {loading ? (
                                 <ActivityIndicator size="large" color="#D4AF37" style={{ marginTop: 50 }} />
                             ) : (
                                 <FlatList
-                                    data={users}
+                                    data={filteredUsers}
                                     renderItem={renderUserItem}
                                     keyExtractor={item => item.id}
                                     contentContainerStyle={{ padding: 20 }}
@@ -2867,7 +3007,7 @@ const AdminDashboardScreen = () => {
                             <ActivityIndicator size="large" color="#FBBF24" style={{ marginTop: 50 }} />
                         ) : (
                             <FlatList
-                                data={assignableProviders}
+                                data={moduleFilteredProviders}
                                 keyExtractor={item => item.id}
                                 contentContainerStyle={{ paddingHorizontal: 15, paddingBottom: 20 }}
                                 ListHeaderComponent={(
@@ -3242,7 +3382,7 @@ const styles = StyleSheet.create({
     // Modal Styles
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'flex-end' },
     modalContent: { borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden', height: '92%', width: '100%' },
-    modalContainer: { flex: 1 },
+    modalContainer: { flex: 1, justifyContent: 'flex-end' },
     modalHeader: { 
         flexDirection: 'row', 
         alignItems: 'center', 

@@ -40,30 +40,33 @@ const OptionCard = ({ title, description, icon, isSelected, onPress }) => (
 
 export default function OnboardingScreen() {
     const navigation = useNavigation();
-    const [selectedType, setSelectedType] = useState(null); // 'individual' | 'corporate'
     const [loading, setLoading] = useState(false);
 
     const handleContinue = async () => {
-        if (!selectedType) return;
         setLoading(true);
+        try {
+            // Because there's only one option now, we know they picked corporate
+            navigation.replace('CompanyRegistration');
+        } catch (error) {
+            console.error(error);
+            Alert.alert('Hata', error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    const handleSkip = async () => {
+        setLoading(true);
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error('Kullanıcı bulunamadı');
-
-            // Update Profile
-            await AuthService.updateProfile(user.id, { user_type: selectedType });
-
-            if (selectedType === 'individual') {
-                // Done -> Go Home
+            if (user) {
+                // Just update their profile to individual explicitly and go home
+                await AuthService.updateProfile(user.id, { user_type: 'individual' });
                 navigation.replace('MainTabs');
-            } else {
-                // Corporate -> Go to Registration
-                navigation.replace('CompanyRegistration');
             }
         } catch (error) {
             console.error(error);
-            alert('Bir hata oluştu: ' + error.message);
+            Alert.alert('Hata', error.message);
         } finally {
             setLoading(false);
         }
@@ -80,40 +83,49 @@ export default function OnboardingScreen() {
                 </View>
 
                 <View style={styles.content}>
-                    <OptionCard
-                        title="Bireysel Kullanıcıyım"
-                        description="Tadilat yaptırmak, malzeme almak veya fiyat araştırması yapmak istiyorum."
-                        icon="account"
-                        isSelected={selectedType === 'individual'}
-                        onPress={() => setSelectedType('individual')}
-                    />
-
-                    <View style={{ height: 16 }} />
-
-                    <OptionCard
-                        title="Kurumsal / Hizmet Verenim"
-                        description="Ürün satmak, makine kiralamak veya hizmet/teklif vermek istiyorum."
-                        icon="briefcase"
-                        isSelected={selectedType === 'corporate'}
-                        onPress={() => setSelectedType('corporate')}
-                    />
+                    <TouchableOpacity
+                        activeOpacity={0.9}
+                        style={[styles.optionCard, styles.optionCardSelected]}
+                    >
+                        <LinearGradient
+                            colors={['rgba(212, 175, 55, 0.15)', 'rgba(212, 175, 55, 0.05)']}
+                            style={styles.cardGradient}
+                        >
+                            <View style={[styles.iconContainer, styles.iconContainerSelected]}>
+                                <MaterialCommunityIcons name="briefcase" size={32} color="#FFD700" />
+                            </View>
+                            <View style={styles.textContainer}>
+                                <Text allowFontScaling={false} style={[styles.optionTitle, styles.optionTitleSelected]}>Kurumsal Üyelik Başvurusu</Text>
+                                <Text allowFontScaling={false} style={styles.optionDesc}>ŞantiyePro'da ürün satmak, iş makinesi kiralamak veya profesyonel hizmet vermek istiyorsanız kurumsal hesaba geçin.</Text>
+                            </View>
+                            <View style={styles.radioContainer}>
+                                <View style={[styles.radioOuter, styles.radioOuterSelected]}>
+                                    <View style={styles.radioInner} />
+                                </View>
+                            </View>
+                        </LinearGradient>
+                    </TouchableOpacity>
                 </View>
 
                 <View style={styles.footer}>
                     <TouchableOpacity
-                        style={[styles.btn, !selectedType && styles.btnDisabled]}
-                        disabled={!selectedType || loading}
+                        style={styles.btn}
+                        disabled={loading}
                         onPress={handleContinue}
                     >
                         <LinearGradient
-                            colors={selectedType ? ['#D4AF37', '#AA8C2C'] : ['#333', '#333']}
+                            colors={['#D4AF37', '#AA8C2C']}
                             style={styles.btnGradient}
                         >
-                            <Text allowFontScaling={false} style={[styles.btnText, !selectedType && styles.btnTextDisabled]}>
-                                {loading ? 'İşleniyor...' : 'Devam Et'}
+                            <Text allowFontScaling={false} style={styles.btnText}>
+                                {loading ? 'İşleniyor...' : 'Başvuruyu Başlat'}
                             </Text>
-                            <Ionicons name="arrow-forward" size={20} color={selectedType ? '#000' : '#666'} />
+                            <Ionicons name="arrow-forward" size={20} color="#000" />
                         </LinearGradient>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.skipBtn} onPress={handleSkip} disabled={loading}>
+                        <Text allowFontScaling={false} style={styles.skipBtnText}>Atla, Bireysel Kullanıcı Olarak Devam Etmek İstiyorum</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -176,4 +188,16 @@ const styles = StyleSheet.create({
     },
     btnText: { fontSize: 16, fontWeight: 'bold', color: '#000' },
     btnTextDisabled: { color: '#666' },
+
+    skipBtn: {
+        marginTop: 20,
+        alignItems: 'center',
+        paddingVertical: 10,
+    },
+    skipBtnText: {
+        color: '#888',
+        fontSize: 14,
+        fontWeight: '600',
+        textDecorationLine: 'underline',
+    }
 });
