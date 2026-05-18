@@ -41,6 +41,7 @@ export default function LawProviderScreen() {
             const { data, error } = await supabase
                 .from('law_requests')
                 .select('*, profiles:user_id(full_name, phone, email)')
+                .contains('assigned_provider_ids', JSON.stringify([user.id]))
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -54,6 +55,8 @@ export default function LawProviderScreen() {
                     user_phone: req.profiles?.phone || '',
                     user_email: req.profiles?.email || '',
                     description: req.description,
+                    city: req.city,
+                    district: req.district,
                     has_documents: req.file_urls && req.file_urls.length > 0,
                     status: req.status || 'pending',
                     my_offers: []
@@ -82,70 +85,74 @@ export default function LawProviderScreen() {
                     <Text allowFontScaling={false} style={styles.emptySub}>Yeni talepler buraya düşecektir.</Text>
                 </View>
             ) : (
-                requests.map(item => (
-                    <LinearGradient
-                        key={item.id}
-                        colors={['#1a1a1c', '#0f0f11']}
-                        style={styles.leadCard}
-                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                    >
-                        {/* 1. TOP ROW: DYNAMIC SERVICE TYPE & DATE */}
-                        <View style={styles.cardHeaderRow}>
-                            <View style={styles.tagBadge}>
-                                <View style={styles.statusDot} />
-                                {/* DYNAMIC SERVICE TYPE: Matches whatever the user clicked in the grid */}
-                                <Text allowFontScaling={false} style={styles.tagText}>
-                                    {(item.service_type || 'Genel Hukuk Talebi').toUpperCase()}
+                requests.map(item => {
+                    const rawTipi = item.service_type || 'Hukuki Danışmanlık';
+                    const projeTipi = rawTipi.replace(/\n/g, ' ');
+                    return (
+                        <View key={item.id} style={{ backgroundColor: '#161616', borderRadius: 14, borderWidth: 1, borderColor: '#2A2A2A', padding: 18, marginBottom: 16, overflow: 'hidden' }}>
+                            {/* Absolute Date Badge (Flush to Top Right) */}
+                            <View style={{ position: 'absolute', top: 0, right: 0, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(212, 175, 55, 0.12)', borderBottomWidth: 1, borderLeftWidth: 1, borderColor: 'rgba(212, 175, 55, 0.3)', paddingHorizontal: 12, paddingVertical: 6, borderBottomLeftRadius: 14, gap: 5 }}>
+                                <Ionicons name="calendar" size={12} color="#D4AF37" />
+                                <Text allowFontScaling={false} style={{ color: '#D4AF37', fontSize: 11, fontWeight: '700' }}>
+                                    {new Date(item.created_at).toLocaleDateString('tr-TR')}
                                 </Text>
                             </View>
-                            <View style={[styles.timerTag, { marginLeft: 'auto' }]}>
-                                <Ionicons name="calendar" size={12} color="#94a3b8" />
-                                <Text allowFontScaling={false} style={styles.timerText}>{new Date(item.created_at).toLocaleDateString('tr-TR')}</Text>
-                            </View>
-                        </View>
 
-                        {/* 2. USER INFO */}
-                        <View style={{ marginBottom: 16 }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                <Ionicons name="person-circle-outline" size={18} color="#D4AF37" />
-                                <Text allowFontScaling={false} style={styles.leadTitle}>{item.user_name}</Text>
+                            {/* Title */}
+                            <View style={{ marginBottom: 12, paddingRight: 90 }}>
+                                <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 18, letterSpacing: 0.3 }}>
+                                    {projeTipi}
+                                </Text>
                             </View>
-                        </View>
 
-                        {/* 3. REQUEST CONTENT SUMMARY */}
-                        <View style={styles.detailBox}>
-                            <View style={{ marginTop: 8 }} />
-                            
-                            <View style={styles.detailRow}>
-                                <View style={styles.detailIcon}>
-                                    <MaterialCommunityIcons name={item.has_documents ? "file-document-multiple-outline" : "file-hidden"} size={18} color={item.has_documents ? "#D4AF37" : "#555"} />
-                                </View>
-                                <View>
-                                    <Text allowFontScaling={false} style={styles.detailLabel}>EKLİ BELGELER</Text>
-                                    <Text allowFontScaling={false} style={[styles.detailValue, !item.has_documents && { color: '#555' }]}>
-                                        {item.has_documents ? 'Kullanıcı Belge Yükledi' : 'Belge Yok'}
+                            {/* Location & Info */}
+                            <View style={{ marginBottom: 16, gap: 10 }}>
+                                {/* Location */}
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                    <Ionicons name="location" size={14} color="#D4AF37" />
+                                    <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 13, fontWeight: '600' }}>
+                                        {item.city || 'Belirtilmedi'} • {item.district || ''}
                                     </Text>
                                 </View>
+                                
+                                {/* User & Document */}
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, paddingRight: 8 }}>
+                                        <Ionicons name="person" size={14} color="#D4AF37" />
+                                        <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 13, fontWeight: '600' }} numberOfLines={1}>
+                                            {item.user_name || 'Kullanıcı'}
+                                        </Text>
+                                    </View>
+                                    
+                                    {/* Premium Document Badge */}
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#2A2A2A', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, gap: 6 }}>
+                                        <Ionicons name="document-attach" size={14} color={item.has_documents ? "#D4AF37" : "#555"} />
+                                        <Text allowFontScaling={false} style={{ color: item.has_documents ? '#10b981' : '#64748b', fontSize: 12, fontWeight: '600' }}>
+                                            {item.has_documents ? 'Dosya Ekli' : 'Dosya Yok'}
+                                        </Text>
+                                        <Ionicons name={item.has_documents ? "checkmark-circle" : "remove"} size={14} color={item.has_documents ? "#10b981" : "#64748b"} />
+                                    </View>
+                                </View>
+                            </View>
+
+                            {/* Actions Area */}
+                            <View style={{ flexDirection: 'row', gap: 8 }}>
+                                <TouchableOpacity 
+                                    style={{ flex: 1 }}
+                                    onPress={() => navigation.navigate('LawRequestDetail', { request: item })}
+                                >
+                                    <LinearGradient
+                                        colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']}
+                                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                                        style={{ borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10, alignItems: 'center', justifyContent: 'center', flex: 1 }}
+                                    >
+                                        <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold', fontSize: 14 }}>Talebi İncele</Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
                             </View>
                         </View>
-
-                        {/* 4. ACTIONS */}
-                        <TouchableOpacity
-                            style={styles.bidButton}
-                            activeOpacity={0.8}
-                            onPress={() => navigation.navigate('LawRequestDetail', { request: item })}
-                        >
-                            <LinearGradient
-                                colors={['#1c1c1e', '#0a0a0c']} // Dark metallic premium theme
-                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                                style={[styles.gradientBtn, { borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.4)', borderRadius: 12 }]}
-                            >
-                                <Text allowFontScaling={false} style={[styles.bidButtonText, { color: '#D4AF37' }]}>DOSYAYI İNCELE</Text>
-                                <MaterialCommunityIcons name="arrow-right" size={20} color="#D4AF37" />
-                            </LinearGradient>
-                        </TouchableOpacity>
-                    </LinearGradient>
-                ))
+                    );
+                })
             )}
         </View>
     );

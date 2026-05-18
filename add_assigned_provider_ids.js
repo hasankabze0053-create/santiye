@@ -1,0 +1,17 @@
+const { Client } = require('pg');
+
+const connectionString = 'postgresql://postgres.nxsjokupnsaeemtnlexf:Cs1907Kz0354@aws-1-eu-central-1.pooler.supabase.com:6543/postgres';
+
+async function addCol() {
+    const client = new Client({ connectionString, ssl: { rejectUnauthorized: false } });
+    await client.connect();
+    
+    await client.query("ALTER TABLE technical_requests ADD COLUMN IF NOT EXISTS assigned_provider_ids JSONB DEFAULT '[]'::jsonb;");
+    console.log("Added assigned_provider_ids column to technical_requests");
+    
+    await client.query("ALTER TABLE law_requests ADD COLUMN IF NOT EXISTS assigned_provider_ids JSONB DEFAULT '[]'::jsonb;");
+    console.log("Added assigned_provider_ids column to law_requests");
+    
+    await client.end();
+}
+addCol();

@@ -232,7 +232,7 @@ export const ConstructionService = {
             // 2. Fetch tadilat requests from construction_requests
             let query1 = supabase
                 .from('construction_requests')
-                .select('*')
+                .select('*, profiles!fk_construction_profiles(full_name)')
                 .eq('offer_type', 'anahtar_teslim_tadilat') // ONLY TADILAT
                 .in('status', ['pending', 'offers_received'])
                 .contains('assigned_provider_ids', [user.id]) // SADECE yönlendirilenler
@@ -246,7 +246,7 @@ export const ConstructionService = {
             // Since there is no bidding process yet for elevator_requests, just fetch those assigned to the provider
             let query2 = supabase
                 .from('elevator_requests')
-                .select('*')
+                .select('*, profiles!fk_elevator_user(full_name)')
                 .in('status', ['pending', 'offers_received'])
                 .contains('assigned_provider_ids', [user.id]) // SADECE yönlendirilenler
                 .order('created_at', { ascending: false });
@@ -277,7 +277,7 @@ export const ConstructionService = {
 
             const { data, error } = await supabase
                 .from('construction_offers')
-                .select('*, request:construction_requests!inner(*)')
+                .select('*, request:construction_requests!inner(*, profiles!fk_construction_profiles(full_name))')
                 .eq('contractor_id', user.id)
                 .eq('request.offer_type', 'anahtar_teslim_tadilat') // ONLY TADILAT
                 .order('created_at', { ascending: false });

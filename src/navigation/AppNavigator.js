@@ -75,6 +75,7 @@ import ProviderPublicProfileScreen from '../screens/Provider/ProviderPublicProfi
 import ProviderWizardScreen from '../screens/Provider/ProviderWizardScreen';
 import RenovationProviderScreen from '../screens/Provider/RenovationProviderScreen';
 import TechnicalProviderScreen from '../screens/Provider/TechnicalProviderScreen';
+import TechnicalRequestDetailScreen from '../screens/Provider/TechnicalRequestDetailScreen';
 import AIRenovationAssistantScreen from '../screens/Renovation/AIRenovationAssistantScreen';
 import CustomRequestScreen from '../screens/Renovation/CustomRequestScreen';
 import ElevatorSuccessScreen from '../screens/Renovation/ElevatorSuccessScreen';
@@ -462,6 +463,7 @@ export default function AppNavigator() {
             <Stack.Screen name="LawProvider" component={LawProviderScreen} />
             <Stack.Screen name="LawRequestDetail" component={LawRequestDetailScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
             <Stack.Screen name="TechnicalProvider" component={TechnicalProviderScreen} />
+            <Stack.Screen name="TechnicalRequestDetail" component={TechnicalRequestDetailScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
 
             {/* Authentication & Onboarding (Root Level) */}
             <Stack.Screen name="Onboarding" component={OnboardingScreen} />

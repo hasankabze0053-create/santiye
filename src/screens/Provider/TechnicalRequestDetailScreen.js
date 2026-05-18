@@ -5,7 +5,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function LawRequestDetailScreen() {
+export default function TechnicalRequestDetailScreen() {
     const route = useRoute();
     const navigation = useNavigation();
     const { request } = route.params || {};
@@ -22,26 +22,32 @@ export default function LawRequestDetailScreen() {
     }
 
     const {
-        service_type = 'Genel Hukuk Talebi',
+        service_type = 'Genel Teknik Talep',
         user_name = 'Kullanıcı',
-        user_phone = '',
-        user_email = '',
+        phone = '',
+        email = '',
         description = 'Açıklama bulunmuyor.',
         created_at,
-        has_documents = false
+        has_documents = false,
+        city = '',
+        district = ''
     } = request;
 
+    // Technical requests use 'phone' and 'email' keys directly in formatted data, unlike Law which uses user_phone and user_email
+    const userPhone = phone || request.user_phone || '';
+    const userEmail = email || request.user_email || '';
+
     const handleCall = () => {
-        if (user_phone) {
-            Linking.openURL(`tel:${user_phone}`);
+        if (userPhone) {
+            Linking.openURL(`tel:${userPhone}`);
         } else {
             Alert.alert("Bilgi", "Kullanıcıya ait telefon numarası bulunamadı.");
         }
     };
 
     const handleEmail = () => {
-        if (user_email) {
-            Linking.openURL(`mailto:${user_email}`);
+        if (userEmail) {
+            Linking.openURL(`mailto:${userEmail}`);
         } else {
             Alert.alert("Bilgi", "Kullanıcıya ait e-posta adresi bulunamadı.");
         }
@@ -49,7 +55,6 @@ export default function LawRequestDetailScreen() {
 
     const handleDocumentView = () => {
         if (has_documents) {
-            // Placeholder: When file_urls exist, it should open the first or show a list.
             Alert.alert("Bilgi", "Belgeler güvenli bir şekilde görüntülenecektir.");
         }
     };
@@ -83,8 +88,8 @@ export default function LawRequestDetailScreen() {
                     
                     {/* CLIENT INFO CARD */}
                     <View style={styles.sectionHeader}>
-                        <MaterialCommunityIcons name="account-tie" size={20} color="#D4AF37" />
-                        <Text allowFontScaling={false} style={styles.sectionTitle}>Müvekkil / Danışan Bilgileri</Text>
+                        <MaterialCommunityIcons name="office-building" size={20} color="#D4AF37" />
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>Talep Sahibi Bilgileri</Text>
                     </View>
 
                     <LinearGradient
@@ -101,12 +106,24 @@ export default function LawRequestDetailScreen() {
                             </View>
                         </View>
 
+                        {(city || district) && (
+                            <>
+                                <View style={styles.hDivider} />
+                                <View style={styles.contactRow}>
+                                    <View style={styles.contactItem}>
+                                        <Ionicons name="location-outline" size={16} color="#94a3b8" />
+                                        <Text allowFontScaling={false} style={styles.contactTxt}>{(city && city !== 'Tüm Türkiye') ? `${city} / ${district}` : 'Tüm Türkiye (Uzaktan)'}</Text>
+                                    </View>
+                                </View>
+                            </>
+                        )}
+
                         <View style={styles.hDivider} />
 
                         <View style={styles.contactRow}>
                             <View style={styles.contactItem}>
                                 <Ionicons name="call-outline" size={16} color="#94a3b8" />
-                                <Text allowFontScaling={false} style={styles.contactTxt}>{user_phone || 'Belirtilmedi'}</Text>
+                                <Text allowFontScaling={false} style={styles.contactTxt}>{userPhone || 'Belirtilmedi'}</Text>
                             </View>
                             <TouchableOpacity onPress={handleCall} style={styles.actionIconBtn}>
                                 <Ionicons name="call" size={16} color="#D4AF37" />
@@ -118,7 +135,7 @@ export default function LawRequestDetailScreen() {
                         <View style={styles.contactRow}>
                             <View style={styles.contactItem}>
                                 <Ionicons name="mail-outline" size={16} color="#94a3b8" />
-                                <Text allowFontScaling={false} style={styles.contactTxt}>{user_email || 'Belirtilmedi'}</Text>
+                                <Text allowFontScaling={false} style={styles.contactTxt}>{userEmail || 'Belirtilmedi'}</Text>
                             </View>
                             <TouchableOpacity onPress={handleEmail} style={styles.actionIconBtn}>
                                 <Ionicons name="mail" size={16} color="#D4AF37" />
@@ -128,8 +145,8 @@ export default function LawRequestDetailScreen() {
 
                     {/* CONTENT CARD */}
                     <View style={styles.sectionHeader}>
-                        <MaterialCommunityIcons name="gavel" size={20} color="#D4AF37" />
-                        <Text allowFontScaling={false} style={styles.sectionTitle}>Dosya İçeriği</Text>
+                        <MaterialCommunityIcons name="text-box-outline" size={20} color="#D4AF37" />
+                        <Text allowFontScaling={false} style={styles.sectionTitle}>Talep İçeriği</Text>
                     </View>
 
                     <LinearGradient
@@ -173,15 +190,15 @@ export default function LawRequestDetailScreen() {
                 {/* BOTTOM ACTION */}
                 <View style={styles.bottomBar}>
                     <TouchableOpacity style={styles.bidButton} onPress={() => {
-                        Alert.alert("Başarılı", "Dosya üstlenildi / Teklif aşamasına geçildi.");
+                        Alert.alert("Başarılı", "Kullanıcıya yanıt / teklif iletme aşamasına geçildi.");
                     }}>
                         <LinearGradient
                             colors={['#1c1c1e', '#0a0a0c']}
                             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                             style={styles.gradientBtn}
                         >
-                            <Text allowFontScaling={false} style={styles.bidButtonText}>DOSYAYI ÜSTLEN / TEKLİF VER</Text>
-                            <MaterialCommunityIcons name="gavel" size={20} color="#D4AF37" />
+                            <Text allowFontScaling={false} style={styles.bidButtonText}>TALEBE YANIT VER / TEKLİF İLET</Text>
+                            <MaterialCommunityIcons name="briefcase-check" size={20} color="#D4AF37" />
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>

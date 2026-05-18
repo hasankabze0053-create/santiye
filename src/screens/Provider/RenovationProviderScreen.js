@@ -130,55 +130,54 @@ export default function RenovationProviderScreen(props) {
                 </View>
             ) : (
                 requests.map((item, index) => {
-                    const projeTipi = (item._tableName === 'elevator_requests' || item.fault_type) 
-                        ? 'Asansör Arıza & Bakım' 
-                        : 'Tadilat Talebi';
+                    // Extract project type dynamically from description
+                    const projMatch = item.description ? item.description.match(/(?:PROJE TİPİ:|\[PROJE TİPİ\])\s*(.+)/) : null;
+                    const isElevator = item._tableName === 'elevator_requests' || item.fault_type;
+                    
+                    const rawTipi = isElevator 
+                        ? 'Asansör Bakımı' 
+                        : (projMatch ? projMatch[1].trim() : 'Anahtar Teslim Tadilat');
+                    const projeTipi = rawTipi.replace(/\n/g, ' ');
 
                     return (
-                        <View key={`${item.id}-${index}`} style={{ backgroundColor: '#161616', borderRadius: 14, borderWidth: 1, borderColor: '#2A2A2A', padding: 16, marginBottom: 16, flexDirection: 'row', gap: 16 }}>
-                            {/* Left Avatar (Premium Solid Gradient-like or darker gold) */}
-                            <LinearGradient
-                                colors={['#8C6A30', '#D4AF37', '#8C6A30']}
-                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                                style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' }}
-                            >
-                                <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>
-                                    {item.user_id ? item.user_id.substring(0,2).toUpperCase() : 'M'}
-                                </Text>
-                            </LinearGradient>
+                        <View key={`${item.id}-${index}`} style={{ backgroundColor: '#161616', borderRadius: 14, borderWidth: 1, borderColor: '#2A2A2A', padding: 18, marginBottom: 16 }}>
+                            {/* Title (Full Width) */}
+                            <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 18, letterSpacing: 0.3, marginBottom: 12 }}>
+                                {projeTipi}
+                            </Text>
 
-                            {/* Right Content */}
-                            <View style={{ flex: 1, justifyContent: 'center' }}>
-                                <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16, marginBottom: 8 }}>
-                                    {projeTipi}
-                                </Text>
-
-                                {/* Location Info */}
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+                            {/* Location, User & Date Info */}
+                            <View style={{ marginBottom: 16, gap: 8 }}>
+                                {/* Location */}
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                                     <Ionicons name="location" size={14} color="#D4AF37" />
-                                    <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 12, fontWeight: '600' }}>
+                                    <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 13, fontWeight: '600' }}>
                                         {item.city || 'Belirtilmedi'} • {item.district || ''}
                                     </Text>
                                 </View>
+                                
+                                {/* User & Date */}
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, paddingRight: 8 }}>
+                                        <Ionicons name="person" size={14} color="#D4AF37" />
+                                        <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 13, fontWeight: '600' }} numberOfLines={1}>
+                                            {item.profiles?.full_name || 'Müşteri'}
+                                        </Text>
+                                    </View>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#2A2A2A', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, gap: 4 }}>
+                                        <Ionicons name="calendar" size={12} color="#D4AF37" />
+                                        <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 11, fontWeight: '600' }}>
+                                            {new Date(item.created_at).toLocaleDateString('tr-TR')}
+                                        </Text>
+                                    </View>
+                                </View>
+                            </View>
 
-                                {/* Actions Area */}
-                                <View style={{ flexDirection: 'row', gap: 8 }}>
-                                    {item.has_documents && (
-                                        <TouchableOpacity 
-                                            style={{ borderWidth: 1, borderColor: '#3A3A3C', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, justifyContent: 'center' }}
-                                            onPress={() => antigravityNav.navigate(activeTab === 'bids' ? 'OfferDetail' : 'RequestDetail', {
-                                                request: item,
-                                                request_id: item.id,
-                                                contractor_id: item.my_offers?.[0]?.contractor_id,
-                                                type: 'construction',
-                                                ...(activeTab === 'bids' ? { offers: item.my_offers, readOnly: true } : {})
-                                            })}
-                                        >
-                                            <Text allowFontScaling={false} style={{ color: '#E5E5EA', fontSize: 13 }}>Belgeler</Text>
-                                        </TouchableOpacity>
-                                    )}
+                            {/* Actions Area */}
+                            <View style={{ flexDirection: 'row', gap: 8 }}>
+                                {item.has_documents && (
                                     <TouchableOpacity 
-                                        style={{ flex: 1 }}
+                                        style={{ borderWidth: 1, borderColor: '#3A3A3C', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, justifyContent: 'center' }}
                                         onPress={() => antigravityNav.navigate(activeTab === 'bids' ? 'OfferDetail' : 'RequestDetail', {
                                             request: item,
                                             request_id: item.id,
@@ -187,15 +186,27 @@ export default function RenovationProviderScreen(props) {
                                             ...(activeTab === 'bids' ? { offers: item.my_offers, readOnly: true } : {})
                                         })}
                                     >
-                                        <LinearGradient
-                                            colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']}
-                                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                                            style={{ borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', flex: 1 }}
-                                        >
-                                            <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold', fontSize: 13 }}>{activeTab === 'bids' ? 'Teklifi İncele' : 'Talebi İncele'}</Text>
-                                        </LinearGradient>
+                                        <Text allowFontScaling={false} style={{ color: '#E5E5EA', fontSize: 13, fontWeight: '500' }}>Belgeler</Text>
                                     </TouchableOpacity>
-                                </View>
+                                )}
+                                <TouchableOpacity 
+                                    style={{ flex: 1 }}
+                                    onPress={() => antigravityNav.navigate(activeTab === 'bids' ? 'OfferDetail' : 'RequestDetail', {
+                                        request: item,
+                                        request_id: item.id,
+                                        contractor_id: item.my_offers?.[0]?.contractor_id,
+                                        type: 'construction',
+                                        ...(activeTab === 'bids' ? { offers: item.my_offers, readOnly: true } : {})
+                                    })}
+                                >
+                                    <LinearGradient
+                                        colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']}
+                                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                                        style={{ borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10, alignItems: 'center', justifyContent: 'center', flex: 1 }}
+                                    >
+                                        <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold', fontSize: 14 }}>{activeTab === 'bids' ? 'Teklifi İncele' : 'Talebi İncele'}</Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
                             </View>
                         </View>
                     );

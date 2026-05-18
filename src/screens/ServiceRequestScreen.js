@@ -19,6 +19,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
 import { supabase } from '../lib/supabase';
 import { useTheme } from '../context/ThemeContext';
+import { BlurView } from 'expo-blur';
+import { CITIES_DISTRICTS, CITY_NAMES } from '../utils/cityData';
 
 function getTheme(theme) {
     const isDark = theme.isDarkMode;
@@ -43,10 +45,40 @@ export default function ServiceRequestScreen() {
     const { serviceTitle = 'Hizmet', tableName = 'law_requests' } = route.params || {};
 
     const [requestText, setRequestText] = useState('');
-    const [requestFile, setRequestFile] = useState(null);
+    const [requestFiles, setRequestFiles] = useState([]);
     const [phone, setPhone] = useState('');
     const [originalPhone, setOriginalPhone] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    // Lokasyon States
+    const [selectedCity, setSelectedCity] = useState('');
+    const [selectedDistrict, setSelectedDistrict] = useState('');
+    const [isRemote, setIsRemote] = useState(false); // Tüm Türkiye / Uzaktan
+    
+    // Modal States
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalType, setModalType] = useState('city'); // 'city' or 'district'
+    const [searchText, setSearchText] = useState('');
+
+    const filteredData = React.useMemo(() => {
+        const sourceData = modalType === 'city' ? CITY_NAMES : (CITIES_DISTRICTS[selectedCity] || []).sort((a,b) => a.localeCompare(b, 'tr'));
+        if (!searchText) return sourceData;
+        const normSearch = searchText.toLocaleLowerCase('tr').trim();
+        return sourceData.filter(item => item.toLocaleLowerCase('tr').includes(normSearch));
+    }, [modalType, selectedCity, searchText]);
+
+    const handleSelect = (item) => {
+        if (modalType === 'city') {
+            setSelectedCity(item);
+            setSelectedDistrict('');
+            setSearchText('');
+            setModalType('district');
+        } else {
+            setSelectedDistrict(item);
+            setSearchText('');
+            setModalVisible(false);
+        }
+    };
 
     useEffect(() => {
         fetchProfilePhone();
@@ -69,13 +101,17 @@ export default function ServiceRequestScreen() {
 
     const handlePickFile = async () => {
         try {
-            const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/png', 'image/jpeg'] });
+            const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/png', 'image/jpeg'], multiple: true });
             if (!res.canceled && res.assets && res.assets.length > 0) {
-                setRequestFile(res.assets[0]);
+                setRequestFiles(prev => [...prev, ...res.assets]);
             }
         } catch (e) {
             console.log(e);
         }
+    };
+
+    const handleRemoveFile = (index) => {
+        setRequestFiles(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async () => {
@@ -93,24 +129,24 @@ export default function ServiceRequestScreen() {
             const { data: { user }, error: authError } = await supabase.auth.getUser();
             if (authError || !user) throw new Error("Giriş yapmanız gerekiyor.");
 
-            let uploadedFileUrl = null;
-            if (requestFile) {
-                const fileExt = requestFile.name.split('.').pop();
-                const fileName = `${Date.now()}.${fileExt}`;
-                const filePath = `${tableName}/${user.id}/${fileName}`;
-                
-                const response = await fetch(requestFile.uri);
-                const blob = await response.blob();
-                
-                const { error: uploadError } = await supabase.storage
-                    .from('service_documents')
-                    .upload(filePath, blob);
+            let uploadedFileUrls = [];
+            if (requestFiles.length > 0) {
+                for (const file of requestFiles) {
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+                    const filePath = `${tableName}/${user.id}/${fileName}`;
                     
-                if (uploadError) {
-                    console.log("Upload Error:", uploadError);
-                } else {
-                    const { data: publicUrlData } = supabase.storage.from('service_documents').getPublicUrl(filePath);
-                    uploadedFileUrl = publicUrlData.publicUrl;
+                    const response = await fetch(file.uri);
+                    const blob = await response.blob();
+                    
+                    const { error: uploadError } = await supabase.storage
+                        .from('service_documents')
+                        .upload(filePath, blob);
+                        
+                    if (!uploadError) {
+                        const { data: publicUrlData } = supabase.storage.from('service_documents').getPublicUrl(filePath);
+                        uploadedFileUrls.push(publicUrlData.publicUrl);
+                    }
                 }
             }
 
@@ -118,7 +154,9 @@ export default function ServiceRequestScreen() {
                 user_id: user.id,
                 service_title: serviceTitle,
                 description: requestText,
-                file_urls: uploadedFileUrl ? [uploadedFileUrl] : [],
+                file_urls: uploadedFileUrls,
+                city: isRemote ? 'Tüm Türkiye' : selectedCity || null,
+                district: isRemote ? 'Uzaktan' : selectedDistrict || null,
                 status: 'pending'
             });
 
@@ -181,6 +219,51 @@ export default function ServiceRequestScreen() {
                             />
                         </View>
 
+                        <View style={{ marginTop: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <View>
+                                <Text allowFontScaling={false} style={[styles.label, { color: T.textPrimary, marginBottom: 2 }]}>Lokasyon Seçimi (İsteğe Bağlı)</Text>
+                                <Text allowFontScaling={false} style={[styles.labelSub, { color: T.textSecondary, marginBottom: 0 }]}>Hizmeti nerede almak istiyorsunuz?</Text>
+                            </View>
+                            <TouchableOpacity 
+                                onPress={() => { setIsRemote(!isRemote); if(!isRemote) { setSelectedCity(''); setSelectedDistrict(''); } }} 
+                                style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: isRemote ? T.goldPrimary + '22' : 'transparent', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: isRemote ? T.goldPrimary : T.border }}
+                            >
+                                <MaterialCommunityIcons name={isRemote ? "check-circle" : "checkbox-blank-circle-outline"} size={18} color={isRemote ? T.goldPrimary : T.textSecondary} />
+                                <Text allowFontScaling={false} style={{ color: isRemote ? T.goldPrimary : T.textSecondary, fontSize: 12, fontWeight: '600' }}>Uzaktan</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        {!isRemote && (
+                            <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
+                                <TouchableOpacity 
+                                    style={[styles.locationBtn, { borderColor: selectedCity ? T.goldPrimary : T.border, backgroundColor: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)' }]}
+                                    onPress={() => { setModalType('city'); setSearchText(''); setModalVisible(true); }}
+                                >
+                                    <View>
+                                        <Text allowFontScaling={false} style={{ color: T.textSecondary, fontSize: 10, fontWeight: '600', marginBottom: 2 }}>İl</Text>
+                                        <Text allowFontScaling={false} style={{ color: selectedCity ? T.textPrimary : T.textSecondary, fontSize: 14, fontWeight: selectedCity ? '700' : '400' }} numberOfLines={1}>
+                                            {selectedCity || 'Seçiniz'}
+                                        </Text>
+                                    </View>
+                                    <Ionicons name="chevron-down" size={16} color={T.textSecondary} />
+                                </TouchableOpacity>
+
+                                <TouchableOpacity 
+                                    style={[styles.locationBtn, { borderColor: selectedDistrict ? T.goldPrimary : T.border, backgroundColor: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)', opacity: selectedCity ? 1 : 0.5 }]}
+                                    onPress={() => { setModalType('district'); setSearchText(''); setModalVisible(true); }}
+                                    disabled={!selectedCity}
+                                >
+                                    <View>
+                                        <Text allowFontScaling={false} style={{ color: T.textSecondary, fontSize: 10, fontWeight: '600', marginBottom: 2 }}>İlçe</Text>
+                                        <Text allowFontScaling={false} style={{ color: selectedDistrict ? T.textPrimary : T.textSecondary, fontSize: 14, fontWeight: selectedDistrict ? '700' : '400' }} numberOfLines={1}>
+                                            {selectedDistrict || 'Seçiniz'}
+                                        </Text>
+                                    </View>
+                                    <Ionicons name="chevron-down" size={16} color={T.textSecondary} />
+                                </TouchableOpacity>
+                            </View>
+                        )}
+
                         <Text allowFontScaling={false} style={[styles.label, { color: T.textPrimary, marginTop: 24 }]}>Belge Yükle (İsteğe Bağlı)</Text>
                         <Text allowFontScaling={false} style={[styles.labelSub, { color: T.textSecondary }]}>Görsel veya PDF formatında destekleyici evrak yükleyebilirsiniz.</Text>
 
@@ -190,13 +273,29 @@ export default function ServiceRequestScreen() {
                             activeOpacity={0.7}
                         >
                             <View style={[styles.uploadIconWrap, { backgroundColor: T.goldPrimary + '15' }]}>
-                                <MaterialCommunityIcons name="cloud-upload-outline" size={28} color={T.goldPrimary} />
+                                <MaterialCommunityIcons name="cloud-upload-outline" size={24} color={T.goldPrimary} />
                             </View>
-                            <Text allowFontScaling={false} style={[styles.uploadMainText, { color: requestFile ? T.goldPrimary : T.textPrimary }]}>
-                                {requestFile ? requestFile.name : 'Dosya Seçmek İçin Tıklayın'}
-                            </Text>
-                            {!requestFile && <Text allowFontScaling={false} style={[styles.uploadSubText, { color: T.textSecondary }]}>PDF, PNG veya JPG (Maks. 10MB)</Text>}
+                            <View style={styles.uploadTextWrap}>
+                                <Text allowFontScaling={false} style={[styles.uploadMainText, { color: requestFiles.length > 0 ? T.goldPrimary : T.textPrimary }]} numberOfLines={1}>
+                                    {requestFiles.length > 0 ? `${requestFiles.length} Belge Seçildi (Daha Ekle)` : 'Dosya Seçmek İçin Tıklayın'}
+                                </Text>
+                                <Text allowFontScaling={false} style={[styles.uploadSubText, { color: T.textSecondary }]}>PDF, PNG veya JPG (Maks. 10MB)</Text>
+                            </View>
                         </TouchableOpacity>
+
+                        {requestFiles.length > 0 && (
+                            <View style={{ marginTop: 12, gap: 8 }}>
+                                {requestFiles.map((file, idx) => (
+                                    <View key={idx} style={[styles.fileChip, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)', borderColor: T.border }]}>
+                                        <Ionicons name="document-text-outline" size={16} color={T.textSecondary} style={{ marginRight: 8 }} />
+                                        <Text allowFontScaling={false} style={{ flex: 1, color: T.textPrimary, fontSize: 13 }} numberOfLines={1}>{file.name}</Text>
+                                        <TouchableOpacity onPress={() => handleRemoveFile(idx)} style={{ padding: 4 }}>
+                                            <Ionicons name="close-circle" size={18} color={T.textSecondary} />
+                                        </TouchableOpacity>
+                                    </View>
+                                ))}
+                            </View>
+                        )}
 
                         <Text allowFontScaling={false} style={[styles.label, { color: T.textPrimary, marginTop: 24 }]}>İletişim Numaranız</Text>
                         <Text allowFontScaling={false} style={[styles.labelSub, { color: T.textSecondary }]}>Uzmanlarımızın size ulaşabilmesi için gereklidir.</Text>
@@ -216,6 +315,56 @@ export default function ServiceRequestScreen() {
                         <View style={{ height: 30 }} />
                     </LinearGradient>
                 </ScrollView>
+
+                {/* LOCATION MODAL */}
+                {modalVisible && (
+                    <View style={StyleSheet.absoluteFill}>
+                        <BlurView intensity={isDarkMode ? 40 : 20} tint={isDarkMode ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+                        <View style={styles.modalContainer}>
+                            <View style={[styles.modalContent, { backgroundColor: T.cardBg[0], borderColor: T.border }]}>
+                                <View style={styles.modalHeader}>
+                                    <Text allowFontScaling={false} style={{ color: T.textPrimary, fontSize: 16, fontWeight: '700' }}>
+                                        {modalType === 'city' ? 'İl Seçimi' : 'İlçe Seçimi'}
+                                    </Text>
+                                    <TouchableOpacity onPress={() => setModalVisible(false)} style={{ padding: 4 }}>
+                                        <Ionicons name="close" size={24} color={T.textPrimary} />
+                                    </TouchableOpacity>
+                                </View>
+                                <View style={[styles.searchBox, { backgroundColor: isDarkMode ? '#111' : '#F5F5F5', borderColor: T.border }]}>
+                                    <Ionicons name="search" size={18} color={T.goldPrimary} style={{ marginLeft: 12 }} />
+                                    <TextInput
+                                        style={{ flex: 1, paddingHorizontal: 12, height: 44, color: T.textPrimary, fontSize: 14 }}
+                                        placeholder="Ara..."
+                                        placeholderTextColor={T.textSecondary}
+                                        value={searchText}
+                                        onChangeText={setSearchText}
+                                        autoCorrect={false}
+                                    />
+                                </View>
+                                <ScrollView style={{ flex: 1 }} keyboardShouldPersistTaps="handled">
+                                    {filteredData.map(item => {
+                                        const isSelected = modalType === 'city' ? selectedCity === item : selectedDistrict === item;
+                                        return (
+                                            <TouchableOpacity 
+                                                key={item} 
+                                                style={[styles.modalItem, { borderBottomColor: T.border }]} 
+                                                onPress={() => handleSelect(item)}
+                                            >
+                                                <Text allowFontScaling={false} style={{ color: isSelected ? T.goldPrimary : T.textPrimary, fontSize: 15, fontWeight: isSelected ? '700' : '500' }}>
+                                                    {item}
+                                                </Text>
+                                                {isSelected && <Ionicons name="checkmark-circle" size={20} color={T.goldPrimary} />}
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                    {filteredData.length === 0 && (
+                                        <Text allowFontScaling={false} style={{ color: T.textSecondary, textAlign: 'center', marginTop: 30, fontSize: 13 }}>Sonuç bulunamadı</Text>
+                                    )}
+                                </ScrollView>
+                            </View>
+                        </View>
+                    </View>
+                )}
 
                 {/* BOTTOM ACTION */}
                 <View style={[styles.bottomAction, { borderTopColor: T.border, backgroundColor: T.bg }]}>
@@ -251,11 +400,19 @@ const styles = StyleSheet.create({
     labelSub: { fontSize: 12, marginBottom: 16 },
     inputContainer: { borderRadius: 16, borderWidth: 1, overflow: 'hidden' },
     input: { minHeight: 140, padding: 16, fontSize: 15, lineHeight: 22 },
-    uploadBox: { borderRadius: 20, borderWidth: 1.5, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', paddingVertical: 30, paddingHorizontal: 20, backgroundColor: 'rgba(212,175,55,0.03)' },
-    uploadIconWrap: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
-    uploadMainText: { fontSize: 14, fontWeight: '600', marginBottom: 4, textAlign: 'center' },
+    locationBtn: { flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: 56, borderRadius: 16, borderWidth: 1, paddingHorizontal: 16 },
+    uploadBox: { borderRadius: 16, borderWidth: 1.5, borderStyle: 'dashed', flexDirection: 'row', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 16, backgroundColor: 'rgba(212,175,55,0.03)' },
+    uploadIconWrap: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
+    uploadTextWrap: { flex: 1, justifyContent: 'center' },
+    uploadMainText: { fontSize: 14, fontWeight: '600', marginBottom: 2 },
     uploadSubText: { fontSize: 11 },
+    fileChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 12, borderWidth: 1 },
     bottomAction: { paddingHorizontal: 16, paddingVertical: 16, borderTopWidth: 1, paddingBottom: Platform.OS === 'ios' ? 0 : 16 },
     submitBtn: { height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', shadowColor: '#D4AF37', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
     submitBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800', letterSpacing: 1 },
+    modalContainer: { flex: 1, justifyContent: 'flex-end', padding: 16, paddingBottom: Platform.OS === 'ios' ? 40 : 20 },
+    modalContent: { height: '80%', borderRadius: 24, borderWidth: 1, overflow: 'hidden', shadowColor: '#000', shadowOffset: {width: 0, height: -4}, shadowOpacity: 0.1, shadowRadius: 10, elevation: 10 },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)' },
+    searchBox: { flexDirection: 'row', alignItems: 'center', margin: 16, borderRadius: 12, borderWidth: 1 },
+    modalItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 20, borderBottomWidth: 0.5 },
 });
