@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     },
     backButton: { marginRight: 15 },
     headerTitle: { color: '#FFF', fontSize: 20, fontWeight: 'bold' },
-    content: { padding: 20 },
+    content: { padding: 20, paddingBottom: 120 },
     label: { color: '#FFD700', marginBottom: 8, marginTop: 15, fontWeight: 'bold' },
     input: {
         backgroundColor: '#1a1a1a',

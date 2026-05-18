@@ -32,8 +32,9 @@ export const PermissionService = {
                 return ['admin_all'];
             }
 
-            // Extract active services
-            const activeServices = data.companies?.[0]?.company_services
+            // Extract active services (handle both object and array response from Supabase)
+            const companyObj = Array.isArray(data.companies) ? data.companies[0] : data.companies;
+            const activeServices = companyObj?.company_services
                 ?.filter(s => s.status === 'active')
                 ?.map(s => s.service_type) || [];
 

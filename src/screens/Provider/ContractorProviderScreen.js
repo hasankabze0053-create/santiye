@@ -12,19 +12,30 @@ const { width } = Dimensions.get('window');
 export default function ContractorProviderScreen(props) {
     const navigationHook = useNavigation();
     const antigravityNav = navigationHook || props.navigation;
-    const { user } = useAuth();
+    const { user, profile } = useAuth();
     const [requests, setRequests] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('tenders'); // 'tenders' | 'bids' | 'won'
+    const [companyInfo, setCompanyInfo] = useState(null);
+
+    useEffect(() => {
+        const fetchCompany = async () => {
+            if (!user?.id) return;
+            const { supabase } = require('../../lib/supabase');
+            const { data } = await supabase.from('companies').select('company_name').eq('owner_id', user.id).single();
+            if (data) setCompanyInfo(data);
+        };
+        fetchCompany();
+    }, [user?.id]);
 
     // Dynamic Provider Info
+    const displayName = companyInfo?.company_name || profile?.full_name || 'İnşaat Firması';
     const providerInfo = {
-        name: user?.company_name || user?.full_name || 'İnşaat Firması',
-        rating: 4.8,
-        location: user?.city ? `${user.city}, TR` : 'Konum Belirtilmedi',
+        name: displayName,
+        location: profile?.city ? `${profile.city}, TR` : 'Türkiye',
         isVerified: true,
-        initials: (user?.company_name || user?.full_name || '??').substring(0, 2).toUpperCase()
+        initials: displayName.substring(0, 2).toUpperCase()
     };
 
     // API Timeout helper
@@ -263,10 +274,6 @@ export default function ContractorProviderScreen(props) {
                     {/* 2. STATS OVERVIEW */}
                     <View style={styles.statsRow}>
                         <View style={styles.statPill}>
-                            <Ionicons name="star" size={14} color="#D4AF37" />
-                            <Text allowFontScaling={false} style={styles.statTxt}>{providerInfo.rating} Puan</Text>
-                        </View>
-                        <View style={styles.statPill}>
                             <Ionicons name="location" size={14} color="#94a3b8" />
                             <Text allowFontScaling={false} style={styles.statTxt}>{providerInfo.location}</Text>
                         </View>
@@ -281,7 +288,7 @@ export default function ContractorProviderScreen(props) {
                             <Text allowFontScaling={false} style={[styles.msgTabTxt, activeTab === 'bids' && styles.msgTabTxtActive]}>TEKLİFLERİM</Text>
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => setActiveTab('won')} style={[styles.msgTab, activeTab === 'won' && styles.msgTabActive]}>
-                            <Text allowFontScaling={false} style={[styles.msgTabTxt, activeTab === 'won' && styles.msgTabTxtActive]}>KAZANILAN</Text>
+                            <Text allowFontScaling={false} style={[styles.msgTabTxt, activeTab === 'won' && styles.msgTabTxtActive]}>ARŞİVLENEN</Text>
                         </TouchableOpacity>
                     </View>
 

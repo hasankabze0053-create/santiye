@@ -235,6 +235,7 @@ export const ConstructionService = {
                 .select('*')
                 .eq('offer_type', 'anahtar_teslim_tadilat') // ONLY TADILAT
                 .in('status', ['pending', 'offers_received'])
+                .contains('assigned_provider_ids', [user.id]) // SADECE yönlendirilenler
                 .order('created_at', { ascending: false });
 
             if (bidRequestIds.length > 0) {
@@ -247,6 +248,7 @@ export const ConstructionService = {
                 .from('elevator_requests')
                 .select('*')
                 .in('status', ['pending', 'offers_received'])
+                .contains('assigned_provider_ids', [user.id]) // SADECE yönlendirilenler
                 .order('created_at', { ascending: false });
 
             const [res1, res2] = await Promise.all([query1, query2]);

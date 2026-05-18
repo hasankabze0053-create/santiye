@@ -1,187 +1,370 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import ProviderScaffold, { GlassCard, SectionTitle, THEME } from '../../components/ProviderScaffold';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Dimensions, RefreshControl, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ConstructionService } from '../../services/ConstructionService';
+import { useAuth } from '../../context/AuthContext';
 
-// Mock Gallery Images
-const PROJECT_IMGS = [
-    'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=200',
-    'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?q=80&w=200',
-    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=200',
-    'https://images.unsplash.com/photo-1600573472592-401b489a3cdc?q=80&w=200'
-];
+const { width } = Dimensions.get('window');
 
-export default function RenovationProviderScreen() {
-    const navigation = useNavigation();
+export default function RenovationProviderScreen(props) {
+    const navigationHook = useNavigation();
+    const antigravityNav = navigationHook || props.navigation;
+    const { user, profile } = useAuth();
     const [requests, setRequests] = useState([]);
+    const [refreshing, setRefreshing] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('tenders'); // 'tenders' | 'bids' | 'won'
+    const [companyInfo, setCompanyInfo] = useState(null);
 
     useEffect(() => {
-        fetchRequests();
-    }, []);
+        const fetchCompany = async () => {
+            if (!user?.id) return;
+            const { supabase } = require('../../lib/supabase');
+            const { data } = await supabase.from('companies').select('company_name').eq('owner_id', user.id).single();
+            if (data) setCompanyInfo(data);
+        };
+        fetchCompany();
+    }, [user?.id]);
 
-    const fetchRequests = async () => {
+    // Dynamic Provider Info
+    const displayName = companyInfo?.company_name || profile?.full_name || 'İnşaat Firması';
+    const providerInfo = {
+        name: displayName,
+        location: profile?.city ? `${profile.city}, TR` : 'Türkiye',
+        isVerified: true,
+        initials: displayName.substring(0, 2).toUpperCase()
+    };
+
+    // API Timeout helper
+    const fetchWithTimeout = async (promise, ms = 10000) => {
+        let timeoutId;
+        const timeoutPromise = new Promise((_, reject) => {
+            timeoutId = setTimeout(() => reject(new Error('İstek zaman aşımına uğradı. Lütfen internet bağlantınızı kontrol edin.')), ms);
+        });
         try {
-            setLoading(true);
-            const data = await ConstructionService.getOpenRequestsForArchitect();
+            const result = await Promise.race([promise, timeoutPromise]);
+            clearTimeout(timeoutId);
+            return result;
+        } catch (error) {
+            clearTimeout(timeoutId);
+            throw error;
+        }
+    };
+
+    const loadRequests = useCallback(async (isManual = false) => {
+        try {
+            if (isManual) setRefreshing(true);
+            else setLoading(true);
+            
+            let data = [];
+            if (activeTab === 'tenders') {
+                data = await fetchWithTimeout(ConstructionService.getOpenRequestsForArchitect());
+            } else if (activeTab === 'bids') {
+                data = await fetchWithTimeout(ConstructionService.getArchitectBids());
+            } else {
+                // won - future implementation
+                data = [];
+            }
             setRequests(data || []);
         } catch (error) {
-            console.error('Error fetching architect requests:', error);
+            console.warn('RenovationProviderScreen loadRequests error:', error);
+            // Professional UX: Do not wipe existing data on refresh timeout.
+            setRequests(prev => {
+                if (prev.length > 0) {
+                    if (isManual) {
+                        Alert.alert('Bağlantı Hatası', 'Veriler güncellenirken sunucuya ulaşılamadı. Lütfen internetinizi kontrol edin. Mevcut veriler gösterilmeye devam ediyor.');
+                    }
+                    return prev; // Keep old data
+                }
+                // Only show empty state if we had nothing to begin with
+                return []; 
+            });
         } finally {
+            setRefreshing(false);
             setLoading(false);
         }
-    };
+    }, [activeTab]);
 
-    const renderRequestItem = (item) => {
-        const hasPhotos = item.document_urls && item.document_urls.length > 0;
+    useEffect(() => {
+        let isActive = true;
+        
+        const initFetch = async () => {
+            if (isActive) {
+                await loadRequests(false);
+            }
+        };
+        
+        initFetch();
+        
+        return () => {
+            isActive = false;
+        };
+    }, [loadRequests]);
 
-        let projeTipi = 'Anahtar Teslim Tadilat';
-        const isElevator = item.fault_type || item._tableName === 'elevator_requests';
+    const renderTendersTab = () => (
+        <View style={styles.tabContent}>
+            <View style={styles.feedHeader}>
+                <Text allowFontScaling={false} style={styles.feedTitle}>
+                    {activeTab === 'tenders' ? `GELEN TALEPLER (${requests.length})` : `VERİLEN TEKLİFLER (${requests.length})`}
+                </Text>
+                <TouchableOpacity onPress={() => loadRequests(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, padding: 8 }}>
+                    <Ionicons name="refresh" size={16} color="#94a3b8" />
+                    <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 13, fontWeight: '500' }}>Yenile</Text>
+                </TouchableOpacity>
+            </View>
 
-        if (isElevator) {
-            projeTipi = 'Asansör Arıza & Bakım';
-        } else if (item.description && item.description.includes('PROJE TİPİ:')) {
-            projeTipi = item.description.split('PROJE TİPİ:')[1].split('\n')[0].trim();
-        }
-
-        return (
-            <View key={item.id} style={{ backgroundColor: '#161616', borderRadius: 14, borderWidth: 1, borderColor: '#2A2A2A', padding: 16, marginBottom: 16, flexDirection: 'row', gap: 16 }}>
-                {/* Left Avatar (Premium Solid Gradient-like or darker gold) */}
-                <LinearGradient
-                    colors={['#8C6A30', '#D4AF37', '#8C6A30']}
-                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                    style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' }}
-                >
-                    <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>
-                        {item.user_id ? item.user_id.substring(0,2).toUpperCase() : 'M'}
+            {loading ? (
+                <View style={{ padding: 40, alignItems: 'center' }}>
+                    <ActivityIndicator size="large" color="#D4AF37" />
+                </View>
+            ) : requests.length === 0 ? (
+                <View style={styles.emptyState}>
+                    <MaterialCommunityIcons name={activeTab === 'tenders' ? "home-city-outline" : "file-document-edit-outline"} size={56} color="#334155" />
+                    <Text allowFontScaling={false} style={styles.emptyText}>
+                        {activeTab === 'tenders' ? 'Aktif tadilat talebi bulunmuyor.' : 'Henüz bir teklif vermediniz.'}
                     </Text>
-                </LinearGradient>
+                    {activeTab === 'tenders' && <Text allowFontScaling={false} style={styles.emptySub}>Yeni projeler eklendiğinde burada görünecek.</Text>}
+                </View>
+            ) : (
+                requests.map((item, index) => (
+                    <LinearGradient
+                        key={`${item.id}-${index}`}
+                        colors={['rgba(30, 41, 59, 0.6)', 'rgba(15, 23, 42, 0.8)']}
+                        style={styles.leadCard}
+                    >
+                        {/* 1. STATUS TAGS */}
+                        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
+                            <View style={[styles.tagBadge, activeTab === 'bids' && { backgroundColor: 'rgba(212, 175, 55, 0.1)' }]}>
+                                <View style={[styles.statusDot, activeTab === 'bids' && { backgroundColor: '#D4AF37' }]} />
+                                <Text allowFontScaling={false} style={[styles.tagText, activeTab === 'bids' && { color: '#D4AF37' }]}>
+                                    {activeTab === 'bids'
+                                        ? (item.my_offers && item.my_offers.length > 0
+                                            ? (item.my_offers[0].status === 'approved' ? 'ONAYLANDI' : (item.my_offers[0].status === 'rejected' ? 'REDDEDİLDİ' : 'DEĞERLENDİRİLİYOR'))
+                                            : 'DURUM BELİRSİZ')
+                                        : 'TEKLİF BEKLİYOR'}
+                                </Text>
+                            </View>
+                            <View style={[styles.timerTag, { marginLeft: 'auto' }]}>
+                                <Ionicons name="calendar" size={12} color="#94a3b8" />
+                                <Text allowFontScaling={false} style={styles.timerText}>{new Date(item.created_at).toLocaleDateString('tr-TR')}</Text>
+                            </View>
+                        </View>
 
-                {/* Right Content */}
-                <View style={{ flex: 1, justifyContent: 'center' }}>
-                    <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16, marginBottom: 8 }}>
-                        {projeTipi}
-                    </Text>
+                        {/* 2. PROJECT INFO */}
+                        <View style={{ marginBottom: 20 }}>
+                            <Text allowFontScaling={false} style={styles.leadTitle}>Tadilat Talebi</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                                <Ionicons name="location-sharp" size={14} color="#94a3b8" />
+                                <Text allowFontScaling={false} style={styles.leadSub}>{item.city} / {item.district}</Text>
+                            </View>
+                        </View>
 
-                    {/* Location Info */}
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-                        <Ionicons name="location" size={14} color="#D4AF37" />
-                        <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 12, fontWeight: '600' }}>
-                            {item.city || 'Belirtilmedi'} • {item.district || ''}
-                        </Text>
-                    </View>
+                        {/* 3. DETAILS ROW (Premium Chips) */}
+                        <View style={styles.detailBox}>
+                            <View style={styles.detailRow}>
+                                <View style={styles.detailIcon}>
+                                    <MaterialCommunityIcons name="home-group" size={18} color="#D4AF37" />
+                                </View>
+                                <View>
+                                    <Text allowFontScaling={false} style={styles.detailLabel}>HİZMET TİPİ</Text>
+                                    <Text allowFontScaling={false} style={styles.detailValue}>
+                                        {(item._tableName === 'elevator_requests' || item.fault_type) 
+                                            ? 'Asansör Arıza & Bakım' 
+                                            : 'Anahtar Teslim Tadilat'}
+                                    </Text>
+                                </View>
+                            </View>
+                            <View style={styles.hDivider} />
 
-                    {/* Actions Area */}
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
-                        {hasPhotos && (
-                            <TouchableOpacity 
-                                style={{ borderWidth: 1, borderColor: '#3A3A3C', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, justifyContent: 'center' }}
-                                onPress={() => navigation.navigate('ArchitectRequestDetail', { request: item })}
-                            >
-                                <Text allowFontScaling={false} style={{ color: '#E5E5EA', fontSize: 13 }}>Fotoğraflar</Text>
-                            </TouchableOpacity>
-                        )}
-                        <TouchableOpacity 
-                            style={{ flex: 1 }}
-                            onPress={() => navigation.navigate('ArchitectRequestDetail', { request: item })}
+                            <View style={styles.detailRow}>
+                                <View style={styles.detailIcon}>
+                                    <MaterialCommunityIcons name="file-document-outline" size={18} color="#D4AF37" />
+                                </View>
+                                <View>
+                                    <Text allowFontScaling={false} style={styles.detailLabel}>{activeTab === 'bids' ? 'SON TEKLİFİNİZ' : 'DURUM'}</Text>
+                                    <Text allowFontScaling={false} style={styles.detailValue}>
+                                        {activeTab === 'bids'
+                                            ? (item.my_offers && item.my_offers.length > 0
+                                                ? (item.my_offers[0].price_estimate ? item.my_offers[0].price_estimate.toLocaleString('tr-TR') + ' ₺' : 'Anahtar Teslim')
+                                                : 'Belirtilmedi')
+                                            : 'Aktif'}
+                                    </Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* 4. ACTIONS */}
+                        <TouchableOpacity
+                            style={styles.bidButton}
+                            activeOpacity={0.8}
+                            onPress={() => antigravityNav.navigate(activeTab === 'bids' ? 'OfferDetail' : 'RequestDetail', {
+                                request: item,
+                                request_id: item.id,
+                                contractor_id: item.my_offers?.[0]?.contractor_id,
+                                type: 'construction',
+                                ...(activeTab === 'bids' ? { offers: item.my_offers, readOnly: true } : {}) // Pass ALL offers for this request
+                            })}
                         >
                             <LinearGradient
-                                colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']}
+                                colors={['#D4AF37', '#FDCB58']} // Gold Gradient
                                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                                style={{ borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', flex: 1 }}
+                                style={styles.gradientBtn}
                             >
-                                <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold', fontSize: 13 }}>Talebi İncele</Text>
+                                <Text allowFontScaling={false} style={styles.bidButtonText}>{activeTab === 'bids' ? 'TEKLİFİ İNCELE' : 'DETAY EKRANINA GİT'}</Text>
+                                <MaterialCommunityIcons name="arrow-right" size={20} color="#000" />
                             </LinearGradient>
                         </TouchableOpacity>
-                    </View>
-                </View>
-            </View>
-        );
-    };
+
+                    </LinearGradient>
+                ))
+            )}
+        </View>
+    );
 
     return (
-        <ProviderScaffold title="Mimar Ofisi">
+        <View style={styles.container}>
+            <StatusBar barStyle="light-content" />
 
-            {/* 1. PROJECT GALLERY */}
-            <SectionTitle title="PROJE GALERİSİ" actionText="Düzenle" />
-            <GlassCard>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <TouchableOpacity style={styles.addBtn}>
-                        <Ionicons name="add" size={32} color="#666" />
-                        <Text allowFontScaling={false} style={{ color: '#666', fontSize: 10, marginTop: 4 }}>Yükle</Text>
-                    </TouchableOpacity>
-                    {PROJECT_IMGS.map((uri, idx) => (
-                        <Image key={idx} source={{ uri }} style={styles.galleryImg} />
-                    ))}
+            {/* Deep Dark Background */}
+            <View style={{ position: 'absolute', width, height: '100%', backgroundColor: '#000000' }} />
+            <LinearGradient
+                colors={['#1a1a1a', '#000000']}
+                style={StyleSheet.absoluteFillObject}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            />
+
+            <SafeAreaView style={{ flex: 1 }}>
+                <ScrollView
+                    contentContainerStyle={{ paddingBottom: 40 }}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadRequests(true)} tintColor="#D4AF37" />}
+                >
+                    {/* 1. HEADER */}
+                    <View style={styles.header}>
+                        <View style={styles.profileRow}>
+                            <View style={styles.avatar}>
+                                <Text allowFontScaling={false} style={styles.avatarTxt}>{providerInfo.initials}</Text>
+                            </View>
+                            <View>
+                                <Text allowFontScaling={false} style={styles.welcome}>Hoşgeldin,</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                    <Text allowFontScaling={false} style={styles.companyName}>{providerInfo.name}</Text>
+                                    <MaterialCommunityIcons name="check-decagram" size={16} color="#D4AF37" />
+                                </View>
+                            </View>
+                        </View>
+                        <View style={styles.headerActions}>
+                            <TouchableOpacity 
+                                style={styles.iconBtn} 
+                                onPress={() => antigravityNav.reset({ index: 0, routes: [{ name: 'MainTabs' }] })}
+                            >
+                                <Ionicons name="home-outline" size={22} color="#D4AF37" />
+                            </TouchableOpacity>
+                            
+                            <TouchableOpacity style={[styles.iconBtn, { marginTop: 12 }]}>
+                                <Ionicons name="notifications-outline" size={22} color="#e2e8f0" />
+                                <View style={styles.badgeDot} />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    {/* 2. STATS OVERVIEW */}
+                    <View style={styles.statsRow}>
+                        <View style={styles.statPill}>
+                            <Ionicons name="location" size={14} color="#94a3b8" />
+                            <Text allowFontScaling={false} style={styles.statTxt}>{providerInfo.location}</Text>
+                        </View>
+                    </View>
+
+                    {/* 3. TABS */}
+                    <View style={styles.msgTabs}>
+                        <TouchableOpacity onPress={() => setActiveTab('tenders')} style={[styles.msgTab, activeTab === 'tenders' && styles.msgTabActive]}>
+                            <Text allowFontScaling={false} style={[styles.msgTabTxt, activeTab === 'tenders' && styles.msgTabTxtActive]}>İHALELER</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => setActiveTab('bids')} style={[styles.msgTab, activeTab === 'bids' && styles.msgTabActive]}>
+                            <Text allowFontScaling={false} style={[styles.msgTabTxt, activeTab === 'bids' && styles.msgTabTxtActive]}>TEKLİFLERİM</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => setActiveTab('won')} style={[styles.msgTab, activeTab === 'won' && styles.msgTabActive]}>
+                            <Text allowFontScaling={false} style={[styles.msgTabTxt, activeTab === 'won' && styles.msgTabTxtActive]}>ARŞİVLENEN</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* 4. CONTENT */}
+                    {(activeTab === 'tenders' || activeTab === 'bids') ? renderTendersTab() : (
+                        <View style={styles.emptyState}>
+                            <MaterialCommunityIcons name="lock-outline" size={48} color="#334155" />
+                            <Text allowFontScaling={false} style={styles.emptyText}>Bu özellik yakında aktif olacak.</Text>
+                        </View>
+                    )}
+
                 </ScrollView>
-                <View style={styles.statsRow}>
-                    <Text allowFontScaling={false} style={styles.statText}>12 Aktif Proje</Text>
-                    <Text allowFontScaling={false} style={styles.statText}>4.8 ★ Puan</Text>
-                </View>
-            </GlassCard>
-
-            {/* 2. DESIGN REQUESTS */}
-            <SectionTitle title="TASARIM TALEPLERİ" actionText={`Tümü (${requests.length})`} />
-            
-            <View style={{ marginTop: 8 }}>
-                {loading ? (
-                    <ActivityIndicator size="small" color="#FFD700" style={{ padding: 20 }} />
-                ) : requests.length > 0 ? (
-                    requests.map(req => renderRequestItem(req))
-                ) : (
-                    <Text allowFontScaling={false} style={{ color: '#666', textAlign: 'center', marginVertical: 20 }}>Henüz aktif talep bulunmuyor.</Text>
-                )}
-            </View>
-
-            {/* 3. TIMELINE */}
-            <SectionTitle title="PROJE TAKVİMİ" />
-            <GlassCard>
-                <View style={styles.timelineRow}>
-                    <View style={styles.timelineDotActive} />
-                    <View style={{ flex: 1, marginLeft: 12 }}>
-                        <Text allowFontScaling={false} style={styles.timelineTime}>Bugün, 14:00</Text>
-                        <Text allowFontScaling={false} style={styles.timelineTitle}>Kadiköy Villa - Keşif Randevusu</Text>
-                    </View>
-                </View>
-                <View style={styles.timelineLine} />
-                <View style={styles.timelineRow}>
-                    <View style={styles.timelineDot} />
-                    <View style={{ flex: 1, marginLeft: 12 }}>
-                        <Text allowFontScaling={false} style={styles.timelineTime}>Yarın, 10:00</Text>
-                        <Text allowFontScaling={false} style={styles.timelineTitle}>Maltepe Ofis - Proje Teslimi</Text>
-                    </View>
-                </View>
-            </GlassCard>
-
-        </ProviderScaffold>
+            </SafeAreaView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
-    addBtn: { width: 80, height: 80, borderRadius: 12, borderWidth: 1, borderColor: '#333', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
-    galleryImg: { width: 80, height: 80, borderRadius: 12, marginRight: 10 },
-    statsRow: { flexDirection: 'row', gap: 16, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#27272a' },
-    statText: { color: '#ccc', fontSize: 12, fontWeight: '600' },
+    container: { flex: 1, backgroundColor: '#000' },
 
-    // Request
-    requestItem: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 4 },
-    userAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: THEME.accent, alignItems: 'center', justifyContent: 'center' },
-    reqHeader: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
-    reqBody: { color: '#888', fontSize: 12, marginTop: 2 },
-    outlineBtn: { borderWidth: 1, borderColor: '#444', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
-    outlineBtnText: { color: '#ccc', fontSize: 11 },
-    fillBtn: { backgroundColor: THEME.accent, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
-    fillBtnText: { color: '#000', fontSize: 11, fontWeight: 'bold' },
-    divider: { height: 1, backgroundColor: '#27272a', marginVertical: 16 },
+    // Header
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, marginBottom: 16 },
+    profileRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    avatar: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#262626', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333' },
+    avatarTxt: { color: '#D4AF37', fontSize: 16, fontWeight: '800' },
+    welcome: { color: '#a3a3a3', fontSize: 13 },
+    companyName: { color: '#fff', fontSize: 17, fontWeight: '700' },
+    iconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: '#333' },
+    badgeDot: { position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444', borderWidth: 1, borderColor: '#000' },
+    headerActions: { alignItems: 'center' },
 
-    // Timeline
-    timelineRow: { flexDirection: 'row', alignItems: 'center' },
-    timelineDotActive: { width: 12, height: 12, borderRadius: 6, backgroundColor: THEME.accent, borderWidth: 2, borderColor: 'rgba(255, 215, 0, 0.3)' },
-    timelineDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#444' },
-    timelineLine: { height: 20, width: 2, backgroundColor: '#333', marginLeft: 5, marginVertical: 4 },
-    timelineTime: { color: THEME.accent, fontSize: 11, fontWeight: 'bold' },
-    timelineTitle: { color: '#fff', fontSize: 13 }
+    statsRow: { flexDirection: 'row', paddingHorizontal: 20, gap: 10, marginBottom: 24 },
+    statPill: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(212, 175, 55, 0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.2)' },
+    statTxt: { color: '#e5e5e5', fontSize: 13, fontWeight: '500' },
+
+    // Tabs
+    msgTabs: { flexDirection: 'row', marginHorizontal: 20, marginBottom: 20, borderBottomWidth: 1, borderBottomColor: '#262626' },
+    msgTab: { paddingBottom: 12, marginRight: 24, paddingHorizontal: 4 },
+    msgTabActive: { borderBottomWidth: 2, borderBottomColor: '#D4AF37' },
+    msgTabTxt: { color: '#737373', fontSize: 14, fontWeight: 'bold', letterSpacing: 0.5 },
+    msgTabTxtActive: { color: '#D4AF37' },
+
+    // Feed
+    tabContent: { paddingHorizontal: 20 },
+    feedHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+    feedTitle: { color: '#e5e5e5', fontSize: 14, fontWeight: '700', letterSpacing: 1 },
+
+    // Card
+    leadCard: { padding: 20, borderRadius: 20, marginBottom: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+
+    // Status Tag
+    tagBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(212, 175, 55, 0.15)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, alignSelf: 'flex-start' },
+    statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#D4AF37' },
+    tagText: { color: '#D4AF37', fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
+
+    timerTag: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    timerText: { color: '#94a3b8', fontSize: 12, fontWeight: '500' },
+
+    leadTitle: { color: '#fff', fontSize: 18, fontWeight: '800', marginBottom: 4, letterSpacing: 0.5 },
+    leadSub: { color: '#cbd5e1', fontSize: 14, fontWeight: '500' },
+
+    // Details Box
+    detailBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12, padding: 12, marginBottom: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+    detailRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
+    detailIcon: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(212, 175, 55, 0.1)', borderRadius: 10 },
+    detailLabel: { color: '#64748b', fontSize: 10, fontWeight: '800', letterSpacing: 0.5, marginBottom: 2 },
+    detailValue: { color: '#e2e8f0', fontSize: 14, fontWeight: '700' },
+    hDivider: { width: 1, height: '80%', backgroundColor: 'rgba(255,255,255,0.1)', marginHorizontal: 10 },
+
+    // Button
+    bidButton: { borderRadius: 14, overflow: 'hidden', shadowColor: '#D4AF37', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 },
+    gradientBtn: { paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+    bidButtonText: { color: '#000', fontSize: 14, fontWeight: '900', letterSpacing: 0.5 },
+
+    // Empty State
+    emptyState: { alignItems: 'center', justifyContent: 'center', padding: 40, opacity: 0.7, minHeight: 300 },
+    emptyText: { color: '#d4d4d4', fontSize: 16, fontWeight: '600', marginBottom: 6, marginTop: 16 },
+    emptySub: { color: '#737373', fontSize: 13, textAlign: 'center' },
 });

@@ -151,7 +151,9 @@ export default function ServiceRequestScreen() {
                     </TouchableOpacity>
                     <View style={styles.headerCenter}>
                         <Text allowFontScaling={false} style={[styles.headerTitle, { color: T.textPrimary }]}>Yeni Talep</Text>
-                        <Text allowFontScaling={false} style={[styles.headerSub, { color: T.goldPrimary }]}>{serviceTitle}</Text>
+                        <Text allowFontScaling={false} style={[styles.headerSub, { color: T.goldPrimary }]} numberOfLines={1} adjustsFontSizeToFit>
+                            {serviceTitle.replace(/\n/g, ' ')}
+                        </Text>
                     </View>
                     <View style={{ width: 44 }} />
                 </View>

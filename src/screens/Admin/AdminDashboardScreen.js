@@ -1021,14 +1021,21 @@ const AdminDashboardScreen = () => {
 
             if (error) throw error;
 
-            Alert.alert('Başarılı', `${user.full_name || user.email} onaylandı. ✅`);
+            // Modal'ın kapanma animasyonu (300ms) ile çakışmaması için Alert'i biraz geciktiriyoruz.
+            // Bu sayede iOS/Android UI thread kilitlenmesi (donma) önlenir.
+            setTimeout(() => {
+                Alert.alert('Başarılı', `${user.full_name || user.email} onaylandı. ✅`);
+            }, 500);
+
             // Optimistic Update
             setUsers(prev => prev.map(u => u.id === user.id ? { ...u, approval_status: 'approved', rejection_reason: null } : u));
             
             // Log the action
             await logAdminAction(user.id, 'APPROVE_USER', { previous_status: user.approval_status });
         } catch (err) {
-            Alert.alert('Hata', 'Onaylama başarısız: ' + err.message);
+            setTimeout(() => {
+                Alert.alert('Hata', 'Onaylama başarısız: ' + err.message);
+            }, 500);
         }
     };
 

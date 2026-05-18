@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert, Dimensions, Modal, RefreshControl, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MarketService } from '../../services/MarketService';
+import { useAuth } from '../../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
@@ -19,7 +20,19 @@ const TERMS_OPTIONS = ['EFT', 'Kredi Kartı'];
 
 export default function MarketProviderScreen() {
     const navigation = useNavigation();
+    const { user, profile } = useAuth();
     const [activeTab, setActiveTab] = useState('leads'); // 'leads' | 'bids'
+    const [companyInfo, setCompanyInfo] = useState(null);
+
+    useEffect(() => {
+        const fetchCompany = async () => {
+            if (!user?.id) return;
+            const { supabase } = require('../../lib/supabase');
+            const { data } = await supabase.from('companies').select('company_name').eq('owner_id', user.id).single();
+            if (data) setCompanyInfo(data);
+        };
+        fetchCompany();
+    }, [user?.id]);
 
     // Data
     const [requests, setRequests] = useState([]);
@@ -62,11 +75,12 @@ export default function MarketProviderScreen() {
     const [serviceRadius, setServiceRadius] = useState(30); // km for concrete
     const [shippingScope, setShippingScope] = useState('city'); // 'district', 'city', 'country'
 
+    const displayName = companyInfo?.company_name || profile?.full_name || 'Tedarikçi';
     const sellerInfo = {
-        name: 'Demir Dünyası A.Ş.',
-        rating: 4.9,
-        location: 'Avrupa Yakası',
-        isVerified: true
+        name: displayName,
+        location: profile?.city ? `${profile.city}, TR` : 'Türkiye',
+        isVerified: true,
+        initials: displayName.substring(0, 2).toUpperCase()
     };
 
     useFocusEffect(
@@ -297,11 +311,11 @@ export default function MarketProviderScreen() {
     };
 
     const handleArchive = (reqId) => {
-        Alert.alert("Emin misiniz?", "Bu talebi pas geçmek istiyor musunuz?", [
+        Alert.alert("Arşive Taşı", "Bu talebi daha sonra incelemek veya teklif vermek üzere arşivinize taşımak istediğinizden emin misiniz?", [
             { text: "Vazgeç", style: "cancel" },
             {
-                text: "Pas Geç",
-                style: "destructive",
+                text: "Arşivle",
+                style: "default",
                 onPress: () => {
                     setArchivedRequests(prev => [...prev, reqId]);
                     // Here you would optimally duplicate this logic in backend or async storage
@@ -868,7 +882,7 @@ export default function MarketProviderScreen() {
                     <View style={styles.header}>
                         <View style={styles.profileRow}>
                             <View style={styles.avatar}>
-                                <Text allowFontScaling={false} style={styles.avatarTxt}>DD</Text>
+                                <Text allowFontScaling={false} style={styles.avatarTxt}>{sellerInfo.initials}</Text>
                             </View>
                             <View>
                                 <Text allowFontScaling={false} style={styles.welcome}>Hoşgeldin,</Text>
@@ -886,21 +900,9 @@ export default function MarketProviderScreen() {
                     {/* 2. STATS OVERVIEW */}
                     <View style={styles.statsRow}>
                         <View style={styles.statPill}>
-                            <Ionicons name="star" size={14} color="#FFD700" />
-                            <Text allowFontScaling={false} style={styles.statTxt}>{sellerInfo.rating} Puan</Text>
-                        </View>
-                        <View style={styles.statPill}>
                             <Ionicons name="location" size={14} color="#94a3b8" />
                             <Text allowFontScaling={false} style={styles.statTxt}>{sellerInfo.location}</Text>
                         </View>
-                    </View>
-
-                    {/* 3. CONTROL CENTER */}
-                    <View style={styles.controlsGrid}>
-                        <ControlButton icon="plus" label="Ürün Ekle" color="#4ADE80" onPress={() => { }} />
-                        <ControlButton icon="file-document-outline" label="Geçmiş" color="#f472b6" onPress={() => { }} />
-                        <ControlButton icon="clock-outline" label="Bekleyen" count={3} color="#fbbf24" onPress={() => setActiveTab('bids')} />
-                        <ControlButton icon="store-marker-outline" label="Bölge" color="#94a3b8" onPress={() => setRegionModalVisible(true)} />
                     </View>
 
                     {/* 4. TABS */}
