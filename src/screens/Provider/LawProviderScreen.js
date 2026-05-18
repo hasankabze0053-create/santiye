@@ -40,7 +40,7 @@ export default function LawProviderScreen() {
             const { supabase } = require('../../lib/supabase');
             const { data, error } = await supabase
                 .from('law_requests')
-                .select('*, profiles:user_id(full_name)')
+                .select('*, profiles:user_id(full_name, phone, email)')
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -51,6 +51,8 @@ export default function LawProviderScreen() {
                     user_name: req.profiles?.full_name || 'Kullanıcı',
                     created_at: req.created_at,
                     service_type: req.service_title || 'Genel Hukuk Talebi',
+                    user_phone: req.profiles?.phone || '',
+                    user_email: req.profiles?.email || '',
                     description: req.description,
                     has_documents: req.file_urls && req.file_urls.length > 0,
                     status: req.status || 'pending',
@@ -131,10 +133,7 @@ export default function LawProviderScreen() {
                         <TouchableOpacity
                             style={styles.bidButton}
                             activeOpacity={0.8}
-                            onPress={() => {
-                                // Navigate to a detailed view (to be built or mapped later)
-                                // navigation.navigate('RequestDetail', { request: item });
-                            }}
+                            onPress={() => navigation.navigate('LawRequestDetail', { request: item })}
                         >
                             <LinearGradient
                                 colors={['#1c1c1e', '#0a0a0c']} // Dark metallic premium theme

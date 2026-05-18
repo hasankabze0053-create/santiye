@@ -9,7 +9,8 @@ import {
     ActivityIndicator,
     ScrollView,
     StatusBar,
-    Platform
+    Platform,
+    KeyboardAvoidingView
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -159,7 +160,11 @@ export default function ServiceRequestScreen() {
                 </View>
 
                 {/* CONTENT */}
-                <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+                <KeyboardAvoidingView 
+                    style={{ flex: 1 }} 
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                >
+                    <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
                     <LinearGradient colors={T.cardBg} style={styles.card} borderRadius={24}>
                         <Text allowFontScaling={false} style={[styles.label, { color: T.textPrimary }]}>Talebinizi Detaylandırın</Text>
                         <Text allowFontScaling={false} style={[styles.labelSub, { color: T.textSecondary }]}>Bu hizmet kapsamında ihtiyacınız olan desteği açıklayın.</Text>
@@ -226,6 +231,7 @@ export default function ServiceRequestScreen() {
                         )}
                     </TouchableOpacity>
                 </View>
+                </KeyboardAvoidingView>
 
             </SafeAreaView>
         </View>

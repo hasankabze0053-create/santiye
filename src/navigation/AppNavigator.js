@@ -65,6 +65,7 @@ import ChatScreen from '../screens/Messages/ChatScreen';
 import ArchitectRequestDetailScreen from '../screens/Provider/ArchitectRequestDetailScreen';
 import ContractorProviderScreen from '../screens/Provider/ContractorProviderScreen';
 import LawProviderScreen from '../screens/Provider/LawProviderScreen';
+import LawRequestDetailScreen from '../screens/Provider/LawRequestDetailScreen';
 import LogisticsProviderScreen from '../screens/Provider/LogisticsProviderScreen';
 import MachineryProviderScreen from '../screens/Provider/MachineryProviderScreen';
 import MarketProviderScreen from '../screens/Provider/MarketProviderScreen';
@@ -438,7 +439,7 @@ export default function AppNavigator() {
 
             <Stack.Screen name="ContractorRequests" component={ContractorRequestsScreen} />
             <Stack.Screen name="ContractorRequestDetail" component={ContractorRequestDetailScreen} />
-            <Stack.Screen name="ArchitectRequestDetail" component={ArchitectRequestDetailScreen} />
+            <Stack.Screen name="ArchitectRequestDetail" component={ArchitectRequestDetailScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
             <Stack.Screen name="UserRequests" component={UserRequestsScreen} />
             <Stack.Screen name="OfferDetail" component={OfferDetailScreen} options={{ headerShown: false }} />
             <Stack.Screen name="OfferSuccess" component={OfferSuccessScreen} options={{ headerShown: false }} />
@@ -459,6 +460,7 @@ export default function AppNavigator() {
             <Stack.Screen name="LogisticsProvider" component={LogisticsProviderScreen} />
             <Stack.Screen name="ContractorProvider" component={ContractorProviderScreen} />
             <Stack.Screen name="LawProvider" component={LawProviderScreen} />
+            <Stack.Screen name="LawRequestDetail" component={LawRequestDetailScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
             <Stack.Screen name="TechnicalProvider" component={TechnicalProviderScreen} />
 
             {/* Authentication & Onboarding (Root Level) */}
