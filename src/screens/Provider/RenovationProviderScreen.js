@@ -129,97 +129,77 @@ export default function RenovationProviderScreen(props) {
                     {activeTab === 'tenders' && <Text allowFontScaling={false} style={styles.emptySub}>Yeni projeler eklendiğinde burada görünecek.</Text>}
                 </View>
             ) : (
-                requests.map((item, index) => (
-                    <LinearGradient
-                        key={`${item.id}-${index}`}
-                        colors={['rgba(30, 41, 59, 0.6)', 'rgba(15, 23, 42, 0.8)']}
-                        style={styles.leadCard}
-                    >
-                        {/* 1. STATUS TAGS */}
-                        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
-                            <View style={[styles.tagBadge, activeTab === 'bids' && { backgroundColor: 'rgba(212, 175, 55, 0.1)' }]}>
-                                <View style={[styles.statusDot, activeTab === 'bids' && { backgroundColor: '#D4AF37' }]} />
-                                <Text allowFontScaling={false} style={[styles.tagText, activeTab === 'bids' && { color: '#D4AF37' }]}>
-                                    {activeTab === 'bids'
-                                        ? (item.my_offers && item.my_offers.length > 0
-                                            ? (item.my_offers[0].status === 'approved' ? 'ONAYLANDI' : (item.my_offers[0].status === 'rejected' ? 'REDDEDİLDİ' : 'DEĞERLENDİRİLİYOR'))
-                                            : 'DURUM BELİRSİZ')
-                                        : 'TEKLİF BEKLİYOR'}
-                                </Text>
-                            </View>
-                            <View style={[styles.timerTag, { marginLeft: 'auto' }]}>
-                                <Ionicons name="calendar" size={12} color="#94a3b8" />
-                                <Text allowFontScaling={false} style={styles.timerText}>{new Date(item.created_at).toLocaleDateString('tr-TR')}</Text>
-                            </View>
-                        </View>
+                requests.map((item, index) => {
+                    const projeTipi = (item._tableName === 'elevator_requests' || item.fault_type) 
+                        ? 'Asansör Arıza & Bakım' 
+                        : 'Tadilat Talebi';
 
-                        {/* 2. PROJECT INFO */}
-                        <View style={{ marginBottom: 20 }}>
-                            <Text allowFontScaling={false} style={styles.leadTitle}>Tadilat Talebi</Text>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                                <Ionicons name="location-sharp" size={14} color="#94a3b8" />
-                                <Text allowFontScaling={false} style={styles.leadSub}>{item.city} / {item.district}</Text>
-                            </View>
-                        </View>
-
-                        {/* 3. DETAILS ROW (Premium Chips) */}
-                        <View style={styles.detailBox}>
-                            <View style={styles.detailRow}>
-                                <View style={styles.detailIcon}>
-                                    <MaterialCommunityIcons name="home-group" size={18} color="#D4AF37" />
-                                </View>
-                                <View>
-                                    <Text allowFontScaling={false} style={styles.detailLabel}>HİZMET TİPİ</Text>
-                                    <Text allowFontScaling={false} style={styles.detailValue}>
-                                        {(item._tableName === 'elevator_requests' || item.fault_type) 
-                                            ? 'Asansör Arıza & Bakım' 
-                                            : 'Anahtar Teslim Tadilat'}
-                                    </Text>
-                                </View>
-                            </View>
-                            <View style={styles.hDivider} />
-
-                            <View style={styles.detailRow}>
-                                <View style={styles.detailIcon}>
-                                    <MaterialCommunityIcons name="file-document-outline" size={18} color="#D4AF37" />
-                                </View>
-                                <View>
-                                    <Text allowFontScaling={false} style={styles.detailLabel}>{activeTab === 'bids' ? 'SON TEKLİFİNİZ' : 'DURUM'}</Text>
-                                    <Text allowFontScaling={false} style={styles.detailValue}>
-                                        {activeTab === 'bids'
-                                            ? (item.my_offers && item.my_offers.length > 0
-                                                ? (item.my_offers[0].price_estimate ? item.my_offers[0].price_estimate.toLocaleString('tr-TR') + ' ₺' : 'Anahtar Teslim')
-                                                : 'Belirtilmedi')
-                                            : 'Aktif'}
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-
-                        {/* 4. ACTIONS */}
-                        <TouchableOpacity
-                            style={styles.bidButton}
-                            activeOpacity={0.8}
-                            onPress={() => antigravityNav.navigate(activeTab === 'bids' ? 'OfferDetail' : 'RequestDetail', {
-                                request: item,
-                                request_id: item.id,
-                                contractor_id: item.my_offers?.[0]?.contractor_id,
-                                type: 'construction',
-                                ...(activeTab === 'bids' ? { offers: item.my_offers, readOnly: true } : {}) // Pass ALL offers for this request
-                            })}
-                        >
+                    return (
+                        <View key={`${item.id}-${index}`} style={{ backgroundColor: '#161616', borderRadius: 14, borderWidth: 1, borderColor: '#2A2A2A', padding: 16, marginBottom: 16, flexDirection: 'row', gap: 16 }}>
+                            {/* Left Avatar (Premium Solid Gradient-like or darker gold) */}
                             <LinearGradient
-                                colors={['#D4AF37', '#FDCB58']} // Gold Gradient
-                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                                style={styles.gradientBtn}
+                                colors={['#8C6A30', '#D4AF37', '#8C6A30']}
+                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                                style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' }}
                             >
-                                <Text allowFontScaling={false} style={styles.bidButtonText}>{activeTab === 'bids' ? 'TEKLİFİ İNCELE' : 'DETAY EKRANINA GİT'}</Text>
-                                <MaterialCommunityIcons name="arrow-right" size={20} color="#000" />
+                                <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>
+                                    {item.user_id ? item.user_id.substring(0,2).toUpperCase() : 'M'}
+                                </Text>
                             </LinearGradient>
-                        </TouchableOpacity>
 
-                    </LinearGradient>
-                ))
+                            {/* Right Content */}
+                            <View style={{ flex: 1, justifyContent: 'center' }}>
+                                <Text allowFontScaling={false} style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16, marginBottom: 8 }}>
+                                    {projeTipi}
+                                </Text>
+
+                                {/* Location Info */}
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+                                    <Ionicons name="location" size={14} color="#D4AF37" />
+                                    <Text allowFontScaling={false} style={{ color: '#94a3b8', fontSize: 12, fontWeight: '600' }}>
+                                        {item.city || 'Belirtilmedi'} • {item.district || ''}
+                                    </Text>
+                                </View>
+
+                                {/* Actions Area */}
+                                <View style={{ flexDirection: 'row', gap: 8 }}>
+                                    {item.has_documents && (
+                                        <TouchableOpacity 
+                                            style={{ borderWidth: 1, borderColor: '#3A3A3C', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, justifyContent: 'center' }}
+                                            onPress={() => antigravityNav.navigate(activeTab === 'bids' ? 'OfferDetail' : 'RequestDetail', {
+                                                request: item,
+                                                request_id: item.id,
+                                                contractor_id: item.my_offers?.[0]?.contractor_id,
+                                                type: 'construction',
+                                                ...(activeTab === 'bids' ? { offers: item.my_offers, readOnly: true } : {})
+                                            })}
+                                        >
+                                            <Text allowFontScaling={false} style={{ color: '#E5E5EA', fontSize: 13 }}>Belgeler</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                    <TouchableOpacity 
+                                        style={{ flex: 1 }}
+                                        onPress={() => antigravityNav.navigate(activeTab === 'bids' ? 'OfferDetail' : 'RequestDetail', {
+                                            request: item,
+                                            request_id: item.id,
+                                            contractor_id: item.my_offers?.[0]?.contractor_id,
+                                            type: 'construction',
+                                            ...(activeTab === 'bids' ? { offers: item.my_offers, readOnly: true } : {})
+                                        })}
+                                    >
+                                        <LinearGradient
+                                            colors={['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30']}
+                                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                                            style={{ borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', flex: 1 }}
+                                        >
+                                            <Text allowFontScaling={false} style={{ color: '#000', fontWeight: 'bold', fontSize: 13 }}>{activeTab === 'bids' ? 'Teklifi İncele' : 'Talebi İncele'}</Text>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    );
+                })
             )}
         </View>
     );
