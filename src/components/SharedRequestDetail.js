@@ -621,9 +621,9 @@ const SharedRequestDetail = ({
                                                         else { navigation?.navigate('MainTabs', { screen: 'Inbox' }); }
                                                     }}
                                                 >
-                                                    <LinearGradient colors={['#D4AF37', '#E8890C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ paddingVertical: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-                                                        <Text allowFontScaling={false} style={{ color: '#000', fontSize: 15, fontWeight: '900', letterSpacing: 1.5 }}>TEKLİFLERİ İNCELE</Text>
-                                                        <MaterialCommunityIcons name="arrow-right-circle" size={22} color="#000" />
+                                                    <LinearGradient colors={isDarkMode ? ['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30'] : ['#A87B1E', '#8C6200']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingVertical: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                                                        <Text allowFontScaling={false} style={{ color: isDarkMode ? '#000' : '#FFF', fontSize: 15, fontWeight: '900', letterSpacing: 1.5 }}>TEKLİFLERİ İNCELE</Text>
+                                                        <MaterialCommunityIcons name="arrow-right-circle" size={22} color={isDarkMode ? '#000' : '#FFF'} />
                                                     </LinearGradient>
                                                 </TouchableOpacity>
                                             </View>
@@ -920,7 +920,7 @@ const SharedRequestDetail = ({
                             </View>
                         ) : (
                             <View style={styles.offersContainer}>
-                                <LinearGradient colors={['#1A1A1A', '#0A0A0A']} style={styles.offersHighlight}>
+                                <LinearGradient colors={isDarkMode ? ['#1A1A1A', '#0A0A0A'] : ['rgba(212,175,55,0.08)', 'rgba(212,175,55,0.02)']} style={styles.offersHighlight}>
                                     <Text allowFontScaling={false} style={styles.offersCountText}>
                                         <Text style={{ color: isDarkMode ? '#FFD700' : '#B8860B', fontSize: 24 }}>{constructionOffers.length}</Text> ADET TEKLİF ALINDI
                                     </Text>
@@ -945,9 +945,9 @@ const SharedRequestDetail = ({
                                             }
                                         }}
                                     >
-                                        <LinearGradient colors={['#FFD700', '#D4AF37']} style={styles.viewOffersGradient}>
-                                            <Text allowFontScaling={false} style={styles.viewOffersBtnText}>TEKLİFLERİ İNCELE</Text>
-                                            <Ionicons name="arrow-forward" size={18} color="#000" />
+                                        <LinearGradient colors={isDarkMode ? ['#8C6A30', '#D4AF37', '#F7E5A8', '#D4AF37', '#8C6A30'] : ['#A87B1E', '#8C6200']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.viewOffersGradient}>
+                                            <Text allowFontScaling={false} style={[styles.viewOffersBtnText, { color: isDarkMode ? '#000' : '#FFF' }]}>TEKLİFLERİ İNCELE</Text>
+                                            <Ionicons name="arrow-forward" size={18} color={isDarkMode ? '#000' : '#FFF'} />
                                         </LinearGradient>
                                     </TouchableOpacity>
                                 </LinearGradient>
@@ -1179,8 +1179,8 @@ const SharedRequestDetail = ({
                                         onPress={() => navigation?.navigate('MarketOffers', { request: { ...request, items }, bids })}
                                     >
                                         <LinearGradient
-                                            colors={['#D4AF37', '#E8890C']}
-                                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                                            colors={isDarkMode ? ['#FFD700', '#B8860B'] : ['#B8820F', '#8C6200']}
+                                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                                             style={{
                                                 paddingVertical: 18,
                                                 flexDirection: 'row',
@@ -1189,10 +1189,10 @@ const SharedRequestDetail = ({
                                                 gap: 12
                                             }}
                                         >
-                                            <Text allowFontScaling={false} style={{ color: '#000', fontSize: 16, fontWeight: '900', letterSpacing: 1.5 }}>
+                                            <Text allowFontScaling={false} style={{ color: isDarkMode ? '#000' : '#FFF', fontSize: 16, fontWeight: '900', letterSpacing: 1.5 }}>
                                                 TEKLİFLERİ GÖRÜNTÜLE
                                             </Text>
-                                            <MaterialCommunityIcons name="arrow-right-circle" size={24} color="#000" />
+                                            <MaterialCommunityIcons name="arrow-right-circle" size={24} color={isDarkMode ? '#000' : '#FFF'} />
                                         </LinearGradient>
                                     </TouchableOpacity>
                                 </View>

@@ -20,7 +20,7 @@ import {
     KeyboardAvoidingView,
     Platform
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import BuildingSchema from '../../components/BuildingSchema';
 import GlassCard from '../../components/GlassCard';
 import OfferSummaryCard from '../../components/OfferSummaryCard';
@@ -127,7 +127,20 @@ export default function OfferDetailScreen() {
         } else if (initialOffers.length > 0) {
             // If we have offers but no contractor profile yet (usually profile is joined)
             if (initialOffers[0].profiles) {
-                setContractor(initialOffers[0].profiles);
+                const prof = initialOffers[0].profiles;
+                setContractor(prof);
+                // Background fetch company name and custom_services
+                supabase.from('companies').select('company_name, custom_services').eq('owner_id', prof.id).single()
+                .then(({ data: compData }) => {
+                    if (compData) {
+                        let brandName = compData.company_name;
+                        try {
+                            const cs = typeof compData.custom_services === 'string' ? JSON.parse(compData.custom_services) : compData.custom_services;
+                            if (cs?.public_brand_name) brandName = cs.public_brand_name;
+                        } catch(e) {}
+                        setContractor(prev => ({ ...prev, company_name: brandName }));
+                    }
+                });
             } else {
                 // Fetch profile if missing
                 fetchContractorProfile();
@@ -135,10 +148,30 @@ export default function OfferDetailScreen() {
         }
     }, [request_id, contractor_id]);
 
+    useEffect(() => {
+        if (contractor) {
+            const displayName = contractor.company_name || contractor.full_name || 'Teklif';
+            navigation.setOptions({ headerTitle: displayName.toLocaleUpperCase('tr-TR') });
+        }
+    }, [contractor, navigation]);
+
     const fetchContractorProfile = async () => {
         if (!contractor_id) return;
         const { data } = await supabase.from('profiles').select('*').eq('id', contractor_id).single();
-        if (data) setContractor(data);
+        if (data) {
+            setContractor(data);
+            supabase.from('companies').select('company_name, custom_services').eq('owner_id', contractor_id).single()
+            .then(({ data: compData }) => {
+                if (compData) {
+                    let brandName = compData.company_name;
+                    try {
+                        const cs = typeof compData.custom_services === 'string' ? JSON.parse(compData.custom_services) : compData.custom_services;
+                        if (cs?.public_brand_name) brandName = cs.public_brand_name;
+                    } catch(e) {}
+                    setContractor(prev => ({ ...prev, company_name: brandName }));
+                }
+            });
+        }
     };
 
     const handleShareContact = async () => {
@@ -226,7 +259,18 @@ export default function OfferDetailScreen() {
             if (offersData && offersData.length > 0) {
                 setOffers(offersData);
                 if (offersData[0].profiles) {
-                    setContractor(offersData[0].profiles);
+                    const profile = offersData[0].profiles;
+                    // Fetch real company name from companies table
+                    const { data: companyData } = await supabase.from('companies').select('company_name, custom_services').eq('owner_id', profile.id).single();
+                    if (companyData) {
+                        let brandName = companyData.company_name;
+                        try {
+                            const cs = typeof companyData.custom_services === 'string' ? JSON.parse(companyData.custom_services) : companyData.custom_services;
+                            if (cs?.public_brand_name) brandName = cs.public_brand_name;
+                        } catch(e) {}
+                        profile.company_name = brandName;
+                    }
+                    setContractor(profile);
                 }
             }
 
@@ -468,7 +512,7 @@ export default function OfferDetailScreen() {
                         </View>
                         <View style={styles.firmMeta}>
                             <Text allowFontScaling={false} numberOfLines={1} style={styles.firmLabel}>
-                                {contractor?.company_name || contractor?.full_name || 'MÜTEAHHİT FİRMA'}
+                                YÜKLENİCİ FİRMA
                             </Text>
                             <View style={styles.nameRow}>
                                 <Text allowFontScaling={false} style={styles.firmName}>
@@ -494,7 +538,7 @@ export default function OfferDetailScreen() {
 
                     <TouchableOpacity 
                         style={styles.visitBtn}
-                        onPress={() => navigation.navigate('ProviderPublicProfile', { providerId: contractor?.id })}
+                        onPress={() => navigation.navigate('ProviderPublicProfile', { providerId: contractor?.id, fromOffer: true })}
                     >
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             <MaterialCommunityIcons name="store-outline" size={18} color={isDarkMode ? '#D4AF37' : '#8C6200'} style={{ marginRight: 8 }} />
@@ -716,7 +760,7 @@ export default function OfferDetailScreen() {
                         <Ionicons name="arrow-back" size={24} color={isDarkMode ? '#FFF' : theme.text} />
                     </TouchableOpacity>
                     <View style={{ alignItems: 'center' }}>
-                        <Text allowFontScaling={false} style={styles.headerTitle}>{contractor?.company_name?.toUpperCase() || contractor?.full_name?.toUpperCase() || 'MÜTEAHHİT'}</Text>
+                        <Text allowFontScaling={false} style={styles.headerTitle}>{(contractor?.company_name || contractor?.full_name || 'MÜTEAHHİT').toLocaleUpperCase('tr-TR')}</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                             <MaterialCommunityIcons name="check-decagram" size={14} color={isDarkMode ? '#D4AF37' : '#8C6200'} />
                             <Text allowFontScaling={false} style={{ color: isDarkMode ? '#BBB' : theme.textSecondary, fontSize: 11 }}>
@@ -811,7 +855,8 @@ export default function OfferDetailScreen() {
                     transparent={true} 
                     onRequestClose={() => setShowRequestModal(false)}
                 >
-                    <View style={{ flex: 1, backgroundColor: isDarkMode ? '#000' : theme.background }}>
+                    <SafeAreaProvider>
+                        <View style={{ flex: 1, backgroundColor: isDarkMode ? '#000' : theme.background }}>
                         <SharedRequestDetail
                             request={request}
                             type={request?.offer_type === 'anahtar_teslim_tadilat' ? 'construction' : 'construction'} // Handle mapping
@@ -822,7 +867,8 @@ export default function OfferDetailScreen() {
                                 goBack: () => setShowRequestModal(false)
                             }}
                         />
-                    </View>
+                        </View>
+                    </SafeAreaProvider>
                 </Modal>
 
                 {/* Phone Collection Modal */}

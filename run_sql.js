@@ -8,38 +8,42 @@ async function executeFile() {
     const sqlStr = `
         BEGIN;
 
-        -- Create the admin_audit_logs table
-        CREATE TABLE IF NOT EXISTS public.admin_audit_logs (
-            id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-            admin_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-            target_user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-            action_type TEXT NOT NULL,
-            details JSONB DEFAULT '{}'::jsonb,
+        CREATE TABLE IF NOT EXISTS public.provider_projects (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            provider_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+            title TEXT NOT NULL,
+            description TEXT,
+            photos TEXT[] DEFAULT '{}',
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         );
 
         -- Enable RLS
-        ALTER TABLE public.admin_audit_logs ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE public.provider_projects ENABLE ROW LEVEL SECURITY;
 
-        -- Create policy for Admins to INSERT
-        DROP POLICY IF EXISTS "Admins can insert audit logs" ON public.admin_audit_logs;
-        CREATE POLICY "Admins can insert audit logs" ON public.admin_audit_logs
-            FOR INSERT WITH CHECK (
-                EXISTS (
-                    SELECT 1 FROM public.profiles
-                    WHERE id = auth.uid() AND is_admin = true
-                )
-            );
+        -- Create Policies
+        DROP POLICY IF EXISTS "Anyone can view provider projects" ON public.provider_projects;
+        CREATE POLICY "Anyone can view provider projects" 
+            ON public.provider_projects FOR SELECT 
+            USING (true);
 
-        -- Create policy for Admins to SELECT (View)
-        DROP POLICY IF EXISTS "Admins can view audit logs" ON public.admin_audit_logs;
-        CREATE POLICY "Admins can view audit logs" ON public.admin_audit_logs
-            FOR SELECT USING (
-                EXISTS (
-                    SELECT 1 FROM public.profiles
-                    WHERE id = auth.uid() AND is_admin = true
-                )
-            );
+        DROP POLICY IF EXISTS "Providers can insert their own projects" ON public.provider_projects;
+        CREATE POLICY "Providers can insert their own projects" 
+            ON public.provider_projects FOR INSERT 
+            WITH CHECK (auth.uid() = provider_id);
+
+        DROP POLICY IF EXISTS "Providers can update their own projects" ON public.provider_projects;
+        CREATE POLICY "Providers can update their own projects" 
+            ON public.provider_projects FOR UPDATE 
+            USING (auth.uid() = provider_id) 
+            WITH CHECK (auth.uid() = provider_id);
+
+        DROP POLICY IF EXISTS "Providers can delete their own projects" ON public.provider_projects;
+        CREATE POLICY "Providers can delete their own projects" 
+            ON public.provider_projects FOR DELETE 
+            USING (auth.uid() = provider_id);
+
+        -- Create index for faster lookups
+        CREATE INDEX IF NOT EXISTS idx_provider_projects_provider_id ON public.provider_projects(provider_id);
 
         COMMIT;
     `;
@@ -51,7 +55,7 @@ async function executeFile() {
     try {
         await client.connect();
         const res = await client.query(sqlStr);
-        console.log("Policies:", res.rows);
+        console.log("Migration successful");
     } catch (err) {
         console.error('❌ SQL execution failed:', err.message);
     } finally {

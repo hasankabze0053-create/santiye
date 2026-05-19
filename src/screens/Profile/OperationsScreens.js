@@ -173,9 +173,8 @@ export const RequestsScreen = () => {
     );
 
     const loadRequests = async () => {
-        setLoading(true); // Start loading
-        setRequests([]); // Clear list to force refresh visual
-
+        // Only set loading if we don't have data yet, to avoid blocking UI on background refresh
+        if (requests.length === 0) setLoading(true); 
 
         try {
             const [marketData, constructionData, elevatorData] = await Promise.all([
