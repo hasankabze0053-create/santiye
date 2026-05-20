@@ -1,3 +1,4 @@
+require('dotenv').config({ path: '.env' });
 const { Client } = require('pg');
 const fs = require('fs');
 const path = require('path');
@@ -5,7 +6,7 @@ const path = require('path');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // Configuration from migrate.js
-const connectionString = 'postgresql://postgres.nxsjokupnsaeemtnlexf:Cs1907Kz0354@aws-1-eu-central-1.pooler.supabase.com:6543/postgres';
+const connectionString = process.env.SUPABASE_DB_URL;
 const migrationFile = path.join(__dirname, '..', 'supabase', 'migrations', '20260220_add_company_name_to_profiles.sql');
 
 async function runMigration() {

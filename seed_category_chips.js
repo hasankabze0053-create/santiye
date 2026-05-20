@@ -1,6 +1,7 @@
+require('dotenv').config({ path: '.env' });
 const { Client } = require('pg');
 
-const connectionString = 'postgresql://postgres.nxsjokupnsaeemtnlexf:Cs1907Kz0354@aws-1-eu-central-1.pooler.supabase.com:6543/postgres';
+const connectionString = process.env.SUPABASE_DB_URL;
 
 const defaults = [
     { id: 'category_chip_urban', title: 'KENTSEL DÖNÜŞÜMm', metadata: { route: 'KentselDonusum' }, is_visible: true, sort_order: 1, screen_id: 'HomeScreen' },

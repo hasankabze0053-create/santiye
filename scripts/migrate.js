@@ -1,3 +1,4 @@
+require('dotenv').config({ path: '.env' });
 
 const { Client } = require('pg');
 const fs = require('fs');
@@ -5,7 +6,7 @@ const path = require('path');
 
 // Configuration
 // ⚠️ Using the Transaction Pooler (IPv4 Compatible) as provided by the user
-const CONNECTION_STRING = 'postgresql://postgres.nxsjokupnsaeemtnlexf:Cs1907Kz0354@aws-1-eu-central-1.pooler.supabase.com:6543/postgres';
+const CONNECTION_STRING = process.env.SUPABASE_DB_URL;
 const MIGRATIONS_DIR = path.join(__dirname, '..', 'supabase', 'migrations');
 
 async function migrate() {

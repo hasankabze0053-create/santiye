@@ -1,10 +1,11 @@
+require('dotenv').config({ path: '.env' });
 const { Client } = require('pg');
 
 const client = new Client({
   host: 'aws-0-eu-central-1.pooler.supabase.com',
   port: 5432,
   user: 'postgres.nxsjokupnsaeemtnlexf',
-  password: 'Cs1907Kz0354',
+  password: process.env.SUPABASE_DB_URL ? new URL(process.env.SUPABASE_DB_URL).password : '',
   database: 'postgres',
   ssl: {
     rejectUnauthorized: false

@@ -1,5 +1,6 @@
+require('dotenv').config({ path: '.env' });
 const { Client } = require('pg');
-const connectionString = 'postgresql://postgres.nxsjokupnsaeemtnlexf:Cs1907Kz0354@aws-1-eu-central-1.pooler.supabase.com:6543/postgres';
+const connectionString = process.env.SUPABASE_DB_URL;
 
 async function query() {
     const client = new Client({ connectionString, ssl: { rejectUnauthorized: false } });
